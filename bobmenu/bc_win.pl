@@ -2,8 +2,6 @@
 
 $DLG = "/usr/bin/dialog";
 
-do 'bc_util.pl';
-do 'snd_util.pl';
 
 sub
 invalidBarcode_win
@@ -84,14 +82,14 @@ barcode_action_win
   my $balance = &bob_db_get_balance($userid);
   my $numbought = 0;
 
-  my $username = &bob_db_get_username_from_userid;
-
   my $balanceString = "";
   if ($balance < 0.0) {
     $balanceString = sprintf("owe Bob \\\$%.2f", -$balance);
   } else {
     $balanceString = sprintf("have a credit balance of \\\$%.2f", $balance);
   }
+
+  my $username = bob_db_get_username_from_userid($userid);
 
   my $msg = "";
   if (-r "/tmp/message") {
@@ -157,13 +155,13 @@ The transaction will not be recorded until then. \n
         next;
       } 
 
-      $phonetic_name = &bob_db_get_phoneticname_from_barcode($prod_barcode);
+      $phonetic_name = &bob_db_get_phonetic_name_from_barcode($prod_barcode);
       $price = &bob_db_get_price_from_barcode($prod_barcode);
 
       if ($prodname eq "Done") {
         # Record all transactions at once
         &saytotal($total);
-        &bob_db_update_stock(@purchase);
+        &bob_db_update_stock(-1, @purchase);
         &bob_db_update_balance($userid, -$total, "BUY");
         &sayit("goodbye, $username!");
         return;

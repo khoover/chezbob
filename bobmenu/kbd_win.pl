@@ -66,7 +66,8 @@ askStartNew_win
   my $win_textFormat = q{
 I did not find you in our database.  Shall I open
 up a new Chez Bob record under the name \"%s\"
-for you?};
+for you?
+};
 
   while (1) {
     if (system("$DLG --title \"$win_title\" --clear --yesno \"" .
@@ -130,15 +131,6 @@ sub
 initBalance_win
 {
   my ($userid) = @_;
-  my $win_title = "Initial balance";
-  my $win_text = q{
-Now, we will transfer balance information from
-your Chez Bob index card to the database.
-
-Do you currently *OWE* Bob money?
-};
-
-  # MAC: deprecated window?
   &bob_db_init_balance($userid);
   return 0;
 }
@@ -211,7 +203,7 @@ Choose one of the following actions (scroll down for more options):};
     chop($msg = `cat /tmp/message`);
   }
 
-  $retval =
+  my $retval =
     system("$DLG --title \"$win_title\" --clear --menu \"" .
 	   sprintf($win_textFormat, $username,
 		   $balanceString, "", $msg) .
@@ -508,3 +500,73 @@ confirm_win
 }
 
 
+sub
+kbd_action_win
+{
+  my ($userid, $username) = @_;
+
+  my $action = "";
+  do {
+    #
+    # refresh the balance
+    #
+    my $balance = &bob_db_get_balance($userid);
+    if (! defined $balance) {
+      print "MAIN: no balance from database...exiting.\n";
+      exit 1;
+    }
+
+    #
+    # get the action
+    #
+    $action = &action_win($username,$userid,$balance);
+
+    $_ = $action;
+   SWITCH: {
+     /^Add$/ && do {
+       &add_win($userid);
+       last SWITCH;
+     };
+  
+     (/^Candy\/Can of Soda$/ || /^Snapple$/ || /^Juice$/ ||
+      /^Popcorn\/Chips\/etc.$/) && do {
+       &buy_win($userid,$_);
+       last SWITCH;
+     };
+  
+     /^Buy Other$/ && do {
+       &buy_win($userid);
+       last SWITCH;
+     };
+  
+     /^Message$/ && do {
+       &message_win($username, $userid);
+       last SWITCH;
+     };
+  
+     /^Transactions$/ && do {
+       &log_win($userid);
+       last SWITCH;
+     };
+  
+     /^Modify Barcode$/ && do {
+       &barcode_win($userid);
+       last SWITCH;
+     };
+  
+     /^Modify Password$/ && do {
+       &pwd_win($userid);
+       last SWITCH;
+     };
+  
+     /^No action$/ && do {
+       last SWITCH;
+     };
+  
+     (! /^Quit$/) && do {
+       &unimplemented_win();
+       last SWITCH;
+     };
+   } # SWITCH
+  } while ($action ne "Quit");
+} 
