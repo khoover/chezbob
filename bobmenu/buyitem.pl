@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.23 2002-08-16 21:07:56 alsu Exp $
+# $Id: buyitem.pl,v 1.24 2002-09-18 18:14:21 alsu Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -115,9 +115,11 @@ buy_single_item_with_scanner
     # Marvin McNett -- 1191
     # Vic Gidofalvi -- 1261
     # Wenjing Rao -- 1349
+    # Mike McCracken -- 1347
     if ($userid != 1001 && $userid != 1174 &&
         $userid != 1181 && $userid != 1191 &&
-        $userid != 1261 && $userid != 1349)
+        $userid != 1261 && $userid != 1349 &&
+        $userid != 1347)
     {
       return "";
     }
