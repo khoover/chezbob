@@ -6,7 +6,7 @@
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.12 2001-05-24 21:34:17 mcopenha Exp $
+# $Id: mainmenu.pl,v 1.13 2001-05-25 04:18:51 mcopenha Exp $
 #  
 
 require "passwd.pl";
@@ -42,7 +42,7 @@ MAINLOOP:
     #
     my $balance = &bob_db_get_balance($userid);
     if ($balance == $NOT_FOUND) {
-      &report_fatal("mainmenu(): no balance from database.\n");
+      &report_fatal("mainmenu: no balance from database.\n");
     }
 
     $action = &action_win($username,$userid,$balance,$last_purchase);
@@ -121,7 +121,7 @@ MAINLOOP:
     };
    
     (! /^Quit$/) && do {
-      &unimplemented_win();
+      &unimplemented_win;
       last SWITCH;
     };
     
@@ -143,7 +143,7 @@ sub
 action_win
 {
   my ($username,$userid,$balance,$last_purchase) = @_;
-  my $win_title = "Main menu";
+  my $win_title = "Main Menu";
   my $win_textFormat = q{
 Welcome, %s!
 

@@ -2,7 +2,7 @@
 #
 # Routines for adding money to a chez bob account
 #
-# $Id: deposit.pl,v 1.4 2001-05-22 03:29:31 mcopenha Exp $
+# $Id: deposit.pl,v 1.5 2001-05-25 04:18:51 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -49,7 +49,7 @@ How much was deposited into the Bank of Bob?};
       &bob_db_update_balance($userid, $amt, "ADD");
       return $amt;
     } else {
-      &invalid_deposit_win();
+      &invalid_deposit_win;
     }
   }
 }

@@ -2,7 +2,7 @@
 #
 # Routines for processing login names, both text and barcode
 #
-# $Id: login.pl,v 1.7 2001-05-23 00:06:17 mcopenha Exp $
+# $Id: login.pl,v 1.8 2001-05-25 04:18:51 mcopenha Exp $
 #
 
 $MIN_BARCODE_LENG = 6;
@@ -38,8 +38,8 @@ process_login
 
   if ($checkpass) {
     my $pwd = &bob_db_get_pwd($userid);
-    if (defined $pwd && &checkPwd($pwd, &guess_pwd_win()) == 0) {
-      &invalidPassword_win();
+    if (defined $pwd && &checkPwd($pwd, &guess_pwd_win) == 0) {
+      &invalidPassword_win;
       return;
     } 
   }
@@ -84,12 +84,12 @@ isa_valid_username
 sub
 invalidUsername_win
 {
-  my $win_title = "Invalid username";
+  my $win_title = "Invalid Username";
   my $win_text = q{
-Valid usernames must contain at least one
-letter and cannot have any digits.};
+Valid usernames must contain at least 
+one letter and cannot have any digits.};
 
-  system("$DLG --title \"$win_title\" --msgbox \"" .
+  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
          $win_text .  "\" 9 45 2> /dev/null");
 }
 
@@ -117,11 +117,11 @@ invalid_user_barcode_win
 {
   my $win_title = "Invalid User Barcode";
   my $win_text = q{
-Valid user barcodes must contain at least 
-%d digits and no characters.};
+Valid user barcodes must contain at 
+least %d digits and no characters.};
 
-  system("$DLG --title \"$win_title\" --msgbox \"" .
-	 sprintf($win_text, $MIN_BARCODE_LENG) .  "\" 9 50 2> /dev/null");
+  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
+	 sprintf($win_text, $MIN_BARCODE_LENG) .  "\" 9 45 2> /dev/null");
 }
 
 
@@ -136,8 +136,8 @@ and choose the 'Barcode ID' option to change your user
 barcode.  If you're a new user you'll need to first
 create a new account by entering a valid username.};
 
-  system("$DLG --title \"$win_title\" --msgbox \"" .
-	 $win_text .  "\" 11 60 2> /dev/null");
+  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
+	 $win_text .  "\" 11 62 2> /dev/null");
 }
 
 1;

@@ -2,7 +2,7 @@
 #
 # Routines for processing a new user: create db entry, ask for email 
 # 
-# $Id: newuser.pl,v 1.3 2001-05-22 03:29:31 mcopenha Exp $
+# $Id: newuser.pl,v 1.4 2001-05-25 04:18:51 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -32,7 +32,7 @@ for you?};
       next;
     }
     if ($email !~ /^[^\s]+@[^\s]+$/) {
-      &invalidEmail_win();
+      &invalidEmail_win;
       next;
     }
 

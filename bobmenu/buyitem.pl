@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.9 2001-05-25 03:56:47 mcopenha Exp $
+# $Id: buyitem.pl,v 1.10 2001-05-25 04:18:51 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -62,7 +62,7 @@ What is the price of the item you are buying?
         last;
       }
 
-      &invalid_purchase_win();
+      &invalid_purchase_win;
     }
   }
 
@@ -86,7 +86,7 @@ invalid_purchase_win
 Valid amounts are positive numbers with up
 to two decimal places of precision.};
 
-  system("$DLG --title \"$win_title\" --msgbox \"" .
+  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
          $win_text .  "\" 8 50 2> /dev/null");
 }
 
@@ -136,7 +136,7 @@ buy_with_cash
 # return the name of the product purchased.  
 #
 {
-  my $barcode = &get_barcode_win(); 
+  my $barcode = &get_barcode_win; 
   if (!defined $barcode) {
     # user canceled
     return "";
@@ -168,12 +168,12 @@ buy_with_cash
 sub
 invalid_product_barcode_win
 {
-  my $win_title = "Invalid User Barcode";
+  my $win_title = "Invalid Product";
   my $win_text = q{
 This is an invalid product barcode.};
 
-  system("$DLG --title \"$win_title\" --msgbox \"" .
-	 $win_text .  "\" 9 50 2> /dev/null");
+  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
+	 $win_text .  "\" 7 42 2> /dev/null");
 }
 
 1;
