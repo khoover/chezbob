@@ -1,5 +1,5 @@
 /*
- * $Id: dialog.c,v 1.1 2001-05-17 18:46:10 mcopenha Exp $
+ * $Id: dialog.c,v 1.2 2001-05-17 18:56:48 mcopenha Exp $
  *
  *  cdialog - Display simple dialog boxes from shell scripts
  *
@@ -298,8 +298,13 @@ j_menu(JUMPARGS)
     if (ret >= 0) {
 	fprintf(dialog_vars.output, av[5 + ret * MENUBOX_TAGS]);
 	return 0;
-    } else if (ret == -2)
+    } else if (ret == -2) {
 	return 1;		/* CANCEL */
+    } else if (ret == -3) {
+      /* MAC */
+      fprintf(dialog_vars.output, "DIGITS");
+      return 0;
+    }
     return ret;			/* ESC pressed, ret == -1 */
 }
 

@@ -1,5 +1,5 @@
 /*
- *  $Id: menubox.c,v 1.1 2001-05-17 18:46:10 mcopenha Exp $
+ *  $Id: menubox.c,v 1.2 2001-05-17 18:56:47 mcopenha Exp $
  *
  *  menubox.c -- implements the menu box
  *
@@ -79,6 +79,11 @@ dialog_menu(const char *title, const char *cprompt, int height, int width,
     WINDOW *dialog, *menu;
     char *prompt = strclone(cprompt);
     const char **buttons = dlg_ok_labels();
+
+/* MAC */
+    int digits = FALSE;
+    FILE* fp = NULL;
+    fp = fopen("/tmp/menuout", "w");
 
     tab_correct_str(prompt);
     if (menu_height == 0) {
@@ -213,8 +218,10 @@ dialog_menu(const char *title, const char *cprompt, int height, int width,
 	    && (key <= '9')
 	    && (key > '0')
 	    && (key - '1' <= max_choice)) {
-	    found = TRUE;
-	    i = key - '1';
+fprintf(fp, "%c", key);
+	 /*   found = TRUE;
+	    i = key - '1'; */
+           digits = TRUE;
 	}
 
 	if (!found) {
@@ -351,9 +358,17 @@ dialog_menu(const char *title, const char *cprompt, int height, int width,
 	    break;
 	case '\n':
 	    (void) delwin(dialog);
-	    return (button ? -2 : (scrollamt + choice));
+            if (digits) {
+                fclose(fp);
+                return -3;
+            } else {
+	        return (button ? -2 : (scrollamt + choice));
+            }
 	}
     }
+
+/* MAC */
+    fclose(fp);
 
     (void) delwin(dialog);
     return -1;			/* ESC pressed */
