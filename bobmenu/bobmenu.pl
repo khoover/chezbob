@@ -1,27 +1,36 @@
 #!/usr/bin/perl -w
 
-# bobmenu.pl
+# chezbob.pl
 # 
-# Main routine for Chez Bob.  
+# Main routine for Chez Bob.  There are currently three ways to log into 
+# the system:
+# 1. Buy with cash barcode: The user scans this barcode if they plan to
+#    pay for their item with cash.  The user is then prompted to scan the 
+#    barcode of the product they are purchasing, and the system updates 
+#    the stock of that particular product.
+# 2. Personal Barcode: The user scans his/her id card, or personal barcode.
+# 3. Username: The user types in their standard username.
 #
-# Al Su (alsu@cs.ucsd.edu)
-# Michael Copenhafer (mcopenha@cs.ucsd.edu)
-# 
-# $Id: bobmenu.pl,v 1.34 2001-05-18 00:54:05 mcopenha Exp $
+# $Id: bobmenu.pl,v 1.36 2001-05-28 00:05:37 mcopenha Exp $
 #
 
-require "bc_win.pl";	# barcode login windows
-require "kbd_win.pl";	# keyboard login windows
-require "bc_util.pl";	# barcode utils
-require "snd_util.pl";	# speech utils
+# Make sure Perl can find all of our files by appending INC with the 
+# path to the 'chezbob' executable.
+open(FILE, "which $0 |") || die "can't do which $0: $!\n";
+my $fullpath = <FILE>;
+close(FILE) || die "can't close\n";
+$BOBPATH = substr($fullpath, 0, rindex($fullpath, '/'));
+push(@INC, $BOBPATH);
+
+$CASH_BARCODE = "888888";
+
+require "login.pl";	# login_win
 require "bob_db.pl";	# database routines
-
-my $DLG = "./bobdialog";
-my $NOT_FOUND = -1;
-$CANCEL = -1;
+require "buyitem.pl";   # buy routines
+require "dlg.pl";
 
 
-$REVISION = q{$Revision: 1.34 $};
+$REVISION = q{$Revision: 1.36 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -29,80 +38,28 @@ if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
 }
 
 print "rev is $REVISION\n";
-
 &bob_db_connect;
+&speech_startup;
 
 do {
   $logintxt = &login_win($REVISION);
 } while ($logintxt eq "");
 
-# Check if we're dealing with a user barcode or regular username
 my $barcode = &preprocess_barcode($logintxt); 
-if (&isa_valid_user_barcode($barcode)) {
+if ($barcode eq $CASH_BARCODE) {
+  &buy_with_cash;
+} elsif (&isa_valid_user_barcode($barcode)) {
   my $username = &bob_db_get_username_from_userbarcode($barcode);
   if (defined $username) {
-    &kbd_login($username);
+    &process_login($username, 0);
   } else {
     &user_barcode_not_found_win;
   }
 } elsif (&isa_valid_username($logintxt)) {
-  &kbd_login($logintxt);
+  &process_login($logintxt, 1);
 } else {
-  &invalidUsername_win();
+  &invalidUsername_win;
 } 
 
-# Make sure any temp input files are gone. We can run into permission
-# problems if multiple people are trying to run Bob on the same system.
-system("rm -f input.*");
-system("rm -f *.output.log");
-system("rm -f menuout");
-
-
-sub
-login_win
-{
-  my ($rev) = @_;
-
-  my $username = "";
-  my $win_title = "Bank of Bob 2001 (v.$rev)";
-  my $win_text = q{
-Welcome to the B.o.B. 2K!
-
-
-Enter your username or scan your personal barcode. 
-(If you are a new user enter a new username):
-};
-
-  if (system("$DLG --backtitle \"Chez Bob 2001\" --title \"$win_title\" --clear --cr-wrap --inputbox \"" .  $win_text .  "\" 14 55 \"$username\" 2> input.main") != 0) {
-    return "";
-  }
-
-  return `cat input.main`;
-}
-
-
-sub
-kbd_login
-{
-  my ($username) = @_;
-  my $userid = &bob_db_get_userid_from_username($username);
-
-  if ($userid == $NOT_FOUND) {
-    # New user!
-
-    if (&askStartNew_win($username) == $CANCEL) {
-      return;
-    }
-
-    # Get the new userid
-    $userid = &bob_db_get_userid_from_username($username);
-    &bob_db_init_balance($userid);
-  }
-
-  $pwd = &bob_db_get_pwd($userid);
-  if (defined $pwd && &checkPwd($pwd, &guess_pwd_win()) == 0) {
-    &invalidPassword_win();
-  } else {
-    &kbd_action_win($userid, $username);
-  }
-}
+&remove_tmp_files;
+&speech_shutdown;
