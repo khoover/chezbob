@@ -1,0 +1,8 @@
+<hr height='1'>
+<table align='center'>
+<tr><td>
+  <a href="/cse190/group18/bin/intro.htm">login</a> -
+  <a href="/cse190/group18/php/get.php?get=products">products</a> - 
+  <a href="/cse190/group18/php/get.php?get=press">press releases</a> - 
+  <a href="/cse190/group18/php/get.php?get=jobs">employment</a>
+</td></tr></table>
