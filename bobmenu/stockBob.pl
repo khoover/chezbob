@@ -447,7 +447,8 @@ changePrice
     my $newBarcode = "0";
     
     my $win_title = "Stock Manager: Change Price";
-    my $win_text = "Enter the barcode of the product you want to change the PRICE of.";
+    my $win_text = "Enter the barcode of the product you want to change".
+	"the PRICE of.";
 
     while (1) {
 	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
@@ -487,15 +488,20 @@ changePrice
 	    my $price = $result->getvalue(0,1);
 	    # Then create the confirmation box
 	    $win_title = "Changing the PRICE of $name";
-	    $win_text = "Change the PRICE of $name from $price to what?"; 
-	    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-		       $win_text .
-		       "\" 8 55 2> /tmp/input.name") != 0) {
-		return "";
-	    }	    
+	    $win_text = "Change the PRICE of $name from $price to what?\n".
+		"(Has to be in decimal format: D.XX)"; 
 
-	    my $newPrice = `cat /tmp/input.name`;
-	    system("rm -rf /tmp/input.name");
+	    my $newPrice = "";
+	    do {
+		if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+			   $win_text .
+			   "\" 8 55 2> /tmp/input.name") != 0) {
+		    return "";
+		}	    
+		
+		$newPrice = `cat /tmp/input.name`;
+		system("rm -rf /tmp/input.name");
+	    } while ($newPrice !~ /^\d*\.\d{0,2}$/);
 
 	    my $updatequeryFormat = q{
 		update products
@@ -510,7 +516,7 @@ changePrice
 		exit 1;
 	    }
 	    $win_title = "Changed the Price From $price to $newPrice";
-	    $win_text = "Changed the name from:\n$price => $newPrice";
+	    $win_text = "Changed the price of $name from:\n$price => $newPrice";
 
 	    system("$DLG --title \"$win_title\" --clear --msgbox \"" .
 		   $win_text .
@@ -534,20 +540,26 @@ mainMenu
 	system("$DLG --title \"$win_title\" --clear --menu \"" .
 	       "$win_textFormat".
 	       "\" 14 64 8 " .
-	       "\"Restock\" " .
-	       "\"RESTOCK Chez Bob Inventory \" " .
+	       "\"Stock\" " .
+	       "\"STOCK Chez Bob Inventory \" " .
 	       "\"Change Price\" " .
 	       "\"Change the PRICE of a Chez Bob product \" " .
 	       "\"Change Name\" " .
 	       "\"Change the NAME of a Chez Bob product \" " .
 	       "\"Delete\" " .
 	       "\"DELETE a Chez Bob product \" " .
+	       "\"Inventory\" " .
+	       "\"Turn inventory system on or off \" " .
 	       "\"Quit\" " .
 	       "\"QUIT this program\" " .
 	       " 2> /tmp/input.action");
     
     my $action = `cat /tmp/input.action`;
     system("rm -f /tmp/input.*");
+    if ($action eq "")
+    {
+	$action = "Quit";
+    }
     return $action;
 }
 
@@ -571,7 +583,7 @@ while ($action ne "Quit") {
     if ($action eq "Delete") {
 	&deleteProduct($conn);
     }
-    elsif ($action eq "Restock") {
+    elsif ($action eq "Stock") {
 	&enterBarcode($conn);
     }
     elsif ($action eq "Change Name") {
@@ -579,5 +591,8 @@ while ($action ne "Quit") {
     }
     elsif ($action eq "Change Price") {
 	&changePrice($conn);
+    }
+    elsif ($action eq "Inventory") {
+	
     }
 }
