@@ -10,7 +10,7 @@
 # Wesley Leong (wleong@cs.ucsd.edu)
 # Created: 5/2/01
 #
-# $Id: stockBob.pl,v 1.8 2001-05-21 18:45:28 mcopenha Exp $
+# $Id: stockBob.pl,v 1.9 2001-05-22 23:34:04 mcopenha Exp $
 #
 
 # Make sure Perl can find all of our files by appending INC with the 
@@ -184,13 +184,9 @@ newBulk_win
 	    return "";
 	}
 	$quan = `cat ./input.product`;
-	if(!&isa_numeric_barcode($quan)) {
-	    &errorBarcode();
-	} else {
-	    push (@entities, $prodbarcode);
-	    push (@entities, $quan);
-	    $done = 1;
-	}
+	push (@entities, $prodbarcode);
+	push (@entities, $quan);
+	$done = 1;
     }
     &bob_db_insert_bulk_item($newBarcode, $newName, $prodbarcode, $quan);
   }

@@ -39,3 +39,8 @@ psql bob -f SQL/products_table.sql
 # the bulk_items table
 #
 psql bob -f SQL/bulk_items.sql
+
+#
+# the books table
+#
+psql bob -f SQL/books.sql
