@@ -5,6 +5,17 @@ use Pg;
 $DLG = "/usr/bin/dialog";
 
 ###############################################################################
+# stockBob.pl
+#
+# DESCRIPTION:
+# Perl script that offers a quick way to insert new products
+# and update the inventory of existing products.
+# This specific module/program does not allow the change of pricing or naming
+# of an existing product.
+###############################################################################
+
+
+###############################################################################
 # SUBROUTINES
 ###############################################################################
 
@@ -15,24 +26,28 @@ isa_barcode
     my ($rawInput) = @_;
     if ($rawInput =~ /^\.C/)
     {
-	return 1;
-    } else {
-	return 0;
-    }   
+	my @getParsed = split /\./,$rawInput;
+	my $numToken = @getParsed;
+	if ($numToken == 4) {
+	    return 1;
+	}
+    }
+    return 0;
 }
 
 sub
 decode_barcode {
     my ($rawInput) = @_;
 
-    split
-    printf "Serial: %s  Type: %s  Code: %s\n",
-    map {
-        tr/a-zA-Z0-9+-/ -_/;
-        $_ = unpack 'u', chr(32 + length() * 3/4) . $_;
-        s/\0+$//;
-        $_ ^= "C" x length;
-    } /\.([^.]+)/g;
+    # this skips the barcode type stuff.
+    my @getParsed = split /\./,$rawInput;
+    my $rawBarcode = $getParsed[3];
+    $rawBarcode =~ tr/a-zA-Z0-9+-/ -_/;
+    $rawBarcode = unpack 'u', chr(32 + length($rawBarcode) * 3/4) 
+	. $rawBarcode;
+    $rawBarcode =~ s/\0+$//;
+    $rawBarcode ^= "C" x length($rawBarcode);
+    return $rawBarcode;
 }
 
 ########################################
@@ -147,7 +162,23 @@ oldProduct_win
       return "";
   }
 
+  my $newStock = `cat /tmp/input.product`;
+  system("rm -rf /tmp/input.product");
+
   # check the number and update the database.
+  my $updatequeryFormat = q{
+      update products
+	  set stock = %d
+	      where barcode = '%s';
+  };
+
+  my $result = $conn->exec(sprintf($updatequeryFormat,
+				   $newStock,
+				   $newBarcode));
+  if ($result->resultStatus != PGRES_COMMAND_OK) {
+      print STDERR "add_win: error updating record...exiting\n";
+      exit 1;
+  }
 }
 
 
@@ -160,10 +191,10 @@ enterBarcode
     my ($conn) = @_;
     my $guess = "0";
     my $newBarcode = "0";
-
+    
     $win_title = "Stock Manager: Enter Barcode";
     $win_text = "Enter the Barcode of a Product";
-
+    
     while (1) {
 	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 		   $win_text .
@@ -174,7 +205,7 @@ enterBarcode
 	$guess = `cat /tmp/input.barcode`;
 	system("rm -f /tmp/input.barcode");
 	if (&isa_barcode($guess)) {
-	    $newBarcode = &decode_barcode($guess);      
+	    $newBarcode = &decode_barcode($guess); 
 	    my $selectqueryFormat = q{
 		select *
 		    from products
@@ -193,17 +224,18 @@ enterBarcode
 				$name,
 				$price,
 				$stock);
-		return $newBarcode;		
-	    }
+		#return $newBarcode;
+	    } else {
 	    # product now found... enter new product;
-	    &newProduct_win($conn, $newBarcode);
-	    return $newBarcode;
-	}
-	# case where barcode is not a barcode...
-	&errorBarcode();
+		&newProduct_win($conn, $newBarcode);
+		#return $newBarcode;
+	    }
+	} else {
+	    # case where barcode is not a barcode...
+	    &errorBarcode();
+        }
     }
 }
-
 
 ###############################################################################
 # MAIN PROGRAM
