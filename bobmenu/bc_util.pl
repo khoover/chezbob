@@ -13,7 +13,7 @@
 # particular scanner was chosen for 2 reasons: first, it uses a simple
 # keyboard (ps/2) interface and therefore doesn't require any special
 # software.  Secondly, it's triggerless; it uses an infrared sensor to 
-# detect when an object is nearby, and then activate the laser.
+# detect when an object is nearby and then activate the laser.
 #
 # Interestingly, we can exploit the encoded stream of the Cuecat to 
 # determine whether we're dealing with barcode or keyboard input (well, 
@@ -29,7 +29,7 @@
 # Wesley Leong (wleong@cs.ucsd.edu)
 # Created: 5/12/00
 #
-# $Id: bc_util.pl,v 1.4 2001-05-14 06:47:33 mcopenha Exp $
+# $Id: bc_util.pl,v 1.5 2001-05-14 07:03:24 mcopenha Exp $
 #
 
 sub
@@ -59,11 +59,11 @@ isa_barcode
 sub
 isa_regular_barcode
 #
-# Return 1 if input begins with a number; return 0 otherwise
+# Return 1 if input consists entirely of digits
 #
 {
   my ($barcode) = @_;
-  return ($barcode =~ /^[0-9]/);
+  return ($barcode =~ /^\d+$/);
 }
 
 
