@@ -1,42 +1,45 @@
 #
-#	Routine to report error to system admin.
-#	Exit with status 1.
+# Routine to report error to system admin.
+# Exit with status 1.
 #
 
-use Time::localtime;
+#use Time::localtime;
+require "ctime.pl";
+
+$ADMIN = 'chpham@danger-132.ucsd.edu';
+
+sub
+report_fatal
+{
+}
+
+sub
+report_msg
+{
+}
 
 #------------------------------------------------------------------------------ 
 # report()
 #
-#	Report errors to system admin.
+# Email system admin.
 #------------------------------------------------------------------------------ 
 sub report 
 {
-	my ($mesg) =  @_ ;
+ my ($mesg) =  @_ ;
 
-	my $lt = localtime();
-	my ($hour, $min, $sec) = ($lt->hour, $lt->min, $lt->sec);
-	my $fname = "mesg.${hour}${min}${sec}.tmp";
+ my $MAIL = '/bin/mail';
+ my $fname = "/tmp/email$$";
+ my $subject = 'Chez Bob Database problem';
 
-	my $MAIL = '/bin/mail';
-	my $ADMIN = 'chpham@danger-132.ucsd.edu';
-	my $subject = 'Chez Bob Database problem';
+ open(MESG, ">$fname") || die "can't open $fname: $!\n";
+ print MESG &ctime(time), "\n\n";
+ print MESG "$mesg";
+ close(MESG);
 
-	unless (open(MESG, ">$fname"))
-	{
-    	print "ERR: failed to create $fname";
-		exit 1;
-	} 
-	else 
-	{
-		print MESG &ctime(), "\n\n";
-		print MESG "$mesg";
-	}
-	close(MESG);
+ system("$MAIL -s \"$subject\" $ADMIN < $fname");
+ unlink($fname);
 
-	system("$MAIL -s \"$subject\" $ADMIN < $fname");
-	unlink($fname);
-
-	exit 1;
+ exit 1;
 }
+
 1;
