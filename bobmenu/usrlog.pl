@@ -2,7 +2,7 @@
 #
 # A Routine for displaying the user's past transactions.
 # 
-# $Id: usrlog.pl,v 1.1 2001-05-18 05:41:44 mcopenha Exp $
+# $Id: usrlog.pl,v 1.2 2001-05-21 21:21:19 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -13,7 +13,7 @@ log_win
 {
   my ($userid) = @_;
   my $win_title = "Transactions";
-  my $logfile = "$userid.output.log";
+  my $logfile = "/tmp/$userid.output.log";
 
   &bob_db_log_transactions($userid, $logfile);
 
