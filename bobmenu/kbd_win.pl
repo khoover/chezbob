@@ -10,45 +10,6 @@ $PRICES{"Popcorn/Chips/etc."} = 0.30;
 ################################ MAIN WINDOW ################################
 
 sub
-login_win
-{
-  my ($rev) = @_;
-
-  my $username = "";
-  my $win_title = "Bank of Bob 2001 (v.$rev)";
-  my $win_text = q{
-Welcome to the B.o.B. 2K!
-
-
-Enter your username or scan your personal barcode. 
-(If you are a new user enter a new username):};
-
-  while (1) {
-    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-	       $win_text .
-	       "\" 14 55 \"$username\" 2> /tmp/input.main") != 0) {
-      print "empty\n";
-      return "";
-    }
-
-    $username = `cat /tmp/input.main`;
-    system("rm -f /tmp/input.*");
-
-    # MAC: check if we're dealing with a regular username or a barcode
-    if (&isa_barcode($username)) {
-      return $username;
-    } elsif (isa_valid_username($username)) {
-      return $username;
-    } else {
-      # Invalid username
-      &invalidUsername_win();
-      next;
-    } 
-  }
-}
-
-
-sub
 invalidUsername_win
 {
   my $win_title = "Invalid username";
