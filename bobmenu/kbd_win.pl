@@ -9,7 +9,7 @@
 #
 # Al Su (alsu@cs.ucsd.edu)
 #
-# $Id: kbd_win.pl,v 1.6 2001-05-14 07:12:21 mcopenha Exp $
+# $Id: kbd_win.pl,v 1.7 2001-05-14 07:13:29 mcopenha Exp $
 #  
 
 $DLG = "/usr/bin/dialog";
@@ -396,7 +396,7 @@ pwd_win
   my $win_title = "Enter Password";
   my $win_text = q{
 Type your new password.  To remove an existing
-password, do not enter any text.};
+password, do not enter any text.
 
 NOTE: YOUR PASSWORD WILL BE ECHOED TO THE
 SCREEN...MAKE SURE NO ONE IS LOOKING!};
