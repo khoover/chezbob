@@ -2,7 +2,7 @@
 #
 # Routines for processing login names, both text and barcode
 #
-# $Id: login.pl,v 1.6 2001-05-22 23:14:11 mcopenha Exp $
+# $Id: login.pl,v 1.7 2001-05-23 00:06:17 mcopenha Exp $
 #
 
 $MIN_BARCODE_LENG = 6;
@@ -132,7 +132,7 @@ user_barcode_not_found_win
   my $win_text = q{
 I could not find this barcode in the database. If you're
 an existing user you must log into your regular account 
-and choose the 'Barcode' option to change your user
+and choose the 'Barcode ID' option to change your user
 barcode.  If you're a new user you'll need to first
 create a new account by entering a valid username.};
 

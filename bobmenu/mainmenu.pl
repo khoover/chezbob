@@ -6,7 +6,7 @@
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.8 2001-05-22 22:52:49 mcopenha Exp $
+# $Id: mainmenu.pl,v 1.9 2001-05-23 00:06:17 mcopenha Exp $
 #  
 
 require "passwd.pl";
@@ -28,6 +28,7 @@ bob_action_win
 {
   my ($userid, $username) = @_;
   my $nickname = &bob_db_get_nickname_from_userid($userid);
+  my $userbarcode = &bob_db_get_userbarcode_from_userid($userid);
   my $last_purchase = "";
   my $curr_purchase = "";
   my $action = "";
@@ -52,92 +53,91 @@ MAINLOOP:
 
     $_ = $action;
     SWITCH: {
-      /^DIGITS$/ && do {
-        $curr_purchase = &buy_single_item_with_scanner($userid);
-        last SWITCH;
-      };
 
-      /^Add Money$/ && do {
-        &add_win($userid);
-        last SWITCH;
-      };
+    /^DIGITS$/ && do {
+      # grab the output of the dialog program in /tmp/menuout.  If 
+      # it's equal to the user's barcode, we're done.
+
+      if (! -r "/tmp/menuout") {
+        &report_fatal("bob_action_win: /tmp/menuout from dialog not found\n");
+      }
+      my $prodbarcode = `cat /tmp/menuout`;
+      system("rm -f /tmp/menuout");
+      if ($prodbarcode eq $userbarcode) { last MAINLOOP; }
+      $curr_purchase = &buy_single_item_with_scanner($userid, $prodbarcode);
+      last SWITCH;
+    };
+
+    /^Add Money$/ && do {
+      &add_win($userid);
+      last SWITCH;
+    };
+
+    (/^Candy\/Can of Soda$/ || /^Snapple$/ || /^Juice$/ ||
+     /^Popcorn\/Chips\/etc.$/) && do {
+      $curr_purchase = &buy_win($userid, $_);
+      last SWITCH;
+    };
+    
+    /^Buy Other$/ && do {
+      $curr_purchase = &buy_win($userid, $_);
+      last SWITCH;
+    };
   
-      /^Candy\/Can of Soda$/ && do {
-        $curr_purchase = &buy_win($userid, $_);
-        last SWITCH;
-      };
-    
-      /^Snapple$/ && do {
-        $curr_purchase = &buy_win($userid, $_);
-        last SWITCH;
-      };
-    
-      /^Juice$/ && do {
-        $curr_purchase = &buy_win($userid, $_);
-        last SWITCH;
-      };
-    
-      /^Popcorn\/Chips\/etc.$/ && do {
-        $curr_purchase = &buy_win($userid, $_);
-        last SWITCH;
-      };
-    
-      /^Buy Other$/ && do {
-        $curr_purchase = &buy_win($userid, $_);
-        last SWITCH;
-      };
+    /^Message$/ && do {
+      &message_win($username, $userid);
+      last SWITCH;
+    };
   
-      /^Message$/ && do {
-        &message_win($username, $userid);
-        last SWITCH;
-      };
-  
-      /^Transactions$/ && do {
-        &log_win($userid);
-        last SWITCH;
-      };
+    /^Transactions$/ && do {
+      &log_win($userid);
+      last SWITCH;
+    };
    
-      /^My Chez Bob$/ && do {
-        &profile_win($userid);
-        last SWITCH;
-      };
+    /^My Chez Bob$/ && do {
+      &profile_win($userid);
+      last SWITCH;
+    };
 
-      /^Barcode ID$/ && do {
-        &update_user_barcode($userid);
-        last SWITCH;
-      };
+    /^Barcode ID$/ && do {
+      &update_user_barcode($userid);
+      $userbarcode = &bob_db_get_userbarcode_from_userid($userid);
+      last SWITCH;
+    };
   
-      /^Nickname$/ && do {
-        &update_nickname($userid);
-        last SWITCH;
-      };
+    /^Nickname$/ && do {
+      &update_nickname($userid);
+      last SWITCH;
+    };
 
-      /^Password$/ && do {
-        &pwd_win($userid);
-        last SWITCH;
-      };
+    /^Password$/ && do {
+      &pwd_win($userid);
+      last SWITCH;
+    };
   
-      /^Checkout a Book$/ && do {
-        &checkout_book($userid, $username);
-        last SWITCH;
-      };
+    /^Checkout a Book$/ && do {
+      &checkout_book($userid, $username);
+      last SWITCH;
+    };
 
-      /^No action$/ && do {
-        last SWITCH;
-      };
+    /^No action$/ && do {
+      last SWITCH;
+    };
    
-      (! /^Quit$/) && do {
-        &unimplemented_win();
-        last SWITCH;
-      };
-    } # SWITCH
+    (! /^Quit$/) && do {
+      &unimplemented_win();
+      last SWITCH;
+    };
+    
+    }  # SWITCH
 
     if ($curr_purchase ne "") {
       # User did *not* cancel purchase
       $last_purchase = $curr_purchase;
       if ($PROFILE{"Auto Logout"}) { last MAINLOOP; }
     }
-  } 
+
+  }  # WHILE
 
   if ($PROFILE{"Speech"}) { &say_goodbye; }
 } 

@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.7 2001-05-22 19:02:39 mcopenha Exp $
+# $Id: buyitem.pl,v 1.8 2001-05-23 00:06:17 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -94,22 +94,15 @@ to two decimal places of precision.};
 sub
 buy_single_item_with_scanner
 #
-# Inspect the output of the dialog program's menu in '/tmp/menuout'.  This 
-# should contain the barcode of the last item scanned.  Look it up and update 
-# the product's stock (-1) and the user's balance.  On failure (product does not
+# Look up 'prodbarcode' from the products table and update the product's 
+# stock (-1) and the user's balance.  On failure (product does not
 # exist or user cancels) return empty string; on success (user buys product)
 # return the name of the product purchased.  
 #
 {
-  my ($userid) = @_;
-  if (! -r "/tmp/menuout") {
-    &report_fatal("could not find menuout file from dialog program\n");
-  }
+  my ($userid, $prodbarcode) = @_;
 
-  my $guess = `cat /tmp/menuout`;
-  system("rm -f /tmp/menuout");
-
-  $barcode = &preprocess_barcode($guess);      
+  $barcode = &preprocess_barcode($prodbarcode);      
   $prodname = &bob_db_get_productname_from_barcode($barcode);
   if (!defined $prodname) {
     &invalid_product_barcode_win;
