@@ -17,7 +17,7 @@
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # Created: 5/10/01
 #
-# $Id: snd_util.pl,v 1.5 2001-05-15 00:18:05 mcopenha Exp $
+# $Id: snd_util.pl,v 1.6 2001-05-16 01:45:43 mcopenha Exp $
 #
 
 require "ctime.pl";
@@ -78,7 +78,14 @@ say_goodbye
     "shay bob thanks you",
     "please feed me dollar bills, not pennies",
     "go do some research for crying out loud",
-    "by the way, you look very nice today"
+    "by the way, you look very nice today",
+    "remember that pee equals n pee, ok?",
+    "by the way, tell bill gris wald that he owes me big time",
+    "by the way, tell bill gris wald that he owes me big time",
+    "your new balance is minus one billion dollars.",
+    "could you rub my back? please?",
+    "by the way, you are stepping on my toes",
+    "don't play with my scanner, ok?"
   );
   sayit(splice(@goodbyes, rand @goodbyes, 1));
 }

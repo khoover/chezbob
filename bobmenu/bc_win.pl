@@ -4,7 +4,7 @@
 #
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 #
-# $Id: bc_win.pl,v 1.11 2001-05-15 16:21:36 mcopenha Exp $
+# $Id: bc_win.pl,v 1.12 2001-05-16 01:45:43 mcopenha Exp $
 #
 
 require "bc_util.pl";
@@ -13,6 +13,7 @@ require "bob_db.pl";
 
 my $DLG = "/usr/bin/dialog";
 my $MIN_BARCODE_LENG = 6;
+my $NOT_FOUND = -1;
 
 
 sub
@@ -26,7 +27,7 @@ update_user_barcode
   my ($userid) = @_;
 
   while (1) {
-    my $guess = &get_user_barcode_win;
+    my $guess = &get_barcode_win;
     if (!defined $guess) { 
       # User canceled
       return;
@@ -34,12 +35,11 @@ update_user_barcode
 
     $barcode = &preprocess_barcode($guess);      
     if (&isa_valid_user_barcode($barcode)) {
-      my $id = &bob_db_get_userid_from_barcode($barcode);
-      if ($id != $NOT_FOUND) {
-        if ($id != $userid) {
-          &barcode_already_in_db_win;
-          next;
-        }
+      my $otherid = &bob_db_get_userid_from_userbarcode($barcode);
+      my $product = &bob_db_get_productname_from_barcode($barcode);
+      if ($otherid != $NOT_FOUND || defined $product) {
+        &barcode_already_in_db_win;
+        next;
       }
  
       &bob_db_update_user_barcode($userid, $barcode);
@@ -58,11 +58,13 @@ barcode_action_win
 #
 # Show the main menu in barcode mode.  Keep a running tally of the products 
 # the user's purchased and echo them to the screen.  When user scans the 
-# 'Done' barcode the entire transaction is recorded (update balance and 
-# products tables).  Using this setup we cannot show more than 4 products
-# on the screen at once (using standard vga 80x25).  Our solution is 
-# to show the text "...snip..." when the number of products == 5 or more.
-# We only show the latest 4 purchases.
+# his/her personal barcode again, the entire transaction is recorded 
+# (update balance and products tables).  Using this setup we cannot show 
+# more than 4 products on the screen at once (using standard vga 80x25).  
+# Our solution is to show the text "...more..." when the number of 
+# products == 5 or more.  We only show the latest 4 purchases.  If the user 
+# scans a product that's not in the database we output some text at the
+# bottom of the dialog.
 #
 {
   my ($userid, $username) = @_;
@@ -73,8 +75,10 @@ barcode_action_win
   my $phonetic_name = "";	# phonetic name of current product
   my $unknown_prod = 0;		# flag == 0 if product not found
 
+  my $userbarcode = &bob_db_get_userbarcode_from_userid($userid);
   my $balance = &bob_db_get_balance($userid);
   my $balanceString = &get_balance_string($balance);
+
   &say_greeting;
 
   while (1) {
@@ -84,8 +88,8 @@ Welcome, %s!
 You currently %s
 
 Please scan each product's barcode.  When you're done,
-scan the barcode at the top of the monitor labeled 'Done'. 
-The transaction will not be recorded until then. \n
+scan your personal barcode again.  The transaction will 
+NOT be recorded until then. \n
 		Product			Price
 		-------			----- 
 };
@@ -94,7 +98,7 @@ The transaction will not be recorded until then. \n
     my $starting_prod = 0;
     if ($numbought >= 5) {
       $starting_prod = $numbought - 3 - 1;
-      $win_textFormat .= "\t\t...snip...\n"; 
+      $win_textFormat .= "\t\t...more...\n"; 
     }
     for ($i = $starting_prod; $i < $numbought; ++$i) {
       $win_textFormat .= "\t\t" . $purchase[$i];
@@ -127,19 +131,9 @@ The transaction will not be recorded until then. \n
 
     $guess = `cat /tmp/input.barcode`;
     $prod_barcode = &preprocess_barcode($guess);      
-    $prodname = &bob_db_get_productname_from_barcode($prod_barcode);
-    if (!defined $prodname) {
-      $unknown_prod = 1;
-      next;
-    } else {
-      $unknown_prod = 0;
-    }
 
-    $phonetic_name = &bob_db_get_phonetic_name_from_barcode($prod_barcode);
-    $price = &bob_db_get_price_from_barcode($prod_barcode);
-
-    if ($prodname eq "Done") {
-      # Record entire transaction at once
+    if ($prod_barcode eq $userbarcode) {
+      # We're done: Record entire transaction at once
       &sayit("your total is " . &format_money($total));
       &bob_db_update_stock(-1, @purchase);
       &bob_db_update_balance($userid, -$total, "BUY (BARCODE)");
@@ -147,26 +141,75 @@ The transaction will not be recorded until then. \n
       return $total;
     } else {
       # Update dialog
-      push(@purchase, $prodname);
-      push(@prices, $price);
-      $numbought++;
-      &sayit("$phonetic_name");
-      next;
+      $prodname = &bob_db_get_productname_from_barcode($prod_barcode);
+      if (!defined $prodname) {
+        $unknown_prod = 1;
+      } else {
+        $unknown_prod = 0;
+        $phonetic_name = &bob_db_get_phonetic_name_from_barcode($prod_barcode);
+        $price = &bob_db_get_price_from_barcode($prod_barcode);
+        push(@purchase, $prodname);
+        push(@prices, $price);
+        $numbought++;
+        &sayit("$phonetic_name");
+      }
     }
   } 
 }
 
 
 sub
-get_user_barcode_win
+buy_single_item_with_scanner
 {
-  my $win_title = "Scan your barcode:";
+  my ($userid) = @_;
+  my $guess = &get_barcode_win;
+  if (!defined $guess) {
+    return;
+  }
+
+  $barcode = &preprocess_barcode($guess);      
+  $prodname = &bob_db_get_productname_from_barcode($barcode);
+  if (!defined $prodname) {
+    &invalid_product_barcode_win;
+    return;
+  }
+
+  my $phonetic_name = &bob_db_get_phonetic_name_from_barcode($barcode);
+  &sayit("$phonetic_name");
+  my $amt = &bob_db_get_price_from_barcode($barcode);
+  my $txt = sprintf("\nIs your purchase amount \\\$%.2f?", $amt);
+  if (&confirm_win($prodname, $txt, 40)) {
+    push(@purchase, $prodname);
+    &bob_db_update_stock(-1, @purchase);
+    &bob_db_update_balance($userid, -$amt, "BUY " . $prodname);
+  } else {
+    return;
+  }  
+}
+
+
+sub
+get_barcode_win
+{
+  my $win_title = "Scan barcode:";
   if (system("$DLG --title \"$win_title\" --clear " .
       " --inputbox \"\" 8 45 2> /tmp/input.barcode") != 0) {
     return undef;
   }
 
   return `cat /tmp/input.barcode`;
+}
+
+
+sub
+invalid_product_barcode_win
+{
+  my $win_title = "Invalid User Barcode";
+  my $win_text = q{
+This is an invalid product barcode.};
+
+  system("$DLG --title \"$win_title\" --msgbox \"" .
+	 $win_text .  "\" 9 50 2> /dev/null");
 }
 
 

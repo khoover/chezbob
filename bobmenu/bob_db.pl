@@ -11,13 +11,13 @@
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # Created: 5/2/00
 #
-# $Id: bob_db.pl,v 1.6 2001-05-15 00:18:05 mcopenha Exp $
+# $Id: bob_db.pl,v 1.7 2001-05-16 01:45:43 mcopenha Exp $
 #
 
 use Pg;
 
 my $conn = ""; 		# the database connection	
-$NOT_FOUND = -1;	
+my $NOT_FOUND = -1;	
 
 sub
 bob_db_connect
@@ -56,7 +56,6 @@ bob_db_get_username_from_userid
     where userid = %d;
   };
   my $result = $conn->exec(sprintf($queryFormat,$userid));
-
   if ($result->ntuples != 1) {
     return $NOT_FOUND;
   } else {
@@ -77,7 +76,6 @@ bob_db_get_userid_from_username
     where username ~* '^%s$';
   };
   my $result = $conn->exec(sprintf($queryFormat,$username));
-
   if ($result->ntuples != 1) {
     return $NOT_FOUND;
   } else {
@@ -87,7 +85,7 @@ bob_db_get_userid_from_username
 
 
 sub
-bob_db_get_userid_from_barcode
+bob_db_get_userid_from_userbarcode
 {
   my ($barcode) = @_;
 
@@ -98,9 +96,28 @@ bob_db_get_userid_from_barcode
     where userbarcode = '%s';
   };
   my $result = $conn->exec(sprintf($queryFormat, $barcode));
-
   if ($result->ntuples != 1) {
     return $NOT_FOUND;
+  } else {
+    return ($result->getvalue(0,0));
+  }
+}
+
+
+sub
+bob_db_get_userbarcode_from_userid
+{
+  my ($userid) = @_;
+
+  &bob_db_check_conn;
+  my $queryFormat = q{
+    select userbarcode
+    from users
+    where userid = %d;
+  };
+  my $result = $conn->exec(sprintf($queryFormat, $userid));
+  if ($result->ntuples != 1) {
+    return undef;
   } else {
     return ($result->getvalue(0,0));
   }
@@ -164,9 +181,9 @@ bob_db_get_balance
 
   if ($result->ntuples != 1) {
     return $NOT_FOUND;
+  } else {
+    return ($result->getvalue(0,0));
   }
-
-  return ($result->getvalue(0,0));
 }
 
 

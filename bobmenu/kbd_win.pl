@@ -9,13 +9,14 @@
 #
 # Al Su (alsu@cs.ucsd.edu)
 #
-# $Id: kbd_win.pl,v 1.9 2001-05-15 00:18:05 mcopenha Exp $
+# $Id: kbd_win.pl,v 1.10 2001-05-16 01:45:43 mcopenha Exp $
 #  
 
 require "bob_db.pl";
 require "bc_win.pl";
 
 my $DLG = "/usr/bin/dialog";
+my $NOT_FOUND = -1;
 $CANCEL = -1;
 
 $PRICES{"Candy/Can of Soda"} = 0.45;
@@ -30,6 +31,7 @@ sub
 kbd_action_win
 {
   my ($userid, $username) = @_;
+  &say_greeting;
 
   my $action = "";
   do {
@@ -49,6 +51,11 @@ kbd_action_win
 
     $_ = $action;
     SWITCH: {
+      /^Buy with Scanner$/ && do {
+        &buy_single_item_with_scanner($userid);
+        last SWITCH;
+      };
+
       /^Add$/ && do {
         &add_win($userid);
         last SWITCH;
@@ -75,7 +82,7 @@ kbd_action_win
         last SWITCH;
       };
    
-      /^Barcode$/ && do {
+      /^Modify Barcode ID$/ && do {
         &update_user_barcode($userid);
         last SWITCH;
       };
@@ -95,6 +102,8 @@ kbd_action_win
       };
     } # SWITCH
   } while ($action ne "Quit");
+
+  &say_goodbye;
 } 
 
 
@@ -266,8 +275,10 @@ Choose one of the following actions (scroll down for more options):};
     system("$DLG --title \"$win_title\" --clear --menu \"" .
 	   sprintf($win_textFormat, $username,
 		   $balanceString, "", $msg) .
-	   "\" 24 76 8 " .
-	   "\"Add\" " .
+	   "\" 24 76 9 " .
+	   "\"Buy with Scanner\" " .
+	       "\"Buy a product using the barcode scanner\" " .
+	   "\"Add Money\" " .
 	       "\"Add money to your Chez Bob account             \" " .
 	   "\"Candy/Can of Soda\" " .
 	       "\"Buy candy or a can of soda from Bob     (\\\$0.45)\" " .
@@ -279,12 +290,12 @@ Choose one of the following actions (scroll down for more options):};
 	       "\"Buy popcorn, chips, etc. from Bob       (\\\$0.30)\" " .
 	   "\"Buy Other\" " .
 	       "\"Buy something else from Bob                    \" " .
-	   "\"Barcode\" " .
-	       "\"Set your personal barcode                     \" " .
-	   "\"Quit\" " .
-	       "\"Finished\!                                      \" " .
 	   "\"Message\" " .
 	       "\"Leave a message for Bob                        \" " .
+	   "\"Quit\" " .
+	       "\"Finished\!                                      \" " .
+	   "\"Modify Barcode ID\" " .
+	       "\"Set your personal barcode                     \" " .
 	   "\"Modify Password\" " .
 	       "\"Set, change, or delete your password           \" " .
 	   "\"Transactions\" " .

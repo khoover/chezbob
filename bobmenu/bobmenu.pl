@@ -8,7 +8,7 @@
 # Al Su (alsu@cs.ucsd.edu)
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # 
-# $Id: bobmenu.pl,v 1.30 2001-05-15 06:12:13 mcopenha Exp $
+# $Id: bobmenu.pl,v 1.31 2001-05-16 01:45:43 mcopenha Exp $
 #
 
 require "bc_win.pl";	# barcode login windows
@@ -18,10 +18,11 @@ require "snd_util.pl";	# speech utils
 require "bob_db.pl";	# database routines
 
 my $DLG = "/usr/bin/dialog";
+my $NOT_FOUND = -1;
 $CANCEL = -1;
 
 
-$REVISION = q{$Revision: 1.30 $};
+$REVISION = q{$Revision: 1.31 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -39,7 +40,7 @@ do {
 # Check if we're dealing with a user barcode or regular username
 my $barcode = &preprocess_barcode($logintxt); 
 if (&isa_valid_user_barcode($barcode)) {
-  my $userid = &bob_db_get_userid_from_barcode($barcode);
+  my $userid = &bob_db_get_userid_from_userbarcode($barcode);
   if ($userid != $NOT_FOUND) {
     &barcode_login($userid);
   } else {
@@ -54,6 +55,7 @@ if (&isa_valid_user_barcode($barcode)) {
 # Make sure any temp input files are gone. We can run into permission
 # problems if multiple people are trying to run Bob on the same system.
 system("rm -f /tmp/input.*");
+system("rm -f /tmp/*.output.log");
 
 
 sub
