@@ -6,11 +6,12 @@ Michael Copenhafer (mcopenha@cs.ucsd.edu)
 The current version of Chez Bob relies on several 3rd party packages:
 
 1. Dialog: We're using a custom version of Savio Lam's Dialog program.  
-The source is located in dialog-0.9a.  After checking out the source tree for
-bobmenu, you'll need to go into the dialog-0.9a directory and execute 
+The source is located in dialog-0.9a.  After checking out the source tree 
+for bobmenu, you'll need to go into the dialog-0.9a directory and execute 
 './configure' followed by 'make' to create the dialog executable.  
 Using dialog version dialog-0.9a-20010429 available from 
-http://dickey.his.com/dialog/dialog.html
+http://dickey.his.com/dialog/dialog.html.  Refer to the comments in dlg.pl
+to learn about what modifications were made to the dialog code.
 
 
 2. Festival speech program: http://www.cstr.ed.ac.uk/projects/festival/
@@ -52,6 +53,13 @@ If you do an 'apt-get install festival', the installer is smart enough
 to install most of the dependent packages, but it seems to miss the 
 main esound package esound_0.2.17-7.deb.  Also note that the above command
 does not install a voice or a dictionary; you'll have to do that by hand.  
+
+It's possible to switch among the different voices by altering the 
+file /usr/lib/festival/voices.scm.  Scroll down to the declaration of 
+default-voice-priority-list (~ line 178) and place the voice you want to
+test at the beginning of the list.  I've personally tried all of them, 
+and I find the English voice (en1) and American female (us1_mbrola) to
+be the most intelligible.
 
 
 3. MBROLA speech synthesizer: The above installation of festival works
