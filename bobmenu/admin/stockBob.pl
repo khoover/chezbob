@@ -10,10 +10,10 @@
 # Wesley Leong (wleong@cs.ucsd.edu)
 # Created: 5/2/01
 #
-# $Id: stockBob.pl,v 1.6 2001-05-20 19:50:59 wleong Exp $
+# $Id: stockBob.pl,v 1.7 2001-05-21 05:43:55 wleong Exp $
 #
 
-$DLG = "/usr/bin/dialog";
+$DLG = "../dialog-0.9a/dialog";
 
 require "../bc_util.pl";
 require "../bob_db.pl";
@@ -55,7 +55,7 @@ This is a new product.  Enter the product's name.
 
   while ($newName !~ /\w+/) {
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-		 $win_text .  "\" 12 65 2> ./input.product") != 0) {
+		 $win_text .  "\" 8 55 2> ./input.product") != 0) {
 	  return "";
       }
       $newName = `cat ./input.product`;
@@ -66,7 +66,7 @@ This is a new product.  Enter the product's name.
   $win_text = " Please enter a PHONETIC NAME for the Speech Synthesis.";
   while ($newPhonetic_Name !~ /\w+/) {
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-		 $win_text .  "\" 12 55 2> ./input.product") != 0) {
+		 $win_text .  "\" 8 55 2> ./input.product") != 0) {
 	  return "";
       }
       $newPhonetic_Name = `cat ./input.product`;
@@ -102,9 +102,9 @@ This is a new product.  Enter the product's name.
   $win_title = "New Product Entered into Database";
   $win_text = "The following product has been entered:\n"
       ."Name: $newName\nPrice:$newPrice\nStock:$newStock";
-  system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+  system("$DLG --title \"$win_title\" --clear --cr-wrap --msgbox \"" .
 	 $win_text .
-	 "\" 9 55");
+	 "\" 8 55");
   # may want to add speech here to test the voice synthesis name
 }
 
@@ -119,11 +119,11 @@ newBulk_win
   # ASK FOR NEW NAME FOR NEW PRODUCT
   my $win_title = "New Bulk Product";
   my $win_text = " The barcode of this bulk item is not in the database." .
-      "Please enter the name of this product.";
+      " Please enter the name of this product.";
   while ($newName !~ /\w+/) {
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 		 $win_text .
-		 "\" 12 55 2> ./input.product") != 0) {
+		 "\" 8 55 2> ./input.product") != 0) {
 	  return "";
       }
       $newName = `cat ./input.product`;
@@ -188,20 +188,19 @@ newBulk_win
   }
   $win_title = "New Item Entered";
   $win_text = "You have entered $newName\ninto the database.";
-  $win_text = $win_text."\nbarcode\t\tquantity per bulk";
-  my $numEntries = @entities;
-  $numEntries = ($numEntries / 2) +  9;
-  if ($numEntries >12) {
-      $numEntries = 12;
-  }
+  $win_text = $win_text."\nProduct : Quantity per bulk";
   my %enthash = @entities;
+  my $numLines = 8;
   while (($prodbarcode, $quan) = each(%enthash)) {
-      $win_text = $win_text."\n$prodbarcode\t\t$quan";
+      my $name = &bob_db_get_productname_from_barcode($prodbarcode);
+      if (defined $name) {
+	  $prodbarcode = $name;
+      }
+      $win_text = $win_text."\n$prodbarcode : $quan";
+      $numLines = $numLines + 1;
   }
-
-  system("$DLG --title \"$win_title\" --clear --msgbox \"" .
-	 $win_text .
-	 "\" $numEntries 55");
+  system("$DLG --title \"$win_title\" --clear --cr-wrap --msgbox \"" .
+	 $win_text . "\" $numLines 55");
 }
 
 
@@ -212,16 +211,16 @@ oldProduct_win
 
   my $win_title = "Restock an Individual Product";
   my $win_text = q{
-Product Name: %s
-Number in Stock: %d
+Product Name: %s\n
+Number in Stock: %d\n
 
 Enter an amount to add to the present stock total
 (Negative values are OK)
   };
 
-  if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+  if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .
              sprintf($win_text, $name, $stock) .
-	     "\" 14 65 2> ./input.product") != 0) {
+	     "\" 14 55 2> ./input.product") != 0) {
       return "";
   }
 
@@ -272,6 +271,7 @@ enterBarcode
 	}
 }
 
+
 sub
 enterBulkBarcode
 {
@@ -281,30 +281,44 @@ enterBulkBarcode
     my $win_title = "Stock Manager: Enter Barcode";
     my $win_text = "Enter the barcode of a product";
     
-	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-		   $win_text .
-		   "\" 8 55 2> ./input.barcode") != 0) {
-	    return "";
-	}
+    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+	       $win_text .
+	       "\" 8 55 2> ./input.barcode") != 0) {
+	return "";
+    }
+    
+    $guess = `cat ./input.barcode`;    
+    $newBarcode = &preprocess_barcode($guess);    
+    if(!&isa_upc_barcode($newBarcode)) {
+	# case where barcode is not a barcode...
+	&errorBarcode();
+    } else {
+	my $bulkname = &bob_db_update_products_in_bulk_item($newBarcode);
 	
-	$guess = `cat ./input.barcode`;
-
-	$newBarcode = &preprocess_barcode($guess);
-
-	if(!&isa_upc_barcode($newBarcode)) {
-	    # case where barcode is not a barcode...
-	    &errorBarcode();
+	if (!defined $bulkname) {
+	    # bulk product not found... enter new product;
+	    &newBulk_win($newBarcode);
 	} else {
-            my $bulkname = &bob_db_update_products_in_bulk_item($newBarcode);
-
-            if (!defined $bulkname) {
-		# bulk product not found... enter new product;
-		&newBulk_win($newBarcode);
-	    } else {
-	        system("$DLG --msgbox \"$bulkname update complete\" 8 30"); 
+	    my $numLines = 8;
+	    my $products = &bob_db_get_products_from_bulk_item($newBarcode);
+	    my %hashproducts = @$products;
+	    $win_title = "$bulkname Updated";
+	    $win_text = "$bulkname has been updated";
+	    $win_text = $win_text."\nProduct : Stock";
+	    while (($productname, $productstock) = each (%hashproducts)) {
+		$win_text = $win_text."\n$productname : $productstock";
+		$numLines = $numLines + 1;
 	    }
+	    if ($numLines > 14) {
+		$numLines = 14;
+	    } 
+	    system("$DLG --title \"$win_title\" --clear --cr-wrap --tab-correct --msgbox \"" .
+		   $win_text .
+		   "\" $numLines 55");
 	}
+    }    
 }
+
 
 
 sub
@@ -428,6 +442,8 @@ mainMenu
 {
   my $win_title = "Chez Bob Inventory Manager";
   my $win_textFormat = "Welcome to the Chez Bob Inventory Management System.";
+
+  #my $stupid = <STDIN>;
 
   system("$DLG --title \"$win_title\" --clear --menu \"" .
     "$win_textFormat" .
