@@ -1,29 +1,9 @@
-#! /usr/bin/perl -w
-
-#------------------------------------------------------------------------------ 
-# ctime()
 #
-#	Get current date and time.
-#------------------------------------------------------------------------------ 
-sub ctime
-{
-	my $fname = 'bob_err_time.txt';
-	my $date_arg = '%m %d %y %H %M %S';
-	system("/bin/date +\"$date_arg\" > $fname");
+#	Routine to report error to system admin.
+#	Exit with status 1.
+#
 
-	unless (open(TIME, "$fname"))
-	{
-    	print "ERR: failed to open $fname";
-		exit 1;
-	} 
-	else 
-	{
-		chomp($date = <TIME>);
-	}
-	close(TIME);
-	unlink($fname);
-	return $date;
-}
+use Time::localtime;
 
 #------------------------------------------------------------------------------ 
 # report()
@@ -33,7 +13,9 @@ sub ctime
 sub report 
 {
 	my ($mesg) =  @_ ;
-	my ($mon, $day, $year, $hour, $min, $sec) = split(/ /, &ctime());
+
+	my $lt = localtime();
+	my ($hour, $min, $sec) = ($lt->hour, $lt->min, $lt->sec);
 	my $fname = "mesg.${hour}${min}${sec}.tmp";
 
 	my $MAIL = '/bin/mail';
@@ -47,17 +29,14 @@ sub report
 	} 
 	else 
 	{
-		print MESG "On $day/$mon/$year \@ $hour:$min:$sec\n\n";
+		print MESG &ctime(), "\n\n";
 		print MESG "$mesg";
 	}
 	close(MESG);
 
 	system("$MAIL -s \"$subject\" $ADMIN < $fname");
-	unlink($fname)
+	unlink($fname);
 
 	exit 1;
 }
 1;
-
-#$mesg = "Connection to the Chez Bob database lost";
-#&report("$mesg");
