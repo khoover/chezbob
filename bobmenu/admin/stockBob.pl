@@ -10,13 +10,21 @@
 # Wesley Leong (wleong@cs.ucsd.edu)
 # Created: 5/2/01
 #
-# $Id: stockBob.pl,v 1.7 2001-05-21 05:43:55 wleong Exp $
+# $Id: stockBob.pl,v 1.8 2001-05-21 18:45:28 mcopenha Exp $
 #
 
-$DLG = "../dialog-0.9a/dialog";
+# Make sure Perl can find all of our files by appending INC with the 
+# path to the executable.  Makes the assumption that the location of 
+# the library routines is in the parent directory.
+open(TMP, "which $0 |") || die "can't do which $0: $!\n";
+my $fullpath = <TMP>;
+close(TMP) || die "can't close\n";
+$BOBPATH = substr($fullpath, 0, rindex($fullpath, '/')) . "/..";
+push(@INC, $BOBPATH);
 
-require "../bc_util.pl";
-require "../bob_db.pl";
+require "dlg.pl";
+require "bc_util.pl";
+require "bob_db.pl";
 
 
 sub
@@ -501,3 +509,6 @@ while ($action ne "Quit") {
     };
   }
 }
+
+system("rm -f ./input.*");
+
