@@ -3,6 +3,7 @@ include('common.php');
 
 function getInventoryFromSQL(){
 $out = makeHeader("Chez Bob Inventory");
+
 db_connect();
 db_query('SELECT * from products ORDER by name;');
 $colora = ' bgcolor="#CCCCFF" bordercolor="#CCCCFF"';
@@ -27,7 +28,7 @@ while ($obj = db_nextObject()) {
 db_close();
 $moreout = makeFooter();
 $out=$out.'</table>';
-echo $out;
+return $out;
 }
 
 $out = getInventoryFromSQL();
