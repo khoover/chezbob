@@ -16,5 +16,8 @@
 # htmlmake.sh datafile > books.html
 # then insert ${1} right between the sort and the | on the first line.
 
-sort | gawk -F$'\t' 'BEGIN { OFS = "</td><td>" ; print "<html><head><title>Books I Own</title></head><body>I am slowly yet surely building up my book collection.<p><table>"} { print "<tr><td>" $1, $2 "</td></tr>" } END { print "</table></body></html>"}'
+sort | gawk -F"\t" 'BEGIN { OFS = "</td><td>" ; 
+print "<html><head><title>CSE Grad Lounge Library</title> </head><body><h1>The CSE Grad Lounge Library</h1><p><table border=1>" } 
+{ print "<tr><td width=40%>" $1 "</td>"; print "<td><i>" $2 "</i></td></tr>"}
+END { print "</table></body></html>"}'
 
