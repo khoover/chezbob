@@ -52,8 +52,9 @@ decode_barcode {
 
 
 ########################################
-# verifyAndDecodeAnyBarcode - takses any barcode whether cuecat or character and verifies it.
-# Only returns barcode that detects 12 digits or 8 digits.
+# verifyAndDecodeAnyBarcode - takses any barcode whether cuecat or
+#character and verifies it. Only returns barcode that detects 12 digits
+#or 8 digits.
 ########################################
 sub
 verifyAndDecodeAnyBarcode
@@ -100,14 +101,16 @@ newProduct_win
 # parameter passing around or reqiure state saving from the main program.
 
   my ($conn, $newBarcode) = @_;
-  my $win_title = "New Product";
-  my $win_text = " The barcode to this product is not in the database." .
-      "This is a new product. Please enter the name of this product.";
   my $flag = 1;
   my $newName = "";
+  my $newPhonetic_Name = "";
   my $newPrice = "";
   my $newStock = "";
 
+  # ASK FOR NEW NAME FOR NEW PRODUCT
+  my $win_title = "New Product";
+  my $win_text = " The barcode to this product is not in the database." .
+      "This is a new product. Please enter the name of this product.";
   while ($newName !~ /\w+/) {
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 		 $win_text .
@@ -116,13 +119,26 @@ newProduct_win
       }
       $newName = `cat /tmp/input.product`;
       system("rm -f /tmp/input.product");
-      # check for proper input and then ask for quantity for stock.  
-      $win_title = "Enter the PRICE of $newName";
-      $win_text = "Please enter the PRICE of this item (include decimal point for cents).";
   }
 
-  while ($newPrice !~ /^\d*\.\d{0,2}$/) {
+  # ASK FOR PHONETIC NAME
+  $win_title = "Phonetic Name For $newName";
+  $win_text = " Please enter a PHONETIC NAME for the Speech Synthesis.";
+  while ($newPhonetic_Name !~ /\w+/) {
+      if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		 $win_text .
+		 "\" 12 55 2> /tmp/input.product") != 0) {
+	  return "";
+      }
+      $newPhonetic_Name = `cat /tmp/input.product`;
+      system("rm -f /tmp/input.product");
+      # check for proper input and then ask for quantity for stock.  
+  }
 
+  # ASK FOR PRICE
+  $win_title = "Enter the PRICE of $newName";
+  $win_text = "Please enter the PRICE of this item (include decimal point for cents).";
+  while ($newPrice !~ /^\d*\.\d{0,2}$/) {
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 		 $win_text .
 		 "\" 8 55 2> /tmp/input.product") != 0) {
@@ -150,14 +166,16 @@ newProduct_win
 	  values(
 		 '%s',
 		 '%s',
+		 '%s',
 		 %.2f,
 		 %d
 		 );
   };
 
-  my $result = $conn->exec(sprintf($insertqueryFormat,
+  my $result = $conn->exec(sprintf($insertqueryFormat,				   
 				   $newBarcode,
 				   $newName,
+				   $newPhonetic_Name,
 				   $newPrice,
 				   $newStock));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
@@ -170,6 +188,7 @@ newProduct_win
   system("$DLG --title \"$win_title\" --clear --msgbox \"" .
 	 $win_text .
 	 "\" 9 55");
+  # may want to add speech here to test the voice synthesis name
 }
 
 
@@ -182,16 +201,20 @@ oldProduct_win
   my ($conn, $newBarcode, $name, $price, $stock) = @_;
   my $win_title = "$name";
   my $win_text = "Product Name: $name.\n".
-      " Please enter new stock total.";
+      " Present TOTALS STOCK: $stock\n".
+      " Please enter a number to add to the present stock total\n".
+      " (Enter negative number to subtract from present total):\n";
 
   if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 	     $win_text .
-	     "\" 8 55 2> /tmp/input.product") != 0) {
+	     "\" 14 55 2> /tmp/input.product") != 0) {
       return "";
   }
 
   my $newStock = `cat /tmp/input.product`;
   system("rm -rf /tmp/input.product");
+
+  $newStock = $newStock + $stock;
 
   # check the number and update the database.
   my $updatequeryFormat = q{
@@ -208,7 +231,7 @@ oldProduct_win
       exit 1;
   }
   $win_title = "Stock Updated";
-  $win_text = "You have updated the stock to $newStock.";
+  $win_text = "You have updated the stock to a new total of $newStock.";
   system("$DLG --title \"$win_title\" --clear --msgbox \"" .
 	 $win_text .
 	 "\" 8 55");
@@ -255,18 +278,18 @@ enterBarcode
 		# assign each value in DB to a perl variable.
 		$newBarcode = $result->getvalue(0,0);
 		my $name = $result->getvalue(0,1);
-		my $price = $result->getvalue(0,2);
-		my $stock  = $result->getvalue(0,3);
+		my $phonetic_name = $result->getvalue(0,2);
+		my $price = $result->getvalue(0,3);
+		my $stock  = $result->getvalue(0,4);
 		&oldProduct_win($conn,
 				$newBarcode,
 				$name,
+				$phonetic_name,
 				$price,
 				$stock);
-		#return $newBarcode;
 	    } else {
 		# product now found... enter new product;
 		&newProduct_win($conn, $newBarcode);
-		#return $newBarcode;
 	    }
 	}
     }
@@ -446,7 +469,7 @@ changePrice
     my $guess = "0";
     my $newBarcode = "0";
     
-    my $win_title = "Stock Manager: Change Price";
+    my $win_title = "Stock Manager: Change PRICE";
     my $win_text = "Enter the barcode of the product you want to change".
 	"the PRICE of.";
 
@@ -515,8 +538,99 @@ changePrice
 		print STDERR "update_win: error deleting record...exiting\n";
 		exit 1;
 	    }
-	    $win_title = "Changed the Price From $price to $newPrice";
-	    $win_text = "Changed the price of $name from:\n$price => $newPrice";
+	    $win_title = "Changed the PRICE of $name";
+	    $win_text = "Changed the PRICE of $name from:\n$price => $newPrice";
+
+	    system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+		   $win_text .
+		   "\" 8 55");
+	    return "";
+	}
+    }
+}
+
+
+########################################
+# ChangePhonetics
+########################################
+sub
+changePhonetics
+{
+    my ($conn) = @_;
+    my $guess = "0";
+    my $newBarcode = "0";
+    
+    my $win_title = "Stock Manager: Change PHONETICS";
+    my $win_text = "Enter the barcode of the product you want to change".
+	"the PHONETICS of.";
+
+    while (1) {
+	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		   $win_text .
+		   "\" 8 55 2> /tmp/input.barcode") != 0) {
+	    return "";
+	}
+	
+	$guess = `cat /tmp/input.barcode`;
+	system("rm -f /tmp/input.barcode");
+	
+	$newBarcode = &verifyAndDecodeAnyBarcode($guess);
+	
+	if($newBarcode eq "") {
+	    # case where barcode is not a barcode...
+	    &errorBarcode();
+	} else {
+	    # Confirm deletion by showing the item in a confirmation dialog box.
+
+	    # First get the name of the item
+	    my $selectqueryFormat = q{
+		select name, phonetic_name
+		    from products
+			where barcode = '%s';
+	    };
+	    my $result = $conn->exec(sprintf($selectqueryFormat, $newBarcode));
+	    $win_title = "Barcode Not Found";
+	    $win_text = "Barcode not found in database.";
+	    if ($result->ntuples != 1) {
+		system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+		       $win_text .
+		       "\" 8 55");
+		return"";
+	    }	    
+
+	    my $name = $result->getvalue(0,0);
+	    my $phonetic_name = $result->getvalue(0,1);
+	    # Then create the confirmation box
+	    $win_title = "Changing the PHONETICS of $name";
+	    $win_text = "Change the PHONETICS of $name from $phonetic_name to what?\n";
+
+	    my $newPhonetic_Name = "";
+	    do {
+		if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+			   $win_text .
+			   "\" 8 55 2> /tmp/input.name") != 0) {
+		    return "";
+		}	    
+		
+		$newPhonetic_Name = `cat /tmp/input.name`;
+		system("rm -rf /tmp/input.name");
+	    } while ($newPhonetic_Name !~ /\w+/);
+
+	    my $updatequeryFormat = q{
+		update products
+		    set phonetic_name = '%s'
+			where barcode = '%s';
+	    };
+	    $result = $conn->exec(sprintf($updatequeryFormat,
+					  $newPhonetic_Name,
+					  $newBarcode));
+	    if ($result->resultStatus != PGRES_COMMAND_OK) {
+		print STDERR "update_win: error deleting record...exiting\n";
+		exit 1;
+	    }
+	    $win_title = "Changed the PHONETICS of $name";
+	    $win_text = "Changed the PHONETICS of $name from:\n$phonetic_name"
+		." => $newPhonetic_Name";
 
 	    system("$DLG --title \"$win_title\" --clear --msgbox \"" .
 		   $win_text .
@@ -546,6 +660,8 @@ mainMenu
 	       "\"Change the PRICE of a Chez Bob product \" " .
 	       "\"Change Name\" " .
 	       "\"Change the NAME of a Chez Bob product \" " .
+	       "\"Change Phonetics\" " .
+	       "\"Change the PHONETICS of a product \" " .
 	       "\"Delete\" " .
 	       "\"DELETE a Chez Bob product \" " .
 	       "\"Inventory\" " .
@@ -591,6 +707,9 @@ while ($action ne "Quit") {
     }
     elsif ($action eq "Change Price") {
 	&changePrice($conn);
+    }
+    elsif ($action eq "Change Phonetics") {
+	&changePhonetics($conn);
     }
     elsif ($action eq "Inventory") {
 	
