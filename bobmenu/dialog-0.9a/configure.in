@@ -1,0 +1,135 @@
+dnl $Id: configure.in,v 1.1.1.1 2001-05-17 18:46:10 mcopenha Exp $
+dnl Process this file with autoconf to produce a configure script.
+dnl
+AC_PREREQ(2.13.19990117)
+AC_INIT(dialog.h)
+AC_CONFIG_HEADER(config.h:config.hin)
+
+dnl PACKAGE is used for GNU gettext
+PACKAGE=dialog
+AC_DEFINE_UNQUOTED(PACKAGE, "$PACKAGE")
+AC_SUBST(PACKAGE)
+
+DESTDIR=
+AC_SUBST(DESTDIR)
+
+dnl
+dnl Checks for programs.
+dnl
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_GCC_TRADITIONAL
+AC_PROG_MAKE_SET
+AC_PROG_RANLIB
+AC_PROG_INSTALL
+AC_ISC_POSIX
+
+AC_C_CONST
+
+CF_MAKEFLAGS
+CF_MAKE_TAGS
+CF_DISABLE_ECHO
+CF_PROG_EXT
+CF_LIB_PREFIX
+
+AC_ARG_WITH(warnings,
+[  --with-warnings         turn on gcc warnings, for debugging ],[
+	CF_GCC_ATTRIBUTES
+	CF_GCC_WARNINGS
+])
+
+dnl
+dnl Checks for libraries.
+dnl
+CF_BUNDLED_INTL
+CF_MATH_LIB(,sqrt(x))
+
+AC_MSG_CHECKING(if you want to link with dbmalloc for testing)
+AC_ARG_WITH(dbmalloc,
+	[  --with-dbmalloc         test: use Conor Cahill's dbmalloc library],
+	[with_dbmalloc=$withval],
+	[with_dbmalloc=no])
+AC_MSG_RESULT($with_dbmalloc)
+if test $with_dbmalloc = yes ; then
+	AC_CHECK_LIB(dbmalloc,debug_malloc)
+fi
+
+AC_MSG_CHECKING(if you want to link with dmalloc for testing)
+AC_ARG_WITH(dmalloc,
+	[  --with-dmalloc          test: use Gray Watson's dmalloc library],
+	[with_dmalloc=$withval],
+	[with_dmalloc=no])
+AC_MSG_RESULT($with_dmalloc)
+if test $with_dmalloc = yes ; then
+	AC_CHECK_LIB(dmalloc,dmalloc_debug)
+fi
+
+AC_ARG_WITH(ncurses,
+	[  --with-ncurses          compile/link with ncurses library],
+	[with_ncurses=$withval],
+	[with_ncurses=no])
+if test $with_ncurses = yes ; then
+	CF_NCURSES_CPPFLAGS
+	CF_NCURSES_LIBS
+else
+	CF_CURSES_CPPFLAGS
+	CF_NCURSES_VERSION
+	CF_CURSES_LIBS
+fi
+
+EXTRAOBJS=""
+cf_all_widgets=yes
+# For cdialog version 0.9a, libgpm can't be used because it doesn't
+# implement the wtimeout() function of ncurses.
+dnl CF_ARG_ENABLE(gpm,
+dnl 	[  --enable-gpm            include gpm support],
+dnl 	[EXTRAOBJS="$EXTRAOBJS mouse.o"
+dnl 	 AC_DEFINE(HAVE_LIBGPM)])
+
+CF_ARG_MSG_ENABLE([if you want config-file support],
+	rc-file,
+	[  --enable-rc-file        include config-file support],
+	[EXTRAOBJS="$EXTRAOBJS rc.o"
+	 AC_DEFINE(HAVE_RC_FILE)],,$cf_all_widgets)
+
+CF_ARG_MSG_ENABLE([if you want Xdialog-style dialogs],
+	Xdialog,
+	[  --enable-Xdialog        include Xdialog-style dialogs],
+	[EXTRAOBJS="$EXTRAOBJS calendar.o fselect.o timebox.o"
+	 AC_DEFINE(HAVE_XDIALOG)],,$cf_all_widgets)
+
+CF_ARG_MSG_ENABLE([if you want the gauge dialog],
+	gauge,
+	[  --disable-gauge         do not include the gauge dialog],
+	[EXTRAOBJS="$EXTRAOBJS guage.o"
+	 AC_DEFINE(HAVE_GAUGE)],,$cf_all_widgets)
+
+CF_ARG_MSG_ENABLE([if you want the tailbox dialog],
+	tailbox,
+	[  --disable-tailbox       do not include the tailbox dialog],
+	[EXTRAOBJS="$EXTRAOBJS tailbox.o"
+	 AC_DEFINE(HAVE_TAILBOX)],,$cf_all_widgets)
+
+AC_SUBST(EXTRAOBJS)
+
+dnl
+dnl Checks for header files.
+dnl
+AC_HEADER_STDC
+AC_HEADER_DIRENT
+AC_CHECK_HEADERS(unistd.h)
+
+dnl
+dnl Checks for library functions.
+dnl
+AC_TYPE_SIGNAL
+AC_CHECK_FUNCS(\
+strcasecmp \
+)
+
+AC_CHECK_FUNC(start_color,[AC_DEFINE(HAVE_COLOR)])
+CF_CURSES_CHTYPE
+
+AC_TRY_LINK([#include <locale.h>],[setlocale(LC_ALL, "")],[AC_DEFINE(HAVE_SETLOCALE)])
+
+AC_OUTPUT(makefile $SUB_MAKEFILE samples/install/makefile,,,sort -u)
