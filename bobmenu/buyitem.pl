@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.20 2001-08-20 21:00:33 bellardo Exp $
+# $Id: buyitem.pl,v 1.21 2001-08-20 22:42:43 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -153,6 +153,7 @@ buy_single_item_with_scanner
   if ($dup_purchase || !$PROFILE{"No Confirmation"}) {
     if ($dup_purchase) {
       $txt = sprintf("\nReally purchase another $prodname for \\\$%.2f?", $amt);
+      &report("ChezBob: Duplicate Purchase", "Questionalbe duplicate purchase by $userid: $prodname\n");
     }
     if (! &confirm_win($prodname, $txt, 40)) {
       return "";
