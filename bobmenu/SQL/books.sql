@@ -6,6 +6,5 @@ create table books
   title   varchar   not null,
 
   primary key (barcode),
-  unique (barcode),
-  unique (isbn)
+  unique (barcode)
 );
