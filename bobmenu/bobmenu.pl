@@ -2,13 +2,12 @@
 
 # bobmenu.pl
 # 
-# Main routine for Chez Bob.  First checks the kind of login (text or barcode)
-# and calls the corresponding handler routine (kbd_login or barcode_login).
+# Main routine for Chez Bob.  
 #
 # Al Su (alsu@cs.ucsd.edu)
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # 
-# $Id: bobmenu.pl,v 1.32 2001-05-17 18:43:19 mcopenha Exp $
+# $Id: bobmenu.pl,v 1.33 2001-05-17 23:23:38 mcopenha Exp $
 #
 
 require "bc_win.pl";	# barcode login windows
@@ -17,12 +16,12 @@ require "bc_util.pl";	# barcode utils
 require "snd_util.pl";	# speech utils
 require "bob_db.pl";	# database routines
 
-my $DLG = "./dialog";
+my $DLG = "./bobdialog";
 my $NOT_FOUND = -1;
 $CANCEL = -1;
 
 
-$REVISION = q{$Revision: 1.32 $};
+$REVISION = q{$Revision: 1.33 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -40,9 +39,9 @@ do {
 # Check if we're dealing with a user barcode or regular username
 my $barcode = &preprocess_barcode($logintxt); 
 if (&isa_valid_user_barcode($barcode)) {
-  my $userid = &bob_db_get_userid_from_userbarcode($barcode);
-  if ($userid != $NOT_FOUND) {
-    &barcode_login($userid);
+  my $username = &bob_db_get_username_from_userbarcode($barcode);
+  if (defined $username) {
+    &kbd_login($username);
   } else {
     &user_barcode_not_found_win;
   }
@@ -54,8 +53,9 @@ if (&isa_valid_user_barcode($barcode)) {
 
 # Make sure any temp input files are gone. We can run into permission
 # problems if multiple people are trying to run Bob on the same system.
-system("rm -f /tmp/input.*");
-system("rm -f /tmp/*.output.log");
+system("rm -f input.*");
+system("rm -f *.output.log");
+system("rm -f menuout");
 
 
 sub
@@ -73,21 +73,12 @@ Enter your username or scan your personal barcode.
 (If you are a new user enter a new username):
 };
 
-  if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-         $win_text .  "\" 14 55 \"$username\" 2> /tmp/input.main") != 0) {
+  if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .
+         $win_text .  "\" 14 55 \"$username\" 2> input.main") != 0) {
     return "";
   }
 
-  return `cat /tmp/input.main`;
-}
-
-
-sub
-barcode_login
-{
-  my ($userid) = @_;
-  my $username = &bob_db_get_username_from_userid($userid);
-  &barcode_action_win($userid, $username);
+  return `cat input.main`;
 }
 
 
