@@ -14,13 +14,15 @@
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
 #
-# $Id: bob_db.pl,v 1.18 2001-05-21 07:49:48 chpham Exp $
+# $Id: bob_db.pl,v 1.19 2001-05-22 01:09:33 chpham Exp $
 #
 
-require "report_err.pl";
 use Pg;
+require "ctime.pl";
 
 my $conn = ""; 		# the database connection	
+my $ADMIN = 'chpham@danger-132.ucsd.edu';	# address to send admin. message
+
 $NOT_FOUND = -1;	
 
 sub
@@ -33,7 +35,7 @@ bob_db_connect
     # exit 1;
 	my $mesg = "Error connecting to database.\n";
 	$mesg .= $conn->errorMessage;
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -45,7 +47,7 @@ bob_db_check_conn
     # print STDERR "Not connected to Bob database...exiting.\n";
     # exit 1;
 	my $mesg = "Connection to Bob database lost.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -172,8 +174,8 @@ bob_db_add_user
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     # print STDERR "error inserting record...exiting\n";
     # exit 1;
-	my $mesg = "Error inserting new user's record.\n";
-	&report($mesg);
+	my $mesg = "In bob_db_add_user(): error inserting new user's record.\n";
+	&report_fatal($mesg);
   }
 }
 
@@ -194,8 +196,9 @@ bob_db_update_user_barcode
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     # print STDERR "error updating new barcode\n";
     # exit 1;
-	my $mesg = "Error updating user's barcode.\n";
-	&report($mesg);
+	my $mesg = "In bob_db_update_user_barcode(): ";
+	$mesg .= "error updating user's barcode.\n";
+	&report_fatal($mesg);
   }
 }
 
@@ -218,8 +221,8 @@ bob_db_update_nickname
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     # print STDERR "error updating new nickname\n";
     # exit 1;
-	my $mesg = "Error updating user's nickname.\n";
-	&report($mesg);
+	my $mesg = "In bob_db_update_nickname(): error updating user's nickname.\n";
+	&report_fatal($mesg);
   }
 }
 
@@ -269,7 +272,7 @@ bob_db_init_balance
     # print STDERR "error inserting record...exiting\n";
     # exit 1;
 	my $mesg = "In bob_db_init_balance(): error inserting record.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -302,7 +305,7 @@ bob_db_update_balance
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     # print STDERR "error update record...exiting\n";
 	my $mesg = "In bob_db_update_balance(): error updating record.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -329,7 +332,7 @@ bob_db_insert_msg
     # print STDERR "error inserting record...exiting\n";
     # exit 1;
 	my $mesg = "In bob_db_insert_msg(): error inserting record.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -346,7 +349,7 @@ bob_db_log_transactions
     # print STDERR "unable to write to log file.\n";
     # exit 1;
 	my $mesg = "In bob_db_log_transaction(): error writing to log file.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 
   my $logqueryFormat = q{
@@ -414,7 +417,7 @@ bob_db_remove_pwd
     # print STDERR "error deleting record...exiting\n";
     # exit 1; 
 	my $mesg = "In bob_db_remove_pwd(): error deleting record.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -436,7 +439,7 @@ bob_db_update_pwd
     # print STDERR "error updating record...exiting\n";
     # exit 1;
 	my $mesg = "In bob_db_update_pwd(): error updating record.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -458,7 +461,7 @@ bob_db_insert_pwd
     # print STDERR "error inserting record...exiting\n";
     # exit 1;
 	my $mesg = "In bob_db_insert_pwd(): error inserting record.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -484,7 +487,7 @@ bob_db_insert_product
     # print STDERR "error inserting record...exiting\n";
     # exit 1;
 	my $mesg = "In bob_db_insert_product(): error inserting record.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -504,7 +507,7 @@ bob_db_set_stock
     # print STDERR "error update record...exiting\n";
     # exit 1;
 	my $mesg = "In bob_db_set_stock(): error updating record.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -525,7 +528,7 @@ bob_db_update_stock
     # print STDERR "error update record...exiting\n";
     # exit 1;
 	my $mesg = "In bob_db_update_stock(): error updating record.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -625,7 +628,7 @@ bob_db_delete_product
     # print STDERR "error deleting record...exiting\n";
     # exit 1;
 	my $mesg = "In bob_db_delete_stock(): error deleting record.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -667,7 +670,7 @@ bob_db_delete_bulk
     # print STDERR "error deleting record...exiting\n";
     # exit 1;
 	my $mesg = "In bob_db_delete_bulk(): error deleting record.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -693,7 +696,7 @@ bob_db_insert_bulk_item
     # print STDERR "error inserting record...exiting\n";
     # exit 1;
 	my $mesg = "In bob_db_insert_bulk(): error inserting record.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -727,7 +730,7 @@ bob_db_update_products_in_bulk_item
         # print STDERR "error update record...exiting\n";
         # exit 1;
 		my $mesg = "In bob_db_update_products_in_bulk_item(): error updating record.\n";
-		&report($mesg);
+		&report_fatal($mesg);
       }
     }
 
@@ -774,7 +777,7 @@ bob_db_get_products_from_bulk_item
       # print STDERR "error retrieving bulk item...exiting\n";
       # exit 1;
 	  my $mesg = "In bob_db_get_products_from_bulk_item(): error retrieving bulk item.\n";
-	  &report($mesg);
+	  &report_fatal($mesg);
   }
   return \@stuff;
 }
@@ -821,7 +824,7 @@ bob_db_insert_property
     # print STDERR "error insert new property...exiting\n";
     # exit 1; 
 	my $mesg = "In bob_db_insert_property(): error inserting new property.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -847,7 +850,7 @@ bob_db_update_profile_settings
       # print STDERR "error updating profile\n";
       # exit 1;
 	  my $mesg = "In bob_db_update_profile_setting(): error updating profile.\n";
-	  &report($mesg);
+	  &report_fatal($mesg);
     }
   }
 }
@@ -875,7 +878,7 @@ bob_db_insert_book
     # print STDERR "error insert new book...exiting\n";
     # exit 1;
 	my $mesg = "In bob_db_insert_book(): error inseting new book.\n";
-	&report($mesg);
+	&report_fatal($mesg);
   }
 }
 
@@ -913,5 +916,41 @@ esc_apos
   return $str;
 }
 
+#------------------------------------------------------------------------------ 
+# Error reporting routines
+
+sub report
+{
+ my ($subject, $mesg) =  @_ ;
+
+ my $MAIL = '/bin/mail';
+ my $fname = "/tmp/email$$";
+
+ open(MESG, ">$fname") || die "can't open $fname: $!\n";
+ print MESG &ctime(time), "\n";
+ print MESG "$mesg";
+ close(MESG);
+
+ system("$MAIL -s \"$subject\" $ADMIN < $fname");
+ unlink($fname);
+}
+
+sub report_fatal
+{
+	my ($message) = @_ ;
+	my $subject = "BOB IS DOWN - fatal error had occured";
+
+	&report($subject, $message);
+	exit 1;
+}
+
+sub report_msg
+{
+	my ($userid, $message) = @_ ;
+	my ($subject) = "Mesage to Bob";
+    &report($subject, $message);
+	my $msg_to_bob = $subject . ": " . $message;
+	&bob_db_insert_msg($userid, $msg_to_bob);
+}
 
 1;
