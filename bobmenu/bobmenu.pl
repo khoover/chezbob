@@ -52,6 +52,9 @@ barcode_win
 
   $guess = `cat /tmp/input.barcode`;
   system("rm -f /tmp/input.barcode");
+
+  # add code to modify database
+
   return $barcode;
 }
 
@@ -912,7 +915,7 @@ confirm_win
 ###
 
 $REVISION = q{
-$Revision: 1.5 $
+$Revision: 1.6 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
