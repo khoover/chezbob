@@ -18,12 +18,12 @@
 #    instead of echoing nothing.  Changed files dialog.c, inputstr.c,
 #    and textbox.c.  Changes were taken from a broken patch file.
 #
-# $Id: dlg.pl,v 1.9 2001-05-22 22:52:49 mcopenha Exp $
+# $Id: dlg.pl,v 1.10 2001-05-23 00:08:07 mcopenha Exp $
 #
 
 $DLG = "$BOBPATH/dialog-0.9a/dialog";
 $CANCEL = -1;
-$TMP = "/home/mcopenha/tmp";	# locn of temp files for dialog output
+$TMP = "/tmp";	# locn of temp files for dialog output
 
 
 sub
