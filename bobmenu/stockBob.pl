@@ -118,10 +118,10 @@ newProduct_win
       system("rm -f /tmp/input.product");
       # check for proper input and then ask for quantity for stock.  
       $win_title = "Enter the PRICE of $newName";
-      $win_text = "Please enter the PRICE of this item.";
+      $win_text = "Please enter the PRICE of this item (include decimal point for cents).";
   }
 
-  while ($newPrice !~ /^\d+$/ && $newPrice !~ /^\d*\.\d{0,2}$/) {
+  while ($newPrice !~ /^\d*\.\d{0,2}$/) {
 
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 		 $win_text .
@@ -489,7 +489,7 @@ changePrice
 	    # Then create the confirmation box
 	    $win_title = "Changing the PRICE of $name";
 	    $win_text = "Change the PRICE of $name from $price to what?\n".
-		"(Has to be in decimal format: D.XX)"; 
+		"(include decimals for cents)"; 
 
 	    my $newPrice = "";
 	    do {
