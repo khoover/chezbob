@@ -149,6 +149,8 @@ oldProduct_win
   }
 
   # check the number and update the database.
+
+  system("rm -f /tmp/input.product");
 }
 
 
