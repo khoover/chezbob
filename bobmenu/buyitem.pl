@@ -3,13 +3,14 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.4 2001-05-21 21:20:08 mcopenha Exp $
+# $Id: buyitem.pl,v 1.5 2001-05-22 01:34:24 yfei Exp $
 #
 
 require "bob_db.pl";
 require "dlg.pl";
 require "speech.pl";
 require "profile.pl";
+require "bc_util.pl";
 
 $PRICES{"Candy/Can of Soda"} = 0.45;
 $PRICES{"Juice"} = 0.70;
@@ -123,6 +124,38 @@ buy_single_item_with_scanner
 
   &bob_db_update_stock(-1, $prodname);
   &bob_db_update_balance($userid, -$amt, "BUY " . $prodname);
+
+  return $prodname;
+}
+
+
+sub
+buy_with_cash
+#
+# Call get_barcode_win to get item barcode, look it up and update 
+# the product's stock (-1).  On failure (product does not
+# exist or user cancels) return empty string; on success (user buys product)
+# return the name of the product purchased.  
+#
+{
+  my $barcode = &get_barcode_win(); 
+  $barcode = &preprocess_barcode($barcode);      
+  $prodname = &bob_db_get_productname_from_barcode($barcode);
+  if (!defined $prodname) {
+    &invalid_product_barcode_win;
+    return "";
+  }
+
+  my $phonetic_name = &bob_db_get_phonetic_name_from_barcode($barcode);
+  &sayit("$phonetic_name");
+  my $amt = &bob_db_get_price_from_barcode($barcode);
+  my $txt = sprintf("\nIs your purchase amount \\\$%.2f?", $amt);
+
+  if (! &confirm_win($prodname, $txt, 40)) {
+      return "";
+  }
+
+  &bob_db_update_stock(-1, $prodname);
 
   return $prodname;
 }
