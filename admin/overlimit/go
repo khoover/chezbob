@@ -1,10 +1,31 @@
 #!/bin/sh
 
-CB_MACH=chezbob.ucsd.edu
+#
+# where is the chezbob machine?  (if running on the chezbob
+# machine, use "localhost")
+#
+#CB_MACH=chezbob.ucsd.edu
+CB_MACH=localhost
+
+#
+# where is the mail machine and what is the mh send command?
+# (if running on the mail machine, use "localhost")
+#
 #MAIL_MACH=beowulf.ucsd.edu
 #MAIL_CMD=/usr/local/MH/bin/send
 MAIL_MACH=localhost
 MAIL_CMD=/usr/bin/mh/send
+
+#
+# where is the makeform.pl utility?
+#
+MAKEFORM=../makeform.pl
+
+#
+# where are the ssh and scp binaries?
+#
+SSH=/usr/local/bin/ssh
+SCP=/usr/local/bin/scp
 
 #
 # check to see if we have a home
@@ -17,7 +38,7 @@ fi
 #
 # check for output directory
 #
-OUTDIR=$HOME/docs/chezbob/admin/overlimit
+OUTDIR=.
 if [ ! -d $OUTDIR ]; then
   echo "no outdir ${OUTDIR}...exiting."
   exit 1
@@ -27,8 +48,6 @@ cd $OUTDIR
 #
 # check for ssh/scp
 #
-SSH=/usr/local/bin/ssh
-SCP=/usr/local/bin/scp
 if [ ! -x $SSH ]; then
   echo "$SSH does not exist...exiting."
   exit 1
@@ -39,47 +58,69 @@ if [ ! -x $SCP ]; then
 fi
 
 #
-# check for agent configuration information
+# check for agent configuration information, if needed
 #
-MACH=`hostname`
-ACFILE=$HOME/.ssh/agent_configs/agent_config_${MACH}_sh
-if [ ! -f $ACFILE ]; then
-  echo "no agent config file $ACFILE...exiting."
-  exit 1
+if [ "x${CB_MACH}" != "xlocalhost" -o "x${MAIL_MACH}" != "xlocalhost" ]; then
+  #
+  # need agent configuration info (output from ssh-agent) to
+  # get access to the remote machines.  this better describe
+  # a running agent with keys capable of accessing both the
+  # chezbob machine and the mail machine
+  #
+  MACH=`hostname`
+  ACFILE=$HOME/.ssh/agent_configs/agent_config_${MACH}_sh
+  if [ ! -f $ACFILE ]; then
+    echo "no agent config file $ACFILE...exiting."
+    exit 1
+  fi
+  source $ACFILE
 fi
-source $ACFILE
 
-if ( ! $SSH -n $CB_MACH true ); then
-  echo "unable to access ${CB_MACH}...exiting."
-  exit 1
+if [ "x${CB_MACH}" != "xlocalhost" ]; then
+  if ( ! $SSH -n $CB_MACH true ); then
+    echo "unable to access chezbob machine ${CB_MACH}...exiting."
+    exit 1
+  fi
+fi
+if [ "x${MAIL_MACH}" != "xlocalhost" ]; then
+  if ( ! $SSH -n $MAIL_MACH true ); then
+    echo "unable to access mail machine ${MAIL_MACH}...exiting."
+    exit 1
+  fi
 fi
 
-#if ( ! $SSH -n $CB_MACH q users_overlimit | grep -v -- -- | grep -v " rows" | grep -v flags | grep -v query: | sed -e '/^$/d' | tr '|' ' ' >./list1 ); then
-if ( ! $SSH -n $CB_MACH q users_overlimit | grep '|' | tr '|' ' ' >./list1 ); then
-  echo "unable to fetch overlimit list...exiting."
-  exit 1
+if [ "x${CB_MACH}" = "xlocalhost" ]; then
+  if ( ! q users_overlimit | grep '|' | tr '|' ' ' >./list1 ); then
+    echo "(local) unable to fetch overlimit list...exiting."
+    exit 1
+  fi
+else
+  if ( ! $SSH -n $CB_MACH q users_overlimit | grep '|' | tr '|' ' ' >./list1 ); then
+    echo "unable to fetch overlimit list...exiting."
+    exit 1
+  fi
 fi
 
 /bin/rm -f ./email1.*
-./makeform.pl ./email1 ./list1
+$MAKEFORM ./email1 ./list1
 
 MAIL_TMPDIR=TMP_$$
-if [ "x$MAIL_MACH" == "xlocalhost" ]; then
-  if ( ! mkdir $MAIL_TMPDIR ); then
+if [ "x$MAIL_MACH" = "xlocalhost" ]; then
+  if ( ! mkdir ./$MAIL_TMPDIR ); then
     echo "(local) unable to create temp directory ${MAIL_TMPDIR}...exiting."
   fi
-  if ( ! cp ./email1.* ${MAIL_TMPDIR} ); then
+  if ( ! cp ./email1.* ./${MAIL_TMPDIR} ); then
     echo "(local) unable to copy drafts..."
   else
-    if ( ! $MAIL_CMD ${MAIL_TMPDIR}/email1.\* ); then
+    if ( ! $MAIL_CMD `pwd`/${MAIL_TMPDIR}/email1.* ); then
       echo "(local) unable to send drafts..."
     else
-      if ( ! /bin/rm ~/${MAIL_TMPDIR}/\* ); then
+      if ( ! /bin/rm ./${MAIL_TMPDIR}/* ); then
         echo "(local) unable to flush tmp directory..."
       fi
     fi
   fi
-  if ( ! rmdir ${MAIL_TMPDIR} ); then
+  if ( ! rmdir ./${MAIL_TMPDIR} ); then
     echo "(local) unable to remove temp directory ${MAIL_TMPDIR}...exiting."
     exit 1
   fi
