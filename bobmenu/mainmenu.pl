@@ -2,10 +2,11 @@
 #
 # The main menu for Chez Bob which currently contains options for depositing
 # money, purchasing products, updating user settings (passwd, nickname, 
-# barcode id), viewing transactions, and sending messages to Bob.  Routines
-# for each of these functions is contained in separate files.
+# barcode id), viewing transactions, sending messages to Bob, updating 
+# user profiles, and checking out books (limited).  Routines for each of 
+# these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.3 2001-05-19 23:51:19 mcopenha Exp $
+# $Id: mainmenu.pl,v 1.4 2001-05-21 06:38:58 mcopenha Exp $
 #  
 
 require "passwd.pl";
@@ -28,10 +29,11 @@ bob_action_win
   my ($userid, $username) = @_;
   my $nickname = &bob_db_get_nickname_from_userid($userid);
   my $last_purchase = "";
+  my $curr_purchase = "";
+  my $action = "";
+
   &get_user_profile($userid);
   if ($PROFILE{"Speech"}) { &say_greeting($nickname); }
-
-  my $action = "";
 
 MAINLOOP:
   while ($action ne "Quit") {
@@ -48,13 +50,11 @@ MAINLOOP:
     # get the action
     #
     $action = &action_win($username,$userid,$balance,$last_purchase);
-    my $boughtitem = 0;
 
     $_ = $action;
     SWITCH: {
       /^DIGITS$/ && do {
-        $last_purchase = &buy_single_item_with_scanner($userid);
-        $boughtitem = 1;
+        $curr_purchase = &buy_single_item_with_scanner($userid);
         last SWITCH;
       };
 
@@ -64,37 +64,27 @@ MAINLOOP:
       };
   
       /^Candy\/Can of Soda$/ && do {
-        $last_purchase = "Candy/Can of Soda";
-        &buy_win($userid,$_);
-        $boughtitem = 1;
+        $curr_purchase = &buy_win($userid, $_);
         last SWITCH;
       };
     
       /^Snapple$/ && do {
-        $last_purchase = "Snapple";
-        &buy_win($userid,$_);
-        $boughtitem = 1;
+        $curr_purchase = &buy_win($userid, $_);
         last SWITCH;
       };
     
       /^Juice$/ && do {
-        $last_purchase = "Juice";
-        &buy_win($userid,$_);
-        $boughtitem = 1;
+        $curr_purchase = &buy_win($userid, $_);
         last SWITCH;
       };
     
       /^Popcorn\/Chips\/etc.$/ && do {
-        $last_purchase = "Popcorn/Chips";
-        &buy_win($userid,$_);
-        $boughtitem = 1;
+        $curr_purchase = &buy_win($userid, $_);
         last SWITCH;
       };
     
       /^Buy Other$/ && do {
-        $last_purchase = "Other";
-        &buy_win($userid);
-        $boughtitem = 1;
+        $curr_purchase = &buy_win($userid, $_);
         last SWITCH;
       };
   
@@ -143,7 +133,9 @@ MAINLOOP:
       };
     } # SWITCH
 
-    if ($boughtitem) {
+    if ($curr_purchase ne "") {
+      # User did *not* cancel purchase
+      $last_purchase = $curr_purchase;
       if ($PROFILE{"Auto Logout"}) { last MAINLOOP; }
     }
   } 

@@ -2,7 +2,7 @@
 #
 # Routines for adding money to a chez bob account
 #
-# $Id: deposit.pl,v 1.1 2001-05-18 05:41:44 mcopenha Exp $
+# $Id: deposit.pl,v 1.2 2001-05-21 06:38:58 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -10,6 +10,11 @@ require "dlg.pl";
 
 sub
 add_win
+#
+# Prompt the user for the amount of money they're adding to their account.
+# Update balance table in the database.  Return amt deposited on success,
+# $CANCEL otherwise.
+#
 {
   my ($userid) = @_;
 

@@ -1,20 +1,24 @@
 #!/usr/bin/perl -w
 
-# bobmenu.pl
+# chezbob.pl
 # 
-# Main routine for Chez Bob.  
+# Main routine for Chez Bob.  There are currently three ways to log into 
+# the system:
+# 1. Buy with cash barcode: The user scans this barcode if they plan to
+#    pay for their item with cash.  The user is then prompted to scan the 
+#    barcode of the product they are purchasing, and the system updates 
+#    the stock of that particular product.
+# 2. Personal Barcode: The user scans his/her id card, or personal barcode.
+# 3. Username: The user types in their standard username.
 #
-# Al Su (alsu@cs.ucsd.edu)
-# Michael Copenhafer (mcopenha@cs.ucsd.edu)
-# 
-# $Id: chezbob.pl,v 1.1 2001-05-18 05:41:44 mcopenha Exp $
+# $Id: chezbob.pl,v 1.2 2001-05-21 06:38:58 mcopenha Exp $
 #
 
 require "login.pl";	# login_win
 require "bob_db.pl";	# database routines
 
 
-$REVISION = q{$Revision: 1.1 $};
+$REVISION = q{$Revision: 1.2 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -28,7 +32,6 @@ do {
   $logintxt = &login_win($REVISION);
 } while ($logintxt eq "");
 
-# Check if we're dealing with a user barcode or regular username
 my $barcode = &preprocess_barcode($logintxt); 
 if (&isa_valid_user_barcode($barcode)) {
   my $username = &bob_db_get_username_from_userbarcode($barcode);

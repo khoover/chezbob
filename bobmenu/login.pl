@@ -2,7 +2,7 @@
 #
 # Routines for processing login names, both text and barcode
 #
-# $Id: login.pl,v 1.2 2001-05-18 23:58:48 mcopenha Exp $
+# $Id: login.pl,v 1.3 2001-05-21 06:38:58 mcopenha Exp $
 #
 
 $MIN_BARCODE_LENG = 6;
@@ -16,6 +16,10 @@ require "mainmenu.pl";
 
 sub
 process_login
+#
+# See if we're dealing with a new user.  Check for a password if 
+# 'checkpass' is true (barcode login doesn't require password). 
+#
 {
   my ($username, $checkpass) = @_;
   my $userid = &bob_db_get_userid_from_username($username);

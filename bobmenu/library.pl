@@ -1,8 +1,16 @@
 # library.pl
 #
-# a minimal set of routines for checking out books 
+# a minimal set of routines for checking out books.  I obtained a nice
+# set of python scripts (http://eblong.com/zarf/bookscan/) that can take a 
+# list of EBN (or UPC) barcodes from books, convert them into ISBN #'s,
+# look up the ISBN's on Amazon, and finally output a tab-delimited text
+# file containing the author(s) and title of every book.  
 #
-# $Id: library.pl,v 1.1 2001-05-19 23:51:19 mcopenha Exp $
+# To make this really useful we'd need to add a database table that 
+# records which user checked out a book, the date checked out, due date,
+# etc.  We may also send mail to the head librarian (Julie?). 
+#
+# $Id: library.pl,v 1.2 2001-05-21 06:38:58 mcopenha Exp $
 #
 
 require "bob_db.pl";

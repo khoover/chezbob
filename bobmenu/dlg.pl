@@ -1,14 +1,29 @@
 # dlg.pl
 #
 # This file was intended to encapsulate the calls to the dialog program
-# but that's too much of a pain.  Contains the location of the custom 
-# dialog program we're using.
+# but that's too much of a pain.  Contains the location of the dialog 
+# executable.  It's important to note that we're using a custom version
+# of the dialog program; chez bob won't work correctly with the barcode
+# scanner if you use a stock version of the dialog program.  Specifically,
+# we made the following changes to dialog version dialog-0.9a-20010429
+# (http://dickey.his.com/dialog/dialog.html):
 #
-# $Id: dlg.pl,v 1.3 2001-05-19 23:51:19 mcopenha Exp $
+# 1. Modified dialog's 'menu' window so that any keyboard input is 
+#    redirected to a file called 'menuout' that's stored in the current
+#    directory.  We made this change so that a user could use the 
+#    barcode scanner while the main menu was showing.  Modified file
+#    menubox.c.
+#
+# 2. Made changes so that the passwordbox echoes asteriks to the screen
+#    instead of echoing nothing.  Changed files dialog.c, inputstr.c,
+#    and textbox.c.  Changes were taken from a broken patch file.
+#
+# $Id: dlg.pl,v 1.4 2001-05-21 06:38:58 mcopenha Exp $
 #
 
 $DLG = "./dialog-0.9a/dialog";
 $CANCEL = -1;
+
 
 sub
 confirm_win

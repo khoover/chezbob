@@ -14,7 +14,7 @@
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
 #
-# $Id: bob_db.pl,v 1.15 2001-05-21 05:45:02 wleong Exp $
+# $Id: bob_db.pl,v 1.16 2001-05-21 06:38:58 mcopenha Exp $
 #
 
 use Pg;
@@ -650,10 +650,9 @@ bob_db_insert_bulk_item
   my $query = sprintf($insertqueryFormat, 
                       $barcode, 
                       &esc_apos($name), 
-                      &esc_apos($prodbarcode), 
+                      $prodbarcode, 
                       $quan);
   my $result = $conn->exec($query);
-
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     print STDERR "error inserting record...exiting\n";
     exit 1;

@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.2 2001-05-18 23:58:48 mcopenha Exp $
+# $Id: buyitem.pl,v 1.3 2001-05-21 06:38:58 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -19,6 +19,13 @@ $PRICES{"Popcorn/Chips/etc."} = 0.30;
 
 sub
 buy_win
+#
+# Legacy routine for purchasing an item from one of the food categories
+# in the PRICES array.  If 'type' is not found in PRICES then ask the 
+# user to input the price of their purchase.  Return the name of the 
+# product category on success; return blank string otherwise (user 
+# canceled).
+#
 {
   my ($userid, $type) = @_;
 
@@ -46,7 +53,7 @@ What is the price of the item you are buying?
     while (1) {
       if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .
                  $win_text .  "\" 10 50 2> input.deposit") != 0) {
-        return $CANCEL;
+        return "";
       }
 
       $amt = `cat input.deposit`;
@@ -58,15 +65,15 @@ What is the price of the item you are buying?
     }
   }
 
-  if (! $PROFILE{"1-Click Buying"}) {
+  if (! $PROFILE{"No Confirmation"}) {
     if (! &confirm_win($confirmMsg,
                      sprintf("\nIs your purchase amount \\\$%.2f?", $amt),40)) {
-      return $CANCEL;
+      return "";
     }
   }
 
   &bob_db_update_balance($userid, -$amt, $type);
-  return $amt;
+  return $type;
 }
 
 
@@ -88,7 +95,9 @@ buy_single_item_with_scanner
 #
 # Inspect the output of the dialog program's menu in 'menuout'.  This should
 # contain the barcode of the last item scanned.  Look it up and update the 
-# product's stock (-1) and the user's balance.
+# product's stock (-1) and the user's balance.  On failure (product does not
+# exist or user cancels) return empty string; on success (user buys product)
+# return the name of the product purchased.  
 #
 {
   my ($userid) = @_;
@@ -106,7 +115,7 @@ buy_single_item_with_scanner
   my $amt = &bob_db_get_price_from_barcode($barcode);
   my $txt = sprintf("\nIs your purchase amount \\\$%.2f?", $amt);
 
-  if (! $PROFILE{"1-Click Buying"}) {
+  if (! $PROFILE{"No Confirmation"}) {
     if (! &confirm_win($prodname, $txt, 40)) {
       return "";
     }
