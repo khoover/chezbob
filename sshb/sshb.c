@@ -4,7 +4,7 @@
 #define PROMPT "login to beowulf as: "
 #define BEOWULF_IP "132.239.55.100"
 
-void
+int
 main(int argc, char **argv, char **envp)
 {
   char *args[3];
@@ -30,4 +30,6 @@ main(int argc, char **argv, char **envp)
   args[2] = u;
 
   execve("/usr/local/bin/ssh", args, envp);
+
+  return (0);
 }
