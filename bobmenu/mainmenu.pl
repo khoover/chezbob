@@ -6,26 +6,32 @@
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.15 2001-06-01 21:00:37 mcopenha Exp $
+# $Id: mainmenu.pl,v 1.16 2001-06-08 17:55:16 cse210 Exp $
 #  
 
-require "passwd.pl";
-require "bob_db.pl";
-require "msgtobob.pl";
-require "buyitem.pl";
-require "deposit.pl";
-require "speech.pl";
-require "usrlog.pl";
-require "nickname.pl";
-require "usrbarcode.pl";
-require "dlg.pl";
-require "profile.pl";
-require "library.pl";
+require "$BOBPATH/passwd.pl";
+require "$BOBPATH/bob_db.pl";
+require "$BOBPATH/msgtobob.pl";
+require "$BOBPATH/buyitem.pl";
+require "$BOBPATH/deposit.pl";
+require "$BOBPATH/speech.pl";
+require "$BOBPATH/usrlog.pl";
+require "$BOBPATH/nickname.pl";
+require "$BOBPATH/usrbarcode.pl";
+require "$BOBPATH/dlg.pl";
+require "$BOBPATH/profile.pl";
+require "$BOBPATH/library.pl";
 
-my $MIN_BALANCE = -10.00;
+my $MIN_BALANCE = -8.00;
+
 
 sub
 bob_action_win
+#
+# This is where most of the work gets done.  Call 'action_win' to display
+# the main menu and get the user's last action.  Make sure to refresh the
+# screen with the user's balance and the last product they purchased.
+#
 {
   my ($userid, $username) = @_;
   my $nickname = &bob_db_get_nickname_from_userid($userid);
@@ -44,9 +50,7 @@ bob_action_win
 
 MAINLOOP:
   while ($action ne "Quit") {
-    #
-    # refresh the balance
-    #
+
     $balance = &bob_db_get_balance($userid);
     if ($balance == $NOT_FOUND) {
       &report_fatal("mainmenu: no balance from database.\n");

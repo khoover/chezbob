@@ -2,16 +2,16 @@
 #
 # Routines for processing login names, both text and barcode
 #
-# $Id: login.pl,v 1.11 2001-06-01 18:51:30 mcopenha Exp $
+# $Id: login.pl,v 1.12 2001-06-08 17:55:16 cse210 Exp $
 #
 
 $MIN_BARCODE_LENG = 6;
 
-require "bc_util.pl";
-require "dlg.pl";
-require "newuser.pl";
-require "passwd.pl";
-require "mainmenu.pl";
+require "$BOBPATH/bc_util.pl";
+require "$BOBPATH/dlg.pl";
+require "$BOBPATH/newuser.pl";
+require "$BOBPATH/passwd.pl";
+require "$BOBPATH/mainmenu.pl";
 
 
 sub

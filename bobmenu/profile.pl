@@ -18,22 +18,25 @@
 # New users of the system automatically have every property of their 
 # profile turned 'off'.  
 #
-# $Id: profile.pl,v 1.8 2001-06-01 18:51:30 mcopenha Exp $
+# $Id: profile.pl,v 1.9 2001-06-08 17:55:16 cse210 Exp $
 #
 
-require "bob_db.pl";
-require "dlg.pl";
+require "$BOBPATH/bob_db.pl";
+require "$BOBPATH/dlg.pl";
+
 
 %PROFILE = (
   "Auto Logout", -1,
   "No Confirmation", -1,
-  "Speech", -1
+  "Speech", -1,
+  "Privacy", -1
 );
 
 %DESC = (
   "Auto Logout", "Automatically log me out after a purchase",
   "No Confirmation", "Do not ask me to confirm a purchase",
-  "Speech", "Verbally greet me and confirm purchases"
+  "Speech", "Verbally greet me and confirm purchases",
+  "Privacy", "Do not record the exact products I buy"
 ); 
 
 

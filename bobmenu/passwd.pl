@@ -2,11 +2,11 @@
 #
 # Routines for updating and checking user passwords
 # 
-# $Id: passwd.pl,v 1.4 2001-05-25 19:42:00 mcopenha Exp $
+# $Id: passwd.pl,v 1.5 2001-06-08 17:55:16 cse210 Exp $
 #
 
-require "bob_db.pl";
-require "dlg.pl";
+require "$BOBPATH/bob_db.pl";
+require "$BOBPATH/dlg.pl";
 
 sub
 guess_pwd_win
@@ -20,6 +20,7 @@ guess_pwd_win
 
   return `cat $TMP/input.guess`;
 }
+
 
 sub
 invalidPassword_win

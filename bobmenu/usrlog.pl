@@ -2,11 +2,11 @@
 #
 # A Routine for displaying the user's past transactions.
 # 
-# $Id: usrlog.pl,v 1.3 2001-05-22 03:29:31 mcopenha Exp $
+# $Id: usrlog.pl,v 1.4 2001-06-08 17:55:16 cse210 Exp $
 #
 
-require "bob_db.pl";
-require "dlg.pl";
+require "$BOBPATH/bob_db.pl";
+require "$BOBPATH/dlg.pl";
 
 sub
 log_win

@@ -3,21 +3,21 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.16 2001-06-07 21:16:14 mcopenha Exp $
+# $Id: buyitem.pl,v 1.17 2001-06-08 17:55:16 cse210 Exp $
 #
 
-require "bob_db.pl";
-require "dlg.pl";
-require "speech.pl";
-require "profile.pl";
-require "bc_util.pl";
+require "$BOBPATH/bob_db.pl";
+require "$BOBPATH/dlg.pl";
+require "$BOBPATH/speech.pl";
+require "$BOBPATH/profile.pl";
+require "$BOBPATH/bc_util.pl";
 
 $PRICES{"Candy/Can of Soda"} = 0.45;
 $PRICES{"Juice"} = 0.70;
 $PRICES{"Snapple"} = 0.80;
 $PRICES{"Popcorn/Chips/etc."} = 0.30;
 
-my $MAX_PURCHASE = 100;
+my $MAX_PURCHASE = 100;		# dollars
 
 
 sub
@@ -87,7 +87,9 @@ What is the price of the item you are buying?
     }
   }
 
-  &bob_db_update_balance($userid, -$amt, $type);
+  my $buy = $PROFILE{"Privacy"} ? "BUY" : $type;
+  &bob_db_update_balance($userid, -$amt, $buy);
+
   return $type;
 }
 
@@ -122,7 +124,8 @@ buy_single_item_with_scanner
   }
 
   &bob_db_update_stock(-1, $prodname);
-  &bob_db_update_balance($userid, -$amt, "BUY $prodname");
+  my $type = $PROFILE{"Privacy"} ? "BUY" : "BUY $prodname";
+  &bob_db_update_balance($userid, -$amt, $type);
 
   return $prodname;
 }

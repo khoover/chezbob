@@ -3,12 +3,12 @@
 # Routines for updating a user's personal barcode ID.  The user can login
 # to the system using this personal barcode.
 #
-# $Id: usrbarcode.pl,v 1.4 2001-06-01 18:51:30 mcopenha Exp $
+# $Id: usrbarcode.pl,v 1.5 2001-06-08 17:55:16 cse210 Exp $
 #
 
-require "bc_util.pl";
-require "bob_db.pl";
-require "dlg.pl";
+require "$BOBPATH/bc_util.pl";
+require "$BOBPATH/bob_db.pl";
+require "$BOBPATH/dlg.pl";
 
 
 sub

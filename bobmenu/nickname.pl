@@ -2,11 +2,11 @@
 #
 # Nicknames are used by the speech synthesis program when greeting the user. 
 #
-# $Id: nickname.pl,v 1.5 2001-05-25 19:42:00 mcopenha Exp $
+# $Id: nickname.pl,v 1.6 2001-06-08 17:55:16 cse210 Exp $
 #
 
-require "bob_db.pl";
-require "dlg.pl";
+require "$BOBPATH/bob_db.pl";
+require "$BOBPATH/dlg.pl";
 
 sub
 get_nickname_win
@@ -17,7 +17,7 @@ Your nickname is used by the 'Speech' option when
 greeting you.  You may enable the Speech option by 
 choosing 'My Chez Bob' from the main menu.}; 
   if (system("$DLG --title \"$win_title\" --cr-wrap --clear " .
-      " --inputbox \"$win_text\" 12 55 2> $TMP/input.nickname") != 0) {
+      " --inputbox \"$win_text\" 11 55 2> $TMP/input.nickname") != 0) {
     return undef;
   }
 

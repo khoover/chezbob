@@ -10,21 +10,19 @@
 # Wesley Leong (wleong@cs.ucsd.edu)
 # Created: 5/2/01
 #
-# $Id: stockBob.pl,v 1.9 2001-05-22 23:34:04 mcopenha Exp $
+# $Id: stockBob.pl,v 1.10 2001-06-08 17:55:16 cse210 Exp $
 #
 
-# Make sure Perl can find all of our files by appending INC with the 
-# path to the executable.  Makes the assumption that the location of 
-# the library routines is in the parent directory.
+# Make sure Perl can find all of our files by storing the path to the
+# executable (stockBob) in BOBPATH
 open(TMP, "which $0 |") || die "can't do which $0: $!\n";
 my $fullpath = <TMP>;
 close(TMP) || die "can't close\n";
 $BOBPATH = substr($fullpath, 0, rindex($fullpath, '/')) . "/..";
-push(@INC, $BOBPATH);
 
-require "dlg.pl";
-require "bc_util.pl";
-require "bob_db.pl";
+require "$BOBPATH/dlg.pl";
+require "$BOBPATH/bc_util.pl";
+require "$BOBPATH/bob_db.pl";
 
 
 sub

@@ -18,7 +18,9 @@
 #    instead of echoing nothing.  Changed files dialog.c, inputstr.c,
 #    and textbox.c.  Changes were taken from a broken patch file.
 #
-# $Id: dlg.pl,v 1.16 2001-05-25 19:42:00 mcopenha Exp $
+# Look for comments in the dialog code that begin with 'MAC'
+#
+# $Id: dlg.pl,v 1.17 2001-06-08 17:55:16 cse210 Exp $
 #
 
 $DLG = "$BOBPATH/dialog-0.9a/dialog";

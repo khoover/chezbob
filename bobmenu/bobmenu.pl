@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# chezbob.pl
+# bobmenu.pl
 # 
 # Main routine for Chez Bob.  There are currently three ways to log into 
 # the system:
@@ -11,26 +11,27 @@
 # 2. Personal Barcode: The user scans his/her id card, or personal barcode.
 # 3. Username: The user types in their standard username.
 #
-# $Id: bobmenu.pl,v 1.36 2001-05-28 00:05:37 mcopenha Exp $
+# $Id: bobmenu.pl,v 1.37 2001-06-08 17:55:15 cse210 Exp $
 #
 
-# Make sure Perl can find all of our files by appending INC with the 
-# path to the 'chezbob' executable.
+# Find the full path to this executable file (bobmenu) and store it in
+# global variable BOBPATH.  You *must* prefix any require paths with this
+# variable so that Perl can find the files.
+
 open(FILE, "which $0 |") || die "can't do which $0: $!\n";
 my $fullpath = <FILE>;
 close(FILE) || die "can't close\n";
 $BOBPATH = substr($fullpath, 0, rindex($fullpath, '/'));
-push(@INC, $BOBPATH);
+
+require "$BOBPATH/login.pl";	# login_win
+require "$BOBPATH/bob_db.pl";	# database routines
+require "$BOBPATH/buyitem.pl";  # buy routines
+require "$BOBPATH/dlg.pl";      # locn of dialog exe
 
 $CASH_BARCODE = "888888";
 
-require "login.pl";	# login_win
-require "bob_db.pl";	# database routines
-require "buyitem.pl";   # buy routines
-require "dlg.pl";
 
-
-$REVISION = q{$Revision: 1.36 $};
+$REVISION = q{$Revision: 1.37 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {

@@ -2,11 +2,11 @@
 #
 # Routines for adding money to a chez bob account
 #
-# $Id: deposit.pl,v 1.6 2001-05-25 19:42:00 mcopenha Exp $
+# $Id: deposit.pl,v 1.7 2001-06-08 17:55:16 cse210 Exp $
 #
 
-require "bob_db.pl";
-require "dlg.pl";
+require "$BOBPATH/bob_db.pl";
+require "$BOBPATH/dlg.pl";
 
 my $MAX_DEPOSIT = 100;
 

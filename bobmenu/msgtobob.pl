@@ -2,11 +2,11 @@
 #
 # Routine for recording a message for Bob in the db. 
 #
-# $Id: msgtobob.pl,v 1.6 2001-06-01 18:51:30 mcopenha Exp $
+# $Id: msgtobob.pl,v 1.7 2001-06-08 17:55:16 cse210 Exp $
 #
 
-require "bob_db.pl";
-require "dlg.pl";
+require "$BOBPATH/bob_db.pl";
+require "$BOBPATH/dlg.pl";
 
 sub
 message_win
