@@ -8,7 +8,7 @@
 # Al Su (alsu@cs.ucsd.edu)
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # 
-# $Id: bobmenu.pl,v 1.28 2001-05-15 00:18:05 mcopenha Exp $
+# $Id: bobmenu.pl,v 1.29 2001-05-15 04:03:01 mcopenha Exp $
 #
 
 require "bc_win.pl";	# barcode login windows
@@ -21,7 +21,7 @@ my $DLG = "/usr/bin/dialog";
 $CANCEL = -1;
 
 
-$REVISION = q{$Revision: 1.28 $};
+$REVISION = q{$Revision: 1.29 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -32,20 +32,21 @@ print "rev is $REVISION\n";
 
 &bob_db_connect;
 
-# First assume the input is a barcode and try a lookup.  If the lookup 
-# fails assume the input is a regular username.
+# Check if we're dealing with a user barcode or regular username
 my $logintxt = &login_win($REVISION);
 my $barcode = &preprocess_barcode($logintxt); 
-my $userid = &bob_db_get_userid_from_barcode($barcode);
-if ($userid == $NOT_FOUND) {
-  if (isa_valid_username($logintxt)) {
-    &kbd_login($logintxt);
+if (&isa_valid_user_barcode($barcode)) {
+  my $userid = &bob_db_get_userid_from_barcode($barcode);
+  if ($userid != $NOT_FOUND) {
+    &barcode_login($userid);
   } else {
-    &invalidUsername_win();
+    &user_barcode_not_found_win;
   }
+} elsif (&isa_valid_username($logintxt)) {
+  &kbd_login($logintxt);
 } else {
-  &barcode_login($userid);
-}
+  &invalidUsername_win();
+} 
 
 # Make sure any temp input files are gone. We can run into permission
 # problems if multiple people are trying to run Bob on the same system.
