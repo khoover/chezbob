@@ -5,6 +5,7 @@
 ###
 use Pg;
 use Barcode;
+
 $DLG = "/usr/bin/dialog";
 $FEST = "/home/mcopenha/bin/sayit";
 
@@ -13,7 +14,49 @@ $PRICES{"Juice"} = 0.70;
 $PRICES{"Snapple"} = 0.80;
 $PRICES{"Popcorn/Chips/etc."} = 0.30;
 
+############################# BARCODE UTILS #################################
+
+sub
+isa_barcode
+{
+  my ($str) = @_;
+  $cuecat_header = ".C";
+  if ($str =~ $cuecat_header) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+sub
+decode_barcode
+{
+  my ($crap) = @_;
+  my $scan = CueCat->decode($crap);
+  $barcode = $scan->{'barcode_data'};
+#  system("$DLG --msgbox $barcode 5 50");
+  return $barcode;
+}
+
+sub
+barcode_win
+{
+  my $win_title = "New barcode";
+  my $win_text = "Scan your barcode:";
+
+  if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+	     $win_text .
+	     "\" 8 45 2> /tmp/input.barcode") != 0) {
+    return "";
+  }
+
+  $guess = `cat /tmp/input.barcode`;
+  system("rm -f /tmp/input.barcode");
+  return $barcode;
+}
+
 ################################ MAIN WINDOW ################################
+
 sub
 login_win
 {
@@ -37,22 +80,19 @@ username if you are a new user):};
     }
 
     # MAC: check if we're dealing with a regular username or a barcode
-    $cuecat_header = ".C3nZC3nZC3nYCNf1DNfYCNnY";
     $username = `cat /tmp/input.main`;
 
-    if ($username =~ $cuecat_header) {
-      # Barcode: decode it
-      my $scan = CueCat->decode($username);
-      $username = $scan->{'barcode_data'};
+    if (&isa_barcode($username)) {
+      # Barcode: 
+      system("rm -f /tmp/input.*");
+      return $username;
     } elsif ($username !~ /^\w+$/) {
-      # Regular username: check if valid
+      # Invalid username
       &invalidUsername_win();
       next;
     } else {
       # Valid username: do nothing
     }
-
-    system("$DLG --msgbox $username 5 50");
 
     system("rm -f /tmp/input.*");
     return $username;
@@ -346,6 +386,8 @@ Choose one of the following actions (scroll down for more options):};
 	       "\"Leave a message for Bob                        \" " .
 	   "\"Quit\" " .
 	       "\"Finished\!                                      \" " .
+	   "\"Modify Barcode\" " .
+	       "\"Set, change, or delete your personal barcode    \" " .
 	   "\"Modify Password\" " .
 	       "\"Set, change, or delete your password           \" " .
 	   "\"Transactions\" " .
@@ -730,6 +772,31 @@ implemented.};
 
 ################################# UTILITIES #################################
 sub
+checkBarcode
+{
+  my ($barcode,$conn) = @_;
+
+  my $queryFormat = q{
+select userid
+from users
+where userbarcode ~* '^%s$';
+  };
+
+  if ($conn->status != PGRES_CONNECTION_OK) {
+    print STDERR "checkBarcode: not connected...exiting.\n";
+    exit 1;
+  }
+  $result = $conn->exec(sprintf($queryFormat,$barcode));
+
+  if ($result->ntuples != 1) {
+    # does not exist
+    return -1;
+  }
+
+  return ($result->getvalue(0,0));
+}
+
+sub
 checkUser
 {
   my ($username,$conn) = @_;
@@ -845,7 +912,7 @@ confirm_win
 ###
 
 $REVISION = q{
-$Revision: 1.4 $
+$Revision: 1.5 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
@@ -868,7 +935,25 @@ if ($conn->status == PGRES_CONNECTION_BAD) {
   exit 1;
 }
 
-$userid = &checkUser($username,$conn);
+if (&isa_barcode($username)) {
+  $barcode = decode_barcode($username); 
+  $userid = &checkBarcode($barcode,$conn);
+  if ($userid == -1) {
+    my $win_title = "Invalid barcode";
+    my $win_text = q{
+I could not find this barcode in the database. If you're 
+an existing user you can change your barcode login from 
+the main menu.  If you're a new user you'll need to first 
+create a new account by entering a valid text login id.}; 
+    system("$DLG --title \"$win_title\" --msgbox \"" .
+	 $win_text .
+	 "\" 10 65 2> /dev/null");
+    exit 1;
+  } 
+} else {
+  $userid = &checkUser($username,$conn);
+}
+
 if ($userid == -1) {
   #
   # new user!
@@ -938,6 +1023,11 @@ do {
 
    /^Transactions$/ && do {
      &log_win($username,$userid,$conn);
+     last SWITCH;
+   };
+
+   /^Modify Barcode$/ && do {
+     &barcode_win($username,$userid,$conn);
      last SWITCH;
    };
 
