@@ -1,5 +1,5 @@
 /*
- *  $Id: menubox.c,v 1.4 2001-05-21 21:15:19 mcopenha Exp $
+ *  $Id: menubox.c,v 1.5 2001-06-10 02:39:54 cse210 Exp $
  *
  *  menubox.c -- implements the menu box
  *
@@ -61,6 +61,10 @@ print_item(WINDOW *win,
     }
 }
 
+/* MAC: special global var to store numeric input from menubox. */ 
+#define MAXBUFF 256
+char NUMERIC_INPUT[MAXBUFF];
+
 /*
  * Display a menu for choosing among a number of options
  */
@@ -82,8 +86,7 @@ dialog_menu(const char *title, const char *cprompt, int height, int width,
 
 /* MAC */
     int digits = FALSE;
-    FILE* fp = NULL;
-    fp = fopen("/tmp/menuout", "w");
+    int numeric_input_index = 0;
 
     tab_correct_str(prompt);
     if (menu_height == 0) {
@@ -216,10 +219,13 @@ dialog_menu(const char *title, const char *cprompt, int height, int width,
 	 */
 	if (!found
 	    && (key <= '9')
-	    && (key >= '0')
+	    && (key >= '0')) {
+/*
 	    && (key - '1' <= max_choice)) {
+*/
 /* MAC: print digit to file */
-fprintf(fp, "%c", key);
+NUMERIC_INPUT[numeric_input_index % MAXBUFF] = key;
+numeric_input_index++;
 digits = TRUE;
 	 /*   found = TRUE;
 	    i = key - '1'; */
@@ -365,18 +371,19 @@ digits = TRUE;
 	case '\n':
 	    (void) delwin(dialog);
 
-/* MAC: close file and return special value */
+/* MAC: if numeric input only, return special value */
             if (digits) {
-                fclose(fp);
+		if (numeric_input_index >= MAXBUFF - 1) {
+		   NUMERIC_INPUT[MAXBUFF - 1] = '\0';
+		} else {
+ 		   NUMERIC_INPUT[numeric_input_index] = '\0';
+		}
                 return -3;
             } else {
 	        return (button ? -2 : (scrollamt + choice));
             }
 	}
     }
-
-/* MAC */
-    fclose(fp);
 
     (void) delwin(dialog);
     return -1;			/* ESC pressed */
