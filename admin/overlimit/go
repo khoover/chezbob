@@ -27,7 +27,7 @@ MAKEFORM=${ADMINROOT}/../makeform.pl
 #
 # where is the query utility
 #
-QUERY=/home/alsu/bin/q
+QUERY=/home/wrao/bin/q
 
 #
 # where are the ssh and scp binaries?
