@@ -20,7 +20,7 @@ sub
 isa_barcode
 {
   my ($str) = @_;
-  $cuecat_header = ".C";
+  $cuecat_header = "^\\.C";
   if ($str =~ $cuecat_header) {
     return 1;
   } else {
@@ -41,6 +41,9 @@ decode_barcode
 sub
 barcode_win
 {
+  my ($username, $userid, $conn) = @_;
+  my $guess = '0';
+  my $newBarcode = '0';
   my $win_title = "New barcode";
   my $win_text = "Scan your barcode:";
 
@@ -53,9 +56,28 @@ barcode_win
   $guess = `cat /tmp/input.barcode`;
   system("rm -f /tmp/input.barcode");
 
-  # add code to modify database
-
-  return $barcode;
+  # Next, insert the barcode into the database, if it is a barcode;      
+  if (&isa_barcode($guess)) {
+    $newBarcode = &decode_barcode($guess);      
+    my $updatequeryFormat = q{
+      update users
+	set userbarcode = '%s'
+	 where userid = %d;
+    };      
+    my $result = $conn->exec(sprintf($updatequeryFormat,
+				     $newBarcode,
+				     $userid));
+    if ($result->resultStatus != PGRES_COMMAND_OK) {
+	print STDERR "askStartNew_win: error updating new barcode\n";
+	exit 1;
+    }       
+    return $newBarcode;
+  } else {
+      system ("$DLG --title \"$newBarcode\""
+	      ." --clear --msgbox"
+	      ." \"Bad barcode - try again.\" 8 40");
+  }
+  return "";
 }
 
 ################################ MAIN WINDOW ################################
@@ -915,7 +937,7 @@ confirm_win
 ###
 
 $REVISION = q{
-$Revision: 1.6 $
+$Revision: 1.7 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
