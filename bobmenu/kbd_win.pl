@@ -9,7 +9,7 @@
 #
 # Al Su (alsu@cs.ucsd.edu)
 #
-# $Id: kbd_win.pl,v 1.5 2001-05-14 06:47:33 mcopenha Exp $
+# $Id: kbd_win.pl,v 1.6 2001-05-14 07:12:21 mcopenha Exp $
 #  
 
 $DLG = "/usr/bin/dialog";
@@ -396,7 +396,7 @@ pwd_win
   my $win_title = "Enter Password";
   my $win_text = q{
 Type your new password.  To remove an existing
-password, enter \"none\" as your password.
+password, do not enter any text.};
 
 NOTE: YOUR PASSWORD WILL BE ECHOED TO THE
 SCREEN...MAKE SURE NO ONE IS LOOKING!};
@@ -420,7 +420,7 @@ Re-type your password:};
   }
   my $p = `cat /tmp/input.pwd`;
 
-  if ($p eq "none") {
+  if ($p eq "") {
     &bob_db_remove_pwd($userid);
     return;
   }
