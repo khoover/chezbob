@@ -1,4 +1,37 @@
-+ add date/time to messages table
 
-- preferences?
-- reports
+This file contains a list improvements people would like to see to Chez Bob.
+Some information was taken from a chez bob survey conducted on 6/7/01.  
+Refer to www/bob_survey.html.
+
+Immediate Need:
+---------------
+
+- barcode login still isn't particularly popular.  people don't like the idea
+of breaking out their wallet to get to their student id card.  i've personally
+found the barcode on a keychain idea very convenient.  might be nice to 
+provide a box of pre-made bob keychains with unique barcodes.
+
+- a way of handling items that don't have barcodes.  could have a keychain 
+of barcodes for each product, but that's kind of a pain.  
+
+
+
+Long Term:
+----------
+
+- an overwhelming majority wanted to the see the library function in action.
+this is going to take some work.  The database needs to keep track of who
+checked out a book and the date/time.  might be nice if the system could 
+email the person when it's due.  scanning in the books is actually not that
+difficult using the python scripts in the library dir.  check out the 
+instructions.html file.
+
+- more poperties for the profile.  maybe a 'privacy' option for those who
+don't want their transactions recorded in the transactions table.
+
+- create COSTCO reports automatically based on current inventory stats. 
+
+- a better way of logging in.  Serg said he was interested in donating a 
+thumbprint scanner.  that would rock.
+
+- X interface (might want to upgrade the computer here :)
