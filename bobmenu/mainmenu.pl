@@ -6,7 +6,7 @@
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.18 2001-06-25 21:41:37 bellardo Exp $
+# $Id: mainmenu.pl,v 1.19 2002-08-01 21:59:50 alsu Exp $
 #  
 
 require "$BOBPATH/passwd.pl";
@@ -22,7 +22,7 @@ require "$BOBPATH/dlg.pl";
 require "$BOBPATH/profile.pl";
 require "$BOBPATH/library.pl";
 
-my $MIN_BALANCE = -8.00;
+my $MIN_BALANCE = -1.00;
 
 
 sub
