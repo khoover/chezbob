@@ -4,12 +4,13 @@ do 'bc_win.pl';
 do 'kbd_win.pl';
 do 'bob_db.pl';
 
+$DLG = "/usr/bin/dialog";
 
 ###
 ### main program
 ###
 
-$REVISION = q{$Revision: 1.21 $};
+$REVISION = q{$Revision: 1.22 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -18,17 +19,21 @@ if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
 
 print "rev is $REVISION\n";
 
-do {
-  $logintext = &login_win($REVISION);
-} while ($logintext eq "");
-
 &bob_db_connect;
 
-if (&isa_barcode($logintext)) {
-  &barcode_login($logintext);
-} else {
-  &kbd_login($logintext);
-}
+while (1) {
+  my $logintxt = &login_win($REVISION);
+
+  # Check if we're dealing with a regular username or a barcode
+  if (&isa_barcode($logintxt)) {
+    &barcode_login($logintxt);
+  } elsif (isa_valid_username($logintxt)) {
+    &kbd_login($logintxt);
+  } else {
+    &invalidUsername_win();
+    next;
+  } 
+} 
 
 
 sub
@@ -45,6 +50,31 @@ barcode_login
   } else {
     &barcode_action_win($userid);
   }
+}
+
+
+sub
+login_win
+{
+  my ($rev) = @_;
+
+  my $username = "";
+  my $win_title = "Bank of Bob 2001 (v.$rev)";
+  my $win_text = q{
+Welcome to the B.o.B. 2K!
+
+
+Enter your username or scan your personal barcode. 
+(If you are a new user enter a new username):
+};
+
+  system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+         $win_text .  "\" 14 55 \"$username\" 2> /tmp/input.main");
+
+  $txt = `cat /tmp/input.main`;
+  system("rm -f /tmp/input.*");
+
+  return $txt;
 }
 
 
