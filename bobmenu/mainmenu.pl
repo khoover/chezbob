@@ -6,7 +6,7 @@
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.14 2001-05-25 19:42:00 mcopenha Exp $
+# $Id: mainmenu.pl,v 1.15 2001-06-01 21:00:37 mcopenha Exp $
 #  
 
 require "passwd.pl";
@@ -22,6 +22,7 @@ require "dlg.pl";
 require "profile.pl";
 require "library.pl";
 
+my $MIN_BALANCE = -10.00;
 
 sub
 bob_action_win
@@ -33,14 +34,20 @@ bob_action_win
   my $action = "";
 
   &get_user_profile($userid);
-  if ($PROFILE{"Speech"}) { &say_greeting($nickname); }
+  
+  my $balance = &bob_db_get_balance($userid);
+  if ($balance <= $MIN_BALANCE) {
+    &say_greeting(".  This is a reminder to please deposit some money.");
+  } elsif ($PROFILE{"Speech"}) { 
+    &say_greeting($nickname); 
+  }
 
 MAINLOOP:
   while ($action ne "Quit") {
     #
     # refresh the balance
     #
-    my $balance = &bob_db_get_balance($userid);
+    $balance = &bob_db_get_balance($userid);
     if ($balance == $NOT_FOUND) {
       &report_fatal("mainmenu: no balance from database.\n");
     }
@@ -141,6 +148,11 @@ MAINLOOP:
 
 sub
 action_win
+#
+# Print the text for Bob's main menu.  Return the menu selection the user
+# chooses.  If the user scans an item with the scanner, the dialog program
+# will return the special value DIGITS.  
+#
 {
   my ($username,$userid,$balance,$last_purchase) = @_;
   my $win_title = "Main Menu";
