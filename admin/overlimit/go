@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# find out where we are
+ADMINROOT=`dirname $0`
+
 #
 # where is the chezbob machine?  (if running on the chezbob
 # machine, use "localhost")
@@ -19,7 +22,12 @@ MAIL_CMD=/usr/bin/mh/send
 #
 # where is the makeform.pl utility?
 #
-MAKEFORM=../makeform.pl
+MAKEFORM=${ADMINROOT}/../makeform.pl
+
+#
+# where is the query utility
+#
+QUERY=/home/alsu/bin/q
 
 #
 # where are the ssh and scp binaries?
@@ -38,7 +46,7 @@ fi
 #
 # check for output directory
 #
-OUTDIR=.
+OUTDIR=${ADMINROOT}
 if [ ! -d $OUTDIR ]; then
   echo "no outdir ${OUTDIR}...exiting."
   exit 1
@@ -90,7 +98,7 @@ if [ "x${MAIL_MACH}" != "xlocalhost" ]; then
 fi
 
 if [ "x${CB_MACH}" = "xlocalhost" ]; then
-  if ( ! q users_overlimit | grep '|' | tr '|' ' ' >./list1 ); then
+  if ( ! $QUERY users_overlimit | grep '|' | tr '|' ' ' >./list1 ); then
     echo "(local) unable to fetch overlimit list...exiting."
     exit 1
   fi
