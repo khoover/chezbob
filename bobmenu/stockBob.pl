@@ -1,40 +1,39 @@
 #!/usr/bin/perl -w
 
-###
 ### libraries and constants
-###
-
 use Pg;
-use Barcode;
-
 $DLG = "/usr/bin/dialog";
-
-
 
 ###############################################################################
 # SUBROUTINES
 ###############################################################################
+
+
 sub
 isa_barcode
 {
-  my ($str) = @_;
-  $cuecat_header = "^\\.C";
-  if ($str =~ $cuecat_header) {
-    return 1;
-  } else {
-    return 0;
-  }
+    my ($rawInput) = @_;
+    if ($rawInput =~ /^\.C/)
+    {
+	return 1;
+    } else {
+	return 0;
+    }   
 }
 
 sub
-decode_barcode
-{
-  my ($crap) = @_;
-  my $scan = CueCat->decode($crap);
-  $barcode = $scan->{'barcode_data'};
-  return $barcode;
-}
+decode_barcode {
+    my ($rawInput) = @_;
 
+    split
+    printf "Serial: %s  Type: %s  Code: %s\n",
+    map {
+        tr/a-zA-Z0-9+-/ -_/;
+        $_ = unpack 'u', chr(32 + length() * 3/4) . $_;
+        s/\0+$//;
+        $_ ^= "C" x length;
+    } /\.([^.]+)/g;
+}
 
 ########################################
 # errorBarcode
@@ -82,7 +81,7 @@ newProduct_win
       system("rm -f /tmp/input.product");
       # check for proper input and then ask for quantity for stock.  
       $win_title = "Enter the PRICE of $newName";
-      $win_text = "Please enter the amount the price of this item.";
+      $win_text = "Please enter the PRICE of this item.";
   }
 
   while ($newPrice !~ /^\d+$/ && $newPrice !~ /^\d*\.\d{0,2}$/) {
@@ -149,8 +148,6 @@ oldProduct_win
   }
 
   # check the number and update the database.
-
-  system("rm -f /tmp/input.product");
 }
 
 
