@@ -10,7 +10,7 @@
 # records which user checked out a book, the date checked out, due date,
 # etc.  We may also send mail to the head librarian (Julie?). 
 #
-# $Id: library.pl,v 1.4 2001-06-08 17:55:16 cse210 Exp $
+# $Id: library.pl,v 1.5 2001-06-25 21:41:37 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -55,8 +55,8 @@ invalid_book_barcode_win
   my $win_text = q{
 I could not find this book.};
 
-  system("$DLG --title \"$win_title\" --msgbox \"" .
-	 $win_text .  "\" 6 50 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --msgbox \"" .
+	 $win_text .  "\" 6 50");
 }
 
 1;

@@ -3,7 +3,7 @@
 # Routines for updating a user's personal barcode ID.  The user can login
 # to the system using this personal barcode.
 #
-# $Id: usrbarcode.pl,v 1.5 2001-06-08 17:55:16 cse210 Exp $
+# $Id: usrbarcode.pl,v 1.6 2001-06-25 21:41:37 bellardo Exp $
 #
 
 require "$BOBPATH/bc_util.pl";
@@ -58,7 +58,7 @@ your personal barcode.};
         &barcode_already_in_db_win;
       } else {
         &bob_db_update_user_barcode($userid, $barcode);
-        system ("$DLG --title \"$barcode\" --clear --cr-wrap --msgbox"
+        &get_dialog_result ("--title \"$barcode\" --clear --cr-wrap --msgbox"
                 ." \"$okmsg\" 9 45");
         return;
       }
@@ -77,8 +77,8 @@ barcode_already_in_db_win
 This is not a valid barcode.  
 Please try another one.};
 
-  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
-	 $win_text . "\" 8 40 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --cr-wrap --msgbox \"" .
+	 $win_text . "\" 8 40");
 }
 
 1;

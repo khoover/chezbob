@@ -20,7 +20,7 @@
 #
 # Look for comments in the dialog code that begin with 'MAC'
 #
-# $Id: dlg.pl,v 1.20 2001-06-11 21:53:21 bellardo Exp $
+# $Id: dlg.pl,v 1.21 2001-06-25 21:41:37 bellardo Exp $
 #
 
 $DLG = "$BOBPATH/dialog-0.9a/dialog";
@@ -35,8 +35,8 @@ confirm_win
   $h ||= 7;
   $w ||= 40;
 
-  $retval = system("$DLG --title \"$win_title\" --clear --cr-wrap --yesno \"" .
-		   $win_text .  "\" $h $w 2> /dev/null");
+  my($retval, $res) = &get_dialog_result("--title \"$win_title\" --clear " .
+         "--cr-wrap --yesno \"" .  $win_text .  "\" $h $w");
   return ($retval == 0);
 }
 
@@ -49,12 +49,10 @@ get_barcode_win
   $w ||= 40;
 
   my $win_title = "Scan Barcode";
-  if (system("$DLG --title \"$win_title\" --clear --cr-wrap " .
-      " --inputbox \"$msg\" $h $w 2> $TMP/input.barcode") != 0) {
-    return undef;
-  }
-
-  return `cat $TMP/input.barcode`;
+  my ($err, $result) = &get_dialof_result("--title \"$win_title\" --clear " .
+                             "--cr-wrap --inputbox \"$msg\" $h $w");
+  return undef if ($err != 0);
+  return $result;
 }
 
 
@@ -73,22 +71,32 @@ get_dialog_result
     local *CHILDOUT;
     local *CHILDERR;
     my $pid;
+    my $stderrLine = "";
+    my $stdoutLine = "";
+    my $line;
     use FileHandle;
     use IPC::Open3;
     use POSIX;
 
-    $pid = open3(*CHILDIN, *CHILDOUT, *CHILDERR, "$DLG $cmd");
-    return("", "open3 failure for $cmd") if ($pid == 0 || $pid == -1);
+    $pid = open3(*CHILDIN, *CHILDOUT, *CHILDERR, "$DLG $cmd") ||return (-2, "");
+    return(-3, "") if ($pid == 0 || $pid == -1);
+    return(-4, "") if (!defined(CHILDIN) || !defined(CHILDOUT) || !defined(CHILDERR));
     close(CHILDIN);
     return (-1, "") if(-1 == waitpid($pid, 0));
     return (($? >> 8), "") if ($? != 0);
 
-    my $stderrLine = <CHILDERR>;
-    chomp $stderrLine;
-    #my $stdoutLine = <CHILDOUT>;
-    #chomp $stdoutLine;
+    while ($line = <CHILDERR>)
+    {
+        $stderrLine .= $line;
+    }
+    #while ($stdoutLine = <CHILDOUT>)
+    #{
+    #    $stdoutLine .= $line;
+    #}
     close(CHILDERR);
     close(CHILDOUT);
+    chomp $stderrLine;
+    chomp $stdoutLine;
 
     return (0, $stderrLine);
 }

@@ -6,7 +6,7 @@
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.17 2001-06-10 02:39:36 cse210 Exp $
+# $Id: mainmenu.pl,v 1.18 2001-06-25 21:41:37 bellardo Exp $
 #  
 
 require "$BOBPATH/passwd.pl";
@@ -177,8 +177,8 @@ or scan an item using the barcode scanner.};
     chop($msg = `cat message`);
   } 
 
-  my $retval =
-    system("$DLG --title \"$win_title\" --clear --cr-wrap --menu \"" .
+  my ($retval, $action) =
+    &get_dialog_result("--title \"$win_title\" --clear --cr-wrap --menu \"" .
 	   sprintf($win_textFormat, $username,
 		   $balanceString, "", $last_purchase) .
 	   "\" 24 76 8 " .
@@ -209,10 +209,7 @@ or scan an item using the barcode scanner.};
 	   "\"Transactions\" " .
 	       "\"List recent transactions                       \" " .
 	   "\"Checkout a Book\" " .
-	       "\"Checkout a book from the lounge library        \" " .
-	   " 2> $TMP/input.action");
-
-  $action = `cat $TMP/input.action`;
+	       "\"Checkout a book from the lounge library        \" ");
 
   if ($retval != 0 || $action eq "Quit") {
     return "Quit";
@@ -230,7 +227,7 @@ unimplemented_win
 This functionality has not yet been
 implemented.};
 
-  system ("$DLG --title \"$win_title\" --clear --msgbox \"" .
+  &get_dialog_result ("--title \"$win_title\" --clear --msgbox \"" .
 	  $win_text .  "\" 8 40");
 }
 

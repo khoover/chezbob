@@ -14,15 +14,6 @@ provide a box of pre-made bob keychains with unique barcodes.
 - a way of handling items that don't have barcodes.  could have a keychain 
 of barcodes for each product, but that's kind of a pain.  
 
-- these tmp files created by dialog are a real pain to deal with.  Things
-are slightly better now that we're not storing them in /tmp (they created
-permission problems if more than 1 bobmenu was running), but it would 
-be cleaner if we rewrote the code to use pipes.  We could use the '--stdout'
-option of dialog and open a pipe to it:
-
-open (READ, "dialog --stdout ...  |");
-my $returnval = <READ>;
-...
 
 
 
@@ -40,6 +31,8 @@ instructions.html file.
 don't want their transactions recorded in the transactions table.
 
 - create COSTCO reports automatically based on current inventory stats. 
+
+- tighten up security on chezbob.ucsd.edu.
 
 - a better way of logging in.  Serg said he was interested in donating a 
 thumbprint scanner.  that would rock.

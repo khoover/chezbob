@@ -2,7 +2,7 @@
 #
 # A Routine for displaying the user's past transactions.
 # 
-# $Id: usrlog.pl,v 1.4 2001-06-08 17:55:16 cse210 Exp $
+# $Id: usrlog.pl,v 1.5 2001-06-25 21:41:37 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -17,8 +17,8 @@ log_win
 
   &bob_db_log_transactions($userid, $logfile);
 
-  system("$DLG --title \"$win_title\" --clear --textbox " .
-         "$logfile 24 75 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --clear --textbox " .
+         "$logfile 24 75");
 }
 
 1;

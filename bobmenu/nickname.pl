@@ -2,7 +2,7 @@
 #
 # Nicknames are used by the speech synthesis program when greeting the user. 
 #
-# $Id: nickname.pl,v 1.6 2001-06-08 17:55:16 cse210 Exp $
+# $Id: nickname.pl,v 1.7 2001-06-25 21:41:37 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -16,12 +16,11 @@ get_nickname_win
 Your nickname is used by the 'Speech' option when 
 greeting you.  You may enable the Speech option by 
 choosing 'My Chez Bob' from the main menu.}; 
-  if (system("$DLG --title \"$win_title\" --cr-wrap --clear " .
-      " --inputbox \"$win_text\" 11 55 2> $TMP/input.nickname") != 0) {
-    return undef;
-  }
+  my ($err, $result) = &get_dialog_result("--title \"$win_title\" " .
+      "--cr-wrap --clear --inputbox \"$win_text\" 11 55");
 
-  return `cat $TMP/input.nickname`;
+  return undef if ($err != 0);
+  return $result;
 }
 
 
@@ -38,7 +37,7 @@ update_nickname
     }
     if (&isa_valid_nickname($name)) {
       &bob_db_update_nickname($userid, $name);
-      system ("$DLG --title \"Nickname\" --clear --msgbox"
+      &get_dialog_result ("--title \"Nickname\" --clear --msgbox"
               ." \"Nickname successfully updated!\" 6 38");
       return;
     } else {
@@ -67,8 +66,8 @@ invalid_nickname_win
 Valid nicknames consist of only letters and 
 any of the characters from the set \{, ! ? . \}.};
 
-  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
-         $win_text .  "\" 8 54 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --cr-wrap --msgbox \"" .
+         $win_text .  "\" 8 54");
 }
 
 1;

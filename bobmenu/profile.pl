@@ -18,7 +18,7 @@
 # New users of the system automatically have every property of their 
 # profile turned 'off'.  
 #
-# $Id: profile.pl,v 1.9 2001-06-08 17:55:16 cse210 Exp $
+# $Id: profile.pl,v 1.10 2001-06-25 21:41:37 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -82,13 +82,11 @@ turn a property ON [X] or OFF [ ].};
     $profile_menu .= $PROFILE{$property} ? "on " : "off ";
   }   
   
-  if (system("$DLG --title \"$win_title\" --clear --cr-wrap --checklist \" " .
-    $win_text .  "\" 13 70 4 $profile_menu 2> $TMP/input.profile") != 0) {
-    return;
-  }
+  my ($err, $tmpstr) = &get_dialog_result("--title \"$win_title\" --clear " . 
+        "--cr-wrap --checklist \" " .  $win_text .  "\" 13 70 4 $profile_menu");
+    return if ($err != 0);
 
   # Strip quotes from beginning and end
-  my $tmpstr = `cat $TMP/input.profile`;
   $tmpstr =~ s/^\"//;
   $tmpstr =~ s/(\"\s*)$//;
 

@@ -2,7 +2,7 @@
 #
 # Routines for updating and checking user passwords
 # 
-# $Id: passwd.pl,v 1.5 2001-06-08 17:55:16 cse210 Exp $
+# $Id: passwd.pl,v 1.6 2001-06-25 21:41:37 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -13,12 +13,11 @@ guess_pwd_win
 {
   my $win_title = "Enter password";
   my $win_text = "Enter your password:";
-  if (system("$DLG --title \"$win_title\" --clear --passwordbox \"" .
-             $win_text .  "\" 8 45 2> $TMP/input.guess") != 0) {
-    return undef;
-  }
+  my ($err, $pass) = &get_dialog_result("--title \"$win_title\" --clear " .
+                  "--passwordbox \"" .  $win_text .  "\" 8 45");
 
-  return `cat $TMP/input.guess`;
+  return undef if ($err != 0);
+  return $pass;
 }
 
 
@@ -27,8 +26,8 @@ invalidPassword_win
 {
   my $win_title = "Wrong password";
   my $win_text = "\nWrong password entered!\n";
-  system("$DLG --title \"$win_title\" --msgbox \"" .
-         $win_text .  "\" 7 30 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --msgbox \"" .
+         $win_text .  "\" 7 30");
 }
 
 
@@ -53,29 +52,25 @@ Re-type your password:};
     $pwd_exists = 0;
   }
 
-  if (system("$DLG --title \"$win_title\" --clear --cr-wrap --passwordbox \"" .
-             $win_text .  "\" 10 50 2> $TMP/input.pwd") != 0) {
-    return $CANCEL;
-  }
-  my $p = `cat $TMP/input.pwd`;
+  my ($err, $p) = &get_dialog_result("--title \"$win_title\" --clear " .
+             "--cr-wrap --passwordbox \"" .  $win_text .  "\" 10 50");
+  return $CANCEL if ($err != 0);
 
   if ($p eq "") {
     &bob_db_remove_pwd($userid);
     return;
   }
 
-  if (system("$DLG --title \"$win_title\" --clear --passwordbox \"" .
-             $verify_win_text .  "\" 9 50 2> $TMP/input.pwd_v") != 0) {
-    return $CANCEL;
-  }
-  my $p_v = `cat $TMP/input.pwd_v`;
+  ($err, my $p_v) = &get_dialog_result("--title \"$win_title\" --clear " .
+             "--passwordbox \"" .  $verify_win_text .  "\" 9 50");
+  return $CANCEL if ($err != 0);
 
   if ($p ne $p_v) {
     my $no_match_msg = q{
 There was a mismatch between the two 
 passwords.  No changes were made.};
-    system("$DLG --title \"Passwords Do Not Match\" --cr-wrap " .
-           "--clear --msgbox \"" .  $no_match_msg .  "\" 8 42 2> /dev/null");
+    &get_dialog_result("--title \"Passwords Do Not Match\" --cr-wrap " .
+           "--clear --msgbox \"" .  $no_match_msg .  "\" 8 42");
     return;
   }
 

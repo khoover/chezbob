@@ -2,7 +2,7 @@
 #
 # Routines for processing a new user: create db entry, ask for email 
 # 
-# $Id: newuser.pl,v 1.5 2001-06-08 17:55:16 cse210 Exp $
+# $Id: newuser.pl,v 1.6 2001-06-25 21:41:37 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -20,11 +20,10 @@ up a new Chez Bob record under the name \"%s\"
 for you?};
 
   while (1) {
-    if (system("$DLG --title \"$win_title\" --clear --yesno \"" .
-               sprintf($win_textFormat, $username) .
-               "\" 9 50 2> /dev/null") != 0) {
-      return $CANCEL;
-    }
+    my ($dlgErr, $button) = &get_dialog_result("--title \"$win_title\" --clear".
+           " --yesno \"" .  sprintf($win_textFormat, $username) .
+               "\" 9 50");
+    return $CANCEL if ($dlgErr != 0);
 
     $email = &askEmail_win($email);
     if (! defined $email) {
@@ -51,11 +50,10 @@ askEmail_win
 What is your email address?  (UCSD or SDSC
 email addresses preferred.)};
 
-  system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-         $win_text .  "\" 11 51 \"$currentvalue\" 2> $TMP/input.email");
-  my $retval = $? >> 8;
-  if ($retval == 0) {
-    return `cat $TMP/input.email`;
+  my ($dlgErr, $email) = &get_dialog_result("--title \"$win_title\" --clear " .
+         "--inputbox \"" .  $win_text .  "\" 11 51 \"$currentvalue\"");
+  if ($dlgErr == 0) {
+    return $email;
   } else {
     return undef;
   }
@@ -70,8 +68,8 @@ invalidEmail_win
 Valid email addresses take the form
 <user>@<full.domain.name>};
 
-  system("$DLG --title \"$win_title\" --msgbox \"" .
-         $win_text .  "\" 8 50 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --msgbox \"" .
+         $win_text .  "\" 8 50");
 }
 
 1;

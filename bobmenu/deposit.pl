@@ -2,7 +2,7 @@
 #
 # Routines for adding money to a chez bob account
 #
-# $Id: deposit.pl,v 1.7 2001-06-08 17:55:16 cse210 Exp $
+# $Id: deposit.pl,v 1.8 2001-06-25 21:41:37 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -21,6 +21,7 @@ add_win
 {
   my ($userid) = @_;
 
+  my $dlgErr;
   my $win_title = "Add money";
   my $win_text = q{
 Deposit cash in the Bank of Bob lockbox and indicate the
@@ -37,12 +38,10 @@ Thanks for your consideration!
 How much was deposited into the Bank of Bob?};
 
   while (1) {
-    if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .
-               $win_text .  "\" 20 65 2> $TMP/input.deposit") != 0) {
-      return $CANCEL;
-    }
+    ($dlgErr, $amt) = &get_dialog_result("--title \"$win_title\" --clear " .
+                         "--cr-wrap --inputbox \"" .  $win_text .  "\" 20 65");
+    return $CANCEL if ($dlgErr != 0);
 
-    my $amt = `cat $TMP/input.deposit`;
     if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
       if ($amt > $MAX_DEPOSIT) {
         &exceed_max_deposit_win;
@@ -69,8 +68,8 @@ exceed_max_deposit_win
   my $win_title = "Invalid Amount";
   my $win_text = "\nThe maximum deposit is \\\$$MAX_DEPOSIT";
 
-  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
-         $win_text .  "\" 7 35 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --cr-wrap --msgbox \"" .
+         $win_text .  "\" 7 35");
 }
 
 
@@ -82,8 +81,8 @@ invalid_deposit_win
 Valid deposits are positive numbers with up
 to two decimal places of precision.};
 
-  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
-         $win_text .  "\" 8 50 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --cr-wrap --msgbox \"" .
+         $win_text .  "\" 8 50");
 }
 
 

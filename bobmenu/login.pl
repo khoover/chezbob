@@ -2,7 +2,7 @@
 #
 # Routines for processing login names, both text and barcode
 #
-# $Id: login.pl,v 1.12 2001-06-08 17:55:16 cse210 Exp $
+# $Id: login.pl,v 1.13 2001-06-25 21:41:37 bellardo Exp $
 #
 
 $MIN_BARCODE_LENG = 6;
@@ -53,6 +53,7 @@ login_win
 {
   my ($rev) = @_;
   my $username = "";
+  my $errCode;
   my $win_title = "Bank of Bob 2001 (v.$rev)";
   my $win_text = q{
 Welcome to the B.o.B. 2001!
@@ -61,11 +62,10 @@ Welcome to the B.o.B. 2001!
 Enter your username or scan your personal barcode.
 (If you are a new user enter a new username):};
 
-  if (system("$DLG --backtitle \"Chez Bob 2001\" --title \"$win_title\" --clear --cr-wrap --inputbox \"" . $win_text .  "\" 14 55 \"$username\" 2> $TMP/input.main") != 0) {
-    return "";
-  }
+  ($errCode, $username) = &get_dialog_result("--backtitle \"Chez Bob 2001\" --title \"$win_title\" --clear --cr-wrap --inputbox \"" . $win_text .  "\" 14 55 \"$username\"");
 
-  return `cat $TMP/input.main`;
+  return "" if ($errCode != 0);
+  return $username;
 }
 
 
@@ -89,8 +89,8 @@ invalidUsername_win
 Valid usernames must contain at least 
 one letter and cannot have any digits.};
 
-  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
-         $win_text .  "\" 9 45 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --cr-wrap --msgbox \"" .
+         $win_text .  "\" 9 45");
 }
 
 
@@ -120,8 +120,8 @@ invalid_user_barcode_win
 Valid user barcodes must contain at 
 least %d digits and no letters.};
 
-  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
-	 sprintf($win_text, $MIN_BARCODE_LENG) .  "\" 8 45 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --cr-wrap --msgbox \"" .
+	 sprintf($win_text, $MIN_BARCODE_LENG) .  "\" 8 45");
 }
 
 
@@ -136,8 +136,8 @@ and choose the 'Barcode ID' option to change your user
 barcode.  If you're a new user you'll need to first
 create a new account by entering a valid username.};
 
-  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
-	 $win_text .  "\" 11 62 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --cr-wrap --msgbox \"" .
+	 $win_text .  "\" 11 62");
 }
 
 1;
