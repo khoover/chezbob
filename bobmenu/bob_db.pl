@@ -11,7 +11,7 @@
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # Created: 5/2/00
 #
-# $Id: bob_db.pl,v 1.7 2001-05-16 01:45:43 mcopenha Exp $
+# $Id: bob_db.pl,v 1.8 2001-05-17 23:20:23 mcopenha Exp $
 #
 
 use Pg;
@@ -58,6 +58,26 @@ bob_db_get_username_from_userid
   my $result = $conn->exec(sprintf($queryFormat,$userid));
   if ($result->ntuples != 1) {
     return $NOT_FOUND;
+  } else {
+    return ($result->getvalue(0,0));
+  }
+}
+
+
+sub
+bob_db_get_username_from_userbarcode
+{
+  my ($barcode) = @_;
+
+  &bob_db_check_conn;
+  my $queryFormat = q{
+    select username
+    from users
+    where userbarcode = '%s';
+  };
+  my $result = $conn->exec(sprintf($queryFormat, $barcode));
+  if ($result->ntuples != 1) {
+    return undef;
   } else {
     return ($result->getvalue(0,0));
   }

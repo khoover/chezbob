@@ -9,13 +9,13 @@
 #
 # Al Su (alsu@cs.ucsd.edu)
 #
-# $Id: kbd_win.pl,v 1.11 2001-05-17 18:43:19 mcopenha Exp $
+# $Id: kbd_win.pl,v 1.12 2001-05-17 23:20:23 mcopenha Exp $
 #  
 
 require "bob_db.pl";
 require "bc_win.pl";
 
-my $DLG = "./dialog";
+my $DLG = "./bobdialog";
 my $NOT_FOUND = -1;
 $CANCEL = -1;
 
@@ -31,6 +31,7 @@ sub
 kbd_action_win
 {
   my ($userid, $username) = @_;
+  my $last_purchase = "";
   &say_greeting;
 
   my $action = "";
@@ -47,16 +48,16 @@ kbd_action_win
     #
     # get the action
     #
-    $action = &action_win($username,$userid,$balance);
+    $action = &action_win($username,$userid,$balance,$last_purchase);
 
     $_ = $action;
     SWITCH: {
-      /^Buy with Scanner$/ && do {
-        &buy_single_item_with_scanner($userid);
+      /^DIGITS$/ && do {
+        $last_purchase = &buy_single_item_with_scanner($userid);
         last SWITCH;
       };
 
-      /^Add$/ && do {
+      /^Add Money$/ && do {
         &add_win($userid);
         last SWITCH;
       };
@@ -116,7 +117,7 @@ Valid usernames must contain at least one
 character and cannot have any digits.};
 
   system("$DLG --title \"$win_title\" --msgbox \"" .
-	 $win_text .  "\" 9 50 2> /dev/null");
+	 $win_text .  "\" 9 45 2> /dev/null");
 }
 
 
@@ -125,12 +126,12 @@ guess_pwd_win
 {
   my $win_title = "Enter password";
   my $win_text = "Enter your password:";
-  if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-	     $win_text .  "\" 8 45 2> /tmp/input.guess") != 0) {
+  if (system("$DLG --title \"$win_title\" --clear --passwordbox \"" .
+	     $win_text .  "\" 8 45 2> input.guess") != 0) {
     return undef;
   }
 
-  return `cat /tmp/input.guess`;
+  return `cat input.guess`;
 }
 
 
@@ -191,10 +192,10 @@ What is your email address?  (UCSD or SDSC
 email addresses preferred.)};
 
   system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-	 $win_text .  "\" 11 51 \"$currentvalue\" 2> /tmp/input.email");
+	 $win_text .  "\" 11 51 \"$currentvalue\" 2> input.email");
   my $retval = $? >> 8;
   if ($retval == 0) {
-    return `cat /tmp/input.email`;
+    return `cat input.email`;
   } else {
     return undef;
   }
@@ -213,50 +214,12 @@ Valid email addresses take the form
 	 $win_text .  "\" 8 50 2> /dev/null");
 }
 
-########################### BALANCE INIT WINDOWS ############################
-
-sub
-askHowMuch_win
-{
-  my ($qstring) = @_;
-  my $win_title = "How much?";
-  my $win_textFormat = "\nHow much %s?";
-
-  while (1) {
-    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-	       sprintf($win_textFormat, $qstring) .
-	       "\" 10 51 2> /tmp/input.howmuch") != 0) {
-      return $CANCEL;
-    }
-
-    my $amt = `cat /tmp/input.howmuch`;
-    if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
-      return $amt;
-    }
-
-    &invalidAmount_win();
-  }
-}
-
-
-sub
-invalidAmount_win
-{
-  my $win_title = "Invalid amount";
-  my $win_text = q{
-Valid amounts are positive numbers with up
-to two decimal places of precision.};
-
-  system("$DLG --title \"$win_title\" --msgbox \"" .
-	 $win_text .  "\" 8 50 2> /dev/null");
-}
-
 ############################## ACTION WINDOWS ###############################
 
 sub
 action_win
 {
-  my ($username,$userid,$balance) = @_;
+  my ($username,$userid,$balance,$last_purchase) = @_;
   my $win_title = "Main menu";
   my $win_textFormat = q{
 Welcome, %s!
@@ -264,7 +227,7 @@ Welcome, %s!
 USER INFORMATION:
   You currently %s
   %s
-  %s
+  Last Item Purchased: %s
 
 Choose one of the following actions (scroll down for more options):};
 
@@ -272,12 +235,10 @@ Choose one of the following actions (scroll down for more options):};
   my $msg = &get_msg;
 
   my $retval =
-    system("$DLG --title \"$win_title\" --clear --menu \"" .
+    system("$DLG --title \"$win_title\" --clear --cr-wrap --menu \"" .
 	   sprintf($win_textFormat, $username,
-		   $balanceString, "", $msg) .
-	   "\" 24 76 9 " .
-	   "\"Buy with Scanner\" " .
-	       "\"Buy a product using the barcode scanner\" " .
+		   $balanceString, "", $last_purchase) .
+	   "\" 24 76 8 " .
 	   "\"Add Money\" " .
 	       "\"Add money to your Chez Bob account             \" " .
 	   "\"Candy/Can of Soda\" " .
@@ -300,9 +261,9 @@ Choose one of the following actions (scroll down for more options):};
 	       "\"Set, change, or delete your password           \" " .
 	   "\"Transactions\" " .
 	       "\"List recent transactions                       \" " .
-	   " 2> /tmp/input.action");
+	   " 2> input.action");
 
-  $action = `cat /tmp/input.action`;
+  $action = `cat input.action`;
 
   if ($retval != 0 || $action eq "Quit") {
     return "Quit";
@@ -333,12 +294,12 @@ Thanks for your consideration!
 How much was deposited into the Bank of Bob?};
 
   while (1) {
-    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-	       $win_text .  "\" 20 65 2> /tmp/input.deposit") != 0) {
+    if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .
+	       $win_text .  "\" 20 65 2> input.deposit") != 0) {
       return $CANCEL;
     }
 
-    my $amt = `cat /tmp/input.deposit`;
+    my $amt = `cat input.deposit`;
     if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
       if (! &confirm_win("Add amount?",
 			 sprintf("\nWas the deposit amount \\\$%.2f?", $amt))) {
@@ -384,12 +345,12 @@ buying?
 point!)};
 
     while (1) {
-      if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-		 $win_text .  "\" 13 50 2> /tmp/input.deposit") != 0) {
+      if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .
+		 $win_text .  "\" 13 50 2> input.deposit") != 0) {
 	return $CANCEL;
       }
 
-      $amt = `cat /tmp/input.deposit`;
+      $amt = `cat input.deposit`;
       if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
 	last;
       }
@@ -430,9 +391,10 @@ What is your message?};
     undef $userid;
   }
 
-  if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .  $win_text .
-	     "\" 18 74 \"From $username: \" 2> /tmp/input.msg") == 0) {
-    my $msg = `cat /tmp/input.msg`;
+  if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .  
+             $win_text .
+	     "\" 18 74 \"From $username: \" 2> input.msg") == 0) {
+    my $msg = `cat input.msg`;
     &bob_db_insert_msg($userid, $msg);
   }
 }
@@ -443,7 +405,7 @@ log_win
 {
   my ($userid) = @_;
   my $win_title = "Transactions";
-  my $logfile = "/tmp/$userid.output.log";
+  my $logfile = "$userid.output.log";
   
   &bob_db_log_transactions($userid, $logfile);
 
@@ -459,10 +421,7 @@ pwd_win
   my $win_title = "Enter Password";
   my $win_text = q{
 Type your new password.  To remove an existing
-password, do not enter any text.
-
-NOTE: YOUR PASSWORD WILL BE ECHOED TO THE
-SCREEN...MAKE SURE NO ONE IS LOOKING!};
+password, do not enter any text.};
 
   my $verify_win_text = q{
 Re-type your password:};
@@ -476,22 +435,22 @@ Re-type your password:};
     $pwd_exists = 0;
   }
 
-  if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-	     $win_text .  "\" 15 52 2> /tmp/input.pwd") != 0) {
+  if (system("$DLG --title \"$win_title\" --clear --cr-wrap --passwordbox \"" .
+	     $win_text .  "\" 12 50 2> input.pwd") != 0) {
     return $CANCEL;
   }
-  my $p = `cat /tmp/input.pwd`;
+  my $p = `cat input.pwd`;
 
   if ($p eq "") {
     &bob_db_remove_pwd($userid);
     return;
   }
 
-  if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-	     $verify_win_text .  "\" 10 40 2> /tmp/input.pwd_v") != 0) {
+  if (system("$DLG --title \"$win_title\" --clear --passwordbox \"" .
+	     $verify_win_text .  "\" 10 40 2> input.pwd_v") != 0) {
     return $CANCEL;
   }
-  my $p_v = `cat /tmp/input.pwd_v`;
+  my $p_v = `cat input.pwd_v`;
 
   if ($p ne $p_v) {
     my $no_match_msg = q{
@@ -550,7 +509,7 @@ confirm_win
 {
   my ($win_title,$win_text,$w,$h) = @_;
   $h ||= 7;
-  $w ||= 35;
+  $w ||= 40;
 
   $retval = system("$DLG --title \"$win_title\" --clear --yesno \"" .
 		   $win_text .  "\" $h $w 2> /dev/null");
@@ -573,11 +532,25 @@ get_balance_string
 sub
 get_msg
 {
-  if (-r "/tmp/message") {
-    chop($msg = `cat /tmp/message`);
+  if (-r "message") {
+    chop($msg = `cat message`);
   } else {
     return "";
   }
 }
+
+
+sub
+invalidAmount_win
+{
+  my $win_title = "Invalid amount";
+  my $win_text = q{
+Valid amounts are positive numbers with up
+to two decimal places of precision.};
+
+  system("$DLG --title \"$win_title\" --msgbox \"" .
+	 $win_text .  "\" 8 50 2> /dev/null");
+}
+
 
 1;
