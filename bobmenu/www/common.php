@@ -64,7 +64,7 @@ $ret= "<html><head><title>".$pageTitle."</title>\n";
 $ret=$ret."</head>\n<body bgcolor='white'>\n"; 
 $in = easyRead('header');
 $ret=$ret.$in;
-return $in;
+return $ret;
 }
 
 function makeHeaderWithStyle($pageTitle){
