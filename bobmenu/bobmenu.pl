@@ -277,6 +277,17 @@ The transaction will not be recorded until then. \n
       } 
       $prodname = $result->getvalue(0,0);
 
+      my $selectqueryFormat = q{
+        select phonetic_name
+        from products
+        where barcode = '%s';
+      };
+      my $result = $conn->exec(sprintf($selectqueryFormat, $prod_barcode));
+      if ($result->ntuples != 1) {
+        next;
+      } 
+      $phonetic_name = $result->getvalue(0,0);
+
       $selectqueryFormat = q{
         select price
         from products
@@ -303,7 +314,7 @@ The transaction will not be recorded until then. \n
         push(@purchase, $prodname);
         push(@prices, $price);
         $numbought++;
-        &sayit("$prodname");
+        &sayit("$phonetic_name");
         $leng += 1;
         next;
       }
@@ -1278,7 +1289,7 @@ create a new account by entering a valid text login id.};
 ###
 
 $REVISION = q{
-$Revision: 1.17 $
+$Revision: 1.18 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
