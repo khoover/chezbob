@@ -5,7 +5,6 @@
 ###
 
 use Pg;
-use Barcode;
 
 $DLG = "/usr/bin/dialog";
 
@@ -30,12 +29,21 @@ isa_barcode
 
 sub
 decode_barcode
+#
+# Larry Wall's amazing hack to decode cuecat headers adapted by Wesley
+#
 {
-  my ($crap) = @_;
-  my $scan = CueCat->decode($crap);
-  $barcode = $scan->{'barcode_data'};
-#  system("$DLG --msgbox $barcode 5 50");
-  return $barcode;
+  my ($rawInput) = @_;
+
+  # this skips the barcode type stuff.
+  my @getParsed = split /\./,$rawInput;
+  my $rawBarcode = $getParsed[3];
+  $rawBarcode =~ tr/a-zA-Z0-9+-/ -_/;
+  $rawBarcode = unpack 'u', chr(32 + length($rawBarcode) * 3/4)
+      . $rawBarcode;
+  $rawBarcode =~ s/\0+$//;
+  $rawBarcode ^= "C" x length($rawBarcode);
+  return $rawBarcode;
 }
 
 sub
@@ -120,7 +128,6 @@ barcode_action_win
   my $guess = '0';
   my $win_title = "Scan a barcode";
 
-  @purchase; 
   $leng = 12;
 
   while (1) {
@@ -160,7 +167,7 @@ scan the barcode at the top of the monitor labeled 'done' \n\n};
         } else {
           # update dialog
           push(@purchase, $prodname);
-#          system("echo \"$prodname\" > /dev/speech");
+          system("echo \"$prodname\" > /dev/speech");
           $leng += 1;
           next;
         }
@@ -1141,7 +1148,7 @@ create a new account by entering a valid text login id.};
 ###
 
 $REVISION = q{
-$Revision: 1.13 $
+$Revision: 1.14 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
