@@ -1,0 +1,15 @@
+          <tr align="center"> 
+            <td colspan="2"> 
+              <input type="image" border="0" src="$pollvars[base_gif]/vote.gif" width="110" height="48">
+              <input type="hidden" name="action" value="vote">
+              <input type="hidden" name="poll_ident" value="$poll_id">
+              <br>
+              <font face="$pollvars[font_face]" color="$pollvars[font_color]" size="1"><a href="$this->form_forward?action=results&amp;poll_ident=$poll_id">$pollvars[result_text]</a>
+            </td>
+          </tr>
+        </table>
+      </form>
+      <font face="$pollvars[font_face]" size="1"><a href="http://www.proxy2.de" target="_blank" title="Advanced Poll">Version $pollvars[poll_version]</a></font>
+     </td>
+  </tr>
+</table>

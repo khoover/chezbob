@@ -1,0 +1,18 @@
+                <tr align="center" valign="bottom"> 
+                  <td colspan="2"> 
+                    <input type="submit" value="$pollvars[vote_button]" class="input" name="submit">
+                    <input type="hidden" name="action" value="vote">
+                    <input type="hidden" name="poll_ident" value="$poll_id">
+                  </td>
+                </tr>
+                <tr valign="bottom"> 
+                  <td colspan="2" height="30" align="center"><font face="$pollvars[font_face]" color="$pollvars[font_color]" size="1">[<a href="$this->form_forward?action=results&amp;poll_ident=$poll_id">$pollvars[result_text]</a>]</font></td>
+                </tr>
+              </table>
+            </form>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

@@ -1,0 +1,44 @@
+<table border="0" cellspacing="0" cellpadding="0">
+  <tr> 
+    <td> 
+      <style type="text/css">
+      <!--
+       .button {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 8pt}
+       .poll_textarea {  font-family: "MS Sans Serif"; font-size: 9pt; width: 300px}
+       .poll_input {  width: 300px}
+      -->
+    </style>
+      <form method="post" action="$this->form_forward">
+        <table border="0" cellspacing="0" cellpadding="4">
+          <tr>
+            <td class="td1"><font color="#CC0000" face="Verdana, Arial, Helvetica, sans-serif" size="1"><b>$msg</b></font></td>
+          </tr>
+          <tr> 
+            <td class="td1"><font face="Verdana, Arial, Helvetica, sans-serif" size="1">Name:</font><br>
+              <input type="text" name="name" value="$comment[name]" maxlength="30" class="poll_input" size="25">
+            </td>
+          </tr>
+          <tr> 
+            <td class="td1"><font face="Verdana, Arial, Helvetica, sans-serif" size="1">E-mail:</font><br>
+              <input type="text" name="email" value="$comment[email]" size="25" maxlength="50" class="poll_input">
+            </td>
+          </tr>
+          <tr> 
+            <td class="td1"> <font face="Verdana, Arial, Helvetica, sans-serif" size="1">Comment:</font><br>
+              <font face="MS Sans Serif" size="1"> 
+              <textarea name="message" cols="25" wrap="VIRTUAL" rows="8" class="poll_textarea">$comment[message]</textarea>
+              </font> </td>
+          </tr>
+          <tr valign="top"> 
+            <td> 
+              <input type="submit" value="Submit" class="button" name="submit">
+              <input type="reset" value="Reset" class="button" name="reset">
+              <input type="hidden" name="action" value="add">
+              <input type="hidden" name="pcomment" value="$poll_id">
+            </td>
+          </tr>
+        </table>
+      </form>
+    </td>
+  </tr>
+</table>

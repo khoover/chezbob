@@ -1,0 +1,54 @@
+<table border="0" cellspacing="0" cellpadding="1" align="center" bgcolor="#666699">
+  <tr align="center">
+    <td>
+     <style type="text/css">
+      <!--
+       .button {  font-family: Verdana, Arial, Helvetica, sans-serif; font-size: 8pt}
+       .textarea {  font-family: "MS Sans Serif"; font-size: 9pt; width: 195px}
+       .input {  width: 195px}
+      -->
+    </style><font color="#FFFFFF" face="Verdana, Arial, Helvetica, sans-serif" size="2"><b>Send Your Comment</b></font></td>
+  </tr>
+  <tr>
+    <td>
+      <table border="0" cellspacing="0" cellpadding="5" align="center" bgcolor="#F3F3F3" width="200">
+        <tr>
+          <td width="149">
+            <form method="post" action="$this->form_forward">
+              <table border="0" cellspacing="0" cellpadding="2" bgcolor="" align="center">
+                <tr>
+                  <td class="td1" height="40"><b><font face="Verdana, Arial, Helvetica, sans-serif" size="1">$question</font></b></td>
+                </tr>
+                <tr>
+                  <td class="td1"><font face="Verdana, Arial, Helvetica, sans-serif" size="1">Name:</font><br>
+                    <input type="text" name="name" maxlength="25" class="input" size="23">
+                  </td>
+                </tr>
+                <tr>
+                  <td class="td1"><font face="Verdana, Arial, Helvetica, sans-serif" size="1">e-mail:</font><br>
+                    <input type="text" name="email" size="23" maxlength="50" class="input">
+                  </td>
+                </tr>
+                <tr>
+                  <td class="td1"><font face="Verdana, Arial, Helvetica, sans-serif" size="1">Comment(*):</font><br>
+                    <font face="MS Sans Serif" size="1">
+                    <textarea name="message" cols="19" wrap="VIRTUAL" rows="6" class="textarea"></textarea>
+                    </font>
+                  </td>
+                </tr>
+                <tr valign="top">
+                  <td>
+                    <input type="submit" value="Submit" class="button">
+                    <input type="reset" value="Reset" class="button">
+                    <input type="hidden" name="action" value="add">
+                    <input type="hidden" name="id" value="$poll_id">
+                  </td>
+                </tr>
+              </table>
+            </form>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
