@@ -1,5 +1,5 @@
 /*
- *  $Id: menubox.c,v 1.2 2001-05-17 18:56:47 mcopenha Exp $
+ *  $Id: menubox.c,v 1.3 2001-05-17 21:49:21 mcopenha Exp $
  *
  *  menubox.c -- implements the menu box
  *
@@ -83,7 +83,7 @@ dialog_menu(const char *title, const char *cprompt, int height, int width,
 /* MAC */
     int digits = FALSE;
     FILE* fp = NULL;
-    fp = fopen("/tmp/menuout", "w");
+    fp = fopen("menuout", "w");
 
     tab_correct_str(prompt);
     if (menu_height == 0) {
@@ -216,12 +216,13 @@ dialog_menu(const char *title, const char *cprompt, int height, int width,
 	 */
 	if (!found
 	    && (key <= '9')
-	    && (key > '0')
+	    && (key >= '0')
 	    && (key - '1' <= max_choice)) {
+/* MAC: print digit to file */
 fprintf(fp, "%c", key);
+digits = TRUE;
 	 /*   found = TRUE;
 	    i = key - '1'; */
-           digits = TRUE;
 	}
 
 	if (!found) {
@@ -264,6 +265,11 @@ fprintf(fp, "%c", key);
 	}
 
 	if (found) {
+
+/* MAC: in this case, the user may have accidently pressed a few numbers,
+   but then pressed a valid input key (up arrow, letter, etc). */
+            digits = FALSE;
+
 	    if (i != choice) {
 		getyx(dialog, cur_y, cur_x);
 		if (i < 0 || i >= max_choice) {
@@ -358,6 +364,8 @@ fprintf(fp, "%c", key);
 	    break;
 	case '\n':
 	    (void) delwin(dialog);
+
+/* MAC: close file and return special value */
             if (digits) {
                 fclose(fp);
                 return -3;
