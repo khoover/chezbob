@@ -14,7 +14,7 @@
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
 #
-# $Id: bob_db.pl,v 1.19 2001-05-22 01:09:33 chpham Exp $
+# $Id: bob_db.pl,v 1.20 2001-05-22 01:23:05 chpham Exp $
 #
 
 use Pg;
@@ -949,8 +949,6 @@ sub report_msg
 	my ($userid, $message) = @_ ;
 	my ($subject) = "Mesage to Bob";
     &report($subject, $message);
-	my $msg_to_bob = $subject . ": " . $message;
-	&bob_db_insert_msg($userid, $msg_to_bob);
 }
 
 1;
