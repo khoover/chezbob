@@ -8,7 +8,7 @@
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
 #
-# $Id: bob_db.pl,v 1.12 2001-05-18 23:58:48 mcopenha Exp $
+# $Id: bob_db.pl,v 1.13 2001-05-19 18:03:39 mcopenha Exp $
 #
 
 use Pg;
@@ -587,12 +587,12 @@ bob_db_get_bulk_name_from_barcode
   my ($barcode) = @_;
   &bob_db_check_conn;
 
-  my $insertqueryFormat = q{
+  my $selectqueryFormat = q{
     select bulk_name
     from bulk_items
     where bulk_barcode = '%s';
   };
-  my $result = $conn->exec(sprintf($insertqueryFormat, $barcode));
+  my $result = $conn->exec(sprintf($selectqueryFormat, $barcode));
   if ($result->ntuples < 1) {
     return undef;
   } else {
@@ -735,6 +735,47 @@ bob_db_update_profile_settings
       print STDERR "error updating profile\n";
       exit 1;
     }
+  }
+}
+
+#---------------------------------------------------------------------------
+# books table
+
+sub
+bob_db_insert_book
+{
+  my ($barcode, $isbn, $author, $title) = @_;
+  &bob_db_check_conn;
+  my $insertqueryFormat = q{
+    insert
+    into books
+    values('%s', '%s', '%s', '%s');
+  };
+  my $query = sprintf($insertqueryFormat, $barcode, $isbn, $author, $title);
+  my $result = $conn->exec($query);
+  if ($result->resultStatus != PGRES_COMMAND_OK) {
+    print STDERR "error insert new book...exiting\n";
+    exit 1;
+  }
+}
+
+
+sub
+bob_db_get_book_from_barcode
+{
+  my ($barcode) = @_;
+  &bob_db_check_conn;
+
+  my $selectqueryFormat = q{
+    select author, title
+    from books
+    where barcode = '%s';
+  };
+  my $result = $conn->exec(sprintf($selectqueryFormat, $barcode));
+  if ($result->ntuples < 1) {
+    return undef;
+  } else {
+    return $result->getvalue(0,0) . "\t" . $result->getvalue(0,1);
   }
 }
 

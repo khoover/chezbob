@@ -9,7 +9,7 @@
 #
 #    if ($PROFILE{"Speech"}) {  # say something }
 #
-# $Id: profile.pl,v 1.1 2001-05-18 23:58:48 mcopenha Exp $
+# $Id: profile.pl,v 1.2 2001-05-19 18:03:39 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -70,6 +70,7 @@ Change any of the following properties:};
   # Strip quotes from beginning and end
   my $tmpstr = "";
   $tmpstr = `cat input.profile`;
+#  $tmpstr = substr($tmpstr, 1, length($tmpstr) - 2);
   $tmpstr =~ s/^\"//;
   $tmpstr =~ s/(\"\s*)$//;
 
