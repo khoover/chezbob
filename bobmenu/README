@@ -6,7 +6,7 @@ We're using a custom version of Savio Lam's Dialog program.  The source is
 located in dialog-0.9a.  After checking out the source tree, you'll need to 
 go into the dialog-0.9a directory and execute './configure' followed by 
 'make' to create the dialog executable.  Move the dialog executable to the
-parent directory.
+parent directory and call it "bobdialog"
 
 using dialog version dialog-0.9a-20010429
 
