@@ -12,8 +12,8 @@ $DLG = "/usr/bin/dialog";
 # of an existing product.
 ###############################################################################
 
-do 'bc_util.pl';
-do 'bob_db.pl';
+do '../bc_util.pl';
+do '../bob_db.pl';
 
 
 sub
@@ -152,7 +152,7 @@ newBulk_win
       }
       $guess = `cat /tmp/input.product`;
       system("rm -f /tmp/input.product");      
-      $prodbarcode = &verify_and_decode_barcode($guess);
+      $prodbarcode = &preprocess_barcode($guess);
       if($prodbarcode eq "") {
         &errorBarcode();
       } else {
@@ -225,7 +225,7 @@ enterBarcode
 	$guess = `cat /tmp/input.barcode`;
 	system("rm -f /tmp/input.barcode");
 
-	$newBarcode = &verify_and_decode_barcode($guess);
+	$newBarcode = &preprocess_barcode($guess);
 
 	if($newBarcode eq "") {
 	    # case where barcode is not a barcode...
@@ -261,7 +261,7 @@ enterBulkBarcode
 	$guess = `cat /tmp/input.barcode`;
 	system("rm -f /tmp/input.barcode");
 
-	$newBarcode = &verify_and_decode_barcode($guess);
+	$newBarcode = &preprocess_barcode($guess);
 
 	if($newBarcode eq "") {
 	    # case where barcode is not a barcode...
@@ -297,7 +297,7 @@ deleteProduct
 	$guess = `cat /tmp/input.barcode`;
 	system("rm -f /tmp/input.barcode");
 	
-	$newBarcode = &verify_and_decode_barcode($guess);
+	$newBarcode = &preprocess_barcode($guess);
 	
 	if($newBarcode eq "") {
 	    # case where barcode is not a barcode...
