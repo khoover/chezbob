@@ -1,0 +1,59 @@
+<html>
+
+<head>
+<title>
+Chez Bob 2001
+</title>
+
+<body bgcolor=#FFFFFF>
+
+</script>
+<script language="JavaScript1.1">
+
+image_src = new Array(
+  "images/porkrinds.jpg",
+  "images/animals.jpg",
+  "images/homer_suit.jpg",
+  "images/homer_smiling.jpg"
+);
+
+pics = new Array();
+for (var i=0;i<image_src.length; i++) {
+  pics[i] = new Image();
+  pics[i].src = image_src[i];
+}
+
+function wo(x) {        
+  document.right.src = pics[x].src;
+}
+</script>
+
+
+<center>
+<img src="images/bob_title.jpg">
+<table border=0> 
+
+<tr>
+
+<td align=center height=350 width=150>
+<a onMouseOver="wo(0);return true;" 
+        href="listInventory.php">Check Inventory</a>
+<br><br><a  onMouseOver="wo(1);return true;" 
+        href="instr.html">Instructions</a>
+<br><br><a onMouseOver="wo(2);return true;" 
+        href="books.html">Browse Library</a>
+<br><br><a onMouseOver="wo(3);return true;" 
+        href="credits.html">Credits</a>
+
+</td>
+
+<td align=center width=250 height=350>
+<img name="right" src="images/porkrinds.jpg"  >
+</td>
+
+</table>
+</center>
+
+</body>
+
+</html> 
