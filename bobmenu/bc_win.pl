@@ -4,7 +4,7 @@
 #
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 #
-# $Id: bc_win.pl,v 1.7 2001-05-15 00:18:05 mcopenha Exp $
+# $Id: bc_win.pl,v 1.8 2001-05-15 00:48:16 mcopenha Exp $
 #
 
 require "bc_util.pl";
@@ -65,7 +65,6 @@ barcode_action_win
   my ($userid, $username) = @_;
   my $win_title = "Main Menu";
   my $guess = '0';		# initial barcode input
-  my $dialog_leng = 24;		# main dialog initial length
   my $numbought = 0;		# number of products users has purchased
   my $price = 0.0;		# price of current product
   my $phonetic_name = "";	# phonetic name of current product
@@ -73,7 +72,6 @@ barcode_action_win
 
   my $balance = &bob_db_get_balance($userid);
   my $balanceString = &get_balance_string($balance);
-  my $msg = &get_msg;
   &say_greeting;
 
   while (1) {
@@ -82,7 +80,6 @@ Welcome, %s!
 
 USER INFORMATION:
   You currently %s
-  %s
   %s
 
 Please scan each product's barcode.  When you're done,
@@ -117,9 +114,8 @@ The transaction will not be recorded until then. \n
     }
 
     if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-	   sprintf($win_textFormat, $username,
-		   $balanceString, "", $msg) .
-	       "\" $dialog_leng 65 2> /tmp/input.barcode") != 0) {
+	   sprintf($win_textFormat, $username, $balanceString, "") .
+	       "\" 24 65 2> /tmp/input.barcode") != 0) {
       return undef;
     }
 
@@ -149,10 +145,8 @@ The transaction will not be recorded until then. \n
       push(@prices, $price);
       $numbought++;
       &sayit("$phonetic_name");
-      $dialog_leng += 1;
       next;
     }
-
   } 
 }
 
