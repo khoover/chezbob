@@ -3,12 +3,13 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.1 2001-05-18 05:41:44 mcopenha Exp $
+# $Id: buyitem.pl,v 1.2 2001-05-18 23:58:48 mcopenha Exp $
 #
 
 require "bob_db.pl";
 require "dlg.pl";
 require "speech.pl";
+require "profile.pl";
 
 $PRICES{"Candy/Can of Soda"} = 0.45;
 $PRICES{"Juice"} = 0.70;
@@ -57,13 +58,15 @@ What is the price of the item you are buying?
     }
   }
 
-  if (! &confirm_win($confirmMsg,
+  if (! $PROFILE{"1-Click Buying"}) {
+    if (! &confirm_win($confirmMsg,
                      sprintf("\nIs your purchase amount \\\$%.2f?", $amt),40)) {
-    return $CANCEL;
-  } else {
-    &bob_db_update_balance($userid, -$amt, $type);
-    return $amt;
+      return $CANCEL;
+    }
   }
+
+  &bob_db_update_balance($userid, -$amt, $type);
+  return $amt;
 }
 
 
@@ -99,16 +102,20 @@ buy_single_item_with_scanner
   }
 
   my $phonetic_name = &bob_db_get_phonetic_name_from_barcode($barcode);
-  &sayit("$phonetic_name");
+  if ($PROFILE{"Speech"}) { &sayit("$phonetic_name"); }
   my $amt = &bob_db_get_price_from_barcode($barcode);
   my $txt = sprintf("\nIs your purchase amount \\\$%.2f?", $amt);
-  if (&confirm_win($prodname, $txt, 40)) {
-    &bob_db_update_stock(-1, $prodname);
-    &bob_db_update_balance($userid, -$amt, "BUY " . $prodname);
-    return $prodname;
-  } else {
-    return "";
-  }  
+
+  if (! $PROFILE{"1-Click Buying"}) {
+    if (! &confirm_win($prodname, $txt, 40)) {
+      return "";
+    }
+  }
+
+  &bob_db_update_stock(-1, $prodname);
+  &bob_db_update_balance($userid, -$amt, "BUY " . $prodname);
+
+  return $prodname;
 }
 
 

@@ -2,7 +2,7 @@
 #
 # Routines for processing login names, both text and barcode
 #
-# $Id: login.pl,v 1.1 2001-05-18 05:41:44 mcopenha Exp $
+# $Id: login.pl,v 1.2 2001-05-18 23:58:48 mcopenha Exp $
 #
 
 $MIN_BARCODE_LENG = 6;
@@ -10,7 +10,7 @@ $MIN_BARCODE_LENG = 6;
 require "bc_util.pl";
 require "dlg.pl";
 require "newuser.pl";
-require "pwd.pl";
+require "passwd.pl";
 require "mainmenu.pl";
 
 
@@ -33,15 +33,14 @@ process_login
   }
 
   if ($checkpass) {
-    $pwd = &bob_db_get_pwd($userid);
+    my $pwd = &bob_db_get_pwd($userid);
     if (defined $pwd && &checkPwd($pwd, &guess_pwd_win()) == 0) {
-    &invalidPassword_win();
-    } else {
-      &bob_action_win($userid, $username);
-    }
-  } else {
-    &bob_action_win($userid, $username);
+      &invalidPassword_win();
+      return;
+    } 
   }
+
+  &bob_action_win($userid, $username);
 }
 
 

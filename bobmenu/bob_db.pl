@@ -8,7 +8,7 @@
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
 #
-# $Id: bob_db.pl,v 1.11 2001-05-18 05:41:44 mcopenha Exp $
+# $Id: bob_db.pl,v 1.12 2001-05-18 23:58:48 mcopenha Exp $
 #
 
 use Pg;
@@ -588,9 +588,9 @@ bob_db_get_bulk_name_from_barcode
   &bob_db_check_conn;
 
   my $insertqueryFormat = q{
-      select bulk_name
-	  from bulk_items
-	      where bulk_barcode = '%s';
+    select bulk_name
+    from bulk_items
+    where bulk_barcode = '%s';
   };
   my $result = $conn->exec(sprintf($insertqueryFormat, $barcode));
   if ($result->ntuples < 1) {
@@ -618,6 +618,7 @@ bob_db_delete_bulk
   }
 }
 
+
 sub
 bob_db_insert_bulk_item
 {
@@ -643,6 +644,7 @@ bob_db_update_products_in_bulk_item
 {
   my ($bulk_barcode) = @_;
 
+  &bob_db_check_conn;
   my $selectqueryFormat = q{
     select *
     from bulk_items
@@ -674,5 +676,67 @@ bob_db_update_products_in_bulk_item
     return undef;
   }
 }
+
+#---------------------------------------------------------------------------
+# profiles table
+
+sub
+bob_db_get_profile_setting
+{
+  my ($userid, $property) = @_;
+  &bob_db_check_conn;  
+  my $queryFormat = q{
+    select setting
+    from profiles
+    where userid = %d and property = '%s';
+  };
+  my $result = $conn->exec(sprintf($queryFormat, $userid, $property));
+  if ($result->ntuples != 1) {
+    return $NOT_FOUND;
+  } else {
+    return $result->getvalue(0,0);
+  }
+}
+
+
+sub
+bob_db_insert_property
+{
+  my ($userid, $property) = @_;
+  &bob_db_check_conn;
+  my $insertqueryFormat = q{
+    insert
+    into profiles
+    values(%d, '%s', 0);
+  };
+  my $result = $conn->exec(sprintf($insertqueryFormat, $userid, $property));
+  if ($result->resultStatus != PGRES_COMMAND_OK) {
+    print STDERR "error insert new property...exiting\n";
+    exit 1;
+  }
+}
+
+
+sub
+bob_db_update_profile_settings
+{
+  my ($userid, %newsettings) = @_;
+  &bob_db_check_conn;
+
+  while ( ($property, $setting) = each(%newsettings) ) {
+    my $updatequeryFormat = q{
+      update profiles
+      set setting = %d
+      where userid = %d and property = '%s'; 
+    };
+    my $query = sprintf($updatequeryFormat, $setting, $userid, $property);
+    my $result = $conn->exec($query);
+    if ($result->resultStatus != PGRES_COMMAND_OK) {
+      print STDERR "error updating profile\n";
+      exit 1;
+    }
+  }
+}
+
 
 1;

@@ -5,7 +5,7 @@
 # barcode id), viewing transactions, and sending messages to Bob.  Routines
 # for each of these functions is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.1 2001-05-18 05:41:44 mcopenha Exp $
+# $Id: mainmenu.pl,v 1.2 2001-05-18 23:58:48 mcopenha Exp $
 #  
 
 require "passwd.pl";
@@ -18,6 +18,7 @@ require "usrlog.pl";
 require "nickname.pl";
 require "usrbarcode.pl";
 require "dlg.pl";
+require "profile.pl";
 
 
 sub
@@ -25,10 +26,14 @@ bob_action_win
 {
   my ($userid, $username) = @_;
   my $nickname = &bob_db_get_nickname_from_userid($userid);
-  &say_greeting($nickname);
+  my $last_purchase = "";
+  &get_user_profile($userid);
+  if ($PROFILE{"Speech"}) { &say_greeting($nickname); }
 
   my $action = "";
-  do {
+
+MAINLOOP:
+  while ($action ne "Quit") {
     #
     # refresh the balance
     #
@@ -42,11 +47,13 @@ bob_action_win
     # get the action
     #
     $action = &action_win($username,$userid,$balance,$last_purchase);
+    my $boughtitem = 0;
 
     $_ = $action;
     SWITCH: {
       /^DIGITS$/ && do {
         $last_purchase = &buy_single_item_with_scanner($userid);
+        $boughtitem = 1;
         last SWITCH;
       };
 
@@ -58,30 +65,35 @@ bob_action_win
       /^Candy\/Can of Soda$/ && do {
         $last_purchase = "Candy/Can of Soda";
         &buy_win($userid,$_);
+        $boughtitem = 1;
         last SWITCH;
       };
     
       /^Snapple$/ && do {
         $last_purchase = "Snapple";
         &buy_win($userid,$_);
+        $boughtitem = 1;
         last SWITCH;
       };
     
       /^Juice$/ && do {
         $last_purchase = "Juice";
         &buy_win($userid,$_);
+        $boughtitem = 1;
         last SWITCH;
       };
     
       /^Popcorn\/Chips\/etc.$/ && do {
         $last_purchase = "Popcorn/Chips";
         &buy_win($userid,$_);
+        $boughtitem = 1;
         last SWITCH;
       };
     
       /^Buy Other$/ && do {
         $last_purchase = "Other";
         &buy_win($userid);
+        $boughtitem = 1;
         last SWITCH;
       };
   
@@ -95,6 +107,11 @@ bob_action_win
         last SWITCH;
       };
    
+      /^My Chez Bob$/ && do {
+        &profile_win($userid);
+        last SWITCH;
+      };
+
       /^Modify Barcode ID$/ && do {
         &update_user_barcode($userid);
         last SWITCH;
@@ -119,9 +136,13 @@ bob_action_win
         last SWITCH;
       };
     } # SWITCH
-  } while ($action ne "Quit");
 
-  &say_goodbye;
+    if ($boughtitem) {
+      if ($PROFILE{"Auto Logout"}) { last MAINLOOP; }
+    }
+  } 
+
+  if ($PROFILE{"Speech"}) { &say_goodbye; }
 } 
 
 
@@ -168,10 +189,12 @@ or scan an item using the barcode scanner.};
 	       "\"Buy popcorn, chips, etc. from Bob       (\\\$0.30)\" " .
 	   "\"Buy Other\" " .
 	       "\"Buy something else from Bob                    \" " .
-	   "\"Message\" " .
-	       "\"Leave a message for Bob                        \" " .
+	   "\"My Chez Bob\" " .
+	       "\"Update your personal settings                     \" " .
 	   "\"Quit\" " .
 	       "\"Finished\!                                      \" " .
+	   "\"Message\" " .
+	       "\"Leave a message for Bob                        \" " .
 	   "\"Modify Barcode ID\" " .
 	       "\"Set your personal barcode                     \" " .
 	   "\"Modify Nickname\" " .
