@@ -14,7 +14,7 @@
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
 #
-# $Id: bob_db.pl,v 1.20 2001-05-22 01:23:05 chpham Exp $
+# $Id: bob_db.pl,v 1.21 2001-05-22 03:09:54 mcopenha Exp $
 #
 
 use Pg;
@@ -938,7 +938,7 @@ sub report
 sub report_fatal
 {
 	my ($message) = @_ ;
-	my $subject = "BOB IS DOWN - fatal error had occured";
+	my $subject = "BOB IS DOWN - a fatal error has occurred";
 
 	&report($subject, $message);
 	exit 1;
@@ -947,7 +947,7 @@ sub report_fatal
 sub report_msg
 {
 	my ($userid, $message) = @_ ;
-	my ($subject) = "Mesage to Bob";
+    my ($subject) = "Message to Bob";
     &report($subject, $message);
 }
 
