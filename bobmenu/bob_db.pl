@@ -14,7 +14,7 @@
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
 #
-# $Id: bob_db.pl,v 1.30 2001-06-08 18:28:25 bob Exp $
+# $Id: bob_db.pl,v 1.31 2001-06-10 02:49:22 bob Exp $
 #
 
 use Pg;
@@ -23,7 +23,7 @@ require "ctime.pl";
 my $conn = "";         			# the database connection    
 my $ADMIN = 'root@chezbob.ucsd.edu';    # address to send admin. message
 
-$NOT_FOUND = -1;    
+$NOT_FOUND = -9999.9999;    
 
 
 sub
