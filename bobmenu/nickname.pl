@@ -2,7 +2,7 @@
 #
 # Nicknames are used by the speech synthesis program when greeting the user. 
 #
-# $Id: nickname.pl,v 1.2 2001-05-19 22:37:54 mcopenha Exp $
+# $Id: nickname.pl,v 1.3 2001-05-21 21:20:08 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -13,11 +13,11 @@ get_nickname_win
 {
   my $win_title = "Enter nickname:";
   if (system("$DLG --title \"$win_title\" --clear " .
-      " --inputbox \"\" 8 45 2> input.nickname") != 0) {
+      " --inputbox \"\" 8 45 2> /tmp/input.nickname") != 0) {
     return undef;
   }
 
-  return `cat input.nickname`;
+  return `cat /tmp/input.nickname`;
 }
 
 

@@ -2,7 +2,7 @@
 #
 # Routines for processing login names, both text and barcode
 #
-# $Id: login.pl,v 1.3 2001-05-21 06:38:58 mcopenha Exp $
+# $Id: login.pl,v 1.4 2001-05-21 21:20:08 mcopenha Exp $
 #
 
 $MIN_BARCODE_LENG = 6;
@@ -61,11 +61,11 @@ Welcome to the B.o.B. 2K!
 Enter your username or scan your personal barcode.
 (If you are a new user enter a new username):};
 
-  if (system("$DLG --backtitle \"Chez Bob 2001\" --title \"$win_title\" --clear --cr-wrap --inputbox \"" .  $win_text .  "\" 14 55 \"$username\" 2> input.main") != 0) {
+  if (system("$DLG --backtitle \"Chez Bob 2001\" --title \"$win_title\" --clear --cr-wrap --inputbox \"" . $win_text .  "\" 14 55 \"$username\" 2> /tmp/input.main") != 0) {
     return "";
   }
 
-  return `cat input.main`;
+  return `cat /tmp/input.main`;
 }
 
 

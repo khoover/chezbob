@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.3 2001-05-21 06:38:58 mcopenha Exp $
+# $Id: buyitem.pl,v 1.4 2001-05-21 21:20:08 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -52,11 +52,11 @@ What is the price of the item you are buying?
 
     while (1) {
       if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .
-                 $win_text .  "\" 10 50 2> input.deposit") != 0) {
+                 $win_text .  "\" 10 50 2> /tmp/input.deposit") != 0) {
         return "";
       }
 
-      $amt = `cat input.deposit`;
+      $amt = `cat /tmp/input.deposit`;
       if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
         last;
       }
@@ -93,15 +93,15 @@ to two decimal places of precision.};
 sub
 buy_single_item_with_scanner
 #
-# Inspect the output of the dialog program's menu in 'menuout'.  This should
-# contain the barcode of the last item scanned.  Look it up and update the 
-# product's stock (-1) and the user's balance.  On failure (product does not
+# Inspect the output of the dialog program's menu in '/tmp/menuout'.  This 
+# should contain the barcode of the last item scanned.  Look it up and update 
+# the product's stock (-1) and the user's balance.  On failure (product does not
 # exist or user cancels) return empty string; on success (user buys product)
 # return the name of the product purchased.  
 #
 {
   my ($userid) = @_;
-  my $guess = `cat menuout`;
+  my $guess = `cat /tmp/menuout`;
 
   $barcode = &preprocess_barcode($guess);      
   $prodname = &bob_db_get_productname_from_barcode($barcode);

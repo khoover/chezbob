@@ -2,7 +2,7 @@
 #
 # Routines for updating and checking user passwords
 # 
-# $Id: passwd.pl,v 1.1 2001-05-18 05:41:44 mcopenha Exp $
+# $Id: passwd.pl,v 1.2 2001-05-21 21:20:08 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -14,11 +14,11 @@ guess_pwd_win
   my $win_title = "Enter password";
   my $win_text = "Enter your password:";
   if (system("$DLG --title \"$win_title\" --clear --passwordbox \"" .
-             $win_text .  "\" 8 45 2> input.guess") != 0) {
+             $win_text .  "\" 8 45 2> /tmp/input.guess") != 0) {
     return undef;
   }
 
-  return `cat input.guess`;
+  return `cat /tmp/input.guess`;
 }
 
 sub
@@ -53,10 +53,10 @@ Re-type your password:};
   }
 
   if (system("$DLG --title \"$win_title\" --clear --cr-wrap --passwordbox \"" .
-             $win_text .  "\" 12 50 2> input.pwd") != 0) {
+             $win_text .  "\" 12 50 2> /tmp/input.pwd") != 0) {
     return $CANCEL;
   }
-  my $p = `cat input.pwd`;
+  my $p = `cat /tmp/input.pwd`;
 
   if ($p eq "") {
     &bob_db_remove_pwd($userid);
@@ -64,10 +64,10 @@ Re-type your password:};
   }
 
   if (system("$DLG --title \"$win_title\" --clear --passwordbox \"" .
-             $verify_win_text .  "\" 10 40 2> input.pwd_v") != 0) {
+             $verify_win_text .  "\" 10 40 2> /tmp/input.pwd_v") != 0) {
     return $CANCEL;
   }
-  my $p_v = `cat input.pwd_v`;
+  my $p_v = `cat /tmp/input.pwd_v`;
 
   if ($p ne $p_v) {
     my $no_match_msg = q{

@@ -9,7 +9,7 @@
 # (http://dickey.his.com/dialog/dialog.html):
 #
 # 1. Modified dialog's 'menu' window so that any keyboard input is 
-#    redirected to a file called 'menuout' that's stored in the current
+#    redirected to a file called '/tmp/menuout' that's stored in the current
 #    directory.  We made this change so that a user could use the 
 #    barcode scanner while the main menu was showing.  Modified file
 #    menubox.c.
@@ -18,7 +18,7 @@
 #    instead of echoing nothing.  Changed files dialog.c, inputstr.c,
 #    and textbox.c.  Changes were taken from a broken patch file.
 #
-# $Id: dlg.pl,v 1.5 2001-05-21 18:48:33 mcopenha Exp $
+# $Id: dlg.pl,v 1.6 2001-05-21 21:20:08 mcopenha Exp $
 #
 
 $DLG = "$BOBPATH/dialog-0.9a/dialog";

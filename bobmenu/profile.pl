@@ -18,7 +18,7 @@
 # New users of the system automatically have every property of their 
 # profile turned 'off'.  
 #
-# $Id: profile.pl,v 1.4 2001-05-21 06:38:58 mcopenha Exp $
+# $Id: profile.pl,v 1.5 2001-05-21 21:20:08 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -79,12 +79,12 @@ Change any of the following properties:};
   }   
   
   if (system("$DLG --title \"$win_title\" --clear --cr-wrap --checklist \" " .
-	   $win_text .  "\" 13 70 5 $profile_menu 2> input.profile") != 0) {
+    $win_text .  "\" 13 70 5 $profile_menu 2> /tmp/input.profile") != 0) {
     return;
   }
 
   # Strip quotes from beginning and end
-  my $tmpstr = `cat input.profile`;
+  my $tmpstr = `cat /tmp/input.profile`;
   $tmpstr =~ s/^\"//;
   $tmpstr =~ s/(\"\s*)$//;
 
