@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.2 2001-08-20 21:00:38 bellardo Exp $
+# (id tag removed to pacify cvs...may try to readd it later -as)
 # template makefile for DIALOG
 #
 SHELL		= /bin/sh
