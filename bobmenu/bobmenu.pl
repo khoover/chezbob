@@ -796,30 +796,6 @@ implemented.};
 
 
 ################################# UTILITIES #################################
-sub
-checkBarcode
-{
-  my ($barcode,$conn) = @_;
-
-  my $queryFormat = q{
-select userid
-from users
-where userbarcode ~* '^%s$';
-  };
-
-  if ($conn->status != PGRES_CONNECTION_OK) {
-    print STDERR "checkBarcode: not connected...exiting.\n";
-    exit 1;
-  }
-  $result = $conn->exec(sprintf($queryFormat,$barcode));
-
-  if ($result->ntuples != 1) {
-    # does not exist
-    return -1;
-  }
-
-  return ($result->getvalue(0,0));
-}
 
 sub
 checkUser
@@ -937,7 +913,7 @@ confirm_win
 ###
 
 $REVISION = q{
-$Revision: 1.7 $
+$Revision: 1.8 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
@@ -949,8 +925,8 @@ else {
 print "rev is $REVISION\n";
 
 do {
-  $username = &login_win($REVISION);
-} while ($username eq "");
+  $logintext = &login_win($REVISION);
+} while ($logintext eq "");
 
 # set up db
 $conn = Pg::connectdb("dbname=bob");
@@ -960,10 +936,20 @@ if ($conn->status == PGRES_CONNECTION_BAD) {
   exit 1;
 }
 
-if (&isa_barcode($username)) {
-  $barcode = decode_barcode($username); 
-  $userid = &checkBarcode($barcode,$conn);
-  if ($userid == -1) {
+$username = "";
+
+if (&isa_barcode($logintext)) {
+  # Do some preprocessing first: decode and retrieve corresponding username
+  $barcode = decode_barcode($logintext); 
+  my $selectqueryFormat = q{
+select username 
+from users 
+where userbarcode = '%s';
+  };
+  my $result = $conn->exec(sprintf($selectqueryFormat,
+				   $barcode));
+  if ($result->ntuples != 1) {
+    # does not exist
     my $win_title = "Invalid barcode";
     my $win_text = q{
 I could not find this barcode in the database. If you're 
@@ -974,10 +960,16 @@ create a new account by entering a valid text login id.};
 	 $win_text .
 	 "\" 10 65 2> /dev/null");
     exit 1;
-  } 
+  } else {
+    $username = $result->getvalue(0,0);
+  }
 } else {
-  $userid = &checkUser($username,$conn);
+  $username = $logintext;
 }
+
+#system("$DLG --msgbox $username 10 20");
+
+$userid = &checkUser($username,$conn);
 
 if ($userid == -1) {
   #
