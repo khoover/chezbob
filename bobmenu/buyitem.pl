@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.8 2001-05-23 00:06:17 mcopenha Exp $
+# $Id: buyitem.pl,v 1.9 2001-05-25 03:56:47 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -121,7 +121,7 @@ buy_single_item_with_scanner
   }
 
   &bob_db_update_stock(-1, $prodname);
-  &bob_db_update_balance($userid, -$amt, "BUY " . $prodname);
+  &bob_db_update_balance($userid, -$amt, "BUY $prodname");
 
   return $prodname;
 }

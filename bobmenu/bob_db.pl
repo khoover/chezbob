@@ -14,7 +14,7 @@
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
 #
-# $Id: bob_db.pl,v 1.23 2001-05-22 22:52:49 mcopenha Exp $
+# $Id: bob_db.pl,v 1.24 2001-05-25 03:56:47 mcopenha Exp $
 #
 
 use Pg;
@@ -267,6 +267,8 @@ bob_db_init_balance
 sub
 bob_db_update_balance
 #
+# Side effect: also updates the transactions table in addition to the entry
+# in the balances table of 'userid'.  Note that 'amt' may be negative.
 #
 {
   my($userid, $amt, $type) = @_;
@@ -471,6 +473,7 @@ bob_db_set_stock
 {
   my ($barcode, $stock) = @_;
 
+  &bob_db_check_conn;
   $updatequeryFormat = q{
     update products
     set stock = %d
@@ -489,6 +492,7 @@ bob_db_update_stock
 {
   my ($delta, $prodname) = @_;
 
+  &bob_db_check_conn;
   my $updatequeryFormat = q{
     update products
     set stock = stock + %d
@@ -508,6 +512,7 @@ bob_db_get_productname_from_barcode
 {
   my ($barcode) = @_;
 
+  &bob_db_check_conn;
   my $selectqueryFormat = q{
     select name
     from products
