@@ -8,7 +8,6 @@ use Pg;
 use Barcode;
 
 $DLG = "/usr/bin/dialog";
-$FEST = "/home/mcopenha/bin/sayit";
 
 $PRICES{"Candy/Can of Soda"} = 0.45;
 $PRICES{"Juice"} = 0.70;
@@ -161,7 +160,7 @@ scan the barcode at the top of the monitor labeled 'done' \n\n};
         } else {
           # update dialog
           push(@purchase, $prodname);
-  system("$FEST \"$prodname\" &");
+#          system("echo \"$prodname\" > /dev/speech");
           $leng += 1;
           next;
         }
@@ -1112,9 +1111,9 @@ barcode_login
   # Do some preprocessing first: decode and retrieve corresponding username
   $barcode = decode_barcode($logintext); 
   my $selectqueryFormat = q{
-select username 
-from users 
-where userbarcode = '%s';
+    select username 
+    from users 
+    where userbarcode = '%s';
   };
   my $result = $conn->exec(sprintf($selectqueryFormat, $barcode));
   if ($result->ntuples != 1) {
@@ -1142,7 +1141,7 @@ create a new account by entering a valid text login id.};
 ###
 
 $REVISION = q{
-$Revision: 1.12 $
+$Revision: 1.13 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
