@@ -101,7 +101,6 @@ $Q{"users_unused"} =
   "  from users, balances, num_transactions\n" .
   " where users.userid=balances.userid\n" .
   "   and users.userid=num_transactions.userid\n" .
-  "   and balances.balance < 0\n" .
   "   and 1=num_transactions.count\n" .
   " order by 2, 1;";
 
