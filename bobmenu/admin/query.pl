@@ -145,6 +145,11 @@ $Q{"messages"} = $Q{"msgs"} =
   "  from messages\n" .
   " order by msgid;";
 
+$Q{"products"} =
+  "select *\n" .
+  "  from products\n" .
+  " order by name;";
+
 ($psqlFlags, @queries) = &parseARGV(@ARGV);
 
 print "flags = [$psqlFlags]\n";
