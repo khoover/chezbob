@@ -4,7 +4,7 @@
 #
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 #
-# $Id: bc_win.pl,v 1.8 2001-05-15 00:48:16 mcopenha Exp $
+# $Id: bc_win.pl,v 1.9 2001-05-15 01:50:37 mcopenha Exp $
 #
 
 require "bc_util.pl";
@@ -59,7 +59,10 @@ barcode_action_win
 # Show the main menu in barcode mode.  Keep a running tally of the products 
 # the user's purchased and echoes them to the screen.  When user scans the 
 # 'Done' barcode the entire transaction is recorded (update balance and 
-# products tables). 
+# products tables).  Using this setup we cannot show more than 4 products
+# on the screen at once (using standard vga 80x25).  Our solution is 
+# to show the text "...snip..." when the number of products == 5 or more.
+# We only show the latest 4 purchases.
 #
 {
   my ($userid, $username) = @_;
@@ -78,19 +81,22 @@ barcode_action_win
     my $win_textFormat = q{
 Welcome, %s!
 
-USER INFORMATION:
-  You currently %s
-  %s
+You currently %s
 
 Please scan each product's barcode.  When you're done,
-scan the barcode at the top of the monitor labeled 'done'. 
+scan the barcode at the top of the monitor labeled 'Done'. 
 The transaction will not be recorded until then. \n
 		Product			Price
-		-------			-----
+		-------			----- 
 };
 
     my $total = 0.00;
-    for ($i = 0; $i < $numbought; ++$i) {
+    my $starting_prod = 0;
+    if ($numbought >= 5) {
+      $starting_prod = $numbought - 3 - 1;
+      $win_textFormat .= "\t\t...snip...\n"; 
+    }
+    for ($i = $starting_prod; $i < $numbought; ++$i) {
       $win_textFormat .= "\t\t" . $purchase[$i];
       my $name_leng = length($purchase[$i]);
       if ($name_leng < 8) {
@@ -106,7 +112,7 @@ The transaction will not be recorded until then. \n
     }
     if ($total > 0) {
       $win_textFormat .= "\t\t\t\t\t-----";
-      $win_textFormat .= sprintf("\n\t\t\t\tTOTAL:\t\\\$%.2f\n", $total);
+      $win_textFormat .= sprintf("\n\t\t\t\tTOTAL:\t\\\$%.2f", $total);
     }
    
     if ($unknown_prod) {
@@ -114,7 +120,7 @@ The transaction will not be recorded until then. \n
     }
 
     if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-	   sprintf($win_textFormat, $username, $balanceString, "") .
+	   sprintf($win_textFormat, $username, $balanceString) .
 	       "\" 24 65 2> /tmp/input.barcode") != 0) {
       return undef;
     }
