@@ -121,24 +121,110 @@ barcode_win
   }
 }
 
+sub 
+update_balance
+{
+  my ($userid,$total) = @_;
+  
+  $updatequeryFormat = q{
+    update balances   
+    set balance = balance - %.2f
+    where userid = %d;
+  };
+  $result = $conn->exec(sprintf($updatequeryFormat, $total, $userid));
+  if ($result->resultStatus != PGRES_COMMAND_OK) {
+    print STDERR "record_transaction: error update record...exiting\n";
+    exit 1;
+  }
+}
+
+sub
+update_stock
+{
+  my (@trans) = @_;
+ 
+  foreach $item (@trans) {
+    $updatequeryFormat = q{
+      update products
+      set stock = stock - 1
+      where name = '%s';
+    };
+    $result = $conn->exec(sprintf($updatequeryFormat, $item));
+    if ($result->resultStatus != PGRES_COMMAND_OK) {
+      print STDERR "record_transaction: error update record...exiting\n";
+      exit 1;
+    }
+  }
+}
+
 sub
 barcode_action_win
+#
+# Nasty proc that shows the main menu in barcode mode.  Keeps a running 
+# tally of the products you've purchased and echoes them to the screen.
+# When user hits OK or scans the 'Done' barcode the entire transaction
+# is recorded (update balance and products tables). 
+#
 {
   my ($username,$userid,$conn) = @_;
   my $guess = '0';
-  my $win_title = "Scan a barcode";
+  my $win_title = "Main Menu";
 
-  $leng = 12;
+  my $leng = 24;	# initial dialog length 
+  my $balance = &getBalance($userid,$conn);
+  my $numbought = 0;
+
+  my $balanceString = "";
+  if ($balance < 0.0) {
+    $balanceString = sprintf("owe Bob \\\$%.2f", -$balance);
+  } else {
+    $balanceString = sprintf("have a credit balance of \\\$%.2f", $balance);
+  }
+
+  my $msg = "";
+  if (-r "/tmp/message") {
+    chop($msg = `cat /tmp/message`);
+  }
 
   while (1) {
-    my $win_text = q{
-Please scan a product's barcode.  When you're done,
-scan the barcode at the top of the monitor labeled 'done' \n\n};
-    foreach $p (@purchase) {
-      $win_text = $win_text . "\n" . $p;
+    my $win_textFormat = q{
+Welcome, %s!
+
+USER INFORMATION:
+  You currently %s
+  %s
+  %s
+
+Please scan each product's barcode.  When you're done,
+scan the barcode at the top of the monitor labeled 'done'. 
+The transaction will not be recorded until then. \n
+		Product			Price
+		-------			-----
+};
+
+    my $total = 0.00;
+    for ($i = 0; $i < $numbought; ++$i) {
+      $win_textFormat .= "\t\t" . $purchase[$i];
+      my $leng = length($purchase[$i]);
+      if ($leng < 8) {
+        $win_textFormat .= "\t\t\t"; 
+      } elsif ($leng < 16) {
+        $win_textFormat .= "\t\t"; 
+      } else {
+        $win_textFormat .= "\t"; 
+      }
+
+      $win_textFormat .= sprintf("%.2f", $prices[$i]) . "\n";
+      $total += $prices[$i];
     }
+    if ($total > 0) {
+      $win_textFormat .= "\t\t\t\t\t-----";
+      $win_textFormat .= sprintf("\n\t\t\t\tTOTAL:\t\\\$%.2f\n", $total);
+    }
+
     if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-               $win_text .
+	   sprintf($win_textFormat, $username,
+		   $balanceString, "", $msg) .
 	       "\" $leng 65 2> /tmp/input.barcode") != 0) {
       return "";
     }
@@ -159,19 +245,38 @@ scan the barcode at the top of the monitor labeled 'done' \n\n};
                 ." --clear --msgbox"
                 ." \"Product not found.  Please try again\" 9 50");
         next;
+      } 
+      $prodname = $result->getvalue(0,0);
+
+      $selectqueryFormat = q{
+        select price
+        from products
+        where barcode = '%s';
+      };
+      $result = $conn->exec(sprintf($selectqueryFormat, $prod_barcode));
+      if ($result->ntuples != 1) {
+        system ("$DLG --title \"$prod_barcode\""
+                ." --clear --msgbox"
+                ." \"Product not found.  Please try again\" 9 50");
+        next;
+      };
+      $price = $result->getvalue(0,0);
+
+      if ($prodname eq "Done") {
+        # Record all transactions at once
+        &update_stock(@purchase);
+        &update_balance($userid,$total);
+        return;
       } else {
-        $prodname = $result->getvalue(0,0);
-        if ($prodname eq "done") {
-          # record all transactions at once
-          return;
-        } else {
-          # update dialog
-          push(@purchase, $prodname);
-          system("echo \"$prodname\" > /dev/speech");
-          $leng += 1;
-          next;
-        }
+        # Update dialog
+        push(@purchase, $prodname);
+        push(@prices, $price);
+        $numbought++;
+#        system("echo \"$prodname\" > /dev/speech");
+        $leng += 1;
+        next;
       }
+
     } else {
       invalidBarcode_win($guess);
       next;
@@ -1037,12 +1142,6 @@ regular_login
     exit 1;
   }
 
-  # Output some annonying message if balance is really in the red
-  $balance = &getBalance($userid,$conn);
-  if ($balance < 10.00) {
-  #  system("$FEST \"It's about time to add money to your account!\"&");
-  }
-
   my $action = "";
   do {
     #
@@ -1148,7 +1247,7 @@ create a new account by entering a valid text login id.};
 ###
 
 $REVISION = q{
-$Revision: 1.14 $
+$Revision: 1.15 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
