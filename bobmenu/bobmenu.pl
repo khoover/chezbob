@@ -4,7 +4,9 @@
 ### libraries and constants
 ###
 use Pg;
+use Barcode;
 $DLG = "/usr/bin/dialog";
+$FEST = "/home/mcopenha/bin/sayit";
 
 $PRICES{"Candy/Can of Soda"} = 0.45;
 $PRICES{"Juice"} = 0.70;
@@ -829,7 +831,7 @@ confirm_win
 ###
 
 $REVISION = q{
-$Revision: 1.1.1.1 $
+$Revision: 1.2 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
