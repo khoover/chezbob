@@ -14,7 +14,7 @@
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
 #
-# $Id: bob_db.pl,v 1.17 2001-05-21 07:12:42 chpham Exp $
+# $Id: bob_db.pl,v 1.18 2001-05-21 07:49:48 chpham Exp $
 #
 
 require "report_err.pl";
@@ -771,8 +771,10 @@ bob_db_get_products_from_bulk_item
 	  # Non existence of an item in the products table goes unnoticed.
       }
   } else {
-      print STDERR "error retrieving bulk item...exiting\n";
-      exit 1;
+      # print STDERR "error retrieving bulk item...exiting\n";
+      # exit 1;
+	  my $mesg = "In bob_db_get_products_from_bulk_item(): error retrieving bulk item.\n";
+	  &report($mesg);
   }
   return \@stuff;
 }
@@ -816,8 +818,8 @@ bob_db_insert_property
   my $result = $conn->exec(sprintf($insertqueryFormat, 
                                    $userid, &esc_apos($property)));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    print STDERR "error insert new property...exiting\n";
-    exit 1; 
+    # print STDERR "error insert new property...exiting\n";
+    # exit 1; 
 	my $mesg = "In bob_db_insert_property(): error inserting new property.\n";
 	&report($mesg);
   }
