@@ -6,17 +6,14 @@ configure:668: checking whether the C compiler (gcc  ) works
 configure:684: gcc -o conftest    conftest.c  1>&5
 configure:710: checking whether the C compiler (gcc  ) is a cross-compiler
 configure:715: checking whether we are using GNU C
-configure:724: gcc -E conftest.c
 configure:743: checking whether gcc accepts -g
 configure:775: checking how to run the C preprocessor
-configure:796: gcc -E  conftest.c >/dev/null 2>conftest.out
 configure:856: checking whether gcc needs -traditional
 configure:902: checking whether make sets ${MAKE}
 configure:931: checking for ranlib
 configure:989: checking for a BSD compatible install
 configure:1042: checking for POSIXized ISC
 configure:1064: checking for working const
-configure:1118: gcc -c -g -O2  conftest.c 1>&5
 configure:1141: checking for makeflags variable
 configure:1177: checking if filesystem supports mixed-case filenames
 configure:1204: checking for ctags
@@ -24,80 +21,47 @@ configure:1236: checking for etags
 configure:1283: checking if you want to see long compiling messages
 configure:1330: checking host system type
 configure:1524: checking for ANSI C header files
-configure:1537: gcc -E  conftest.c >/dev/null 2>conftest.out
-configure:1604: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:1628: checking for inline
-configure:1642: gcc -c -g -O2  conftest.c 1>&5
 configure:1668: checking for off_t
 configure:1701: checking for size_t
 configure:1736: checking for working alloca.h
-configure:1748: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:1769: checking for alloca
-configure:1802: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:1971: checking for unistd.h
-configure:1981: gcc -E  conftest.c >/dev/null 2>conftest.out
 configure:2010: checking for getpagesize
-configure:2038: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2063: checking for working mmap
-configure:2211: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2252: checking for argz.h
-configure:2262: gcc -E  conftest.c >/dev/null 2>conftest.out
 configure:2252: checking for limits.h
-configure:2262: gcc -E  conftest.c >/dev/null 2>conftest.out
 configure:2252: checking for locale.h
-configure:2262: gcc -E  conftest.c >/dev/null 2>conftest.out
 configure:2252: checking for nl_types.h
-configure:2262: gcc -E  conftest.c >/dev/null 2>conftest.out
 configure:2252: checking for malloc.h
-configure:2262: gcc -E  conftest.c >/dev/null 2>conftest.out
 configure:2252: checking for string.h
-configure:2262: gcc -E  conftest.c >/dev/null 2>conftest.out
 configure:2252: checking for unistd.h
 configure:2252: checking for sys/param.h
-configure:2262: gcc -E  conftest.c >/dev/null 2>conftest.out
 configure:2292: checking for getcwd
-configure:2320: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2292: checking for munmap
-configure:2320: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2292: checking for putenv
-configure:2320: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2292: checking for setenv
-configure:2320: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2292: checking for setlocale
-configure:2320: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2292: checking for strchr
-configure:2320: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2292: checking for strcasecmp
-configure:2320: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2292: checking for strdup
-configure:2320: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2292: checking for __argz_count
-configure:2320: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2292: checking for __argz_stringify
-configure:2320: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2292: checking for __argz_next
-configure:2320: gcc -o conftest -g -O2   conftest.c  1>&5
-configure:2349: checking for stpcpy
-configure:2377: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2411: checking for LC_MESSAGES
-configure:2423: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:2444: checking whether NLS is requested
 configure:3497: checking if -lm needed for math functions
-configure:3513: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:3535: checking if you want to link with dbmalloc for testing
 configure:3597: checking if you want to link with dmalloc for testing
 configure:4237: checking for extra include directories
 configure:4261: checking if we have identified curses headers
-configure:4281: gcc -c -g -O2  conftest.c 1>&5
 configure:4300: checking for curses.h
-configure:4310: gcc -E  conftest.c >/dev/null 2>conftest.out
 configure:4340: checking for ncurses version
-configure:4397: gcc -o conftest -g -O2   conftest.c  1>&5
 configure:4416: checking if we have identified curses libraries
 configure:4425: gcc -o conftest -g -O2   conftest.c  1>&5
-/tmp/ccMYCdut.o: In function `main':
-/home/mcopenha/ucsd/cse210/bobmenu/dialog/configure:4421: undefined reference to `initscr'
-/home/mcopenha/ucsd/cse210/bobmenu/dialog/configure:4421: undefined reference to `tgoto'
+/tmp/ccbcxR5L.o: In function `main':
+/home/bob/bobmenu_2001/dialog-0.9a/configure:4421: undefined reference to `initscr'
+/home/bob/bobmenu_2001/dialog-0.9a/configure:4421: undefined reference to `tgoto'
 collect2: ld returned 1 exit status
 configure: failed program was:
 #line 4418 "configure"
@@ -107,67 +71,19 @@ int main() {
 initscr(); tgoto("?", 0,0)
 ; return 0; }
 configure:4597: checking for tgoto
-configure:4625: gcc -o conftest -g -O2   conftest.c  -L/lib 1>&5
-/tmp/cc5pkBx6.o: In function `main':
-/home/mcopenha/ucsd/cse210/bobmenu/dialog/configure:4619: undefined reference to `tgoto'
-collect2: ld returned 1 exit status
-configure: failed program was:
-#line 4602 "configure"
-#include "confdefs.h"
-/* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char tgoto(); below.  */
-#include <assert.h>
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char tgoto();
-
-int main() {
-
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined (__stub_tgoto) || defined (__stub___tgoto)
-choke me
-#else
-tgoto();
-#endif
-
-; return 0; }
 configure:4646: checking for tgoto in -lncurses
-configure:4665: gcc -o conftest -g -O2   conftest.c -lncurses   -L/lib 1>&5
 configure:4695: checking for initscr in -lncurses
-configure:4714: gcc -o conftest -g -O2   conftest.c -lncurses  -lncurses  -L/lib 1>&5
 configure:4819: checking if you want config-file support
 configure:4843: checking if you want Xdialog-style dialogs
 configure:4867: checking if you want the gauge dialog
 configure:4891: checking if you want the tailbox dialog
 configure:4916: checking for ANSI C header files
 configure:5024: checking for dirent.h that defines DIR
-configure:5037: gcc -c -g -O2  conftest.c 1>&5
 configure:5062: checking for opendir in -ldir
-configure:5081: gcc -o conftest -g -O2   conftest.c -ldir  -lncurses  -L/lib 1>&5
-/usr/bin/ld: cannot find -ldir
-collect2: ld returned 1 exit status
-configure: failed program was:
-#line 5070 "configure"
-#include "confdefs.h"
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char opendir();
-
-int main() {
-opendir()
-; return 0; }
 configure:5148: checking for unistd.h
 configure:5186: checking return type of signal handlers
-configure:5208: gcc -c -g -O2  conftest.c 1>&5
 configure:5231: checking for strcasecmp
 configure:5285: checking for start_color
-configure:5313: gcc -o conftest -g -O2   conftest.c -lncurses  -L/lib 1>&5
 configure:5337: checking for chtype typedef
-configure:5350: gcc -c -g -O2  conftest.c 1>&5
 configure:5369: checking if chtype is scalar or struct
-configure:5382: gcc -c -g -O2  conftest.c 1>&5
 configure:5412: gcc -o conftest -g -O2   conftest.c -lncurses  -L/lib 1>&5

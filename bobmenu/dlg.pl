@@ -20,7 +20,7 @@
 #
 # Look for comments in the dialog code that begin with 'MAC'
 #
-# $Id: dlg.pl,v 1.21 2001-06-25 21:41:37 bellardo Exp $
+# $Id: dlg.pl,v 1.22 2001-08-20 21:00:33 bellardo Exp $
 #
 
 $DLG = "$BOBPATH/dialog-0.9a/dialog";
@@ -89,16 +89,17 @@ get_dialog_result
     {
         $stderrLine .= $line;
     }
-    #while ($stdoutLine = <CHILDOUT>)
-    #{
-    #    $stdoutLine .= $line;
-    #}
+    while ($line = <CHILDOUT>)
+    {
+        $stdoutLine .= $line;
+    }
     close(CHILDERR);
     close(CHILDOUT);
     chomp $stderrLine;
     chomp $stdoutLine;
 
     return (0, $stderrLine);
+    #return (0, $stderrLine, $stdoutLine);
 }
 
 1;

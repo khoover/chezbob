@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.19 2001-06-11 21:53:21 bellardo Exp $
+# $Id: buyitem.pl,v 1.20 2001-08-20 21:00:33 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -102,6 +102,9 @@ buy_single_item_with_scanner
 #
 {
   my ($userid, $prodbarcode) = @_;
+  my $buy_time = time;
+  my $dup_purchase = 0;
+  my $ent;
 
   # Check for the magic 'shell access' barcode
   if ($prodbarcode eq '898972437')
@@ -110,8 +113,10 @@ buy_single_item_with_scanner
     # Mike C.  -- 1174
     # John Bellardo -- 1181
     # Marvin McNett -- 1191
+    # Vic Gidofalvi -- 1261
     if ($userid != 1001 && $userid != 1174 &&
-        $userid != 1181 && $userid != 1191 )
+        $userid != 1181 && $userid != 1191 &&
+        $userid != 1261 )
     {
       return "";
     }
@@ -141,11 +146,19 @@ buy_single_item_with_scanner
   my $amt = &bob_db_get_price_from_barcode($barcode);
   my $txt = sprintf("\nIs your purchase amount \\\$%.2f?", $amt);
 
-  if (! $PROFILE{"No Confirmation"}) {
+  foreach $ent ( @main::this_purchase_list ) {
+    $dup_purchase = 1 if ($buy_time - $ent->{Time} <= 30 &&
+                                          $ent->{Prod} eq $prodname);
+  }
+  if ($dup_purchase || !$PROFILE{"No Confirmation"}) {
+    if ($dup_purchase) {
+      $txt = sprintf("\nReally purchase another $prodname for \\\$%.2f?", $amt);
+    }
     if (! &confirm_win($prodname, $txt, 40)) {
       return "";
     }
   }
+  $main::this_purchase_list[$#main::this_purchase_list + 1] = { Prod => $prodname, Time => $buy_time };
 
   &bob_db_update_stock(-1, $prodname);
   my $type = $PROFILE{"Privacy"} ? "BUY" : "BUY $prodname";

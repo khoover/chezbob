@@ -1,4 +1,4 @@
-# $Id: makefile,v 1.1 2001-05-17 18:46:10 mcopenha Exp $
+# $Id: makefile,v 1.2 2001-08-20 21:00:38 bellardo Exp $
 # template makefile for DIALOG
 #
 SHELL		= /bin/sh
