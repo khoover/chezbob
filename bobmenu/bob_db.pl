@@ -1,6 +1,10 @@
 
 use Pg;
 
+if (!defined $BOB_DB) {
+  $BOB_DB = 1;
+}
+
 $conn = "";
 
 sub
@@ -29,7 +33,28 @@ bob_db_check_conn
 # users table
 
 sub
-bob_db_get_userid
+bob_db_get_username_from_userid
+{
+  my ($userid) = @_;
+
+  &bob_db_check_conn;
+  my $queryFormat = q{
+    select username
+    from users
+    where userid = %d;
+  };
+  $result = $conn->exec(sprintf($queryFormat,$userid));
+
+  if ($result->ntuples != 1) {
+    return -1;
+  } else {
+    return ($result->getvalue(0,0));
+  }
+}
+
+
+sub
+bob_db_get_userid_from_username
 {
   my ($username) = @_;
 
@@ -43,11 +68,31 @@ bob_db_get_userid
 
   if ($result->ntuples != 1) {
     return -1;
+  } else {
+    return ($result->getvalue(0,0));
   }
-
-  return ($result->getvalue(0,0));
 }
 
+
+sub
+bob_db_get_userid_from_barcode
+{
+  my ($barcode) = @_;
+
+  &bob_db_check_conn;
+  my $queryFormat = q{
+    select userid
+    from users
+    where userbarcode = '%s';
+  };
+  $result = $conn->exec(sprintf($queryFormat, $barcode));
+
+  if ($result->ntuples != 1) {
+    return -1;
+  } else {
+    return ($result->getvalue(0,0));
+  }
+}
 
 
 sub
@@ -65,6 +110,26 @@ bob_db_add_user
   my $result = $conn->exec(sprintf($insertqueryFormat, $username, $email));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     print STDERR "askStartNew_win: error inserting record...exiting\n";
+    exit 1;
+  }
+}
+
+
+sub
+bob_db_update_user_barcode
+{
+  my ($userid, $barcode) = @_;
+
+  &bob_db_check_conn;
+  my $updatequeryFormat = q{
+    update users
+    set userbarcode = '%s'
+    where userid = %d;
+  };      
+
+  my $result = $conn->exec(sprintf($updatequeryFormat, $barcode, $userid));
+  if ($result->resultStatus != PGRES_COMMAND_OK) {
+    print STDERR "barcode_win: error updating new barcode\n";
     exit 1;
   }
 }
@@ -286,3 +351,86 @@ bob_db_insert_pwd
     exit 1;
   }
 }
+
+#---------------------------------------------------------------------------
+# products table
+
+sub
+bob_db_update_stock
+#
+# 'trans' is an array of product names
+#
+{
+  my (@trans) = @_;
+
+  foreach $product_name (@trans) {
+    $updatequeryFormat = q{
+      update products
+      set stock = stock - 1
+      where name = '%s';
+    };
+    $result = $conn->exec(sprintf($updatequeryFormat, $product_name));
+    if ($result->resultStatus != PGRES_COMMAND_OK) {
+      print STDERR "record_transaction: error update record...exiting\n";
+      exit 1;
+    }
+  }
+}
+
+
+sub
+bob_db_get_productname_from_barcode
+{
+  my ($barcode) = @_;
+
+  my $selectqueryFormat = q{
+    select name
+    from products
+    where barcode = '%s';
+  };
+  my $result = $conn->exec(sprintf($selectqueryFormat, $barcode));
+  if ($result->ntuples != 1) {
+     return undef;
+  } else {
+    return $result->getvalue(0,0);
+  }
+}
+
+
+sub
+bob_db_get_phoneticname_from_barcode
+{
+  my ($barcode) = @_;
+
+  my $selectqueryFormat = q{
+    select phonetic_name
+    from products
+    where barcode = '%s';
+  };
+  my $result = $conn->exec(sprintf($selectqueryFormat, $barcode));
+  if ($result->ntuples != 1) {
+     return undef;
+  } else {
+    return $result->getvalue(0,0);
+  }
+}
+
+
+sub
+bob_db_get_price_from_barcode
+{
+  my ($barcode) = @_;
+
+  my $selectqueryFormat = q{
+    select price
+    from products
+    where barcode = '%s';
+  };
+  my $result = $conn->exec(sprintf($selectqueryFormat, $barcode));
+  if ($result->ntuples != 1) {
+     return -1;
+  } else {
+    return $result->getvalue(0,0);
+  }
+}
+
