@@ -1,5 +1,15 @@
 #!/usr/bin/perl -w
 
+# bobmenu.pl
+# 
+# Main routine for Chez Bob.  First checks the kind of login (text or barcode)
+# and calls the corresponding handler routine (kbd_login or barcode_login).
+#
+# Al Su (alsu@cs.ucsd.edu)
+# 
+# $Id: bobmenu.pl,v 1.24 2001-05-13 21:55:08 mcopenha Exp $
+#
+
 do 'bc_win.pl';
 do 'bc_util.pl';
 do 'snd_util.pl';
@@ -9,7 +19,7 @@ do 'bob_db.pl';
 $DLG = "/usr/bin/dialog";
 
 
-$REVISION = q{$Revision: 1.23 $};
+$REVISION = q{$Revision: 1.24 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -65,7 +75,7 @@ barcode_login
 {
   my ($logintext) = @_;
 
-  $barcode = decode_barcode($logintext); 
+  $barcode = &preprocess_barcode($logintext); 
   my $userid = &bob_db_get_userid_from_barcode($barcode);
   if ($userid == -1) {
     &barcode_not_found;
@@ -98,7 +108,7 @@ kbd_login
   if (defined $pwd && &checkPwd($pwd, &guess_pwd_win()) == 0) {
     &invalidPassword_win();
     return;
+  } else {
+    &kbd_action_win($userid, $username);
   }
-
-  &kbd_action_win($userid, $username);
 }

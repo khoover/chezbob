@@ -20,17 +20,21 @@
 # Wesley Leong (wleong@cs.ucsd.edu)
 # Created: 5/12/00
 #
-# $Id: bc_util.pl,v 1.2 2001-05-12 23:59:16 mcopenha Exp $
+# $Id: bc_util.pl,v 1.3 2001-05-13 21:55:08 mcopenha Exp $
 #
 
 sub
-verify_and_decode_barcode
+preprocess_barcode
 #
-#
+# If it's a cuecat barcode then decode it; otherwise just return orig. str
 #
 {
-  my ($guess) = @_;
-  return (&decode_barcode($guess));
+  my ($barcode) = @_;
+  if (&isa_cuecat_barcode($barcode)) {
+    return (&decode_cuecat_barcode($barcode));
+  } else {
+    return ($barcode);
+  }
 }
 
 
@@ -70,22 +74,6 @@ isa_upc_barcode
   return (($leng == 12 || $leng == 6)
           && ($barcode !~ /[^0-9]+/));
 }
-
-
-sub
-decode_barcode
-#
-# If it's a cuecat barcode then decode it; otherwise just return orig. str
-#
-{
-  my ($barcode) = @_;
-  if (&isa_cuecat_barcode($barcode)) {
-    return (&decode_cuecat_barcode($barcode));
-  } else {
-    return ($barcode);
-  }
-}
-
 
 #---------------------------------------------------------------------------
 # Cuecat utils

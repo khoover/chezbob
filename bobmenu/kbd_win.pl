@@ -106,7 +106,9 @@ email addresses preferred.)};
 	 "\" 11 51 \"$currentvalue\" 2> /tmp/input.email");
   my $retval = $?>>8;
   if ($retval == 0) {
-    return `cat /tmp/input.email`;
+    my $rv = `cat /tmp/input.email`;
+    system("rm -f /tmp/input.email");
+    return $rv;
   } else {
     return undef;
   }
@@ -151,6 +153,7 @@ askHowMuch_win
     }
 
     my $amt = `cat /tmp/input.howmuch`;
+    system("rm -f /tmp/input.howmuch");
     if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
       return $amt;
     }
@@ -233,7 +236,7 @@ Choose one of the following actions (scroll down for more options):};
 	   " 2> /tmp/input.action");
 
   $action = `cat /tmp/input.action`;
-  system("rm -f /tmp/input.*");
+  system("rm -f /tmp/input.action");
 
   if ($retval != 0 || $action eq "Quit") {
     return "Quit";
@@ -270,6 +273,7 @@ How much was deposited into the Bank of Bob?};
     }
 
     my $amt = `cat /tmp/input.deposit`;
+    system("rm -f /tmp/input.deposit");
     if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
       if (! &confirm_win("Add amount?",
 			 sprintf("\nWas the deposit amount \\\$%.2f?",
@@ -323,6 +327,7 @@ point!)};
       }
 
       $amt = `cat /tmp/input.deposit`;
+      system("rm -f /tmp/input.deposit");
       if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
 	last;
       }
@@ -368,6 +373,7 @@ What is your message?};
 	     $win_text .
 	     "\" 18 74 \"From $username: \" 2> /tmp/input.msg") == 0) {
     my $msg = `cat /tmp/input.msg`;
+    system("rm -f /tmp/input.msg");
     &bob_db_insert_msg($userid, $msg);
   }
 }

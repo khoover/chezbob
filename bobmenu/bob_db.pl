@@ -1,11 +1,23 @@
+# bob_db.pl
+#
+# A set of routines that encapsulates the calls to the Postgres database 
+# backend.  The routines are rather repetitive and not particularly 
+# flexible, but it certainly makes the other code a lot simpler to read 
+# and maintain.  Any future database calls should be placed in this module.
+#
+# 'Pg' is a Perl module that allows us to access a Postgres database.  
+# Packages are available for both Redhat and Debian.
+#
+# Michael Copenhafer (mcopenha@cs.ucsd.edu)
+# Created: 5/2/00
+#
+# $Id: bob_db.pl,v 1.4 2001-05-13 21:55:08 mcopenha Exp $
+#
 
 use Pg;
 
-if (!defined $BOB_DB) {
-  $BOB_DB = 1;
-}
-
-$conn = "";
+# The database connection
+$conn = ""; 	
 
 sub
 bob_db_connect

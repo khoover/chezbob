@@ -1,4 +1,11 @@
-
+# bc_win.pl
+#
+# A set of routines that handles the barcode login for Chez Bob.  
+#
+# Michael Copenhafer (mcopenha@cs.ucsd.edu)
+#
+# $Id: bc_win.pl,v 1.3 2001-05-13 21:55:08 mcopenha Exp $
+#
 
 $DLG = "/usr/bin/dialog";
 
@@ -42,7 +49,7 @@ barcode_win
     system("rm -f /tmp/input.barcode");
 
     if (&isa_barcode($guess)) {
-      $newBarcode = &decode_barcode($guess);      
+      $newBarcode = &preprocess_barcode($guess);      
 
       my $id = &bob_db_get_userid_from_barcode($newBarcode);
       if ($id != -1) {
@@ -148,7 +155,7 @@ The transaction will not be recorded until then. \n
     system("rm -f /tmp/input.barcode");
 
     if (&isa_barcode($guess)) {
-      $prod_barcode = &decode_barcode($guess);      
+      $prod_barcode = &preprocess_barcode($guess);      
 
       $prodname = &bob_db_get_productname_from_barcode($prod_barcode);
       if (!defined $prodname) {
