@@ -14,7 +14,7 @@
 # firing up festival each time we want to say something; also doesn't 
 # introduce 'device not available' errors.
 #
-# $Id: speech.pl,v 1.3 2001-05-24 01:40:34 mcopenha Exp $
+# $Id: speech.pl,v 1.4 2001-05-25 23:08:36 mcopenha Exp $
 #
 
 use FileHandle;
@@ -47,18 +47,24 @@ format_money
 {
   my ($amt) = @_;
   my $str = sprintf("%.2f", $amt);
-  my @money = split(/\./, $str);
-  my $dollars = int($money[0]);
-  my $cents = $money[1];
+  my ($dollars, $cents) = split(/\./, $str);
+  my $rv = "";
+
+  if (int($dollars) >= 1) { 
+    $rv .= "\$$dollars"; 
+    if ($cents ne "00") { 
+      $rv .= " and "; 
+    }
+  }
+  
   if (substr($cents, 0, 1) eq "0") {
     $cents = chop($cents);
   }
-
-  if ($dollars > 0) {
-    return "\\\$$dollars and $cents cents";
-  } else {
-    return "$cents cents";
+  if ($cents ne "0") { 
+    $rv .= ($cents ne "1") ? "$cents cents" : "$cents cent"; 
   }
+
+  return $rv;
 }
 
 

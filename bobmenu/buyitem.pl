@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.12 2001-05-25 20:15:46 mcopenha Exp $
+# $Id: buyitem.pl,v 1.13 2001-05-25 23:08:36 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -41,9 +41,7 @@ buy_win
       $amt = $PRICES{$type};
       $confirmMsg = "Buy ${type}?";
     }
-  } else {
-    $type = "BUY";
-  }
+  } 
 
   if (! defined $amt) {
     $confirmMsg = "Purchase amount?";
@@ -70,16 +68,20 @@ What is the price of the item you are buying?
       } else {
         &invalid_purchase_win;
       }
-    }
-  }
+    }  # while
+    &sayit(&format_money($amt));
 
-  if ($PROFILE{"Speech"}) { 
-    my $phonetic_name = $type;
-    my $slashpos = index($type, "/");
-    if ($slashpos > 0) {  
-      $phonetic_name = substr($type, 0, $slashpos);
+  } else {
+    if ($PROFILE{"Speech"}) { 
+      if (defined $type) {
+        my $phonetic_name = $type;
+        my $slashpos = index($type, "/");
+        if ($slashpos > 0) {  
+          $phonetic_name = substr($type, 0, $slashpos);
+        }
+        &sayit("$phonetic_name"); 
+      } 
     }
-    &sayit("$phonetic_name"); 
   }
 
   if (! $PROFILE{"No Confirmation"}) {
