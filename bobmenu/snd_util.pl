@@ -17,7 +17,7 @@
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # Created: 5/10/01
 #
-# $Id: snd_util.pl,v 1.7 2001-05-16 02:13:17 mcopenha Exp $
+# $Id: snd_util.pl,v 1.8 2001-05-16 02:39:51 mcopenha Exp $
 #
 
 require "ctime.pl";
@@ -79,9 +79,7 @@ say_goodbye
     "please feed me dollar bills, not pennies",
     "go do some research",
     "by the way, you look very nice today",
-    "remember that pee equals n pee, ok?",
-    "your new balance is minus one billion dollars.",
-    "don't play with my scanner, ok?"
+    "remember that pee equals n pee, ok?"
   );
   sayit(splice(@goodbyes, rand @goodbyes, 1));
 }
