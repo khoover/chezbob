@@ -25,7 +25,7 @@
 # Refer to http://www.adams1.com/pub/russadam/upccode.html for general 
 # information on barcode standards.
 #
-# $Id: bc_util.pl,v 1.11 2001-05-22 03:29:31 mcopenha Exp $
+# $Id: bc_util.pl,v 1.12 2001-05-25 19:42:00 mcopenha Exp $
 #
 
 
@@ -77,17 +77,6 @@ isa_upc_barcode
           && &isa_numeric_barcode($barcode));
 }
 
-sub
-get_barcode_win
-{
-  my $win_title = "Scan barcode:";
-  if (system("$DLG --title \"$win_title\" --clear " .
-      " --inputbox \"\" 8 45 2> $TMP/input.barcode") != 0) {
-    return undef;
-  }
-
-  return `cat $TMP/input.barcode`;
-}
 
 #---------------------------------------------------------------------------
 # Cuecat utils

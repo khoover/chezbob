@@ -18,7 +18,7 @@
 # New users of the system automatically have every property of their 
 # profile turned 'off'.  
 #
-# $Id: profile.pl,v 1.6 2001-05-22 03:29:31 mcopenha Exp $
+# $Id: profile.pl,v 1.7 2001-05-25 19:42:00 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -79,7 +79,7 @@ Change any of the following properties:};
   }   
   
   if (system("$DLG --title \"$win_title\" --clear --cr-wrap --checklist \" " .
-    $win_text .  "\" 13 70 5 $profile_menu 2> $TMP/input.profile") != 0) {
+    $win_text .  "\" 13 70 4 $profile_menu 2> $TMP/input.profile") != 0) {
     return;
   }
 

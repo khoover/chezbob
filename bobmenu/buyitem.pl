@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.10 2001-05-25 04:18:51 mcopenha Exp $
+# $Id: buyitem.pl,v 1.11 2001-05-25 19:42:00 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -16,6 +16,8 @@ $PRICES{"Candy/Can of Soda"} = 0.45;
 $PRICES{"Juice"} = 0.70;
 $PRICES{"Snapple"} = 0.80;
 $PRICES{"Popcorn/Chips/etc."} = 0.30;
+
+my $MAX_PURCHASE = 100;
 
 
 sub
@@ -46,7 +48,7 @@ buy_win
   if (! defined $amt) {
     $confirmMsg = "Purchase amount?";
 
-    my $win_title = "Buy stuff from Chez Bob";
+    my $win_title = "Buy Stuff from Chez Bob";
     my $win_text = q{
 What is the price of the item you are buying?
 (NOTE: Be sure to include the decimal point!)};
@@ -59,10 +61,15 @@ What is the price of the item you are buying?
 
       $amt = `cat $TMP/input.deposit`;
       if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
-        last;
+        if ($amt > $MAX_PURCHASE) {
+          &exceed_max_purchase_win;
+        } else {
+          # amt entered is OK
+          last;
+        }
+      } else {
+        &invalid_purchase_win;
       }
-
-      &invalid_purchase_win;
     }
   }
 
@@ -75,19 +82,6 @@ What is the price of the item you are buying?
 
   &bob_db_update_balance($userid, -$amt, $type);
   return $type;
-}
-
-
-sub
-invalid_purchase_win
-{
-  my $win_title = "Invalid amount";
-  my $win_text = q{
-Valid amounts are positive numbers with up
-to two decimal places of precision.};
-
-  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
-         $win_text .  "\" 8 50 2> /dev/null");
 }
 
 
@@ -136,7 +130,11 @@ buy_with_cash
 # return the name of the product purchased.  
 #
 {
-  my $barcode = &get_barcode_win; 
+  my $msg = q{
+You are paying with cash.  Please deposit the 
+appropriate amount in the Bank of Bob and 
+scan the product's barcode now.};
+  my $barcode = &get_barcode_win($msg, 50, 11); 
   if (!defined $barcode) {
     # user canceled
     return "";
@@ -175,5 +173,30 @@ This is an invalid product barcode.};
   system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
 	 $win_text .  "\" 7 42 2> /dev/null");
 }
+
+
+sub
+exceed_max_purchase_win
+{
+  my $win_title = "Invalid amount";
+  my $win_text = "\nThe maximum purchase amount is \\\$$MAX_PURCHASE";
+
+  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
+         $win_text .  "\" 7 40 2> /dev/null");
+}
+
+
+sub
+invalid_purchase_win
+{
+  my $win_title = "Invalid amount";
+  my $win_text = q{
+Valid amounts are positive numbers with up
+to two decimal places of precision.};
+
+  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
+         $win_text .  "\" 8 50 2> /dev/null");
+}
+
 
 1;

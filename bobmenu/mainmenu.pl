@@ -6,7 +6,7 @@
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.13 2001-05-25 04:18:51 mcopenha Exp $
+# $Id: mainmenu.pl,v 1.14 2001-05-25 19:42:00 mcopenha Exp $
 #  
 
 require "passwd.pl";
@@ -188,12 +188,12 @@ or scan an item using the barcode scanner.};
 	       "\"Finished\!                                      \" " .
 	   "\"Message\" " .
 	       "\"Leave a message for Bob                        \" " .
-	   "\"Barcode ID\" " .
-	       "\"Set your personal barcode                     \" " .
 	   "\"Nickname\" " .
-	       "\"Set your nickname\" " .
+	       "\"Set your nickname                             \" " .
+	   "\"Barcode ID\" " .
+	       "\"Set your personal barcode login                \" " .
 	   "\"Password\" " .
-	       "\"Set, change, or delete your password           \" " .
+	       "\"Set your password           \" " .
 	   "\"Transactions\" " .
 	       "\"List recent transactions                       \" " .
 	   "\"Checkout a Book\" " .

@@ -10,17 +10,22 @@
 # records which user checked out a book, the date checked out, due date,
 # etc.  We may also send mail to the head librarian (Julie?). 
 #
-# $Id: library.pl,v 1.2 2001-05-21 06:38:58 mcopenha Exp $
+# $Id: library.pl,v 1.3 2001-05-25 19:42:00 mcopenha Exp $
 #
 
 require "bob_db.pl";
+
 
 sub
 checkout_book
 {
   my ($userid, $username) = @_;
 
-  my $guess = &get_barcode_win;
+  my $msg = q{
+Scan the barcode on the back side of the book. 
+If there is more than one, scan the barcode that 
+begins with '978'.};
+  my $guess = &get_barcode_win($msg, 55, 11);
   if (!defined $guess) { 
     # User canceled
     return;
@@ -34,7 +39,8 @@ checkout_book
     ($authors, $title) = split(/\t/, $book);
     my $msg = "$title by\n$authors?";
     if (&confirm_win("Checkout the following book?", $msg, 60, 8)) {
-      # email Julie or something
+      # email Julie or something; for now just call report
+      &report("book checkout", "$username checked out:\n$msg");
     } else {
       return;
     }

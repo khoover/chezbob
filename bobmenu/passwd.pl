@@ -2,7 +2,7 @@
 #
 # Routines for updating and checking user passwords
 # 
-# $Id: passwd.pl,v 1.3 2001-05-22 03:29:31 mcopenha Exp $
+# $Id: passwd.pl,v 1.4 2001-05-25 19:42:00 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -53,7 +53,7 @@ Re-type your password:};
   }
 
   if (system("$DLG --title \"$win_title\" --clear --cr-wrap --passwordbox \"" .
-             $win_text .  "\" 12 50 2> $TMP/input.pwd") != 0) {
+             $win_text .  "\" 10 50 2> $TMP/input.pwd") != 0) {
     return $CANCEL;
   }
   my $p = `cat $TMP/input.pwd`;
@@ -64,17 +64,17 @@ Re-type your password:};
   }
 
   if (system("$DLG --title \"$win_title\" --clear --passwordbox \"" .
-             $verify_win_text .  "\" 10 40 2> $TMP/input.pwd_v") != 0) {
+             $verify_win_text .  "\" 9 50 2> $TMP/input.pwd_v") != 0) {
     return $CANCEL;
   }
   my $p_v = `cat $TMP/input.pwd_v`;
 
   if ($p ne $p_v) {
     my $no_match_msg = q{
-There was a mismatch between the two passwords.
-No changes were made.};
-    system("$DLG --title \"Passwords do not match\" --clear --msgbox \"" .
-           $no_match_msg .  "\" 8 52 2> /dev/null");
+There was a mismatch between the two 
+passwords.  No changes were made.};
+    system("$DLG --title \"Passwords Do Not Match\" --cr-wrap " .
+           "--clear --msgbox \"" .  $no_match_msg .  "\" 8 42 2> /dev/null");
     return;
   }
 

@@ -2,11 +2,14 @@
 #
 # Routines for adding money to a chez bob account
 #
-# $Id: deposit.pl,v 1.5 2001-05-25 04:18:51 mcopenha Exp $
+# $Id: deposit.pl,v 1.6 2001-05-25 19:42:00 mcopenha Exp $
 #
 
 require "bob_db.pl";
 require "dlg.pl";
+
+my $MAX_DEPOSIT = 100;
+
 
 sub
 add_win
@@ -41,7 +44,12 @@ How much was deposited into the Bank of Bob?};
 
     my $amt = `cat $TMP/input.deposit`;
     if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
-      if (! &confirm_win("Add amount?",
+      if ($amt > $MAX_DEPOSIT) {
+        &exceed_max_deposit_win;
+        next;
+      }
+
+      if (! &confirm_win("Add Amount?",
                          sprintf("\nWas the deposit amount \\\$%.2f?", $amt))) {
         next;
       }
@@ -56,15 +64,27 @@ How much was deposited into the Bank of Bob?};
 
 
 sub
+exceed_max_deposit_win
+{
+  my $win_title = "Invalid Amount";
+  my $win_text = "\nThe maximum deposit is \\\$$MAX_DEPOSIT";
+
+  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
+         $win_text .  "\" 7 35 2> /dev/null");
+}
+
+
+sub
 invalid_deposit_win
 {
-  my $win_title = "Invalid amount";
+  my $win_title = "Invalid Amount";
   my $win_text = q{
 Valid deposits are positive numbers with up
 to two decimal places of precision.};
 
-  system("$DLG --title \"$win_title\" --msgbox \"" .
+  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
          $win_text .  "\" 8 50 2> /dev/null");
 }
+
 
 1;

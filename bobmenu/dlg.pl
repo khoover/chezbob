@@ -18,7 +18,7 @@
 #    instead of echoing nothing.  Changed files dialog.c, inputstr.c,
 #    and textbox.c.  Changes were taken from a broken patch file.
 #
-# $Id: dlg.pl,v 1.15 2001-05-24 22:18:15 mcopenha Exp $
+# $Id: dlg.pl,v 1.16 2001-05-25 19:42:00 mcopenha Exp $
 #
 
 $DLG = "$BOBPATH/dialog-0.9a/dialog";
@@ -37,6 +37,23 @@ confirm_win
   $retval = system("$DLG --title \"$win_title\" --clear --cr-wrap --yesno \"" .
 		   $win_text .  "\" $h $w 2> /dev/null");
   return ($retval == 0);
+}
+
+
+sub
+get_barcode_win
+{
+  my ($msg, $w, $h) = @_;
+  $h ||= 7;
+  $w ||= 40;
+
+  my $win_title = "Scan Barcode";
+  if (system("$DLG --title \"$win_title\" --clear --cr-wrap " .
+      " --inputbox \"$msg\" $h $w 2> $TMP/input.barcode") != 0) {
+    return undef;
+  }
+
+  return `cat $TMP/input.barcode`;
 }
 
 

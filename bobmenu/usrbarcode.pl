@@ -3,7 +3,7 @@
 # Routines for updating a user's personal barcode ID.  The user can login
 # to the system using this personal barcode.
 #
-# $Id: usrbarcode.pl,v 1.2 2001-05-19 23:51:19 mcopenha Exp $
+# $Id: usrbarcode.pl,v 1.3 2001-05-25 19:42:00 mcopenha Exp $
 #
 
 require "bc_util.pl";
@@ -22,9 +22,28 @@ update_user_barcode
 #
 {
   my ($userid) = @_;
+  my $getmsg = q{
+You can use your personal barcode to log into Chez 
+Bob.  Please scan a barcode of your choice.  Here 
+are some possibilities:
+
+    - A barcode from the Chez Barcode Box,
+    - The back of your ID card,
+    - Your Ralph's or Von's Club keychain,
+    - A tattooed barcode on your arm.
+
+Please do *not* use a food product from Chez Bob
+as your personal barcode.};
+
+  my $okmsg = q{
+Personal barcode successfully updated!
+You may now log in next time by scanning
+your personal barcode.};
+
 
   while (1) {
-    my $guess = &get_barcode_win;
+    
+    my $guess = &get_barcode_win($getmsg, 55, 19);
     if (!defined $guess) { 
       # User canceled
       return;
@@ -38,8 +57,8 @@ update_user_barcode
         &barcode_already_in_db_win;
       } else {
         &bob_db_update_user_barcode($userid, $barcode);
-        system ("$DLG --title \"$barcode\" --clear --msgbox"
-                ." \"Personal barcode successfully updated!\" 6 45");
+        system ("$DLG --title \"$barcode\" --clear --cr-wrap --msgbox"
+                ." \"$okmsg\" 9 45");
         return;
       }
     } else {
@@ -57,8 +76,8 @@ barcode_already_in_db_win
 This is not a valid barcode.  
 Please try another one.};
 
-  system("$DLG --title \"$win_title\" --msgbox \"" .
-	 $win_text . "\" 9 50 2> /dev/null");
+  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
+	 $win_text . "\" 8 40 2> /dev/null");
 }
 
 1;

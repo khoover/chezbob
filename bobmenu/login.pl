@@ -2,7 +2,7 @@
 #
 # Routines for processing login names, both text and barcode
 #
-# $Id: login.pl,v 1.8 2001-05-25 04:18:51 mcopenha Exp $
+# $Id: login.pl,v 1.9 2001-05-25 19:42:00 mcopenha Exp $
 #
 
 $MIN_BARCODE_LENG = 6;
@@ -121,7 +121,7 @@ Valid user barcodes must contain at
 least %d digits and no characters.};
 
   system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
-	 sprintf($win_text, $MIN_BARCODE_LENG) .  "\" 9 45 2> /dev/null");
+	 sprintf($win_text, $MIN_BARCODE_LENG) .  "\" 8 45 2> /dev/null");
 }
 
 
