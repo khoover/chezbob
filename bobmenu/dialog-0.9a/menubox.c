@@ -1,5 +1,5 @@
 /*
- *  $Id: menubox.c,v 1.3 2001-05-17 21:49:21 mcopenha Exp $
+ *  $Id: menubox.c,v 1.4 2001-05-21 21:15:19 mcopenha Exp $
  *
  *  menubox.c -- implements the menu box
  *
@@ -83,7 +83,7 @@ dialog_menu(const char *title, const char *cprompt, int height, int width,
 /* MAC */
     int digits = FALSE;
     FILE* fp = NULL;
-    fp = fopen("menuout", "w");
+    fp = fopen("/tmp/menuout", "w");
 
     tab_correct_str(prompt);
     if (menu_height == 0) {
