@@ -60,9 +60,9 @@ verifyAndDecodeAnyBarcode
 {
     my ($guess) = @_;    
     if (&isa_barcode($guess)) {
-	return &decode_barcode($guess);
+	$guess = &decode_barcode($guess);
     }
-    elsif (($guess =~/^\d\d\d\d\d\d\d\d\d\d\d\d$/) || ($guess =~ /^\d\d\d\d\d\d\d$/)) {
+    if (($guess =~/^\d{12}$/) || ($guess =~ /^\d{7}$/)) {
 	return $guess;
     }
     else {
@@ -164,6 +164,12 @@ newProduct_win
       print STDERR "add_win: error inserting record...exiting\n";
       exit 1;
   }
+  $win_title = "New Product Entered into Database";
+  $win_text = "The following product has been entered:\n"
+      ."Name: $newName\nPrice:$newPrice\nStock:$newStock";
+  system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+	 $win_text .
+	 "\" 9 55");
 }
 
 
@@ -201,6 +207,11 @@ oldProduct_win
       print STDERR "add_win: error updating record...exiting\n";
       exit 1;
   }
+  $win_title = "Stock Updated";
+  $win_text = "You have updated the stock to $newStock.";
+  system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+	 $win_text .
+	 "\" 8 55");
 }
 
 
@@ -315,7 +326,7 @@ deleteProduct
 	    $win_text = "DELETE $newName?"; 
 	    if (system("$DLG --title \"$win_title\" --clear --yesno \"" .
 		       $win_text .
-		       "\" 8 55 2> /tmp/input.barcode") != 0) {
+		       "\" 8 55") != 0) {
 		return "";
 	    }
 
@@ -330,6 +341,180 @@ deleteProduct
 		print STDERR "delete_win: error deleting record...exiting\n";
 		exit 1;
 	    }
+	    $win_title = "Deleted $newName";
+	    $win_text = "You have just deleted $newName from the database.";
+	    system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+		       $win_text .
+		   "\" 8 55");
+	    return "";
+	}
+    }
+}
+
+
+########################################
+# ChangeName
+########################################
+sub
+changeName
+{
+    my ($conn) = @_;
+    my $guess = "0";
+    my $newBarcode = "0";
+    
+    my $win_title = "Stock Manager: Change Name";
+    my $win_text = "Enter the barcode of the product you want to change the NAME of.";
+
+    while (1) {
+	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		   $win_text .
+		   "\" 8 55 2> /tmp/input.barcode") != 0) {
+	    return "";
+	}
+	
+	$guess = `cat /tmp/input.barcode`;
+	system("rm -f /tmp/input.barcode");
+	
+	$newBarcode = &verifyAndDecodeAnyBarcode($guess);
+	
+	if($newBarcode eq "") {
+	    # case where barcode is not a barcode...
+	    &errorBarcode();
+	} else {
+	    # Confirm deletion by showing the item in a confirmation dialog box.
+
+	    # First get the name of the item
+	    my $selectqueryFormat = q{
+		select name
+		    from products
+			where barcode = '%s';
+	    };
+	    my $result = $conn->exec(sprintf($selectqueryFormat, $newBarcode));
+	    $win_title = "Barcode Not Found";
+	    $win_text = "Barcode not found in database.";
+	    if ($result->ntuples != 1) {
+		system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+		       $win_text .
+		       "\" 8 55");
+		return"";
+	    }	    
+
+	    my $name = $result->getvalue(0,0);
+	    # Then create the confirmation box
+	    $win_title = "Changing the Name of $name";
+	    $win_text = "Change the NAME from $name to what?"; 
+	    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		       $win_text .
+		       "\" 8 55 2> /tmp/input.name") != 0) {
+		return "";
+	    }	    
+
+	    my $newName = `cat /tmp/input.name`;
+	    system("rm -rf /tmp/input.name");
+
+	    my $updatequeryFormat = q{
+		update products
+		    set name = '%s'
+			where barcode = '%s';
+	    };
+	    $result = $conn->exec(sprintf($updatequeryFormat,
+					  $newName,
+					  $newBarcode));
+	    if ($result->resultStatus != PGRES_COMMAND_OK) {
+		print STDERR "update_win: error deleting record...exiting\n";
+		exit 1;
+	    }
+	    $win_title = "Changed $name to $newName";
+	    $win_text = "Changed the name from:\n$name => $newName";
+
+	    system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+		   $win_text .
+		   "\" 8 55");
+	    return "";
+	}
+    }
+}
+
+
+########################################
+# ChangePrice
+########################################
+sub
+changePrice
+{
+    my ($conn) = @_;
+    my $guess = "0";
+    my $newBarcode = "0";
+    
+    my $win_title = "Stock Manager: Change Price";
+    my $win_text = "Enter the barcode of the product you want to change the PRICE of.";
+
+    while (1) {
+	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		   $win_text .
+		   "\" 8 55 2> /tmp/input.barcode") != 0) {
+	    return "";
+	}
+	
+	$guess = `cat /tmp/input.barcode`;
+	system("rm -f /tmp/input.barcode");
+	
+	$newBarcode = &verifyAndDecodeAnyBarcode($guess);
+	
+	if($newBarcode eq "") {
+	    # case where barcode is not a barcode...
+	    &errorBarcode();
+	} else {
+	    # Confirm deletion by showing the item in a confirmation dialog box.
+
+	    # First get the name of the item
+	    my $selectqueryFormat = q{
+		select name, price 
+		    from products
+			where barcode = '%s';
+	    };
+	    my $result = $conn->exec(sprintf($selectqueryFormat, $newBarcode));
+	    $win_title = "Barcode Not Found";
+	    $win_text = "Barcode not found in database.";
+	    if ($result->ntuples != 1) {
+		system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+		       $win_text .
+		       "\" 8 55");
+		return"";
+	    }	    
+
+	    my $name = $result->getvalue(0,0);
+	    my $price = $result->getvalue(0,1);
+	    # Then create the confirmation box
+	    $win_title = "Changing the PRICE of $name";
+	    $win_text = "Change the PRICE of $name from $price to what?"; 
+	    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		       $win_text .
+		       "\" 8 55 2> /tmp/input.name") != 0) {
+		return "";
+	    }	    
+
+	    my $newPrice = `cat /tmp/input.name`;
+	    system("rm -rf /tmp/input.name");
+
+	    my $updatequeryFormat = q{
+		update products
+		    set price = '%s'
+			where barcode = '%s';
+	    };
+	    $result = $conn->exec(sprintf($updatequeryFormat,
+					  $newPrice,
+					  $newBarcode));
+	    if ($result->resultStatus != PGRES_COMMAND_OK) {
+		print STDERR "update_win: error deleting record...exiting\n";
+		exit 1;
+	    }
+	    $win_title = "Changed the Price From $price to $newPrice";
+	    $win_text = "Changed the name from:\n$price => $newPrice";
+
+	    system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+		   $win_text .
+		   "\" 8 55");
 	    return "";
 	}
     }
@@ -348,13 +533,17 @@ mainMenu
     my $retval =
 	system("$DLG --title \"$win_title\" --clear --menu \"" .
 	       "$win_textFormat".
-	       "\" 23 76 8 " .
+	       "\" 14 64 8 " .
 	       "\"Restock\" " .
-	       "\"Restock Chez Bob Inventory \" " .
+	       "\"RESTOCK Chez Bob Inventory \" " .
+	       "\"Change Price\" " .
+	       "\"Change the PRICE of a Chez Bob product \" " .
+	       "\"Change Name\" " .
+	       "\"Change the NAME of a Chez Bob product \" " .
 	       "\"Delete\" " .
-	       "\"Delete a Chez Bob product \" " .
+	       "\"DELETE a Chez Bob product \" " .
 	       "\"Quit\" " .
-	       "\"Quit this program\" " .
+	       "\"QUIT this program\" " .
 	       " 2> /tmp/input.action");
     
     my $action = `cat /tmp/input.action`;
@@ -385,6 +574,10 @@ while ($action ne "Quit") {
     elsif ($action eq "Restock") {
 	&enterBarcode($conn);
     }
+    elsif ($action eq "Change Name") {
+	&changeName($conn);
+    }
+    elsif ($action eq "Change Price") {
+	&changePrice($conn);
+    }
 }
-
-
