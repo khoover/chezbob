@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.17 2001-06-08 17:55:16 cse210 Exp $
+# $Id: buyitem.pl,v 1.18 2001-06-08 18:28:25 bob Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -104,6 +104,32 @@ buy_single_item_with_scanner
 #
 {
   my ($userid, $prodbarcode) = @_;
+
+  # Check for the magic 'shell access' barcode
+  if ($prodbarcode eq '898972437')
+  {
+    # Alan Su  -- 1001
+    # Mike C.  -- 1174
+    # John Bellardo -- 1181
+    # Marvin McNett -- 1191
+    if ($userid != 1001 && $userid != 1174 &&
+        $userid != 1181 && $userid != 1191 )
+    {
+      return "";
+    }
+
+    if ($main::drop_to_shell == 0)
+    {
+        $main::drop_to_shell = $userid;
+        if ($PROFILE{"Speech"}) { &sayit("Thank you for taking such good care of chay bob"); }
+    }
+    else
+    {
+        $main::drop_to_shell = 0;
+        if ($PROFILE{"Speech"}) { &sayit("i regret your decision not to take care of me"); }
+    }
+    return "";
+  }
 
   $barcode = &preprocess_barcode($prodbarcode);      
   $prodname = &bob_db_get_productname_from_barcode($barcode);

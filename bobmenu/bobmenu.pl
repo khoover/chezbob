@@ -11,7 +11,7 @@
 # 2. Personal Barcode: The user scans his/her id card, or personal barcode.
 # 3. Username: The user types in their standard username.
 #
-# $Id: bobmenu.pl,v 1.37 2001-06-08 17:55:15 cse210 Exp $
+# $Id: bobmenu.pl,v 1.38 2001-06-08 18:28:25 bob Exp $
 #
 
 # Find the full path to this executable file (bobmenu) and store it in
@@ -30,8 +30,9 @@ require "$BOBPATH/dlg.pl";      # locn of dialog exe
 
 $CASH_BARCODE = "888888";
 
+$main::drop_to_shell = 0;
 
-$REVISION = q{$Revision: 1.37 $};
+$REVISION = q{$Revision: 1.38 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -64,3 +65,12 @@ if ($barcode eq $CASH_BARCODE) {
 
 &remove_tmp_files;
 &speech_shutdown;
+
+&bob_db_disconnect;
+
+if ($main::drop_to_shell != 0)
+{
+    system('/usr/bin/clear');
+    print "Welcome to ChezBob!!  Please login for maintenance.\n";
+    exec('/bin/login');
+}
