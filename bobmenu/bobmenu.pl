@@ -1,11 +1,5 @@
 #!/usr/bin/perl -w
 
-###
-### libraries and constants
-###
-
-use Pg;
-
 $DLG = "/usr/bin/dialog";
 
 $PRICES{"Candy/Can of Soda"} = 0.45;
@@ -13,328 +7,11 @@ $PRICES{"Juice"} = 0.70;
 $PRICES{"Snapple"} = 0.80;
 $PRICES{"Popcorn/Chips/etc."} = 0.30;
 
-############################# BARCODE UTILS #################################
-
-sub
-isa_barcode
-{
-  my ($str) = @_;
-  $cuecat_header = "^\\.C";
-  if ($str =~ $cuecat_header) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-sub
-decode_barcode
-#
-# Larry Wall's amazing hack to decode cuecat headers adapted by Wesley
-#
-{
-  my ($rawInput) = @_;
-
-  # this skips the barcode type stuff.
-  my @getParsed = split /\./,$rawInput;
-  my $rawBarcode = $getParsed[3];
-  $rawBarcode =~ tr/a-zA-Z0-9+-/ -_/;
-  $rawBarcode = unpack 'u', chr(32 + length($rawBarcode) * 3/4)
-      . $rawBarcode;
-  $rawBarcode =~ s/\0+$//;
-  $rawBarcode ^= "C" x length($rawBarcode);
-  return $rawBarcode;
-}
-
-sub
-invalidBarcode_win
-{
-  my ($txt) = @_;
-  my $win_title = $txt;
-  my $win_text = q{
-Invalid barcode.  Please try again.};
-
-  system("$DLG --title \"$win_title\" --msgbox \"" .
-	 $win_text .
-	 "\" 9 50 2> /dev/null");
-}
-
-sub
-barcode_win
-#
-# Prompt the user to enter a new barcode. If it's already in the database 
-# (under a different userid) or is not a valid barcode, output an error msg
-# and ask the user to try again. 
-#
-{
-  my ($username, $userid, $conn) = @_;
-  my $guess = '0';
-  my $newBarcode = '0';
-  my $win_title = "New barcode";
-  my $win_text = "Scan your barcode:";
-
-  while (1) {
-    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-               $win_text .
-	       "\" 8 45 2> /tmp/input.barcode") != 0) {
-      return "";
-    }
-
-    $guess = `cat /tmp/input.barcode`;
-    system("rm -f /tmp/input.barcode");
-
-    if (&isa_barcode($guess)) {
-      $newBarcode = &decode_barcode($guess);      
-      my $selectqueryFormat = q{
-        select userid
-        from users
-        where userbarcode = '%s';
-      };
-      my $result = $conn->exec(sprintf($selectqueryFormat, $newBarcode));
-      if ($result->ntuples == 1) {
-        if ($result->getvalue(0,0) != $userid) {
-          invalidBarcode_win($newBarcode);
-          next;
-        }
-      }
-   
-      my $updatequeryFormat = q{
-        update users
-  	set userbarcode = '%s'
-        where userid = %d;
-      };      
-      $result = $conn->exec(sprintf($updatequeryFormat,
-  				     $newBarcode,
-				     $userid));
-      if ($result->resultStatus != PGRES_COMMAND_OK) {
-        print STDERR "barcode_win: error updating new barcode\n";
-        exit 1;
-      }       
-      system ("$DLG --title \"$newBarcode\""
-              ." --clear --msgbox"
-              ." \"Barcode updated successfully!\" 9 50");
-      return $newBarcode;
-    } else {
-      invalidBarcode_win($guess);
-      next;
-    }
-  }
-}
-
-sub 
-update_balance
-{
-  my ($userid,$total) = @_;
-  
-  $updatequeryFormat = q{
-    update balances   
-    set balance = balance - %.2f
-    where userid = %d;
-  };
-  $result = $conn->exec(sprintf($updatequeryFormat, $total, $userid));
-  if ($result->resultStatus != PGRES_COMMAND_OK) {
-    print STDERR "record_transaction: error update record...exiting\n";
-    exit 1;
-  }
-}
-
-sub
-update_stock
-{
-  my (@trans) = @_;
- 
-  foreach $item (@trans) {
-    $updatequeryFormat = q{
-      update products
-      set stock = stock - 1
-      where name = '%s';
-    };
-    $result = $conn->exec(sprintf($updatequeryFormat, $item));
-    if ($result->resultStatus != PGRES_COMMAND_OK) {
-      print STDERR "record_transaction: error update record...exiting\n";
-      exit 1;
-    }
-  }
-}
-
-sub
-saytotal
-{
-  my ($total) = @_;
-
-  my $str = sprintf("%.2f", $total);
-  my @money = split(/\./, $str);
-  my $dollars = int($money[0]);
-  my $cents = $money[1];
-  if (substr($cents, 0, 1) eq "0") {
-    $cents = chop($cents);
-  }
-
-  if ($dollars > 0) {
-    &sayit("your total is \\\$$dollars and $cents cents");
-  } else {
-    &sayit("your total is $cents cents");
-  }
-}
-
-sub
-sayit
-{
-  my ($str) = @_;
-  system("echo $str > /dev/speech");
-}
-
-sub
-barcode_action_win
-#
-# Nasty proc that shows the main menu in barcode mode.  Keeps a running 
-# tally of the products you've purchased and echoes them to the screen.
-# When user hits OK or scans the 'Done' barcode the entire transaction
-# is recorded (update balance and products tables). 
-#
-{
-  my ($username,$userid,$conn) = @_;
-  my $guess = '0';
-  my $win_title = "Main Menu";
-
-  my $leng = 24;	# initial dialog length 
-  my $balance = &getBalance($userid,$conn);
-  my $numbought = 0;
-
-  my $balanceString = "";
-  if ($balance < 0.0) {
-    $balanceString = sprintf("owe Bob \\\$%.2f", -$balance);
-  } else {
-    $balanceString = sprintf("have a credit balance of \\\$%.2f", $balance);
-  }
-
-  my $msg = "";
-  if (-r "/tmp/message") {
-    chop($msg = `cat /tmp/message`);
-  }
-
-  &sayit("Welcome $username");
-  if ($balance < -5.0) {
-    &sayit("It is time you deposited some money");
-  }
-
-  while (1) {
-    my $win_textFormat = q{
-Welcome, %s!
-
-USER INFORMATION:
-  You currently %s
-  %s
-  %s
-
-Please scan each product's barcode.  When you're done,
-scan the barcode at the top of the monitor labeled 'done'. 
-The transaction will not be recorded until then. \n
-		Product			Price
-		-------			-----
-};
-
-    my $total = 0.00;
-    for ($i = 0; $i < $numbought; ++$i) {
-      $win_textFormat .= "\t\t" . $purchase[$i];
-      my $leng = length($purchase[$i]);
-      if ($leng < 8) {
-        $win_textFormat .= "\t\t\t"; 
-      } elsif ($leng < 16) {
-        $win_textFormat .= "\t\t"; 
-      } else {
-        $win_textFormat .= "\t"; 
-      }
-
-      $win_textFormat .= sprintf("%.2f", $prices[$i]) . "\n";
-      $total += $prices[$i];
-    }
-    if ($total > 0) {
-      $win_textFormat .= "\t\t\t\t\t-----";
-      $win_textFormat .= sprintf("\n\t\t\t\tTOTAL:\t\\\$%.2f\n", $total);
-    }
-
-    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-	   sprintf($win_textFormat, $username,
-		   $balanceString, "", $msg) .
-	       "\" $leng 65 2> /tmp/input.barcode") != 0) {
-      return "";
-    }
-
-    $guess = `cat /tmp/input.barcode`;
-    system("rm -f /tmp/input.barcode");
-
-    if (&isa_barcode($guess)) {
-      $prod_barcode = &decode_barcode($guess);      
-      my $selectqueryFormat = q{
-        select name
-        from products
-        where barcode = '%s';
-      };
-      my $result = $conn->exec(sprintf($selectqueryFormat, $prod_barcode));
-      if ($result->ntuples != 1) {
-        next;
-      } 
-      $prodname = $result->getvalue(0,0);
-
-      $selectqueryFormat = q{
-        select phonetic_name
-        from products
-        where barcode = '%s';
-      };
-      $result = $conn->exec(sprintf($selectqueryFormat, $prod_barcode));
-      if ($result->ntuples != 1) {
-        next;
-      } 
-      $phonetic_name = $result->getvalue(0,0);
-
-      $selectqueryFormat = q{
-        select price
-        from products
-        where barcode = '%s';
-      };
-      $result = $conn->exec(sprintf($selectqueryFormat, $prod_barcode));
-      if ($result->ntuples != 1) {
-        system ("$DLG --title \"$prod_barcode\""
-                ." --clear --msgbox"
-                ." \"Product not found.  Please try again\" 9 50");
-        next;
-      };
-      $price = $result->getvalue(0,0);
-
-      if ($prodname eq "Done") {
-        # Record all transactions at once
-        &saytotal($total);
-        &update_stock(@purchase);
-        &update_balance($userid,$total);
-        &sayit("goodbye, $username!");
-        return;
-      } else {
-        # Update dialog
-        push(@purchase, $prodname);
-        push(@prices, $price);
-        $numbought++;
-        &sayit("$phonetic_name");
-        $leng += 1;
-        next;
-      }
-
-    } else {
-      # do nothing
-      next;
-    }
-  } # while(1)
-}
+do 'barcode.pl';
+do 'bob_db.pl';
 
 ################################ MAIN WINDOW ################################
 
-sub
-isa_valid_username
-{
-  my ($username) = @_;
-  return ($username =~ /^\w+$/);
-}
- 
 sub
 login_win
 {
@@ -382,7 +59,6 @@ Valid usernames must contain at least one
 character and consist of letters and numbers
 only.
   };
-
   system("$DLG --title \"$win_title\" --msgbox \"" .
 	 $win_text .
 	 "\" 9 50 2> /dev/null");
@@ -415,15 +91,13 @@ invalidPassword_win
 	 "\" 7 30 2> /dev/null");
 }
 
-################################ MAIN WINDOW ################################
-
-
 
 ############################## NEW USER WINDOWS #############################
+
 sub
 askStartNew_win
 {
-  my ($username,$conn) = @_;
+  my ($username) = @_;
   my $email = "";
   my $win_title = "New Chez Bob user?";
   my $win_textFormat = q{
@@ -448,24 +122,8 @@ for you?};
       next;
     }
 
-    my $insertqueryFormat = q{
-insert
-into users
-values(
-  nextval('userid_seq'),
-  '%s',
-  '%s');
-  };
+    &bob_db_add_user($username, $email);
 
-    my $result = $conn->exec(sprintf($insertqueryFormat,
-				     $username,
-				     $email));
-    if ($result->resultStatus != PGRES_COMMAND_OK) {
-      print STDERR "askStartNew_win: error inserting record...exiting\n";
-      exit 1;
-    }
-
-    # success!
     return 0;
   }
 }
@@ -504,42 +162,23 @@ Valid email addresses take the form
 	 "\" 8 50 2> /dev/null");
 }
 
-############################## NEW USER WINDOWS #############################
-
-
-
 ########################### BALANCE INIT WINDOWS ############################
+
 sub
 initBalance_win
 {
-  my ($userid,$conn) = @_;
+  my ($userid) = @_;
   my $win_title = "Initial balance";
   my $win_text = q{
 Now, we will transfer balance information from
 your Chez Bob index card to the database.
 
-Do you currently *OWE* Bob money?};
+Do you currently *OWE* Bob money?
+};
 
-  my $retval;
-
-  while (1) {
-
-    my $insertqueryFormat = q{ 
-      insert into balances values(%d, %.2f); 
-      insert into transactions values('now', %d, %.2f, 'INIT'); 
-    };
-
-    my $result = $conn->exec(sprintf($insertqueryFormat,
-				     $userid, 0.0,
-				     $userid, 0.0));
-    if ($result->resultStatus != PGRES_COMMAND_OK) {
-      print STDERR "initBalance: error inserting record...exiting\n";
-      exit 1;
-    }
-
-    # success!
-    return 0;
-  }
+  # MAC: deprecated window?
+  &bob_db_init_balance($userid);
+  return 0;
 }
 
 sub
@@ -577,15 +216,13 @@ to two decimal places of precision.};
 	 $win_text .
 	 "\" 8 50 2> /dev/null");
 }
-########################### BALANCE INIT WINDOWS ############################
-
-
 
 ############################## ACTION WINDOWS ###############################
+
 sub
 action_win
 {
-  my ($username,$userid,$balance,$conn) = @_;
+  my ($username,$userid,$balance) = @_;
   my $win_title = "Main menu";
   my $win_textFormat = q{
 Welcome, %s!
@@ -643,16 +280,6 @@ Choose one of the following actions (scroll down for more options):};
   system("rm -f /tmp/input.*");
 
   if ($retval != 0 || $action eq "Quit") {
-    #
-    # confirm
-    #
-#     if (&confirm_win("Really quit?",
-# 		     "\n       Quit the system?")) {
-#       return "Quit";
-#     }
-#     else {
-#       return "No action";
-#     }
     return "Quit";
   }
 
@@ -662,7 +289,7 @@ Choose one of the following actions (scroll down for more options):};
 sub
 add_win
 {
-  my ($userid,$conn) = @_;
+  my ($userid) = @_;
 
   my $win_title = "Add money";
   my $win_text = q{
@@ -688,33 +315,13 @@ How much was deposited into the Bank of Bob?};
 
     my $amt = `cat /tmp/input.deposit`;
     if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
-      my $updatequeryFormat = q{
-update balances
-set balance = balance+%.2f
-where userid = %d;
-
-insert
-into transactions
-values(
-  'now',
-  %d,
-  %.2f,
-  'ADD');
-      };
-
       if (! &confirm_win("Add amount?",
 			 sprintf("\nWas the deposit amount \\\$%.2f?",
 				 $amt))) {
 	next;
       }
 
-      my $result = $conn->exec(sprintf($updatequeryFormat,
-				       $amt, $userid,
-				       $userid, $amt));
-      if ($result->resultStatus != PGRES_COMMAND_OK) {
-	print STDERR "add_win: error update record...exiting\n";
-	exit 1;
-      }
+      &bob_db_update_balance($userid, $amt, "ADD");
 
       return;
     }
@@ -726,23 +333,9 @@ values(
 sub
 buy_win
 {
-  my ($userid,$conn,$type) = @_;
+  my ($userid, $type) = @_;
   my $amt;
   my $confirmMsg;
-
-  my $updatequeryFormat = q{
-update balances
-set balance = balance-%.2f
-where userid = %d;
-
-insert
-into transactions
-values(
-  'now',
-  %d,
-  -%.2f,
-  '%s');
-  };
 
   undef $amt;
 
@@ -751,8 +344,7 @@ values(
       $amt = $PRICES{$type};
       $confirmMsg = "Buy ${type}?";
     }
-  }
-  else {
+  } else {
     $type = "BUY";
   }
 
@@ -789,19 +381,13 @@ point!)};
     return;
   }
 
-  my $result = $conn->exec(sprintf($updatequeryFormat,
-				   $amt, $userid,
-				   $userid, $amt, uc($type)));
-  if ($result->resultStatus != PGRES_COMMAND_OK) {
-    print STDERR "add_win: error update record...exiting\n";
-    exit 1;
-  }
+  &bob_db_update_balance($userid, -$amt, $type);
 }
 
 sub
 message_win
 {
-  my ($username,$userid,$conn) = @_;
+  my ($username,$userid) = @_;
   my $win_title = "Leave a message for Bob";
   my $win_text = q{
 Leave a message for Bob!  We need your feedback about:
@@ -825,23 +411,7 @@ What is your message?};
 	     $win_text .
 	     "\" 18 74 \"From $username: \" 2> /tmp/input.msg") == 0) {
     my $msg = `cat /tmp/input.msg`;
-    my $insertqueryFormat = q{
-insert
-into messages
-values(
-  nextval('msgid_seq'),
-  'now',
-  %s,
-  '%s');
-    };
-
-    my $result = $conn->exec(sprintf($insertqueryFormat,
-				     defined $userid ? $userid : "null",
-				     $msg));
-    if ($result->resultStatus != PGRES_COMMAND_OK) {
-      print STDERR "message_win: error inserting record...exiting\n";
-      exit 1;
-    }
+    &bob_db_insert_msg($userid, $msg);
   }
 }
 
@@ -849,50 +419,25 @@ values(
 sub
 log_win
 {
-  my ($username,$userid,$conn) = @_;
+  my ($username,$userid) = @_;
   my $win_title = "Transactions";
   my $logfile = "/tmp/$userid.output.log";
-  my $logqueryFormat = q{
-select xacttime,xactvalue,xacttype
-from transactions
-where userid = %d
-order by xacttime;
-  };
-
-  if (! open(LOG_OUT, ">$logfile")) {
-    print STDERR "log_win: unable to write to output file.\n";
-    return;
-  }
-
-  my $result = $conn->exec(sprintf($logqueryFormat, $userid));
-  for ($i = 0 ; $i < $result->ntuples ; $i++) {
-    $time = $result->getvalue($i,0);
-    $val = $result->getvalue($i,1);
-    $type = $result->getvalue($i,2);
-
-    if ($i == 0) {
-      $win_title .= " since $time";
-    }
-
-    print LOG_OUT sprintf("%s: %.2f (%s)\n", $time, $val, $type);
-  }
-
-  close(LOG_OUT);
+  
+  &bob_db_log_transactions($userid, $logfile);
 
   system("$DLG --title \"$win_title\" --clear --textbox " .
 	 "$logfile 24 75 2> /dev/null");
-
 }
 
 
 sub
 pwd_win
 {
-  my ($username,$userid,$conn) = @_;
+  my ($username,$userid) = @_;
   my $win_title = "Enter Password";
   my $win_text = q{
 Type your new password.  To remove an existing
-password, enter "none" as your password.
+password, enter \"none\" as your password.
 
 NOTE: YOUR PASSWORD WILL BE ECHOED TO THE
 SCREEN...MAKE SURE NO ONE IS LOOKING!
@@ -902,24 +447,14 @@ SCREEN...MAKE SURE NO ONE IS LOOKING!
 Re-type your password:
   };
 
-  my $pwdquery = qq{
-select p
-from pwd
-  where userid = $userid;
-  };
-
-  my $result = $conn->exec($pwdquery);
-  $n = $result->ntuples;
-  if ($n == 1) {
-    $p = $result->getvalue(0,0);
-    $s = substr($p,-2,2);
+  my $passwd = &bob_db_get_pwd($userid);
+  if (defined $passwd) {
+    $salt = substr($passwd,-2,2);
     $pwd_exists = 1;
-  }
-  else {
-    $s = "cB";
+  } else {
+    $salt = "cB";
     $pwd_exists = 0;
   }
-#  print "salt is $s\n";
 
   if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 	     $win_text .
@@ -927,15 +462,10 @@ from pwd
     return;
   }
   my $p = `cat /tmp/input.pwd`;
+  system("rm -f /tmp/input.pwd");
 
-  if ($p eq "") {
-    my $removequery = qq{
-delete
-from pwd
-where userid = $userid;
-    };
-
-    $conn->exec($removequery);
+  if ($p eq "none") {
+    &bob_db_remove_pwd($userid);
     return;
   }
 
@@ -945,6 +475,7 @@ where userid = $userid;
     return;
   }
   my $p_v = `cat /tmp/input.pwd_v`;
+  system("rm -f /tmp/input.pwd_v");
 
   if ($p ne $p_v) {
     my $no_match_msg = q{
@@ -957,45 +488,12 @@ No changes were made.
     return;
   }
 
-  $c = crypt($p,$s);
+  $c = crypt($p, $salt);
   if ($pwd_exists == 1) {
-    my $updatequery = qq{
-update
-pwd
-set p = '$c'
-where userid = $userid;
-    };
-
-    $result = $conn->exec($updatequery);
-    if ($result->resultStatus == PGRES_COMMAND_OK) {
-      return;
-    }
+    &bob_db_update_pwd($userid, $c);
+  } else {
+    &bob_db_insert_pwd($userid, $c);
   }
-  else {
-    my $insertquery = qq{
-insert
-into pwd
-values(
-  $userid,
-  '$c');
-    };
-
-    $result = $conn->exec($insertquery);
-    if ($result->resultStatus == PGRES_COMMAND_OK) {
-      return;
-    }
-  }
-
-  #
-  # db error
-  #
-  my $db_error_msg = q{
-There was an error updating the database.
-No changes were made.
-  };
-  system("$DLG --title \"Database error\" --clear --msgbox \"" .
-	 $db_error_msg .
-	 "\" 8 52 2> /dev/null");
 }
 
 
@@ -1011,94 +509,24 @@ implemented.};
 	  $win_text .
 	  "\" 8 40");
 }
-############################## ACTION WINDOWS ###############################
-
-
 
 ################################# UTILITIES #################################
 
 sub
-checkUser
+isa_valid_username
 {
-  my ($username,$conn) = @_;
-
-  my $queryFormat = q{
-select userid
-from users
-where username ~* '^%s$';
-  };
-
-  if ($conn->status != PGRES_CONNECTION_OK) {
-    print STDERR "checkUser: not connected...exiting.\n";
-    exit 1;
-  }
-  $result = $conn->exec(sprintf($queryFormat,$username));
-
-  if ($result->ntuples != 1) {
-    return -1;
-  }
-
-  return ($result->getvalue(0,0));
+  my ($username) = @_;
+  return ($username =~ /^\w+$/);
 }
-
-sub
-getPwd
-{
-  my ($userid,$conn) = @_;
-  my $query = qq{
-select p
-from pwd
-where userid = $userid;
-  };
-
-  if ($conn->status != PGRES_CONNECTION_OK) {
-    print STDERR "getPwd: not connected...exiting.\n";
-    exit 1;
-  }
-  $result = $conn->exec($query);
-
-  if ($result->ntuples != 1) {
-    return undef;
-  }
-  else {
-    return $result->getvalue(0,0);
-  }
-}
+ 
 
 sub
 checkPwd
 {
   my ($p,$guess) = @_;
-  if (crypt($guess,$p) eq $p) {
-    return 1;
-  }
-
-  return 0;
+  return (crypt($guess,$p) eq $p); 
 }
 
-
-sub
-getBalance
-{
-  my ($userid,$conn) = @_;
-
-  my $queryFormat = q{
-select balance
-from balances
-where userid = %d;
-  };
-  if ($conn->status != PGRES_CONNECTION_OK) {
-    print STDERR "checkUser: not connected...exiting.\n";
-    exit 1;
-  }
-  $result = $conn->exec(sprintf($queryFormat,$userid));
-
-  if ($result->ntuples != 1) {
-    return;
-  }
-
-  return ($result->getvalue(0,0));
-}
 
 sub
 confirm_win
@@ -1107,54 +535,39 @@ confirm_win
   $h ||= 7;
   $w ||= 35;
 
-#  my $win_title = "Really quit?";
-#  my $win_text = q{
-#       Quit the system?};
-
   $retval = system("$DLG --title \"$win_title\" --clear --yesno \"" .
 		   $win_text .
 		   "\" $h $w 2> /dev/null");
 
-  if ($retval == 0) {
-    return 1;
-  }
-  else {
-    return 0;
-  }
+  return ($retval == 0);
 }
 
 
 ################################# MAIN  #################################
 
 sub
-regular_login
+text_login
 {
   my ($username) = @_;
-  $userid = &checkUser($username,$conn);
+  $userid = &bob_db_get_userid($username);
 
   if ($userid == -1) {
     #
     # new user!
     #
 
-  # transaction causes problems...
-  #  $conn->exec("begin");
-
-    if (askStartNew_win($username,$conn) == -1) {
+    if (askStartNew_win($username) == -1) {
       # canceled or refused
       exit 1;
     }
 
-    $userid = &checkUser($username,$conn);
-    if (&initBalance_win($userid,$conn) < 0) {
-#      $conn->exec("rollback");
+    $userid = &bob_db_get_userid($username);
+    if (&initBalance_win($userid) < 0) {
       exit 1;
     }
-
-  #  $conn->exec("commit");
   }
 
-  $p = &getPwd($userid,$conn);
+  $p = &bob_db_get_pwd($userid);
   if (defined $p && &checkPwd($p,&guess_pwd_win()) == 0) {
     &invalidPassword_win();
     exit 1;
@@ -1165,7 +578,7 @@ regular_login
     #
     # refresh the balance
     #
-    $balance = &getBalance($userid,$conn);
+    $balance = &bob_db_get_balance($userid);
     if (! defined $balance) {
       print "MAIN: no balance from database...exiting.\n";
       exit 1;
@@ -1174,43 +587,43 @@ regular_login
     #
     # get the action
     #
-    $action = &action_win($username,$userid,$balance,$conn);
+    $action = &action_win($username,$userid,$balance);
 
     $_ = $action;
    SWITCH: {
      /^Add$/ && do {
-       &add_win($userid,$conn);
+       &add_win($userid);
        last SWITCH;
      };
   
      (/^Candy\/Can of Soda$/ || /^Snapple$/ || /^Juice$/ ||
       /^Popcorn\/Chips\/etc.$/) && do {
-       &buy_win($userid,$conn,$_);
+       &buy_win($userid,$_);
        last SWITCH;
      };
   
      /^Buy Other$/ && do {
-       &buy_win($userid,$conn);
+       &buy_win($userid);
        last SWITCH;
      };
   
      /^Message$/ && do {
-       &message_win($username,$userid,$conn);
+       &message_win($username,$userid);
        last SWITCH;
      };
   
      /^Transactions$/ && do {
-       &log_win($username,$userid,$conn);
+       &log_win($username,$userid);
        last SWITCH;
      };
   
      /^Modify Barcode$/ && do {
-       &barcode_win($username,$userid,$conn);
+       &barcode_win($username,$userid);
        last SWITCH;
      };
   
      /^Modify Password$/ && do {
-       &pwd_win($username,$userid,$conn);
+       &pwd_win($username,$userid);
        last SWITCH;
      };
   
@@ -1227,44 +640,11 @@ regular_login
 } 
 
 
-sub
-barcode_login
-{
-  my ($logintext) = @_;
-
-  # Do some preprocessing first: decode and retrieve corresponding username
-  $barcode = decode_barcode($logintext); 
-  my $selectqueryFormat = q{
-    select username 
-    from users 
-    where userbarcode = '%s';
-  };
-  my $result = $conn->exec(sprintf($selectqueryFormat, $barcode));
-  if ($result->ntuples != 1) {
-    # does not exist
-    my $win_title = "Invalid barcode";
-    my $win_text = q{
-I could not find this barcode in the database. If you're 
-an existing user you can change your barcode login from 
-the main menu.  If you're a new user you'll need to first 
-create a new account by entering a valid text login id.}; 
-    system("$DLG --title \"$win_title\" --msgbox \"" .
-	 $win_text .
-	 "\" 10 65 2> /dev/null");
-    exit 1;
-  } else {
-    $username = $result->getvalue(0,0);
-    $userid = &checkUser($username,$conn);
-    &barcode_action_win($username,$userid,$conn);
-  }
-}
-
-
 ###
 ### main program
 ###
 
-$REVISION = q{$Revision: 1.19 $};
+$REVISION = q{$Revision: 1.20 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -1277,19 +657,11 @@ do {
   $logintext = &login_win($REVISION);
 } while ($logintext eq "");
 
-# Set up db
-$conn = Pg::connectdb("dbname=bob");
-if ($conn->status == PGRES_CONNECTION_BAD) {
-  print STDERR "MAIN: error connecting to database...exiting.\n";
-  print STDERR $conn->errorMessage;
-  exit 1;
-}
-
-$username = "";
+&bob_db_connect;
 
 if (&isa_barcode($logintext)) {
   &barcode_login($logintext);
 } else {
-  &regular_login($logintext);
+  &text_login($logintext);
 }
 
