@@ -40,7 +40,25 @@ decode_barcode
 }
 
 sub
+invalidBarcode_win
+{
+  my ($txt) = @_;
+  my $win_title = $txt;
+  my $win_text = q{
+Invalid barcode.  Please try again.};
+
+  system("$DLG --title \"$win_title\" --msgbox \"" .
+	 $win_text .
+	 "\" 9 50 2> /dev/null");
+}
+
+sub
 barcode_win
+#
+# Prompt the user to enter a new barcode. If it's already in the database 
+# (under a different userid) or is not a valid barcode, output an error msg
+# and ask the user to try again. 
+#
 {
   my ($username, $userid, $conn) = @_;
   my $guess = '0';
@@ -48,37 +66,54 @@ barcode_win
   my $win_title = "New barcode";
   my $win_text = "Scan your barcode:";
 
-  if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-	     $win_text .
-	     "\" 8 45 2> /tmp/input.barcode") != 0) {
-    return "";
-  }
+  while (1) {
+    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+               $win_text .
+	       "\" 8 45 2> /tmp/input.barcode") != 0) {
+      return "";
+    }
 
-  $guess = `cat /tmp/input.barcode`;
-  system("rm -f /tmp/input.barcode");
+    $guess = `cat /tmp/input.barcode`;
+    system("rm -f /tmp/input.barcode");
 
-  # Next, insert the barcode into the database, if it is a barcode;      
-  if (&isa_barcode($guess)) {
-    $newBarcode = &decode_barcode($guess);      
-    my $updatequeryFormat = q{
-      update users
-	set userbarcode = '%s'
-	 where userid = %d;
-    };      
-    my $result = $conn->exec(sprintf($updatequeryFormat,
-				     $newBarcode,
+    if (&isa_barcode($guess)) {
+      $newBarcode = &decode_barcode($guess);      
+      my $selectqueryFormat = q{
+        select userid
+        from users
+        where userbarcode = '%s';
+      };
+      my $result = $conn->exec(sprintf($selectqueryFormat,
+  				     $newBarcode,
 				     $userid));
-    if ($result->resultStatus != PGRES_COMMAND_OK) {
-	print STDERR "askStartNew_win: error updating new barcode\n";
-	exit 1;
-    }       
-    return $newBarcode;
-  } else {
+      if ($result->ntuples == 1) {
+        if ($result->getvalue(0,0) != $userid) {
+          invalidBarcode_win($newBarcode);
+          next;
+        }
+      }
+   
+      my $updatequeryFormat = q{
+        update users
+  	set userbarcode = '%s'
+        where userid = %d;
+      };      
+      my $result = $conn->exec(sprintf($updatequeryFormat,
+  				     $newBarcode,
+				     $userid));
+      if ($result->resultStatus != PGRES_COMMAND_OK) {
+        print STDERR "askStartNew_win: error updating new barcode\n";
+        exit 1;
+      }       
       system ("$DLG --title \"$newBarcode\""
-	      ." --clear --msgbox"
-	      ." \"Bad barcode - try again.\" 8 40");
+              ." --clear --msgbox"
+              ." \"Barcode updated successfully!\" 9 50");
+      return $newBarcode;
+    } else {
+      invalidBarcode_win($guess);
+      next;
+    }
   }
-  return "";
 }
 
 ################################ MAIN WINDOW ################################
@@ -914,7 +949,7 @@ confirm_win
 ###
 
 $REVISION = q{
-$Revision: 1.9 $
+$Revision: 1.10 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
@@ -998,6 +1033,12 @@ $p = &getPwd($userid,$conn);
 if (defined $p && &checkPwd($p,&guess_pwd_win()) == 0) {
   &invalidPassword_win();
   exit 1;
+}
+
+# Output some annonying message if balance is really in the red
+$balance = &getBalance($userid,$conn);
+if ($balance < 10.00) {
+#  system("$FEST \"It's about time to add money to your account!\"&");
 }
 
 my $action = "";
