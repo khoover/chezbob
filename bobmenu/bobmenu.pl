@@ -36,12 +36,23 @@ username if you are a new user):};
       return "";
     }
 
+    # MAC: check if we're dealing with a regular username or a barcode
+    $cuecat_header = ".C3nZC3nZC3nYCNf1DNfYCNnY";
     $username = `cat /tmp/input.main`;
-#    if ($username eq "" || $username =~ /\s/) {
-    if ($username !~ /^\w+$/) {
+
+    if ($username =~ $cuecat_header) {
+      # Barcode: decode it
+      my $scan = CueCat->decode($username);
+      $username = $scan->{'barcode_data'};
+    } elsif ($username !~ /^\w+$/) {
+      # Regular username: check if valid
       &invalidUsername_win();
       next;
+    } else {
+      # Valid username: do nothing
     }
+
+    system("$DLG --msgbox $username 5 50");
 
     return $username;
   }
@@ -831,7 +842,7 @@ confirm_win
 ###
 
 $REVISION = q{
-$Revision: 1.2 $
+$Revision: 1.3 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
