@@ -25,7 +25,7 @@
 # Refer to http://www.adams1.com/pub/russadam/upccode.html for general 
 # information on barcode standards.
 #
-# $Id: bc_util.pl,v 1.12 2001-05-25 19:42:00 mcopenha Exp $
+# $Id: bc_util.pl,v 1.13 2001-06-01 20:58:31 mcopenha Exp $
 #
 
 
@@ -62,18 +62,14 @@ isa_upc_barcode
 # plus two overhead digits; UPC version E has 6 digits plus two overhead 
 # digits. Both the metrologic and cuecat scanners retrieve all 12 digits of
 # type A barcodes.  The cuecat scanner retrieves all 6 digits of the type E
-# barcodes plus the last digit of overhead, but misses the first overhead
-# digit.  The metrologic misses both overhead digits when scanning type E.
+# barcodes plus the first digit of overhead, but misses the last overhead
+# digit (see decode_cuecat_barcode).  The metrologic misses both overhead 
+# digits when scanning type E.
 # 
 {
   my ($barcode) = @_;
   my $leng = length($barcode);
-  my $type_E_leng = 6;
-  if (&isa_cuecat_barcode($barcode)) {
-    $type_E_leng = 7;
-  } 
-
-  return (($leng == 12 || $leng == $type_E_leng)
+  return (($leng == 12 || $leng == 6)
           && &isa_numeric_barcode($barcode));
 }
 
@@ -115,7 +111,14 @@ decode_cuecat_barcode
       . $rawBarcode;
   $rawBarcode =~ s/\0+$//;
   $rawBarcode ^= "C" x length($rawBarcode);
-  return $rawBarcode;
+
+  # Really annoying: for type UPC-E, cuecat records the leading 0.  
+  # strip it off if necessary.
+  if (length($rawBarcode) == 7) {
+    return (substr($rawBarcode, 1));
+  } else {
+    return $rawBarcode;
+  }
 }
 
 1;
