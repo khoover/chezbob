@@ -18,10 +18,10 @@
 #    instead of echoing nothing.  Changed files dialog.c, inputstr.c,
 #    and textbox.c.  Changes were taken from a broken patch file.
 #
-# $Id: dlg.pl,v 1.4 2001-05-21 06:38:58 mcopenha Exp $
+# $Id: dlg.pl,v 1.5 2001-05-21 18:48:33 mcopenha Exp $
 #
 
-$DLG = "./dialog-0.9a/dialog";
+$DLG = "$BOBPATH/dialog-0.9a/dialog";
 $CANCEL = -1;
 
 

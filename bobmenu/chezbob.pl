@@ -11,14 +11,22 @@
 # 2. Personal Barcode: The user scans his/her id card, or personal barcode.
 # 3. Username: The user types in their standard username.
 #
-# $Id: chezbob.pl,v 1.2 2001-05-21 06:38:58 mcopenha Exp $
+# $Id: chezbob.pl,v 1.3 2001-05-21 18:48:33 mcopenha Exp $
 #
+
+# Make sure Perl can find all of our files by appending INC with the 
+# path to the 'chezbob' executable.
+open(TMP, "which $0 |") || die "can't do which $0: $!\n";
+my $fullpath = <TMP>;
+close(TMP) || die "can't close\n";
+$BOBPATH = substr($fullpath, 0, rindex($fullpath, '/'));
+push(@INC, $BOBPATH);
 
 require "login.pl";	# login_win
 require "bob_db.pl";	# database routines
 
 
-$REVISION = q{$Revision: 1.2 $};
+$REVISION = q{$Revision: 1.3 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
