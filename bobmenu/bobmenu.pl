@@ -8,19 +8,20 @@
 # Al Su (alsu@cs.ucsd.edu)
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # 
-# $Id: bobmenu.pl,v 1.27 2001-05-14 22:06:51 mcopenha Exp $
+# $Id: bobmenu.pl,v 1.28 2001-05-15 00:18:05 mcopenha Exp $
 #
 
-do 'bc_win.pl';		# barcode login windows
-do 'kbd_win.pl';	# keyboard login windows
-do 'bc_util.pl';	# barcode utils
-do 'snd_util.pl';	# speech utils
-do 'bob_db.pl';		# database routines
+require "bc_win.pl";	# barcode login windows
+require "kbd_win.pl";	# keyboard login windows
+require "bc_util.pl";	# barcode utils
+require "snd_util.pl";	# speech utils
+require "bob_db.pl";	# database routines
 
-$DLG = "/usr/bin/dialog";
+my $DLG = "/usr/bin/dialog";
+$CANCEL = -1;
 
 
-$REVISION = q{$Revision: 1.27 $};
+$REVISION = q{$Revision: 1.28 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -36,7 +37,7 @@ print "rev is $REVISION\n";
 my $logintxt = &login_win($REVISION);
 my $barcode = &preprocess_barcode($logintxt); 
 my $userid = &bob_db_get_userid_from_barcode($barcode);
-if ($userid == -1) {
+if ($userid == $NOT_FOUND) {
   if (isa_valid_username($logintxt)) {
     &kbd_login($logintxt);
   } else {
@@ -77,7 +78,7 @@ sub
 barcode_login
 {
   my ($userid) = @_;
-  my $username = bob_db_get_username_from_userid($userid);
+  my $username = &bob_db_get_username_from_userid($userid);
   &barcode_action_win($userid, $username);
 }
 
@@ -88,15 +89,14 @@ kbd_login
   my ($username) = @_;
   my $userid = &bob_db_get_userid_from_username($username);
 
-  if ($userid == -1) {
+  if ($userid == $NOT_FOUND) {
     # New user!
 
-    if (askStartNew_win($username) == -1) {
-      # Canceled or refused
+    if (&askStartNew_win($username) == $CANCEL) {
       return;
     }
 
-    # get the new userid
+    # Get the new userid
     $userid = &bob_db_get_userid_from_username($username);
     &bob_db_init_balance($userid);
   }

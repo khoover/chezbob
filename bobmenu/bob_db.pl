@@ -11,13 +11,13 @@
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # Created: 5/2/00
 #
-# $Id: bob_db.pl,v 1.5 2001-05-14 20:04:23 mcopenha Exp $
+# $Id: bob_db.pl,v 1.6 2001-05-15 00:18:05 mcopenha Exp $
 #
 
 use Pg;
 
-# The database connection
-$conn = ""; 	
+my $conn = ""; 		# the database connection	
+$NOT_FOUND = -1;	
 
 sub
 bob_db_connect
@@ -58,7 +58,7 @@ bob_db_get_username_from_userid
   my $result = $conn->exec(sprintf($queryFormat,$userid));
 
   if ($result->ntuples != 1) {
-    return -1;
+    return $NOT_FOUND;
   } else {
     return ($result->getvalue(0,0));
   }
@@ -79,7 +79,7 @@ bob_db_get_userid_from_username
   my $result = $conn->exec(sprintf($queryFormat,$username));
 
   if ($result->ntuples != 1) {
-    return -1;
+    return $NOT_FOUND;
   } else {
     return ($result->getvalue(0,0));
   }
@@ -100,7 +100,7 @@ bob_db_get_userid_from_barcode
   my $result = $conn->exec(sprintf($queryFormat, $barcode));
 
   if ($result->ntuples != 1) {
-    return -1;
+    return $NOT_FOUND;
   } else {
     return ($result->getvalue(0,0));
   }
@@ -163,7 +163,7 @@ bob_db_get_balance
   my $result = $conn->exec(sprintf($queryFormat,$userid));
 
   if ($result->ntuples != 1) {
-    return;
+    return $NOT_FOUND;
   }
 
   return ($result->getvalue(0,0));
@@ -484,7 +484,7 @@ bob_db_get_price_from_barcode
   };
   my $result = $conn->exec(sprintf($selectqueryFormat, $barcode));
   if ($result->ntuples != 1) {
-    return -1;
+    return $NOT_FOUND;
   } else {
     return $result->getvalue(0,0);
   }
@@ -504,7 +504,7 @@ bob_db_get_stock_from_barcode
   };
   my $result = $conn->exec(sprintf($selectqueryFormat, $barcode));
   if ($result->ntuples != 1) {
-    return -1;
+    return $NOT_FOUND;
   } else {
     return $result->getvalue(0,0);
   }
@@ -589,3 +589,5 @@ bob_db_update_products_in_bulk_item
     return undef;
   }
 }
+
+1;

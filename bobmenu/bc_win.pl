@@ -4,8 +4,12 @@
 #
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 #
-# $Id: bc_win.pl,v 1.6 2001-05-14 22:06:51 mcopenha Exp $
+# $Id: bc_win.pl,v 1.7 2001-05-15 00:18:05 mcopenha Exp $
 #
+
+require "bc_util.pl";
+require "snd_util.pl";
+require "bob_db.pl";
 
 my $DLG = "/usr/bin/dialog";
 my $MIN_BARCODE_LENG = 6;
@@ -23,7 +27,7 @@ update_user_barcode
 
   while (1) {
     my $guess = &get_user_barcode_win;
-    if ($guess eq "") { 
+    if (!defined $guess) { 
       # User canceled
       return;
     }
@@ -31,9 +35,9 @@ update_user_barcode
     $barcode = &preprocess_barcode($guess);      
     if (&isa_valid_user_barcode($barcode)) {
       my $id = &bob_db_get_userid_from_barcode($barcode);
-      if ($id != -1) {
+      if ($id != $NOT_FOUND) {
         if ($id != $userid) {
-          &invalid_user_barcode_win;
+          &barcode_already_in_db_win;
           next;
         }
       }
@@ -59,24 +63,17 @@ barcode_action_win
 #
 {
   my ($userid, $username) = @_;
-  my $guess = '0';
   my $win_title = "Main Menu";
-  my $dialog_leng = 24;
+  my $guess = '0';		# initial barcode input
+  my $dialog_leng = 24;		# main dialog initial length
+  my $numbought = 0;		# number of products users has purchased
+  my $price = 0.0;		# price of current product
+  my $phonetic_name = "";	# phonetic name of current product
+  my $unknown_prod = 0;		# flag == 0 if product not found
+
   my $balance = &bob_db_get_balance($userid);
-  my $numbought = 0;
-
-  my $balanceString = "";
-  if ($balance < 0.0) {
-    $balanceString = sprintf("owe Bob \\\$%.2f", -$balance);
-  } else {
-    $balanceString = sprintf("have a credit balance of \\\$%.2f", $balance);
-  }
-
-  my $msg = "";
-  if (-r "/tmp/message") {
-    chop($msg = `cat /tmp/message`);
-  }
-
+  my $balanceString = &get_balance_string($balance);
+  my $msg = &get_msg;
   &say_greeting;
 
   while (1) {
@@ -114,20 +111,27 @@ The transaction will not be recorded until then. \n
       $win_textFormat .= "\t\t\t\t\t-----";
       $win_textFormat .= sprintf("\n\t\t\t\tTOTAL:\t\\\$%.2f\n", $total);
     }
+   
+    if ($unknown_prod) {
+      $win_textFormat .= "\n   I did not recognize the last product you scanned";
+    }
 
     if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 	   sprintf($win_textFormat, $username,
 		   $balanceString, "", $msg) .
 	       "\" $dialog_leng 65 2> /tmp/input.barcode") != 0) {
-      return "";
+      return undef;
     }
 
     $guess = `cat /tmp/input.barcode`;
     $prod_barcode = &preprocess_barcode($guess);      
     $prodname = &bob_db_get_productname_from_barcode($prod_barcode);
     if (!defined $prodname) {
+      $unknown_prod = 1;
       next;
-    } 
+    } else {
+      $unknown_prod = 0;
+    }
 
     $phonetic_name = &bob_db_get_phonetic_name_from_barcode($prod_barcode);
     $price = &bob_db_get_price_from_barcode($prod_barcode);
@@ -136,9 +140,9 @@ The transaction will not be recorded until then. \n
       # Record entire transaction at once
       &sayit("your total is " . &format_money($total));
       &bob_db_update_stock(-1, @purchase);
-      &bob_db_update_balance($userid, -$total, "BARCODE PURCHASE");
+      &bob_db_update_balance($userid, -$total, "BUY (BARCODE)");
       &say_goodbye;
-      return;
+      return $total;
     } else {
       # Update dialog
       push(@purchase, $prodname);
@@ -149,7 +153,7 @@ The transaction will not be recorded until then. \n
       next;
     }
 
-  } # while(1)
+  } 
 }
 
 
@@ -159,7 +163,7 @@ get_user_barcode_win
   my $win_title = "Scan your barcode:";
   if (system("$DLG --title \"$win_title\" --clear " .
       " --inputbox \"\" 8 45 2> /tmp/input.barcode") != 0) {
-    return "";
+    return undef;
   }
 
   return `cat /tmp/input.barcode`;
@@ -171,8 +175,21 @@ invalid_user_barcode_win
 {
   my $win_title = "Invalid User Barcode";
   my $win_text = q{
-Valid user barcodes must contain at least %d digits
-and no characters.};
+Valid user barcodes must contain at least 
+%d digits and no characters.};
+
+  system("$DLG --title \"$win_title\" --msgbox \"" .
+	 sprintf($win_text, $MIN_BARCODE_LENG) .  "\" 9 50 2> /dev/null");
+}
+
+
+sub
+barcode_already_in_db_win
+{
+  my $win_title = "Invalid User Barcode";
+  my $win_text = q{
+This is not a valid barcode.  
+Please try another one.};
 
   system("$DLG --title \"$win_title\" --msgbox \"" .
 	 sprintf($win_text, $MIN_BARCODE_LENG) .  "\" 9 50 2> /dev/null");
@@ -196,4 +213,4 @@ isa_valid_user_barcode
   return (&isa_numeric_barcode($str) && $leng >= $MIN_BARCODE_LENG);
 }
 
-
+1;

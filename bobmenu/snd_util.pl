@@ -17,7 +17,7 @@
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # Created: 5/10/01
 #
-# $Id: snd_util.pl,v 1.4 2001-05-14 20:04:23 mcopenha Exp $
+# $Id: snd_util.pl,v 1.5 2001-05-15 00:18:05 mcopenha Exp $
 #
 
 require "ctime.pl";
@@ -55,7 +55,7 @@ say_greeting
 #
 {
   my $hour = substr(&ctime(time), 11, 2);
-  my $greeting = "good";
+  my $greeting = "good ";
   if ($hour >= 17) {
     $greeting .= "evening";
   } elsif ($hour >= 12) {
@@ -74,7 +74,11 @@ say_goodbye
     "goodbye",
     "later, dude",
     "have a nice day",
-    "shay bob kicks buttocks" 
+    "now get to work, ok?", 
+    "shay bob thanks you",
+    "please feed me dollar bills, not pennies",
+    "go do some research for crying out loud",
+    "by the way, you look very nice today"
   );
   sayit(splice(@goodbyes, rand @goodbyes, 1));
 }
@@ -87,3 +91,4 @@ sayit
   system("echo $str > /dev/speech");
 }
 
+1;

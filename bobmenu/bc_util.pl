@@ -29,7 +29,7 @@
 # Wesley Leong (wleong@cs.ucsd.edu)
 # Created: 5/12/00
 #
-# $Id: bc_util.pl,v 1.6 2001-05-14 20:04:23 mcopenha Exp $
+# $Id: bc_util.pl,v 1.7 2001-05-15 00:18:05 mcopenha Exp $
 #
 
 
@@ -121,4 +121,4 @@ decode_cuecat_barcode
   return $rawBarcode;
 }
 
-
+1;
