@@ -6,7 +6,7 @@
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.5 2001-05-21 21:20:08 mcopenha Exp $
+# $Id: mainmenu.pl,v 1.6 2001-05-22 03:29:31 mcopenha Exp $
 #  
 
 require "passwd.pl";
@@ -203,9 +203,9 @@ or scan an item using the barcode scanner.};
 	       "\"List recent transactions                       \" " .
 	   "\"Checkout a Book\" " .
 	       "\"Checkout a book from the lounge library        \" " .
-	   " 2> /tmp/input.action");
+	   " 2> $TMP/input.action");
 
-  $action = `cat /tmp/input.action`;
+  $action = `cat $TMP/input.action`;
 
   if ($retval != 0 || $action eq "Quit") {
     return "Quit";

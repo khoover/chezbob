@@ -25,7 +25,7 @@
 # Refer to http://www.adams1.com/pub/russadam/upccode.html for general 
 # information on barcode standards.
 #
-# $Id: bc_util.pl,v 1.10 2001-05-21 21:20:08 mcopenha Exp $
+# $Id: bc_util.pl,v 1.11 2001-05-22 03:29:31 mcopenha Exp $
 #
 
 
@@ -82,11 +82,11 @@ get_barcode_win
 {
   my $win_title = "Scan barcode:";
   if (system("$DLG --title \"$win_title\" --clear " .
-      " --inputbox \"\" 8 45 2> /tmp/input.barcode") != 0) {
+      " --inputbox \"\" 8 45 2> $TMP/input.barcode") != 0) {
     return undef;
   }
 
-  return `cat /tmp/input.barcode`;
+  return `cat $TMP/input.barcode`;
 }
 
 #---------------------------------------------------------------------------

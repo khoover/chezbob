@@ -2,7 +2,7 @@
 #
 # Routines for adding money to a chez bob account
 #
-# $Id: deposit.pl,v 1.3 2001-05-21 21:20:08 mcopenha Exp $
+# $Id: deposit.pl,v 1.4 2001-05-22 03:29:31 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -35,11 +35,11 @@ How much was deposited into the Bank of Bob?};
 
   while (1) {
     if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .
-               $win_text .  "\" 20 65 2> /tmp/input.deposit") != 0) {
+               $win_text .  "\" 20 65 2> $TMP/input.deposit") != 0) {
       return $CANCEL;
     }
 
-    my $amt = `cat /tmp/input.deposit`;
+    my $amt = `cat $TMP/input.deposit`;
     if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
       if (! &confirm_win("Add amount?",
                          sprintf("\nWas the deposit amount \\\$%.2f?", $amt))) {

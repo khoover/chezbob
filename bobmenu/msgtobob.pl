@@ -2,7 +2,7 @@
 #
 # Routine for recording a message for Bob in the db. 
 #
-# $Id: msgtobob.pl,v 1.4 2001-05-22 03:09:54 mcopenha Exp $
+# $Id: msgtobob.pl,v 1.5 2001-05-22 03:29:31 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -31,8 +31,8 @@ What is your message?};
   }
 
   if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .
-             $win_text . "\" 18 74 2> /tmp/input.msg") == 0) {
-    my $msg = "From $username: " . `cat /tmp/input.msg`;
+             $win_text . "\" 18 74 2> $TMP/input.msg") == 0) {
+    my $msg = "From $username: " . `cat $TMP/input.msg`;
     &bob_db_insert_msg($userid, $msg);
     &report_msg($userid, $msg);
   }

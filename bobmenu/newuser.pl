@@ -2,7 +2,7 @@
 #
 # Routines for processing a new user: create db entry, ask for email 
 # 
-# $Id: newuser.pl,v 1.2 2001-05-21 21:20:08 mcopenha Exp $
+# $Id: newuser.pl,v 1.3 2001-05-22 03:29:31 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -52,10 +52,10 @@ What is your email address?  (UCSD or SDSC
 email addresses preferred.)};
 
   system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-         $win_text .  "\" 11 51 \"$currentvalue\" 2> /tmp/input.email");
+         $win_text .  "\" 11 51 \"$currentvalue\" 2> $TMP/input.email");
   my $retval = $? >> 8;
   if ($retval == 0) {
-    return `cat /tmp/input.email`;
+    return `cat $TMP/input.email`;
   } else {
     return undef;
   }

@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.5 2001-05-22 01:34:24 yfei Exp $
+# $Id: buyitem.pl,v 1.6 2001-05-22 03:29:31 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -53,11 +53,11 @@ What is the price of the item you are buying?
 
     while (1) {
       if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .
-                 $win_text .  "\" 10 50 2> /tmp/input.deposit") != 0) {
+                 $win_text .  "\" 10 50 2> $TMP/input.deposit") != 0) {
         return "";
       }
 
-      $amt = `cat /tmp/input.deposit`;
+      $amt = `cat $TMP/input.deposit`;
       if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
         last;
       }
@@ -102,7 +102,13 @@ buy_single_item_with_scanner
 #
 {
   my ($userid) = @_;
+  if (! -r "/tmp/menuout") {
+    print "could not find menuout file from dialog\n";
+    exit 1;
+  }
+
   my $guess = `cat /tmp/menuout`;
+  system("rm -f /tmp/menuout");
 
   $barcode = &preprocess_barcode($guess);      
   $prodname = &bob_db_get_productname_from_barcode($barcode);

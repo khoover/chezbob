@@ -11,14 +11,14 @@
 # 2. Personal Barcode: The user scans his/her id card, or personal barcode.
 # 3. Username: The user types in their standard username.
 #
-# $Id: chezbob.pl,v 1.6 2001-05-22 03:08:01 mcopenha Exp $
+# $Id: chezbob.pl,v 1.7 2001-05-22 03:29:31 mcopenha Exp $
 #
 
 # Make sure Perl can find all of our files by appending INC with the 
 # path to the 'chezbob' executable.
-open(TMP, "which $0 |") || die "can't do which $0: $!\n";
-my $fullpath = <TMP>;
-close(TMP) || die "can't close\n";
+open(FILE, "which $0 |") || die "can't do which $0: $!\n";
+my $fullpath = <FILE>;
+close(FILE) || die "can't close\n";
 $BOBPATH = substr($fullpath, 0, rindex($fullpath, '/'));
 push(@INC, $BOBPATH);
 
@@ -27,9 +27,10 @@ $CASH_BARCODE = "888888";
 require "login.pl";	# login_win
 require "bob_db.pl";	# database routines
 require "buyitem.pl";   # buy routines
+require "dlg.pl";
 
 
-$REVISION = q{$Revision: 1.6 $};
+$REVISION = q{$Revision: 1.7 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -61,8 +62,8 @@ if ($barcode eq $CASH_BARCODE) {
 
 
 # Remove any temp input files 
-system("rm -f /tmp/input.*");
-system("rm -f /tmp/*.output.log");
-system("rm -f /tmp/menuout");
+system("rm -f $TMP/input.*");
+system("rm -f $TMP/*.output.log");
+system("rm -f $TMP/menuout");
 
 
