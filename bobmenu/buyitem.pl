@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.14 2001-05-25 23:14:23 mcopenha Exp $
+# $Id: buyitem.pl,v 1.15 2001-05-26 02:33:42 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -156,9 +156,9 @@ scan the product's barcode now.};
 
   my $phonetic_name = &bob_db_get_phonetic_name_from_barcode($barcode);
   &sayit("$phonetic_name");
-  my $amt = &bob_db_get_price_from_barcode($barcode);
 
 # MAC: take out confirmation
+#  my $amt = &bob_db_get_price_from_barcode($barcode);
 #  my $txt = sprintf("\nIs your purchase amount \\\$%.2f?", $amt);
 #  if (! &confirm_win($prodname, $txt, 40)) {
 #      return "";
