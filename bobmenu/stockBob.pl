@@ -191,6 +191,82 @@ newProduct_win
   # may want to add speech here to test the voice synthesis name
 }
 
+sub
+newBulk_win
+{
+  my ($conn, $newBarcode) = @_;
+  my $newName = "";
+
+  # ASK FOR NEW NAME FOR NEW PRODUCT
+  my $win_title = "New Bulk Product";
+  my $win_text = " The barcode of this bulk item is not in the database." .
+      "Please enter the name of this product.";
+  while ($newName !~ /\w+/) {
+      if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		 $win_text .
+		 "\" 12 55 2> /tmp/input.product") != 0) {
+	  return "";
+      }
+      $newName = `cat /tmp/input.product`;
+      system("rm -f /tmp/input.product");
+  }
+
+  # ASK FOR Number of kinds of items in the bulk item
+  $win_title = "# of kinds"; 
+  $win_text = "Enter the number of kinds of items";
+  while (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		 $win_text .
+		 "\" 8 55 2> /tmp/input.product") != 0) {} 
+  $numKinds = `cat /tmp/input.product`;
+  system("rm -f /tmp/input.product");      
+
+  # for each kind, get the barcode and quantity and record in db
+  for ($i=1; $i<=$numKinds; $i++) {
+    $win_title = "product $i";
+    $win_text = "Scan the barcode of product $i"; 
+    my $done = 0;
+    while (!$done) {
+      system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		 $win_text .
+		 "\" 8 55 2> /tmp/input.product"); 
+      $guess = `cat /tmp/input.product`;
+      system("rm -f /tmp/input.product");      
+      $prodbarcode = &verifyAndDecodeAnyBarcode($guess);
+      if($prodbarcode eq "") {
+        &errorBarcode();
+      } else {
+        $done = 1;
+      }
+    } 
+
+    $win_text = "Enter the quantity of product $i"; 
+    while (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		 $win_text .
+		 "\" 8 55 2> /tmp/input.product") != 0) {}
+    $quan = `cat /tmp/input.product`;
+    system("rm -f /tmp/input.product");      
+
+    my $insertqueryFormat = q{
+      insert into bulk_items
+	  values(
+		 '%s',
+		 '%s',
+		 '%s',
+		 %d
+		 );
+    };
+    my $result = $conn->exec(sprintf($insertqueryFormat,
+  				   $newBarcode,
+  				   $newName,
+  				   $prodbarcode,
+				   $quan));
+    if ($result->resultStatus != PGRES_COMMAND_OK) {
+        print STDERR "add_win: error inserting record...exiting\n";
+        exit 1;
+    }
+  }
+}
+
 
 ########################################
 # oldProduct_win
@@ -198,7 +274,7 @@ newProduct_win
 sub
 oldProduct_win
 {
-  my ($conn, $newBarcode, $name, $price, $stock) = @_;
+  my ($conn, $newBarcode, $name, $phonetic_name, $price, $stock) = @_;
   my $win_title = "$name";
   my $win_text = "Product Name: $name.\n".
       " Present TOTALS STOCK: $stock\n".
@@ -269,10 +345,10 @@ enterBarcode
 	} else {
 	    my $selectqueryFormat = q{
 		select *
-		    from products
-			where barcode = '%s';
+	        from products
+		where barcode = '%s';
 	    };
-	    my $result = $conn->exec(sprintf($selectqueryFormat,
+	    my $result = $conn->exec(sprintf($selectqueryFormat, 
 					     $newBarcode));
 	    if ($result->ntuples == 1) {
 		# assign each value in DB to a perl variable.
@@ -288,14 +364,73 @@ enterBarcode
 				$price,
 				$stock);
 	    } else {
-		# product now found... enter new product;
+		# product not found... enter new product;
 		&newProduct_win($conn, $newBarcode);
 	    }
 	}
     }
 }
 
+sub
+enterBulkBarcode
+{
+    my ($conn) = @_;
+    my $guess = "0";
+    my $newBarcode = "0";
+    
+    my $win_title = "Stock Manager: Enter Barcode";
+    my $win_text = "Enter the barcode of a product";
+    
+    while (1) {
+	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		   $win_text .
+		   "\" 8 55 2> /tmp/input.barcode") != 0) {
+	    return "";
+	}
+	
+	$guess = `cat /tmp/input.barcode`;
+	system("rm -f /tmp/input.barcode");
 
+	$newBarcode = &verifyAndDecodeAnyBarcode($guess);
+
+	if($newBarcode eq "") {
+	    # case where barcode is not a barcode...
+	    &errorBarcode();
+	} else {
+	    my $selectqueryFormat = q{
+		select *
+	        from bulk_items
+		where bulk_barcode = '%s';
+	    };
+	    my $result = $conn->exec(sprintf($selectqueryFormat, 
+					     $newBarcode));
+	    if ($result->ntuples != 0) {
+              for ($i=0; $i<$result->ntuples; $i++) {
+                my $updatequeryFormat = q{
+                  update products 
+                  set stock = stock + %d
+                  where barcode = '%s';
+                };
+	        my $rv = $conn->exec(sprintf($updatequeryFormat, 
+					     $result->getvalue($i,3),
+               				     $result->getvalue($i,2)));
+  		if ($rv->resultStatus != PGRES_COMMAND_OK) {
+	           print STDERR "bulk: error update record...exiting\n";
+                   exit 1;
+                }
+              }
+              my $bulkname = $result->getvalue(0,1);
+	      system("$DLG --msgbox \"$bulkname update complete\" 8 30"); 
+                
+	    } else {
+		# product not found... enter new product;
+		&newBulk_win($conn, $newBarcode);
+	    }
+	}
+    }
+}
+
+########################################
 ########################################
 # deleteProduct
 ########################################
@@ -653,17 +788,19 @@ mainMenu
     my $retval =
 	system("$DLG --title \"$win_title\" --clear --menu \"" .
 	       "$win_textFormat".
-	       "\" 14 64 8 " .
-	       "\"Stock\" " .
-	       "\"STOCK Chez Bob Inventory \" " .
+	       "\" 14 70 8 " .
+	       "\"Restock Bulk\" " .
+	       "\"Restock products in bulk\" " .
+	       "\"Restock Item\" " .
+	       "\"Restock an individual product \" " .
 	       "\"Change Price\" " .
-	       "\"Change the PRICE of a Chez Bob product \" " .
+	       "\"Change the PRICE of a product \" " .
 	       "\"Change Name\" " .
-	       "\"Change the NAME of a Chez Bob product \" " .
+	       "\"Change the NAME of a product \" " .
 	       "\"Change Phonetics\" " .
-	       "\"Change the PHONETICS of a product \" " .
+	       "\"Change the PHONETIC name of a product \" " .
 	       "\"Delete\" " .
-	       "\"DELETE a Chez Bob product \" " .
+	       "\"DELETE a product \" " .
 	       "\"Inventory\" " .
 	       "\"Turn inventory system on or off \" " .
 	       "\"Quit\" " .
@@ -699,7 +836,10 @@ while ($action ne "Quit") {
     if ($action eq "Delete") {
 	&deleteProduct($conn);
     }
-    elsif ($action eq "Stock") {
+    elsif ($action eq "Restock Bulk") {
+	&enterBulkBarcode($conn);
+    }
+    elsif ($action eq "Restock Item") {
 	&enterBarcode($conn);
     }
     elsif ($action eq "Change Name") {
