@@ -8,6 +8,5 @@ create table products
 
   primary key (barcode),
   unique (barcode),
-  unique (name),
-  unique (phonetic_name)
+  unique (name)
 );
