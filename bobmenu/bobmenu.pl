@@ -54,6 +54,7 @@ username if you are a new user):};
 
     system("$DLG --msgbox $username 5 50");
 
+    system("rm -f /tmp/input.*");
     return $username;
   }
 }
@@ -352,6 +353,8 @@ Choose one of the following actions (scroll down for more options):};
 	   " 2> /tmp/input.action");
 
   $action = `cat /tmp/input.action`;
+  system("rm -f /tmp/input.*");
+
   if ($retval != 0 || $action eq "Quit") {
     #
     # confirm
@@ -842,7 +845,7 @@ confirm_win
 ###
 
 $REVISION = q{
-$Revision: 1.3 $
+$Revision: 1.4 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
