@@ -50,6 +50,28 @@ decode_barcode {
     return $rawBarcode;
 }
 
+
+########################################
+# verifyAndDecodeAnyBarcode - takses any barcode whether cuecat or character and verifies it.
+# Only returns barcode that detects 12 digits or 8 digits.
+########################################
+sub
+verifyAndDecodeAnyBarcode
+{
+    my ($guess) = @_;    
+    if (&isa_barcode($guess)) {
+	return &decode_barcode($guess);
+    }
+    elsif (($guess =~/^\d\d\d\d\d\d\d\d\d\d\d\d$/) || ($guess =~ /^\d\d\d\d\d\d\d$/)) {
+	return $guess;
+    }
+    else {
+	# Bad input
+	return "";
+    }
+}
+
+
 ########################################
 # errorBarcode
 ########################################
@@ -192,8 +214,8 @@ enterBarcode
     my $guess = "0";
     my $newBarcode = "0";
     
-    $win_title = "Stock Manager: Enter Barcode";
-    $win_text = "Enter the Barcode of a Product";
+    my $win_title = "Stock Manager: Enter Barcode";
+    my $win_text = "Enter the barcode of a product";
     
     while (1) {
 	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
@@ -204,8 +226,13 @@ enterBarcode
 	
 	$guess = `cat /tmp/input.barcode`;
 	system("rm -f /tmp/input.barcode");
-	if (&isa_barcode($guess)) {
-	    $newBarcode = &decode_barcode($guess); 
+
+	$newBarcode = &verifyAndDecodeAnyBarcode($guess);
+
+	if($newBarcode eq "") {
+	    # case where barcode is not a barcode...
+	    &errorBarcode();
+	} else {
 	    my $selectqueryFormat = q{
 		select *
 		    from products
@@ -226,16 +253,115 @@ enterBarcode
 				$stock);
 		#return $newBarcode;
 	    } else {
-	    # product now found... enter new product;
+		# product now found... enter new product;
 		&newProduct_win($conn, $newBarcode);
 		#return $newBarcode;
 	    }
-	} else {
-	    # case where barcode is not a barcode...
-	    &errorBarcode();
-        }
+	}
     }
 }
+
+
+########################################
+# deleteProduct
+########################################
+sub
+deleteProduct
+{
+    my ($conn) = @_;
+    my $guess = "0";
+    my $newBarcode = "0";
+    
+    my $win_title = "Stock Manager: Delete Product";
+    my $win_text = "Enter the barcode of the product you want to DELETE.";
+
+    while (1) {
+	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		   $win_text .
+		   "\" 8 55 2> /tmp/input.barcode") != 0) {
+	    return "";
+	}
+	
+	$guess = `cat /tmp/input.barcode`;
+	system("rm -f /tmp/input.barcode");
+	
+	$newBarcode = &verifyAndDecodeAnyBarcode($guess);
+	
+	if($newBarcode eq "") {
+	    # case where barcode is not a barcode...
+	    &errorBarcode();
+	} else {
+	    # Confirm deletion by showing the item in a confirmation dialog box.
+
+	    # First get the name of the item
+	    my $selectqueryFormat = q{
+		select name
+		    from products
+			where barcode = '%s';
+	    };
+	    my $result = $conn->exec(sprintf($selectqueryFormat, $newBarcode));
+	    $win_title = "Barcode Not Found";
+	    $win_text = "Barcode not found in database.";
+	    if ($result->ntuples != 1) {
+		system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+		       $win_text .
+		       "\" 8 55");
+		return"";
+	    }
+
+	    my $newName = $result->getvalue(0,0);
+	    # Then create the confirmation box
+	    $win_title = "Confirm the Deletion of: $newName";
+	    $win_text = "DELETE $newName?"; 
+	    if (system("$DLG --title \"$win_title\" --clear --yesno \"" .
+		       $win_text .
+		       "\" 8 55 2> /tmp/input.barcode") != 0) {
+		return "";
+	    }
+
+	    my $deletequeryFormat = q{
+		delete
+		    from products
+			where barcode = '%s';
+			};
+	    $result = $conn->exec(sprintf($deletequeryFormat,
+					  $newBarcode));
+	    if ($result->resultStatus != PGRES_COMMAND_OK) {
+		print STDERR "delete_win: error deleting record...exiting\n";
+		exit 1;
+	    }
+	    return "";
+	}
+    }
+}
+
+
+########################################
+# mainMenu - the big front menu
+########################################
+sub
+mainMenu
+{
+    my $win_title = "Chez Bob Inventory Manager";
+    my $win_textFormat = "Welcome to Chez Bob Inventory Management System.";
+
+    my $retval =
+	system("$DLG --title \"$win_title\" --clear --menu \"" .
+	       "$win_textFormat".
+	       "\" 23 76 8 " .
+	       "\"Restock\" " .
+	       "\"Restock Chez Bob Inventory \" " .
+	       "\"Delete\" " .
+	       "\"Delete a Chez Bob product \" " .
+	       "\"Quit\" " .
+	       "\"Quit this program\" " .
+	       " 2> /tmp/input.action");
+    
+    my $action = `cat /tmp/input.action`;
+    system("rm -f /tmp/input.*");
+    return $action;
+}
+
 
 ###############################################################################
 # MAIN PROGRAM
@@ -248,4 +374,17 @@ if ($conn->status == PGRES_CONNECTION_BAD) {
     exit 1;
 }
 
-&enterBarcode($conn);
+$action = "";
+
+while ($action ne "Quit") {
+    $action = &mainMenu();
+
+    if ($action eq "Delete") {
+	&deleteProduct($conn);
+    }
+    elsif ($action eq "Restock") {
+	&enterBarcode($conn);
+    }
+}
+
+
