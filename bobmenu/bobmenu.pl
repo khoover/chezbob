@@ -3,6 +3,7 @@
 ###
 ### libraries and constants
 ###
+
 use Pg;
 use Barcode;
 
@@ -913,7 +914,7 @@ confirm_win
 ###
 
 $REVISION = q{
-$Revision: 1.8 $
+$Revision: 1.9 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
