@@ -14,6 +14,10 @@ select users.userid, balance
  where users.userid = balances.userid
    and users.username='%s';
 };
+$delPwdQuery = qq {
+delete from pwd
+ where userid=%s;
+};
 $delUsersQuery = qq {
 delete from users
  where userid=%s;
@@ -55,6 +59,7 @@ foreach $acct (@ARGV) {
   chop($answer = <STDIN>);
   if ($answer eq "y" || $answer eq "yes") {
     push(@DEL, "$userid:$acct:$bal");
+    $conn->exec(sprintf($delPwdQuery, $userid));
     $conn->exec(sprintf($delUsersQuery, $userid));
     $conn->exec(sprintf($delBalancesQuery, $userid));
     $conn->exec(sprintf($delTransactionsQuery, $userid));
