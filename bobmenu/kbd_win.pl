@@ -1,3 +1,16 @@
+# kbd_login.pl
+#
+# Routines that implement the original Chez Bob text interface.  There's 
+# no way we can do away with the text login completely; at the very least
+# users need an easy way to add money to their accounts.  If the 
+# barcode interface really takes off, we may want to remove/disable the 
+# ability to purchase items using the text interface.  The potential
+# advantage is that the inventory tracking would be more accurate.
+#
+# Al Su (alsu@cs.ucsd.edu)
+#
+# $Id: kbd_win.pl,v 1.5 2001-05-14 06:47:33 mcopenha Exp $
+#  
 
 $DLG = "/usr/bin/dialog";
 
@@ -15,12 +28,10 @@ invalidUsername_win
   my $win_title = "Invalid username";
   my $win_text = q{
 Valid usernames must contain at least one
-character and consist of letters and numbers
-only.
-  };
+character and cannot have any digits.};
+
   system("$DLG --title \"$win_title\" --msgbox \"" .
-	 $win_text .
-	 "\" 9 50 2> /dev/null");
+	 $win_text .  "\" 9 50 2> /dev/null");
 }
 
 
@@ -29,17 +40,12 @@ guess_pwd_win
 {
   my $win_title = "Enter password";
   my $win_text = "Enter your password:";
-
   if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-	     $win_text .
-	     "\" 8 45 2> /tmp/input.guess") != 0) {
+	     $win_text .  "\" 8 45 2> /tmp/input.guess") != 0) {
     return "";
   }
 
-  $guess = `cat /tmp/input.guess`;
-  system("rm -f /tmp/input.guess");
-
-  return $guess;
+  return `cat /tmp/input.guess`;
 }
 
 
@@ -50,8 +56,7 @@ invalidPassword_win
   my $win_text = "\nWrong password entered!\n";
 
   system("$DLG --title \"$win_title\" --msgbox \"" .
-	 $win_text .
-	 "\" 7 30 2> /dev/null");
+	 $win_text .  "\" 7 30 2> /dev/null");
 }
 
 
@@ -66,8 +71,7 @@ askStartNew_win
   my $win_textFormat = q{
 I did not find you in our database.  Shall I open
 up a new Chez Bob record under the name \"%s\"
-for you?
-};
+for you?};
 
   while (1) {
     if (system("$DLG --title \"$win_title\" --clear --yesno \"" .
@@ -87,10 +91,10 @@ for you?
     }
 
     &bob_db_add_user($username, $email);
-
     return 0;
   }
 }
+
 
 sub
 askEmail_win
@@ -102,17 +106,15 @@ What is your email address?  (UCSD or SDSC
 email addresses preferred.)};
 
   system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-	 $win_text .
-	 "\" 11 51 \"$currentvalue\" 2> /tmp/input.email");
+	 $win_text .  "\" 11 51 \"$currentvalue\" 2> /tmp/input.email");
   my $retval = $?>>8;
   if ($retval == 0) {
-    my $rv = `cat /tmp/input.email`;
-    system("rm -f /tmp/input.email");
-    return $rv;
+    return `cat /tmp/input.email`;
   } else {
     return undef;
   }
 }
+
 
 sub
 invalidEmail_win
@@ -123,18 +125,16 @@ Valid email addresses take the form
 <user>@<full.domain.name>};
 
   system("$DLG --title \"$win_title\" --msgbox \"" .
-	 $win_text .
-	 "\" 8 50 2> /dev/null");
+	 $win_text .  "\" 8 50 2> /dev/null");
 }
 
 ########################### BALANCE INIT WINDOWS ############################
 
 sub
-initBalance_win
+initBalance
 {
   my ($userid) = @_;
   &bob_db_init_balance($userid);
-  return 0;
 }
 
 
@@ -153,7 +153,6 @@ askHowMuch_win
     }
 
     my $amt = `cat /tmp/input.howmuch`;
-    system("rm -f /tmp/input.howmuch");
     if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
       return $amt;
     }
@@ -197,8 +196,7 @@ Choose one of the following actions (scroll down for more options):};
   my $balanceString = "";
   if ($balance < 0.0) {
     $balanceString = sprintf("owe Bob \\\$%.2f", -$balance);
-  }
-  else {
+  } else {
     $balanceString = sprintf("have a credit balance of \\\$%.2f", $balance);
   }
 
@@ -236,7 +234,6 @@ Choose one of the following actions (scroll down for more options):};
 	   " 2> /tmp/input.action");
 
   $action = `cat /tmp/input.action`;
-  system("rm -f /tmp/input.action");
 
   if ($retval != 0 || $action eq "Quit") {
     return "Quit";
@@ -244,6 +241,7 @@ Choose one of the following actions (scroll down for more options):};
 
   return $action;
 }
+
 
 sub
 add_win
@@ -269,11 +267,10 @@ How much was deposited into the Bank of Bob?};
     if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 	       $win_text .
 	       "\" 20 65 2> /tmp/input.deposit") != 0) {
-      return;
+      return -1;
     }
 
     my $amt = `cat /tmp/input.deposit`;
-    system("rm -f /tmp/input.deposit");
     if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
       if (! &confirm_win("Add amount?",
 			 sprintf("\nWas the deposit amount \\\$%.2f?",
@@ -282,21 +279,21 @@ How much was deposited into the Bank of Bob?};
       }
 
       &bob_db_update_balance($userid, $amt, "ADD");
-
-      return;
+      return 0;
+    } else {
+      &invalidAmount_win();
     }
-
-    &invalidAmount_win();
   }
 }
+
 
 sub
 buy_win
 {
   my ($userid, $type) = @_;
+
   my $amt;
   my $confirmMsg;
-
   undef $amt;
 
   if (defined $type) {
@@ -323,11 +320,10 @@ point!)};
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 		 $win_text .
 		 "\" 13 50 2> /tmp/input.deposit") != 0) {
-	return;
+	return -1;
       }
 
       $amt = `cat /tmp/input.deposit`;
-      system("rm -f /tmp/input.deposit");
       if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
 	last;
       }
@@ -339,10 +335,11 @@ point!)};
   if (! &confirm_win($confirmMsg,
 		     sprintf("\nIs your purchase amount \\\$%.2f?",
 			     $amt),40)) {
-    return;
+    return -1;
+  } else {
+    &bob_db_update_balance($userid, -$amt, $type);
+    return 0;
   }
-
-  &bob_db_update_balance($userid, -$amt, $type);
 }
 
 
@@ -373,7 +370,6 @@ What is your message?};
 	     $win_text .
 	     "\" 18 74 \"From $username: \" 2> /tmp/input.msg") == 0) {
     my $msg = `cat /tmp/input.msg`;
-    system("rm -f /tmp/input.msg");
     &bob_db_insert_msg($userid, $msg);
   }
 }
@@ -403,16 +399,14 @@ Type your new password.  To remove an existing
 password, enter \"none\" as your password.
 
 NOTE: YOUR PASSWORD WILL BE ECHOED TO THE
-SCREEN...MAKE SURE NO ONE IS LOOKING!
-  };
+SCREEN...MAKE SURE NO ONE IS LOOKING!};
 
   my $verify_win_text = q{
-Re-type your password:
-  };
+Re-type your password:};
 
   my $passwd = &bob_db_get_pwd($userid);
   if (defined $passwd) {
-    $salt = substr($passwd,-2,2);
+    $salt = substr($passwd, -2, 2);
     $pwd_exists = 1;
   } else {
     $salt = "cB";
@@ -425,7 +419,6 @@ Re-type your password:
     return;
   }
   my $p = `cat /tmp/input.pwd`;
-  system("rm -f /tmp/input.pwd");
 
   if ($p eq "none") {
     &bob_db_remove_pwd($userid);
@@ -438,13 +431,11 @@ Re-type your password:
     return;
   }
   my $p_v = `cat /tmp/input.pwd_v`;
-  system("rm -f /tmp/input.pwd_v");
 
   if ($p ne $p_v) {
     my $no_match_msg = q{
 There was a mismatch between the two passwords.
-No changes were made.
-    };
+No changes were made.};
     system("$DLG --title \"Passwords do not match\" --clear --msgbox \"" .
 	   $no_match_msg .
 	   "\" 8 52 2> /dev/null");
@@ -477,17 +468,21 @@ implemented.};
 
 sub
 isa_valid_username
+#
+# usernames must consist of at least 1 char and can only contain 
+# non-digit (\D) chars.
+#
 {
   my ($username) = @_;
-  return ($username =~ /^\w+$/);
+  return ($username =~ /^\D+$/); 
 }
  
 
 sub
 checkPwd
 {
-  my ($p,$guess) = @_;
-  return (crypt($guess,$p) eq $p); 
+  my ($p, $guess) = @_;
+  return (crypt($guess, $p) eq $p); 
 }
 
 
@@ -499,9 +494,7 @@ confirm_win
   $w ||= 35;
 
   $retval = system("$DLG --title \"$win_title\" --clear --yesno \"" .
-		   $win_text .
-		   "\" $h $w 2> /dev/null");
-
+		   $win_text .  "\" $h $w 2> /dev/null");
   return ($retval == 0);
 }
 
@@ -528,51 +521,51 @@ kbd_action_win
     $action = &action_win($username,$userid,$balance);
 
     $_ = $action;
-   SWITCH: {
-     /^Add$/ && do {
-       &add_win($userid);
-       last SWITCH;
-     };
+    SWITCH: {
+      /^Add$/ && do {
+        &add_win($userid);
+        last SWITCH;
+      };
   
-     (/^Candy\/Can of Soda$/ || /^Snapple$/ || /^Juice$/ ||
-      /^Popcorn\/Chips\/etc.$/) && do {
-       &buy_win($userid,$_);
-       last SWITCH;
-     };
+      (/^Candy\/Can of Soda$/ || /^Snapple$/ || /^Juice$/ ||
+       /^Popcorn\/Chips\/etc.$/) && do {
+        &buy_win($userid,$_);
+        last SWITCH;
+      };
+    
+      /^Buy Other$/ && do {
+        &buy_win($userid);
+        last SWITCH;
+      };
   
-     /^Buy Other$/ && do {
-       &buy_win($userid);
-       last SWITCH;
-     };
+      /^Message$/ && do {
+        &message_win($username, $userid);
+        last SWITCH;
+      };
   
-     /^Message$/ && do {
-       &message_win($username, $userid);
-       last SWITCH;
-     };
+      /^Transactions$/ && do {
+        &log_win($userid);
+        last SWITCH;
+      };
+   
+      /^Modify Barcode$/ && do {
+        &update_user_barcode($userid);
+        last SWITCH;
+      };
   
-     /^Transactions$/ && do {
-       &log_win($userid);
-       last SWITCH;
-     };
+      /^Modify Password$/ && do {
+        &pwd_win($userid);
+        last SWITCH;
+      };
   
-     /^Modify Barcode$/ && do {
-       &barcode_win($userid);
-       last SWITCH;
-     };
-  
-     /^Modify Password$/ && do {
-       &pwd_win($userid);
-       last SWITCH;
-     };
-  
-     /^No action$/ && do {
-       last SWITCH;
-     };
-  
-     (! /^Quit$/) && do {
-       &unimplemented_win();
-       last SWITCH;
-     };
-   } # SWITCH
+      /^No action$/ && do {
+        last SWITCH;
+      };
+   
+      (! /^Quit$/) && do {
+        &unimplemented_win();
+        last SWITCH;
+      };
+    } # SWITCH
   } while ($action ne "Quit");
 } 

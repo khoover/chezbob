@@ -10,7 +10,7 @@
 # Wesley Leong (wleong@cs.ucsd.edu)
 # Created: 5/2/01
 #
-# $Id: stockBob.pl,v 1.3 2001-05-13 21:45:59 mcopenha Exp $
+# $Id: stockBob.pl,v 1.4 2001-05-14 06:47:38 mcopenha Exp $
 #
 
 $DLG = "/usr/bin/dialog";
@@ -59,7 +59,6 @@ This is a new product.  Enter the product's name.
 	  return "";
       }
       $newName = `cat /tmp/input.product`;
-      system("rm -f /tmp/input.product");
   }
 
   # ASK FOR PHONETIC NAME
@@ -71,7 +70,6 @@ This is a new product.  Enter the product's name.
 	  return "";
       }
       $newPhonetic_Name = `cat /tmp/input.product`;
-      system("rm -f /tmp/input.product");
       # check for proper input and then ask for quantity for stock.  
   }
 
@@ -85,7 +83,6 @@ This is a new product.  Enter the product's name.
 	  return "";
       }      
       $newPrice = `cat /tmp/input.product`;
-      system("rm -f /tmp/input.product");      
   }
 
   while ($newStock !~ /^\d+$/) {
@@ -98,7 +95,6 @@ This is a new product.  Enter the product's name.
 	  return "";
       }
       $newStock = `cat /tmp/input.product`;
-      system("rm -f /tmp/input.product");
   }
   
   &bob_db_insert_product($newBarcode, $newName, $newPhonetic_Name, $newPrice, $newStock);
@@ -130,7 +126,6 @@ newBulk_win
 	  return "";
       }
       $newName = `cat /tmp/input.product`;
-      system("rm -f /tmp/input.product");
   }
 
   # ASK FOR Number of kinds of items in the bulk item
@@ -140,7 +135,6 @@ newBulk_win
 		 $win_text .
 		 "\" 8 55 2> /tmp/input.product") != 0) {} 
   $numKinds = `cat /tmp/input.product`;
-  system("rm -f /tmp/input.product");      
 
   # for each kind, get the barcode and quantity and record in db
   for ($i=1; $i<=$numKinds; $i++) {
@@ -154,7 +148,6 @@ newBulk_win
           return ""; 
       }
       $guess = `cat /tmp/input.product`;
-      system("rm -f /tmp/input.product");      
       $prodbarcode = &preprocess_barcode($guess);
       if($prodbarcode eq "") {
         &errorBarcode();
@@ -170,7 +163,6 @@ newBulk_win
         return "";
     }
     $quan = `cat /tmp/input.product`;
-    system("rm -f /tmp/input.product");      
 
     &bob_db_insert_bulk_item($newBarcode, $newName, $prodbarcode, $quan);
   }
@@ -198,7 +190,6 @@ Enter an amount to add to the present stock total
   }
 
   my $newStock = `cat /tmp/input.product`;
-  system("rm -f /tmp/input.product");
 
   $newStock = $newStock + $stock;
   &bob_db_set_stock($barcode, $newStock);
@@ -226,7 +217,6 @@ enterBarcode
 	}
 	
 	$guess = `cat /tmp/input.barcode`;
-	system("rm -f /tmp/input.barcode");
 
 	$newBarcode = &preprocess_barcode($guess);
 
@@ -262,7 +252,6 @@ enterBulkBarcode
 	}
 	
 	$guess = `cat /tmp/input.barcode`;
-	system("rm -f /tmp/input.barcode");
 
 	$newBarcode = &preprocess_barcode($guess);
 
@@ -298,7 +287,6 @@ deleteProduct
    }
 
 	$guess = `cat /tmp/input.barcode`;
-	system("rm -f /tmp/input.barcode");
 	
 	$newBarcode = &preprocess_barcode($guess);
 	
@@ -361,7 +349,6 @@ mainMenu
     " 2> /tmp/input.action");
     
   my $action = `cat /tmp/input.action`;
-  system("rm -f /tmp/input.action");
 
   if ($action eq "") {
     $action = "Quit";
@@ -372,6 +359,7 @@ mainMenu
 
 
 &bob_db_connect;
+system("rm -f /tmp/input.*");
 
 $action = "";
 

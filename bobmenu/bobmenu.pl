@@ -6,20 +6,21 @@
 # and calls the corresponding handler routine (kbd_login or barcode_login).
 #
 # Al Su (alsu@cs.ucsd.edu)
+# Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # 
-# $Id: bobmenu.pl,v 1.24 2001-05-13 21:55:08 mcopenha Exp $
+# $Id: bobmenu.pl,v 1.25 2001-05-14 06:47:33 mcopenha Exp $
 #
 
-do 'bc_win.pl';
-do 'bc_util.pl';
-do 'snd_util.pl';
-do 'kbd_win.pl';
-do 'bob_db.pl';
+do 'bc_win.pl';		# barcode login windows
+do 'kbd_win.pl';	# keyboard login windows
+do 'bc_util.pl';	# barcode utils
+do 'snd_util.pl';	# speech utils
+do 'bob_db.pl';		# database routines
 
 $DLG = "/usr/bin/dialog";
 
 
-$REVISION = q{$Revision: 1.24 $};
+$REVISION = q{$Revision: 1.25 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -31,17 +32,25 @@ print "rev is $REVISION\n";
 &bob_db_connect;
 
 while (1) {
-  my $logintxt = &login_win($REVISION);
+  # Make sure any temp input files are gone. We can run into permission
+  # problems if multiple people are trying to run Bob on the same system.
+  system("rm -f /tmp/input.*");
 
-  # Check if we're dealing with a regular username or a barcode
-  if (&isa_barcode($logintxt)) {
-    &barcode_login($logintxt);
-  } elsif (isa_valid_username($logintxt)) {
-    &kbd_login($logintxt);
+  # First assume the input is a barcode and try a lookup.  If the lookup 
+  # fails assume the input is a regular username.
+  my $logintxt = &login_win($REVISION);
+  my $barcode = &preprocess_barcode($logintxt); 
+  my $userid = &bob_db_get_userid_from_barcode($barcode);
+  if ($userid == -1) {
+    if (isa_valid_username($logintxt)) {
+      &kbd_login($logintxt);
+    } else {
+      &invalidUsername_win();
+      next;
+    }
   } else {
-    &invalidUsername_win();
-    next;
-  } 
+    &barcode_login($userid);
+  }
 } 
 
 
@@ -63,25 +72,16 @@ Enter your username or scan your personal barcode.
   system("$DLG --title \"$win_title\" --clear --inputbox \"" .
          $win_text .  "\" 14 55 \"$username\" 2> /tmp/input.main");
 
-  $txt = `cat /tmp/input.main`;
-  system("rm -f /tmp/input.main");
-
-  return $txt;
+  return `cat /tmp/input.main`;
 }
 
 
 sub
 barcode_login
 {
-  my ($logintext) = @_;
-
-  $barcode = &preprocess_barcode($logintext); 
-  my $userid = &bob_db_get_userid_from_barcode($barcode);
-  if ($userid == -1) {
-    &barcode_not_found;
-  } else {
-    &barcode_action_win($userid);
-  }
+  my ($userid) = @_;
+  my $username = bob_db_get_username_from_userid($userid);
+  &barcode_action_win($userid, $username);
 }
 
 
@@ -99,15 +99,12 @@ kbd_login
       return;
     }
 
-    if (&initBalance_win($userid) < 0) {
-      return;
-    }
+    &initBalance($userid);
   }
 
   $pwd = &bob_db_get_pwd($userid);
   if (defined $pwd && &checkPwd($pwd, &guess_pwd_win()) == 0) {
     &invalidPassword_win();
-    return;
   } else {
     &kbd_action_win($userid, $username);
   }

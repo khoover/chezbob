@@ -9,9 +9,18 @@
 # We are currently using a Metrologic MS951-47 barcode scanner 
 # (http://www.metrologic.com/corporate/products/pos/MS900.htm) that was
 # purchased from Ebay for $105 (Note: the website also contains pdf versions
-# of the manuals which are crucial for programming the scanner).  The 
-# scanner is very good at scanning barcodes printed on paper, but has a lot
-# of trouble scanning barcodes on aluminum cans.
+# of the manuals which are crucial for programming the scanner).  This
+# particular scanner was chosen for 2 reasons: first, it uses a simple
+# keyboard (ps/2) interface and therefore doesn't require any special
+# software.  Secondly, it's triggerless; it uses an infrared sensor to 
+# detect when an object is nearby, and then activate the laser.
+#
+# Interestingly, we can exploit the encoded stream of the Cuecat to 
+# determine whether we're dealing with barcode or keyboard input (well, 
+# unless the user is crazy enough to enter the encoded barcode in by hand).
+# The Metrologic doesn't have this property and it's much more difficult
+# to distinguish between the two.  The current Bob code doesn't try to 
+# make any distinction.
 #
 # Refer to http://www.adams1.com/pub/russadam/upccode.html for general 
 # information on barcode standards.
@@ -20,7 +29,7 @@
 # Wesley Leong (wleong@cs.ucsd.edu)
 # Created: 5/12/00
 #
-# $Id: bc_util.pl,v 1.3 2001-05-13 21:55:08 mcopenha Exp $
+# $Id: bc_util.pl,v 1.4 2001-05-14 06:47:33 mcopenha Exp $
 #
 
 sub
@@ -71,7 +80,12 @@ isa_upc_barcode
 {
   my ($barcode) = @_;
   my $leng = length($barcode);
-  return (($leng == 12 || $leng == 6)
+  my $type_E_leng = 6;
+  if (&isa_cuecat_barcode($barcode)) {
+    $type_E_leng = 7;
+  } 
+
+  return (($leng == 12 || $leng == $type_E_leng)
           && ($barcode !~ /[^0-9]+/));
 }
 
@@ -105,7 +119,6 @@ decode_cuecat_barcode
 #
 {
   my ($rawInput) = @_;
-
   my @getParsed = split /\./,$rawInput;
   my $rawBarcode = $getParsed[3];
   $rawBarcode =~ tr/a-zA-Z0-9+-/ -_/;

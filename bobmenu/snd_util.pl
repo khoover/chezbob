@@ -17,15 +17,19 @@
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # Created: 5/10/01
 #
-# $Id: snd_util.pl,v 1.2 2001-05-13 21:55:08 mcopenha Exp $
+# $Id: snd_util.pl,v 1.3 2001-05-14 06:47:33 mcopenha Exp $
 #
 
 sub
-saytotal
+saymoney
+#
+# Given a dollar amount in x.xx format, say the amount aloud. Festival 
+# recognizes the '$' sign and says 'dollars', but it's not smart enough
+# to get the change correct.
+#
 {
-  my ($total) = @_;
-
-  my $str = sprintf("%.2f", $total);
+  my ($amt) = @_;
+  my $str = sprintf("%.2f", $amt);
   my @money = split(/\./, $str);
   my $dollars = int($money[0]);
   my $cents = $money[1];
@@ -34,9 +38,9 @@ saytotal
   }
 
   if ($dollars > 0) {
-    &sayit("your total is \\\$$dollars and $cents cents");
+    &sayit("\\\$$dollars and $cents cents");
   } else {
-    &sayit("your total is $cents cents");
+    &sayit("$cents cents");
   }
 }
 
@@ -45,6 +49,6 @@ sub
 sayit
 {
   my ($str) = @_;
-  system("echo $str > /dev/speech");
+#  system("echo $str > /dev/speech");
 }
 
