@@ -14,7 +14,7 @@
 # firing up festival each time we want to say something; also doesn't 
 # introduce 'device not available' errors.
 #
-# $Id: speech.pl,v 1.6 2001-06-07 21:16:14 mcopenha Exp $
+# $Id: speech.pl,v 1.7 2001-06-08 20:22:33 cse210 Exp $
 #
 
 use FileHandle;
@@ -28,14 +28,18 @@ my @goodbyes = ();		# an array of witty goodbyes
 sub
 speech_startup
 #
-# Open the fifo to speechd and initialize the goodbyes arrays
+# Open a fifo to speechd and initialize the 'goodbyes' array
 #
 {
   open(FEST, ">> $fifo") || die "can't open $fifo: $!\n";
   my $byefile = "$BOBPATH/goodbyes.txt";
-  open(BYE, $byefile) || print STDERR "can't open $byefile: $!\n";
-  @goodbyes = <BYE>;
-  close(BYE);
+  unless (open(BYE, $byefile)) {
+    print STDERR "can't open $byefile: $!\n";
+    return;
+  } else {
+    @goodbyes = <BYE>;
+    close(BYE);
+  }
 }
 
 
@@ -70,7 +74,7 @@ format_money
     $cents = chop($cents);
   }
   if ($cents ne "0") { 
-    $rv .= ($cents ne "1") ? "$cents cents" : "$cents cent"; 
+    $rv .= ($cents ne "1") ? "$cents cents" : "one cent"; 
   }
 
   return $rv;
@@ -107,9 +111,6 @@ say_goodbye
 
 sub
 sayit
-#
-# Opening the fifo is far superior to using the system call
-#
 {
   my ($str) = @_;
   print FEST $str, "\n" ; 
