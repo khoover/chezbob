@@ -9,7 +9,7 @@ $DB = "bob";
 
 #queries
 $mainQuery = qq{
-select users.userid, balance
+select users.userid, balance, users.email
   from users, balances
  where users.userid = balances.userid
    and users.username='%s';
@@ -55,10 +55,11 @@ foreach $acct (@ARGV) {
 
   $userid = $result->getvalue(0,0);
   $bal = $result->getvalue(0,1);
+  $emailAddr = $result->getvalue(0,2);
   print STDERR "delete account $acct (userid=$userid)? ";
   chop($answer = <STDIN>);
   if ($answer eq "y" || $answer eq "yes") {
-    push(@DEL, "$userid:$acct:$bal");
+    push(@DEL, "$userid:$acct($emailAddr):$bal");
     $conn->exec(sprintf($delPwdQuery, $userid));
     $conn->exec(sprintf($delUsersQuery, $userid));
     $conn->exec(sprintf($delBalancesQuery, $userid));
