@@ -8,7 +8,7 @@
 # Al Su (alsu@cs.ucsd.edu)
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # 
-# $Id: bobmenu.pl,v 1.29 2001-05-15 04:03:01 mcopenha Exp $
+# $Id: bobmenu.pl,v 1.30 2001-05-15 06:12:13 mcopenha Exp $
 #
 
 require "bc_win.pl";	# barcode login windows
@@ -21,7 +21,7 @@ my $DLG = "/usr/bin/dialog";
 $CANCEL = -1;
 
 
-$REVISION = q{$Revision: 1.29 $};
+$REVISION = q{$Revision: 1.30 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -32,8 +32,11 @@ print "rev is $REVISION\n";
 
 &bob_db_connect;
 
+do {
+  $logintxt = &login_win($REVISION);
+} while ($logintxt eq "");
+
 # Check if we're dealing with a user barcode or regular username
-my $logintxt = &login_win($REVISION);
 my $barcode = &preprocess_barcode($logintxt); 
 if (&isa_valid_user_barcode($barcode)) {
   my $userid = &bob_db_get_userid_from_barcode($barcode);
@@ -68,8 +71,10 @@ Enter your username or scan your personal barcode.
 (If you are a new user enter a new username):
 };
 
-  system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-         $win_text .  "\" 14 55 \"$username\" 2> /tmp/input.main");
+  if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+         $win_text .  "\" 14 55 \"$username\" 2> /tmp/input.main") != 0) {
+    return "";
+  }
 
   return `cat /tmp/input.main`;
 }
