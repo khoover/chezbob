@@ -8,16 +8,13 @@
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
 #
-# Michael Copenhafer (mcopenha@cs.ucsd.edu)
-# Created: 5/2/00
-#
-# $Id: bob_db.pl,v 1.10 2001-05-18 00:54:05 mcopenha Exp $
+# $Id: bob_db.pl,v 1.11 2001-05-18 05:41:44 mcopenha Exp $
 #
 
 use Pg;
 
 my $conn = ""; 		# the database connection	
-my $NOT_FOUND = -1;	
+$NOT_FOUND = -1;	
 
 sub
 bob_db_connect
@@ -43,26 +40,6 @@ bob_db_check_conn
 
 #---------------------------------------------------------------------------
 # users table
-
-sub
-bob_db_get_username_from_userid
-{
-  my ($userid) = @_;
-
-  &bob_db_check_conn;
-  my $queryFormat = q{
-    select username
-    from users
-    where userid = %d;
-  };
-  my $result = $conn->exec(sprintf($queryFormat,$userid));
-  if ($result->ntuples != 1) {
-    return $NOT_FOUND;
-  } else {
-    return ($result->getvalue(0,0));
-  }
-}
-
 
 sub
 bob_db_get_username_from_userbarcode
@@ -487,24 +464,19 @@ bob_db_set_stock
 
 sub
 bob_db_update_stock
-#
-# 'trans' is an array of product names
-#
 {
-  my ($delta, @trans) = @_;
+  my ($delta, $prodname) = @_;
 
-  foreach $product_name (@trans) {
-    my $updatequeryFormat = q{
-      update products
-      set stock = stock + %d
-      where name = '%s';
-    };
-    my $query = sprintf($updatequeryFormat, $delta, $product_name);
-    my $result = $conn->exec($query);
-    if ($result->resultStatus != PGRES_COMMAND_OK) {
-      print STDERR "error update record...exiting\n";
-      exit 1;
-    }
+  my $updatequeryFormat = q{
+    update products
+    set stock = stock + %d
+    where name = '%s';
+  };
+  my $query = sprintf($updatequeryFormat, $delta, $prodname);
+  my $result = $conn->exec($query);
+  if ($result->resultStatus != PGRES_COMMAND_OK) {
+    print STDERR "error update record...exiting\n";
+    exit 1;
   }
 }
 

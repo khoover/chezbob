@@ -25,11 +25,7 @@
 # Refer to http://www.adams1.com/pub/russadam/upccode.html for general 
 # information on barcode standards.
 #
-# Michael Copenhafer (mcopenha@cs.ucsd.edu)
-# Wesley Leong (wleong@cs.ucsd.edu)
-# Created: 5/12/00
-#
-# $Id: bc_util.pl,v 1.8 2001-05-16 01:45:43 mcopenha Exp $
+# $Id: bc_util.pl,v 1.9 2001-05-18 05:41:44 mcopenha Exp $
 #
 
 
@@ -79,6 +75,18 @@ isa_upc_barcode
 
   return (($leng == 12 || $leng == $type_E_leng)
           && &isa_numeric_barcode($barcode));
+}
+
+sub
+get_barcode_win
+{
+  my $win_title = "Scan barcode:";
+  if (system("$DLG --title \"$win_title\" --clear " .
+      " --inputbox \"\" 8 45 2> input.barcode") != 0) {
+    return undef;
+  }
+
+  return `cat input.barcode`;
 }
 
 #---------------------------------------------------------------------------
