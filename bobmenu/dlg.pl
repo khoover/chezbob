@@ -4,7 +4,7 @@
 # but that's too much of a pain.  Contains the location of the custom 
 # dialog program we're using.
 #
-# $Id: dlg.pl,v 1.2 2001-05-18 05:47:56 mcopenha Exp $
+# $Id: dlg.pl,v 1.3 2001-05-19 23:51:19 mcopenha Exp $
 #
 
 $DLG = "./dialog-0.9a/dialog";
@@ -17,7 +17,7 @@ confirm_win
   $h ||= 7;
   $w ||= 40;
 
-  $retval = system("$DLG --title \"$win_title\" --clear --yesno \"" .
+  $retval = system("$DLG --title \"$win_title\" --clear --cr-wrap --yesno \"" .
 		   $win_text .  "\" $h $w 2> /dev/null");
   return ($retval == 0);
 }

@@ -3,7 +3,7 @@
 # Routines for updating a user's personal barcode ID.  The user can login
 # to the system using this personal barcode.
 #
-# $Id: usrbarcode.pl,v 1.1 2001-05-18 05:41:44 mcopenha Exp $
+# $Id: usrbarcode.pl,v 1.2 2001-05-19 23:51:19 mcopenha Exp $
 #
 
 require "bc_util.pl";
@@ -30,7 +30,7 @@ update_user_barcode
       return;
     }
 
-    $barcode = &preprocess_barcode($guess);      
+    my $barcode = &preprocess_barcode($guess);      
     if (&isa_valid_user_barcode($barcode)) {
       my $otherid = &bob_db_get_userid_from_userbarcode($barcode);
       my $product = &bob_db_get_productname_from_barcode($barcode);

@@ -5,7 +5,7 @@
 # barcode id), viewing transactions, and sending messages to Bob.  Routines
 # for each of these functions is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.2 2001-05-18 23:58:48 mcopenha Exp $
+# $Id: mainmenu.pl,v 1.3 2001-05-19 23:51:19 mcopenha Exp $
 #  
 
 require "passwd.pl";
@@ -19,6 +19,7 @@ require "nickname.pl";
 require "usrbarcode.pl";
 require "dlg.pl";
 require "profile.pl";
+require "library.pl";
 
 
 sub
@@ -127,6 +128,11 @@ MAINLOOP:
         last SWITCH;
       };
   
+      /^Checkout a Book$/ && do {
+        &checkout_book($userid, $username);
+        last SWITCH;
+      };
+
       /^No action$/ && do {
         last SWITCH;
       };
@@ -203,6 +209,8 @@ or scan an item using the barcode scanner.};
 	       "\"Set, change, or delete your password           \" " .
 	   "\"Transactions\" " .
 	       "\"List recent transactions                       \" " .
+	   "\"Checkout a Book\" " .
+	       "\"Checkout a book from the lounge library        \" " .
 	   " 2> input.action");
 
   $action = `cat input.action`;
