@@ -11,7 +11,7 @@
 # 2. Personal Barcode: The user scans his/her id card, or personal barcode.
 # 3. Username: The user types in their standard username.
 #
-# $Id: chezbob.pl,v 1.5 2001-05-22 01:33:37 yfei Exp $
+# $Id: chezbob.pl,v 1.6 2001-05-22 03:08:01 mcopenha Exp $
 #
 
 # Make sure Perl can find all of our files by appending INC with the 
@@ -22,13 +22,14 @@ close(TMP) || die "can't close\n";
 $BOBPATH = substr($fullpath, 0, rindex($fullpath, '/'));
 push(@INC, $BOBPATH);
 
-$CASH_BARCODE = 888888;
+$CASH_BARCODE = "888888";
 
 require "login.pl";	# login_win
 require "bob_db.pl";	# database routines
 require "buyitem.pl";   # buy routines
 
-$REVISION = q{$Revision: 1.5 $};
+
+$REVISION = q{$Revision: 1.6 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -43,7 +44,7 @@ do {
 } while ($logintxt eq "");
 
 my $barcode = &preprocess_barcode($logintxt); 
-if ($barcode == $CASH_BARCODE) {
+if ($barcode eq $CASH_BARCODE) {
   &buy_with_cash();
 } elsif (&isa_valid_user_barcode($barcode)) {
   my $username = &bob_db_get_username_from_userbarcode($barcode);
