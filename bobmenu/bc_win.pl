@@ -4,7 +4,7 @@
 #
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 #
-# $Id: bc_win.pl,v 1.12 2001-05-16 01:45:43 mcopenha Exp $
+# $Id: bc_win.pl,v 1.13 2001-05-17 01:48:36 mcopenha Exp $
 #
 
 require "bc_util.pl";
@@ -74,6 +74,7 @@ barcode_action_win
   my $price = 0.0;		# price of current product
   my $phonetic_name = "";	# phonetic name of current product
   my $unknown_prod = 0;		# flag == 0 if product not found
+  my @purchase = ();
 
   my $userbarcode = &bob_db_get_userbarcode_from_userid($userid);
   my $balance = &bob_db_get_balance($userid);
@@ -174,6 +175,7 @@ buy_single_item_with_scanner
     return;
   }
 
+  my @purchase = ();
   my $phonetic_name = &bob_db_get_phonetic_name_from_barcode($barcode);
   &sayit("$phonetic_name");
   my $amt = &bob_db_get_price_from_barcode($barcode);
