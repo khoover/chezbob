@@ -1,16 +1,19 @@
 #!/usr/bin/perl -w
 
-$DLG = "/usr/bin/dialog";
-
-###############################################################################
 # stockBob.pl
 #
-# DESCRIPTION:
-# Perl script that offers a quick way to insert new products
-# and update the inventory of existing products.
-# This specific module/program does not allow the change of pricing or naming
-# of an existing product.
-###############################################################################
+# Perl script that offers a quick way to insert new products and update 
+# the inventory of existing products.  This specific module/program does 
+# not allow the change of pricing or naming of an existing product; one 
+# must first delete the product and create it anew.
+#
+# Wesley Leong (wleong@cs.ucsd.edu)
+# Created: 5/2/01
+#
+# $Id: stockBob.pl,v 1.3 2001-05-13 21:45:59 mcopenha Exp $
+#
+
+$DLG = "/usr/bin/dialog";
 
 do '../bc_util.pl';
 do '../bob_db.pl';
