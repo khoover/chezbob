@@ -14,10 +14,27 @@
 # firing up festival each time we want to say something; also doesn't 
 # introduce 'device not available' errors.
 #
-# $Id: speech.pl,v 1.2 2001-05-19 22:37:54 mcopenha Exp $
+# $Id: speech.pl,v 1.3 2001-05-24 01:40:34 mcopenha Exp $
 #
 
+use FileHandle;
 require "ctime.pl";
+require "flush.pl";
+
+$fifo = '/dev/speech';
+
+sub
+speech_startup
+{
+  open(FEST, ">> $fifo") || die "can't open $fifo: $!\n";
+}
+
+
+sub
+speech_shutdown
+{
+  close(FEST);
+}
 
 
 sub
@@ -83,9 +100,14 @@ say_goodbye
 
 sub
 sayit
+#
+# Opening the fifo is far superior to using the system call
+#
 {
   my ($str) = @_;
-  system("echo $str > /dev/speech");
+#  system("echo $str > /dev/speech");
+  print FEST $str, "\n" ; 
+  autoflush FEST 1;
 }
 
 1;
