@@ -18,7 +18,7 @@
 # New users of the system automatically have every property of their 
 # profile turned 'off'.  
 #
-# $Id: profile.pl,v 1.7 2001-05-25 19:42:00 mcopenha Exp $
+# $Id: profile.pl,v 1.8 2001-06-01 18:51:30 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -68,7 +68,8 @@ profile_win
   my ($userid) = @_;
   my $win_title = "My Chez Bob";
   my $win_text = q{
-Change any of the following properties:};
+Use the up/dn keys to select a property.  Press the spacebar to 
+turn a property ON [X] or OFF [ ].};
 
   my $profile_menu = "";
 

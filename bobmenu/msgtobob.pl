@@ -2,7 +2,7 @@
 #
 # Routine for recording a message for Bob in the db. 
 #
-# $Id: msgtobob.pl,v 1.5 2001-05-22 03:29:31 mcopenha Exp $
+# $Id: msgtobob.pl,v 1.6 2001-06-01 18:51:30 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -12,14 +12,14 @@ sub
 message_win
 {
   my ($username, $userid) = @_;
-  my $win_title = "Leave a message for Bob";
+  my $win_title = "Leave a Message for Bob";
   my $win_text = q{
 Leave a message for Bob!  We need your feedback about:
 
  - what you like and dislike about the Chez Bob service
  - what items are out of stock
- - suggestions for future offerings (specific products
-   and a reasonable price you would pay)
+ - suggestions for future offerings (specific products and a 
+   reasonable price you would pay)
  - almost anything else you want to say!
 
 What is your message?};

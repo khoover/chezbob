@@ -3,7 +3,7 @@
 # Routines for updating a user's personal barcode ID.  The user can login
 # to the system using this personal barcode.
 #
-# $Id: usrbarcode.pl,v 1.3 2001-05-25 19:42:00 mcopenha Exp $
+# $Id: usrbarcode.pl,v 1.4 2001-06-01 18:51:30 mcopenha Exp $
 #
 
 require "bc_util.pl";
@@ -23,17 +23,18 @@ update_user_barcode
 {
   my ($userid) = @_;
   my $getmsg = q{
-You can use your personal barcode to log into Chez 
-Bob.  Please scan a barcode of your choice.  Here 
-are some possibilities:
+You can use your personal barcode to log into AND out of 
+Chez Bob.  Please scan a barcode of your choice.  Here are 
+some possibilities:
 
-    - A barcode from the Chez Barcode Box,
     - The back of your ID card,
     - Your Ralph's or Von's Club keychain,
+    - The barcode from the back of a book or magazine,
     - A tattooed barcode on your arm.
 
-Please do *not* use a food product from Chez Bob
-as your personal barcode.};
+There are also some websites for creating your own.  Check 
+out http://thor-gw.phys.ualberta.ca/barcode/.  By the way,
+you can't use a barcode from a Chez Bob product.};
 
   my $okmsg = q{
 Personal barcode successfully updated!
@@ -43,7 +44,7 @@ your personal barcode.};
 
   while (1) {
     
-    my $guess = &get_barcode_win($getmsg, 55, 19);
+    my $guess = &get_barcode_win($getmsg, 65, 20);
     if (!defined $guess) { 
       # User canceled
       return;

@@ -2,7 +2,7 @@
 #
 # Routines for processing login names, both text and barcode
 #
-# $Id: login.pl,v 1.10 2001-05-25 23:10:32 mcopenha Exp $
+# $Id: login.pl,v 1.11 2001-06-01 18:51:30 mcopenha Exp $
 #
 
 $MIN_BARCODE_LENG = 6;
@@ -55,7 +55,7 @@ login_win
   my $username = "";
   my $win_title = "Bank of Bob 2001 (v.$rev)";
   my $win_text = q{
-Welcome to the B.o.B. 2K!
+Welcome to the B.o.B. 2001!
 
 
 Enter your username or scan your personal barcode.
