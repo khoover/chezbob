@@ -14,7 +14,7 @@
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
 #
-# $Id: bob_db.pl,v 1.14 2001-05-19 22:37:54 mcopenha Exp $
+# $Id: bob_db.pl,v 1.15 2001-05-21 05:45:02 wleong Exp $
 #
 
 use Pg;
@@ -698,6 +698,47 @@ bob_db_update_products_in_bulk_item
     return undef;
   }
 }
+
+
+sub
+bob_db_get_products_from_bulk_item
+{
+  my ($bulk_barcode) = @_;
+
+  &bob_db_check_conn;
+  my $selectqueryFormat = q{
+    select *
+    from bulk_items
+    where bulk_barcode = '%s';
+  };
+  my $listofproducts = $conn->exec(sprintf($selectqueryFormat, $bulk_barcode));
+  my $product;
+  my @stuff;
+  open (FILE, ">>out");
+  if ($listofproducts->ntuples != 0) {
+      for ($i=0; $i<$listofproducts->ntuples; $i++) {
+	  my $prodbarcode = $listofproducts->getvalue($i, 2);
+	  # Get name and stock
+	  my $selectqueryFormat = q{
+	      select name, stock
+		  from products
+		      where barcode = '%s';
+	  };
+	  $product = $conn->exec(sprintf($selectqueryFormat, $prodbarcode));
+	  if ($product->ntuples != 0) {
+	      push (@stuff, $product->getvalue(0,0));
+	      push (@stuff, $product->getvalue(0,1));
+	  }
+	  # Non existence of an item in the products table goes unnoticed.
+      }
+  } else {
+      print STDERR "error retrieving bulk item...exiting\n";
+      exit 1;
+  }
+  return \@stuff;
+}
+
+
 
 #---------------------------------------------------------------------------
 # profiles table
