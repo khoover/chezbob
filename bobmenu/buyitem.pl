@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.6 2001-05-22 03:29:31 mcopenha Exp $
+# $Id: buyitem.pl,v 1.7 2001-05-22 19:02:39 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -103,8 +103,7 @@ buy_single_item_with_scanner
 {
   my ($userid) = @_;
   if (! -r "/tmp/menuout") {
-    print "could not find menuout file from dialog\n";
-    exit 1;
+    &report_fatal("could not find menuout file from dialog program\n");
   }
 
   my $guess = `cat /tmp/menuout`;
@@ -145,6 +144,11 @@ buy_with_cash
 #
 {
   my $barcode = &get_barcode_win(); 
+  if (!defined $barcode) {
+    # user canceled
+    return "";
+  }
+
   $barcode = &preprocess_barcode($barcode);      
   $prodname = &bob_db_get_productname_from_barcode($barcode);
   if (!defined $prodname) {
@@ -155,11 +159,12 @@ buy_with_cash
   my $phonetic_name = &bob_db_get_phonetic_name_from_barcode($barcode);
   &sayit("$phonetic_name");
   my $amt = &bob_db_get_price_from_barcode($barcode);
-  my $txt = sprintf("\nIs your purchase amount \\\$%.2f?", $amt);
 
-  if (! &confirm_win($prodname, $txt, 40)) {
-      return "";
-  }
+# MAC: take out confirmation
+#  my $txt = sprintf("\nIs your purchase amount \\\$%.2f?", $amt);
+#  if (! &confirm_win($prodname, $txt, 40)) {
+#      return "";
+#  }
 
   &bob_db_update_stock(-1, $prodname);
 

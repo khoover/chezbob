@@ -6,7 +6,7 @@
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.6 2001-05-22 03:29:31 mcopenha Exp $
+# $Id: mainmenu.pl,v 1.7 2001-05-22 19:02:39 mcopenha Exp $
 #  
 
 require "passwd.pl";
@@ -42,8 +42,7 @@ MAINLOOP:
     #
     my $balance = &bob_db_get_balance($userid);
     if ($balance == $NOT_FOUND) {
-      print "no balance from database...exiting.\n";
-      exit 1;
+      &report_fatal("mainmenu(): no balance from database.\n");
     }
 
     #
