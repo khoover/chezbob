@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 
-# $Header: /home/mvrable/scratch/bobsource/CVS2/bob/bobmenu/admin/cleandb.pl,v 1.1 2001-05-13 21:20:27 mcopenha Exp $
+# $Header: /home/mvrable/scratch/bobsource/CVS2/bob/bobmenu/admin/cleandb.pl,v 1.2 2001-06-15 15:04:16 bob Exp $
 
 ###
 ### libs
@@ -16,7 +16,7 @@ if ($conn->status == PGRES_CONNECTION_BAD) {
 
 
 $periodQ = q{
-select 'now'::datetime-'2 months'::timespan;
+select 'now'::datetime-'3 months'::timespan;
 };
 
 $result = $conn->exec($periodQ);
