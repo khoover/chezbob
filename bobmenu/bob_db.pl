@@ -11,7 +11,7 @@
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # Created: 5/2/00
 #
-# $Id: bob_db.pl,v 1.8 2001-05-17 23:20:23 mcopenha Exp $
+# $Id: bob_db.pl,v 1.9 2001-05-17 23:33:10 wleong Exp $
 #
 
 use Pg;
@@ -569,6 +569,42 @@ bob_db_delete_product
 #---------------------------------------------------------------------------
 # bulk_items table
 
+sub
+bob_db_get_bulk_name_from_barcode
+{
+  my ($barcode) = @_;
+  &bob_db_check_conn;
+
+  my $insertqueryFormat = q{
+      select bulk_name
+	  from bulk_items
+	      where bulk_barcode = '%s';
+  };
+  my $result = $conn->exec(sprintf($insertqueryFormat, $barcode));
+  if ($result->ntuples < 1) {
+    return undef;
+  } else {
+    return $result->getvalue(0,0);
+  }
+}
+
+sub
+bob_db_delete_bulk
+{
+  my ($barcode) = @_;
+
+  &bob_db_check_conn;
+  my $deletequeryFormat = q{
+    delete
+    from bulk_items
+    where bulk_barcode = '%s';
+  };
+  $result = $conn->exec(sprintf($deletequeryFormat, $barcode));
+  if ($result->resultStatus != PGRES_COMMAND_OK) {
+    print STDERR "error deleting record...exiting\n";
+    exit 1;
+  }
+}
 
 sub
 bob_db_insert_bulk_item

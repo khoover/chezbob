@@ -10,13 +10,13 @@
 # Wesley Leong (wleong@cs.ucsd.edu)
 # Created: 5/2/01
 #
-# $Id: stockBob.pl,v 1.4 2001-05-14 06:47:38 mcopenha Exp $
+# $Id: stockBob.pl,v 1.5 2001-05-17 23:32:56 wleong Exp $
 #
 
 $DLG = "/usr/bin/dialog";
 
-do '../bc_util.pl';
-do '../bob_db.pl';
+require "../bc_util.pl";
+require "../bob_db.pl";
 
 
 sub
@@ -55,10 +55,10 @@ This is a new product.  Enter the product's name.
 
   while ($newName !~ /\w+/) {
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-		 $win_text .  "\" 12 65 2> /tmp/input.product") != 0) {
+		 $win_text .  "\" 12 65 2> ./input.product") != 0) {
 	  return "";
       }
-      $newName = `cat /tmp/input.product`;
+      $newName = `cat ./input.product`;
   }
 
   # ASK FOR PHONETIC NAME
@@ -66,10 +66,10 @@ This is a new product.  Enter the product's name.
   $win_text = " Please enter a PHONETIC NAME for the Speech Synthesis.";
   while ($newPhonetic_Name !~ /\w+/) {
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-		 $win_text .  "\" 12 55 2> /tmp/input.product") != 0) {
+		 $win_text .  "\" 12 55 2> ./input.product") != 0) {
 	  return "";
       }
-      $newPhonetic_Name = `cat /tmp/input.product`;
+      $newPhonetic_Name = `cat ./input.product`;
       # check for proper input and then ask for quantity for stock.  
   }
 
@@ -79,10 +79,10 @@ This is a new product.  Enter the product's name.
   while ($newPrice !~ /^\d*\.\d{0,2}$/) {
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 		 $win_text .
-		 "\" 8 55 2> /tmp/input.product") != 0) {
+		 "\" 8 55 2> ./input.product") != 0) {
 	  return "";
       }      
-      $newPrice = `cat /tmp/input.product`;
+      $newPrice = `cat ./input.product`;
   }
 
   while ($newStock !~ /^\d+$/) {
@@ -91,10 +91,10 @@ This is a new product.  Enter the product's name.
       
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 		 $win_text .
-		 "\" 8 55 2> /tmp/input.product") != 0) {
+		 "\" 8 55 2> ./input.product") != 0) {
 	  return "";
       }
-      $newStock = `cat /tmp/input.product`;
+      $newStock = `cat ./input.product`;
   }
   
   &bob_db_insert_product($newBarcode, $newName, $newPhonetic_Name, $newPrice, $newStock);
@@ -122,20 +122,29 @@ newBulk_win
   while ($newName !~ /\w+/) {
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 		 $win_text .
-		 "\" 12 55 2> /tmp/input.product") != 0) {
+		 "\" 12 55 2> ./input.product") != 0) {
 	  return "";
       }
-      $newName = `cat /tmp/input.product`;
+      $newName = `cat ./input.product`;
   }
 
   # ASK FOR Number of kinds of items in the bulk item
   $win_title = "# of kinds"; 
   $win_text = "Enter the number of kinds of items";
-  while (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+  while (!$done) {
+      
+      if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 		 $win_text .
-		 "\" 8 55 2> /tmp/input.product") != 0) {} 
-  $numKinds = `cat /tmp/input.product`;
+		 "\" 8 55 2> ./input.product") != 0) {
+	  return "";
+      }      
+      $numKinds = `cat ./input.product`;
+      if ($numKinds =~ /^\d+$/) {
+	  $done = 1;
+      }
+  }
 
+  $done = 0;
   # for each kind, get the barcode and quantity and record in db
   for ($i=1; $i<=$numKinds; $i++) {
     $win_title = "product $i";
@@ -144,26 +153,34 @@ newBulk_win
     while (!$done) {
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 		 $win_text .
-		 "\" 8 55 2> /tmp/input.product") != 0) {
+		 "\" 8 55 2> ./input.product") != 0) {
           return ""; 
       }
-      $guess = `cat /tmp/input.product`;
+      $guess = `cat ./input.product`;
       $prodbarcode = &preprocess_barcode($guess);
-      if($prodbarcode eq "") {
+      if(!&isa_upc_barcode($prodbarcode)) {
         &errorBarcode();
       } else {
         $done = 1;
       }
     } 
 
-    $win_text = "Enter the quantity of product $i"; 
-    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-		 $win_text .
-		 "\" 8 55 2> /tmp/input.product") != 0) {
-        return "";
+    $done = 0;
+    $quan = 0;
+    while (!$done) {
+	$win_text = "Enter the quantity of product $i"; 
+	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		   $win_text .
+		   "\" 8 55 2> ./input.product") != 0) {
+	    return "";
+	}
+	$quan = `cat ./input.product`;
+	if(!&isa_numeric_barcode($quan)) {
+	    &errorBarcode();
+	} else {
+	    $done = 1;
+	}
     }
-    $quan = `cat /tmp/input.product`;
-
     &bob_db_insert_bulk_item($newBarcode, $newName, $prodbarcode, $quan);
   }
 }
@@ -185,11 +202,11 @@ Enter an amount to add to the present stock total
 
   if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
              sprintf($win_text, $name, $stock) .
-	     "\" 14 65 2> /tmp/input.product") != 0) {
+	     "\" 14 65 2> ./input.product") != 0) {
       return "";
   }
 
-  my $newStock = `cat /tmp/input.product`;
+  my $newStock = `cat ./input.product`;
 
   $newStock = $newStock + $stock;
   &bob_db_set_stock($barcode, $newStock);
@@ -212,15 +229,15 @@ enterBarcode
     my $win_text = "Enter the barcode of a product";
     
 	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-		   $win_text .  "\" 8 55 2> /tmp/input.barcode") != 0) {
+		   $win_text .  "\" 8 55 2> ./input.barcode") != 0) {
 	    return "";
 	}
 	
-	$guess = `cat /tmp/input.barcode`;
+	$guess = `cat ./input.barcode`;
 
 	$newBarcode = &preprocess_barcode($guess);
 
-	if($newBarcode eq "") {
+	if(!&isa_upc_barcode($newBarcode)) {
 	    # case where barcode is not a barcode...
 	    &errorBarcode();
 	} else {
@@ -247,15 +264,15 @@ enterBulkBarcode
     
 	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 		   $win_text .
-		   "\" 8 55 2> /tmp/input.barcode") != 0) {
+		   "\" 8 55 2> ./input.barcode") != 0) {
 	    return "";
 	}
 	
-	$guess = `cat /tmp/input.barcode`;
+	$guess = `cat ./input.barcode`;
 
 	$newBarcode = &preprocess_barcode($guess);
 
-	if($newBarcode eq "") {
+	if(!&isa_upc_barcode($newBarcode)) {
 	    # case where barcode is not a barcode...
 	    &errorBarcode();
 	} else {
@@ -282,15 +299,15 @@ deleteProduct
 
   while (1) {
    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-     $win_text .  "\" 8 55 2> /tmp/input.barcode") != 0) {
+     $win_text .  "\" 8 55 2> ./input.barcode") != 0) {
      return "";
    }
 
-	$guess = `cat /tmp/input.barcode`;
+	$guess = `cat ./input.barcode`;
 	
 	$newBarcode = &preprocess_barcode($guess);
 	
-	if($newBarcode eq "") {
+	if(!&isa_upc_barcode($newBarcode)) {
 	    # case where barcode is not a barcode...
 	    &errorBarcode();
 	} else {
@@ -330,6 +347,64 @@ deleteProduct
 
 
 sub
+deleteBulk
+{
+    my $guess = "0";
+    my $newBarcode = "0";
+    
+    my $win_title = "Delete Bulk";
+    my $win_text = "Enter the barcode of the bulk item you want to DELETE.";
+    
+    while (1) {
+	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+		   $win_text .  "\" 8 55 2> ./input.barcode") != 0) {
+	    return "";
+	}
+
+	$guess = `cat ./input.barcode`;
+   
+	$newBarcode = &preprocess_barcode($guess);
+	
+	if(!&isa_upc_barcode($newBarcode)) {
+	    # case where barcode is not a barcode...
+	    &errorBarcode();
+	} else {
+	    # Confirm deletion by showing the item in a confirmation dialog box.
+       
+	    # First get the name of the item
+	    my $newName = &bob_db_get_bulk_name_from_barcode($newBarcode);
+	    if (!defined $newName) {
+		$win_title = "Barcode Not Found";
+	        $win_text = "Barcode not found in database.";
+		system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+		       $win_text .
+		       "\" 8 55");
+		return"";
+	    }
+	    
+	    # Then create the confirmation box
+	    $win_title = "Confirm the Deletion of: $newName";
+	    $win_text = "DELETE $newName?"; 
+	    if (system("$DLG --title \"$win_title\" --clear --yesno \"" .
+		       $win_text .
+		       "\" 8 55") != 0) {
+		return "";
+	    }
+	    
+	    &bob_db_delete_bulk($newBarcode);
+	    
+	    $win_title = "Deleted $newName";
+	    $win_text = "You have just deleted $newName from the database.";
+	    system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+		   $win_text .
+		   "\" 8 55");
+	    return "";
+	}
+    }
+}
+
+
+sub
 mainMenu
 {
   my $win_title = "Chez Bob Inventory Manager";
@@ -344,11 +419,13 @@ mainMenu
     "\"Restock a SINGLE product \" " .
     "\"Delete Product\" " .
     "\"DELETE a product from the inventory\" " .
+    "\"Delete Bulk\" " .
+    "\"DELETE a bulk item from inventory\" " .
     "\"Quit\" " .
     "\"QUIT this program\" " .
-    " 2> /tmp/input.action");
+    " 2> ./input.action");
     
-  my $action = `cat /tmp/input.action`;
+  my $action = `cat ./input.action`;
 
   if ($action eq "") {
     $action = "Quit";
@@ -359,7 +436,7 @@ mainMenu
 
 
 &bob_db_connect;
-system("rm -f /tmp/input.*");
+system("rm -f ./input.*");
 
 $action = "";
 
@@ -375,6 +452,11 @@ while ($action ne "Quit") {
 
     /^Restock Product$/ && do {
        &enterBarcode();
+       last SWITCH;
+    };
+
+    /^Delete Bulk$/ && do {
+       &deleteBulk();
        last SWITCH;
     };
 
