@@ -10,7 +10,7 @@
 # Wesley Leong (wleong@cs.ucsd.edu)
 # Created: 5/2/01
 #
-# $Id: stockBob.pl,v 1.5 2001-05-17 23:32:56 wleong Exp $
+# $Id: stockBob.pl,v 1.6 2001-05-20 19:50:59 wleong Exp $
 #
 
 $DLG = "/usr/bin/dialog";
@@ -114,6 +114,7 @@ newBulk_win
 {
   my ($newBarcode) = @_;
   my $newName = "";
+  my @entities;
 
   # ASK FOR NEW NAME FOR NEW PRODUCT
   my $win_title = "New Bulk Product";
@@ -178,11 +179,29 @@ newBulk_win
 	if(!&isa_numeric_barcode($quan)) {
 	    &errorBarcode();
 	} else {
+	    push (@entities, $prodbarcode);
+	    push (@entities, $quan);
 	    $done = 1;
 	}
     }
     &bob_db_insert_bulk_item($newBarcode, $newName, $prodbarcode, $quan);
   }
+  $win_title = "New Item Entered";
+  $win_text = "You have entered $newName\ninto the database.";
+  $win_text = $win_text."\nbarcode\t\tquantity per bulk";
+  my $numEntries = @entities;
+  $numEntries = ($numEntries / 2) +  9;
+  if ($numEntries >12) {
+      $numEntries = 12;
+  }
+  my %enthash = @entities;
+  while (($prodbarcode, $quan) = each(%enthash)) {
+      $win_text = $win_text."\n$prodbarcode\t\t$quan";
+  }
+
+  system("$DLG --title \"$win_title\" --clear --msgbox \"" .
+	 $win_text .
+	 "\" $numEntries 55");
 }
 
 
