@@ -14,7 +14,7 @@
 # firing up festival each time we want to say something; also doesn't 
 # introduce 'device not available' errors.
 #
-# $Id: speech.pl,v 1.4 2001-05-25 23:08:36 mcopenha Exp $
+# $Id: speech.pl,v 1.5 2001-06-01 20:50:58 mcopenha Exp $
 #
 
 use FileHandle;
@@ -94,11 +94,23 @@ say_goodbye
 {
   @goodbyes = ( 
     "goodbye",
-    "later, dude",
+    "later, dood",
     "have a nice day",
     "now get to work, ok?", 
     "shay bob thanks you",
-    "go do some research"
+    "go do some research",
+    "shay bob.  it's a good thing",
+    "tell your friends about me, ok?",
+    "stephen hawking's got nothing on me",
+    "you are making me hungry",
+    "Have you seen my good friend HAL?",
+    "you look like a million bucks",
+    "please take me back to england",
+    "i was born in Edinburgh, not san diego",
+    "your new balance is negative one million pounds.  just kidding",
+    "ha ha.  ho ho.  Shay bob wants your dough",
+    "carpay dee em",
+    "are we running out of corn nuts?"
   );
   sayit(splice(@goodbyes, rand @goodbyes, 1));
 }
