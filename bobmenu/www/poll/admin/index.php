@@ -194,7 +194,7 @@ if (!isset($action)) {
 }
 
 no_cache_header();
-
+echo "foo";
 switch ($action) {
 
     case "new":
