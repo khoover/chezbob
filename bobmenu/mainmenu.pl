@@ -6,7 +6,7 @@
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.7 2001-05-22 19:02:39 mcopenha Exp $
+# $Id: mainmenu.pl,v 1.8 2001-05-22 22:52:49 mcopenha Exp $
 #  
 
 require "passwd.pl";
@@ -102,17 +102,17 @@ MAINLOOP:
         last SWITCH;
       };
 
-      /^Modify Barcode ID$/ && do {
+      /^Barcode ID$/ && do {
         &update_user_barcode($userid);
         last SWITCH;
       };
   
-      /^Modify Nickname$/ && do {
+      /^Nickname$/ && do {
         &update_nickname($userid);
         last SWITCH;
       };
 
-      /^Modify Password$/ && do {
+      /^Password$/ && do {
         &pwd_win($userid);
         last SWITCH;
       };
@@ -192,11 +192,11 @@ or scan an item using the barcode scanner.};
 	       "\"Finished\!                                      \" " .
 	   "\"Message\" " .
 	       "\"Leave a message for Bob                        \" " .
-	   "\"Modify Barcode ID\" " .
+	   "\"Barcode ID\" " .
 	       "\"Set your personal barcode                     \" " .
-	   "\"Modify Nickname\" " .
+	   "\"Nickname\" " .
 	       "\"Set your nickname\" " .
-	   "\"Modify Password\" " .
+	   "\"Password\" " .
 	       "\"Set, change, or delete your password           \" " .
 	   "\"Transactions\" " .
 	       "\"List recent transactions                       \" " .

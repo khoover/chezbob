@@ -11,7 +11,7 @@
 # 2. Personal Barcode: The user scans his/her id card, or personal barcode.
 # 3. Username: The user types in their standard username.
 #
-# $Id: chezbob.pl,v 1.8 2001-05-22 18:22:33 mcopenha Exp $
+# $Id: chezbob.pl,v 1.9 2001-05-22 22:52:49 mcopenha Exp $
 #
 
 # Make sure Perl can find all of our files by appending INC with the 
@@ -30,7 +30,7 @@ require "buyitem.pl";   # buy routines
 require "dlg.pl";
 
 
-$REVISION = q{$Revision: 1.8 $};
+$REVISION = q{$Revision: 1.9 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -60,10 +60,6 @@ if ($barcode eq $CASH_BARCODE) {
   &invalidUsername_win();
 } 
 
-
-# Remove any temp input files 
-system("rm -f $TMP/input.*");
-system("rm -f $TMP/*.output.log");
-system("rm -f /tmp/menuout");
+&remove_tmp_files;
 
 
