@@ -9,13 +9,13 @@
 #
 # Al Su (alsu@cs.ucsd.edu)
 #
-# $Id: kbd_win.pl,v 1.10 2001-05-16 01:45:43 mcopenha Exp $
+# $Id: kbd_win.pl,v 1.11 2001-05-17 18:43:19 mcopenha Exp $
 #  
 
 require "bob_db.pl";
 require "bc_win.pl";
 
-my $DLG = "/usr/bin/dialog";
+my $DLG = "./dialog";
 my $NOT_FOUND = -1;
 $CANCEL = -1;
 

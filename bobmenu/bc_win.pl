@@ -4,14 +4,14 @@
 #
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 #
-# $Id: bc_win.pl,v 1.13 2001-05-17 01:48:36 mcopenha Exp $
+# $Id: bc_win.pl,v 1.14 2001-05-17 18:43:19 mcopenha Exp $
 #
 
 require "bc_util.pl";
 require "snd_util.pl";
 require "bob_db.pl";
 
-my $DLG = "/usr/bin/dialog";
+my $DLG = "./dialog";
 my $MIN_BARCODE_LENG = 6;
 my $NOT_FOUND = -1;
 

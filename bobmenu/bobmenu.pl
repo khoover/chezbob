@@ -8,7 +8,7 @@
 # Al Su (alsu@cs.ucsd.edu)
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # 
-# $Id: bobmenu.pl,v 1.31 2001-05-16 01:45:43 mcopenha Exp $
+# $Id: bobmenu.pl,v 1.32 2001-05-17 18:43:19 mcopenha Exp $
 #
 
 require "bc_win.pl";	# barcode login windows
@@ -17,12 +17,12 @@ require "bc_util.pl";	# barcode utils
 require "snd_util.pl";	# speech utils
 require "bob_db.pl";	# database routines
 
-my $DLG = "/usr/bin/dialog";
+my $DLG = "./dialog";
 my $NOT_FOUND = -1;
 $CANCEL = -1;
 
 
-$REVISION = q{$Revision: 1.31 $};
+$REVISION = q{$Revision: 1.32 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
