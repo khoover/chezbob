@@ -83,9 +83,7 @@ barcode_win
         from users
         where userbarcode = '%s';
       };
-      my $result = $conn->exec(sprintf($selectqueryFormat,
-  				     $newBarcode,
-				     $userid));
+      my $result = $conn->exec(sprintf($selectqueryFormat, $newBarcode));
       if ($result->ntuples == 1) {
         if ($result->getvalue(0,0) != $userid) {
           invalidBarcode_win($newBarcode);
@@ -98,11 +96,11 @@ barcode_win
   	set userbarcode = '%s'
         where userid = %d;
       };      
-      my $result = $conn->exec(sprintf($updatequeryFormat,
+      $result = $conn->exec(sprintf($updatequeryFormat,
   				     $newBarcode,
 				     $userid));
       if ($result->resultStatus != PGRES_COMMAND_OK) {
-        print STDERR "askStartNew_win: error updating new barcode\n";
+        print STDERR "barcode_win: error updating new barcode\n";
         exit 1;
       }       
       system ("$DLG --title \"$newBarcode\""
@@ -114,6 +112,65 @@ barcode_win
       next;
     }
   }
+}
+
+sub
+barcode_action_win
+{
+  my ($username,$userid,$conn) = @_;
+  my $guess = '0';
+  my $win_title = "Scan a barcode";
+
+  @purchase; 
+  $leng = 12;
+
+  while (1) {
+    my $win_text = q{
+Please scan a product's barcode.  When you're done,
+scan the barcode at the top of the monitor labeled 'done' \n\n};
+    foreach $p (@purchase) {
+      $win_text = $win_text . "\n" . $p;
+    }
+    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
+               $win_text .
+	       "\" $leng 65 2> /tmp/input.barcode") != 0) {
+      return "";
+    }
+
+    $guess = `cat /tmp/input.barcode`;
+    system("rm -f /tmp/input.barcode");
+
+    if (&isa_barcode($guess)) {
+      $prod_barcode = &decode_barcode($guess);      
+      my $selectqueryFormat = q{
+        select name
+        from products
+        where barcode = '%s';
+      };
+      my $result = $conn->exec(sprintf($selectqueryFormat, $prod_barcode));
+      if ($result->ntuples != 1) {
+        system ("$DLG --title \"$prod_barcode\""
+                ." --clear --msgbox"
+                ." \"Product not found.  Please try again\" 9 50");
+        next;
+      } else {
+        $prodname = $result->getvalue(0,0);
+        if ($prodname eq "done") {
+          # record all transactions at once
+          return;
+        } else {
+          # update dialog
+          push(@purchase, $prodname);
+#  system("$FEST \"$prodname\" &");
+          $leng += 1;
+          next;
+        }
+      }
+    } else {
+      invalidBarcode_win($guess);
+      next;
+    }
+  } # while(1)
 }
 
 ################################ MAIN WINDOW ################################
@@ -140,23 +197,21 @@ username if you are a new user):};
       return "";
     }
 
-    # MAC: check if we're dealing with a regular username or a barcode
     $username = `cat /tmp/input.main`;
+    system("rm -f /tmp/input.*");
 
+    # MAC: check if we're dealing with a regular username or a barcode
     if (&isa_barcode($username)) {
       # Barcode: 
-      system("rm -f /tmp/input.*");
       return $username;
     } elsif ($username !~ /^\w+$/) {
       # Invalid username
       &invalidUsername_win();
       next;
     } else {
-      # Valid username: do nothing
+      # Valid username
+      return $username;
     }
-
-    system("rm -f /tmp/input.*");
-    return $username;
   }
 }
 
@@ -949,7 +1004,7 @@ confirm_win
 ###
 
 $REVISION = q{
-$Revision: 1.10 $
+$Revision: 1.11 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
@@ -998,10 +1053,11 @@ create a new account by entering a valid text login id.};
     exit 1;
   } else {
     $username = $result->getvalue(0,0);
+    $userid = &checkUser($username,$conn);
+    &barcode_action_win($username,$userid,$conn);
   }
 } else {
   $username = $logintext;
-}
 
 #system("$DLG --msgbox $username 10 20");
 
@@ -1105,3 +1161,6 @@ do {
    };
  } # SWITCH
 } while ($action ne "Quit");
+
+
+} # end is not barcode
