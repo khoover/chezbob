@@ -1,13 +1,16 @@
+#include <string.h>
 #include <stdio.h>
 #include <signal.h>
+#include <unistd.h>
 
-#define PROMPT "login to beowulf as: "
-#define BEOWULF_IP "132.239.55.100"
+#define SSH_CMD "/usr/local/bin/ssh"
+#define PROMPT "login to gradlab as: "
+#define REMOTE_IP "132.239.55.107"
 
 int
 main(int argc, char **argv, char **envp)
 {
-  char *args[3];
+  char *args[5];
   char u[9];
 
   /*
@@ -15,8 +18,9 @@ main(int argc, char **argv, char **envp)
   */
   signal(SIGINT, SIG_IGN);
 
-  args[0] = BEOWULF_IP;
-  args[1] = "-l";
+  args[0] = SSH_CMD;
+  args[1] = REMOTE_IP;
+  args[2] = "-l";
   do {
     printf(PROMPT);
     while (fgets(u, 9, stdin) == NULL) {
@@ -27,9 +31,12 @@ main(int argc, char **argv, char **envp)
     }
 
   } while (strlen(u) == 0 || *u < 'a' || *u > 'z');
-  args[2] = u;
+  args[3] = u;
+  args[4] = NULL;
 
-  execve("/usr/local/bin/ssh", args, envp);
+  if (execve(SSH_CMD, args, envp) == -1) {
+    perror("execve");
+  }
 
   return (0);
 }
