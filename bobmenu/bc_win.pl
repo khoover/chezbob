@@ -4,10 +4,11 @@
 #
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 #
-# $Id: bc_win.pl,v 1.4 2001-05-14 06:47:33 mcopenha Exp $
+# $Id: bc_win.pl,v 1.5 2001-05-14 20:04:23 mcopenha Exp $
 #
 
-$DLG = "/usr/bin/dialog";
+my $DLG = "/usr/bin/dialog";
+my $MIN_BARCODE_LENG = 6;
 
 
 sub
@@ -28,18 +29,22 @@ update_user_barcode
     }
 
     $barcode = &preprocess_barcode($guess);      
-    my $id = &bob_db_get_userid_from_barcode($barcode);
-    if ($id != -1) {
-      if ($id != $userid) {
-        invalidBarcode_win($barcode);
-        next;
+    if (&isa_valid_user_barcode($barcode)) {
+      my $id = &bob_db_get_userid_from_barcode($barcode);
+      if ($id != -1) {
+        if ($id != $userid) {
+          &invalid_user_barcode_win;
+          next;
+        }
       }
-    }
  
-    &bob_db_update_user_barcode($userid, $barcode);
-    system ("$DLG --title \"$newBarcode\"" ." --clear --msgbox"
-            ." \"Personal barcode successfully updated!\" 9 50");
-    return;
+      &bob_db_update_user_barcode($userid, $barcode);
+      system ("$DLG --title \"$barcode\" --clear --msgbox"
+              ." \"Personal barcode successfully updated!\" 6 50");
+      return;
+    } else {
+      &invalid_user_barcode_win;
+    }
   }
 }
 
@@ -47,10 +52,10 @@ update_user_barcode
 sub
 barcode_action_win
 #
-# Nasty proc that shows the main menu in barcode mode.  Keeps a running 
-# tally of the products the user's purchased and echoes them to the screen.
-# When user scans the 'Done' barcode the entire transaction is recorded 
-# (update balance and products tables). 
+# Show the main menu in barcode mode.  Keep a running tally of the products 
+# the user's purchased and echoes them to the screen.  When user scans the 
+# 'Done' barcode the entire transaction is recorded (update balance and 
+# products tables). 
 #
 {
   my ($userid, $username) = @_;
@@ -72,10 +77,7 @@ barcode_action_win
     chop($msg = `cat /tmp/message`);
   }
 
-  &sayit("Welcome!");
-  if ($balance < -5.0) {
-    &sayit("It is time you deposited some money");
-  }
+  &say_greeting;
 
   while (1) {
     my $win_textFormat = q{
@@ -96,10 +98,10 @@ The transaction will not be recorded until then. \n
     my $total = 0.00;
     for ($i = 0; $i < $numbought; ++$i) {
       $win_textFormat .= "\t\t" . $purchase[$i];
-      my $leng_name = length($purchase[$i]);
-      if ($leng_name < 8) {
+      my $name_leng = length($purchase[$i]);
+      if ($name_leng < 8) {
         $win_textFormat .= "\t\t\t"; 
-      } elsif ($leng_name < 16) {
+      } elsif ($name_leng < 16) {
         $win_textFormat .= "\t\t"; 
       } else {
         $win_textFormat .= "\t"; 
@@ -121,9 +123,7 @@ The transaction will not be recorded until then. \n
     }
 
     $guess = `cat /tmp/input.barcode`;
-
     $prod_barcode = &preprocess_barcode($guess);      
-
     $prodname = &bob_db_get_productname_from_barcode($prod_barcode);
     if (!defined $prodname) {
       next;
@@ -134,11 +134,10 @@ The transaction will not be recorded until then. \n
 
     if ($prodname eq "Done") {
       # Record entire transaction at once
-      &sayit("your total is");
-      &saymoney($total);
+      &sayit("your total is " . &format_money($total));
       &bob_db_update_stock(-1, @purchase);
       &bob_db_update_balance($userid, -$total, "BARCODE PURCHASE");
-      &sayit("goodbye!");
+      &say_goodbye;
       return;
     } else {
       # Update dialog
@@ -157,10 +156,9 @@ The transaction will not be recorded until then. \n
 sub
 get_user_barcode_win
 {
-  my $win_title = "New barcode";
-  my $win_text = "Scan your barcode:";
-  if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-             $win_text .  "\" 8 45 2> /tmp/input.barcode") != 0) {
+  my $win_title = "Scan your barcode:";
+  if (system("$DLG --title \"$win_title\" --clear" .
+             "--inputbox \"\" 8 45 2> /tmp/input.barcode") != 0) {
     return "";
   }
 
@@ -169,15 +167,33 @@ get_user_barcode_win
 
 
 sub
-invalid_barcode_win
+invalid_user_barcode_win
 {
-  my ($txt) = @_;
-  my $win_title = $txt;
+  my $win_title = "Invalid User Barcode";
   my $win_text = q{
-Invalid barcode.  Please try again.};
+Valid user barcodes must contain at least %d digits
+and no characters.};
 
   system("$DLG --title \"$win_title\" --msgbox \"" .
-	 $win_text .  "\" 9 50 2> /dev/null");
+	 sprintf($win_text, $MIN_BARCODE_LENG) .  "\" 9 50 2> /dev/null");
+}
+
+
+sub
+isa_valid_user_barcode
+#
+# It's important to put some restrictions on the type of user barcode;
+# otherwise, some people might take advantage of the system by using 1 or
+# two digits numbers as their barcode, which would obviate the need to 
+# use the barcode scanner.  Our current restriction is somewhat arbitrary:
+# the barcode must be of length >= $MIN_BARCODE_LENG and must consist of
+# only numbers.  If you alter this proc, be sure to modify the msg in 
+# 'invalid_user_barcode_win' as well.  
+#
+{
+  my ($str) = @_;
+  my $leng = length($str);
+  return (&isa_numeric_barcode($str) && $leng >= $MIN_BARCODE_LENG);
 }
 
 

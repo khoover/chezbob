@@ -29,13 +29,17 @@
 # Wesley Leong (wleong@cs.ucsd.edu)
 # Created: 5/12/00
 #
-# $Id: bc_util.pl,v 1.5 2001-05-14 07:03:24 mcopenha Exp $
+# $Id: bc_util.pl,v 1.6 2001-05-14 20:04:23 mcopenha Exp $
 #
+
 
 sub
 preprocess_barcode
 #
 # If it's a cuecat barcode then decode it; otherwise just return orig. str
+# Call this procedure every time we read in a barcode.  Obviously it's
+# not necessary if we don't use the CueCat, but we may have to at times if
+# the main scanner is out of order.
 #
 {
   my ($barcode) = @_;
@@ -48,19 +52,7 @@ preprocess_barcode
 
 
 sub
-isa_barcode
-{
-  my ($str) = @_;
-  return (&isa_cuecat_barcode($str) || 
-          &isa_regular_barcode($str));
-}
-
-
-sub
-isa_regular_barcode
-#
-# Return 1 if input consists entirely of digits
-#
+isa_numeric_barcode
 {
   my ($barcode) = @_;
   return ($barcode =~ /^\d+$/);

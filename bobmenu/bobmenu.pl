@@ -8,7 +8,7 @@
 # Al Su (alsu@cs.ucsd.edu)
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # 
-# $Id: bobmenu.pl,v 1.25 2001-05-14 06:47:33 mcopenha Exp $
+# $Id: bobmenu.pl,v 1.26 2001-05-14 20:04:23 mcopenha Exp $
 #
 
 do 'bc_win.pl';		# barcode login windows
@@ -20,7 +20,7 @@ do 'bob_db.pl';		# database routines
 $DLG = "/usr/bin/dialog";
 
 
-$REVISION = q{$Revision: 1.25 $};
+$REVISION = q{$Revision: 1.26 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -31,27 +31,24 @@ print "rev is $REVISION\n";
 
 &bob_db_connect;
 
-while (1) {
-  # Make sure any temp input files are gone. We can run into permission
-  # problems if multiple people are trying to run Bob on the same system.
-  system("rm -f /tmp/input.*");
-
-  # First assume the input is a barcode and try a lookup.  If the lookup 
-  # fails assume the input is a regular username.
-  my $logintxt = &login_win($REVISION);
-  my $barcode = &preprocess_barcode($logintxt); 
-  my $userid = &bob_db_get_userid_from_barcode($barcode);
-  if ($userid == -1) {
-    if (isa_valid_username($logintxt)) {
-      &kbd_login($logintxt);
-    } else {
-      &invalidUsername_win();
-      next;
-    }
+# First assume the input is a barcode and try a lookup.  If the lookup 
+# fails assume the input is a regular username.
+my $logintxt = &login_win($REVISION);
+my $barcode = &preprocess_barcode($logintxt); 
+my $userid = &bob_db_get_userid_from_barcode($barcode);
+if ($userid == -1) {
+  if (isa_valid_username($logintxt)) {
+    &kbd_login($logintxt);
   } else {
-    &barcode_login($userid);
+    &invalidUsername_win();
   }
-} 
+} else {
+  &barcode_login($userid);
+}
+
+# Make sure any temp input files are gone. We can run into permission
+# problems if multiple people are trying to run Bob on the same system.
+system("rm -f /tmp/input.*");
 
 
 sub

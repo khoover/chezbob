@@ -11,7 +11,7 @@
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # Created: 5/2/00
 #
-# $Id: bob_db.pl,v 1.4 2001-05-13 21:55:08 mcopenha Exp $
+# $Id: bob_db.pl,v 1.5 2001-05-14 20:04:23 mcopenha Exp $
 #
 
 use Pg;
@@ -121,7 +121,7 @@ bob_db_add_user
 
   my $result = $conn->exec(sprintf($insertqueryFormat, $username, $email));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    print STDERR "askStartNew_win: error inserting record...exiting\n";
+    print STDERR "error inserting record...exiting\n";
     exit 1;
   }
 }
@@ -141,7 +141,7 @@ bob_db_update_user_barcode
 
   my $result = $conn->exec(sprintf($updatequeryFormat, $barcode, $userid));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    print STDERR "barcode_win: error updating new barcode\n";
+    print STDERR "error updating new barcode\n";
     exit 1;
   }
 }
@@ -189,7 +189,7 @@ bob_db_init_balance
   my $query = sprintf($insertqueryFormat, $userid, 0.0, $userid, 0.0);
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    print STDERR "initBalance: error inserting record...exiting\n";
+    print STDERR "error inserting record...exiting\n";
     exit 1;
   }
 }
@@ -384,7 +384,7 @@ bob_db_insert_product
                       $phonetic_name, $price, $stock);
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    print STDERR "add_win: error inserting record...exiting\n";
+    print STDERR "error inserting record...exiting\n";
     exit 1;
   }
 }
@@ -402,7 +402,7 @@ bob_db_set_stock
   };
   my $result = $conn->exec(sprintf($updatequeryFormat, $stock, $barcode));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    print STDERR "record_transaction: error update record...exiting\n";
+    print STDERR "error update record...exiting\n";
     exit 1;
   }
 }
@@ -425,7 +425,7 @@ bob_db_update_stock
     my $query = sprintf($updatequeryFormat, $delta, $product_name);
     my $result = $conn->exec($query);
     if ($result->resultStatus != PGRES_COMMAND_OK) {
-      print STDERR "record_transaction: error update record...exiting\n";
+      print STDERR "error update record...exiting\n";
       exit 1;
     }
   }
@@ -524,7 +524,7 @@ bob_db_delete_product
   };
   $result = $conn->exec(sprintf($deletequeryFormat, $barcode));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    print STDERR "delete_win: error deleting record...exiting\n";
+    print STDERR "error deleting record...exiting\n";
     exit 1;
   }
 }
@@ -547,7 +547,7 @@ bob_db_insert_bulk_item
   my $result = $conn->exec(sprintf($insertqueryFormat, $barcode, $name, $prodbarcode, $quan));
 
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    print STDERR "bulk_items: error inserting record...exiting\n";
+    print STDERR "error inserting record...exiting\n";
     exit 1;
   }
 }
@@ -578,7 +578,7 @@ bob_db_update_products_in_bulk_item
       my $query = sprintf($updatequeryFormat, $quantoadd, $prodbarcode);
       my $rv = $conn->exec($query);
       if ($rv->resultStatus != PGRES_COMMAND_OK) {
-        print STDERR "bulk: error update record...exiting\n";
+        print STDERR "error update record...exiting\n";
         exit 1;
       }
     }

@@ -17,15 +17,18 @@
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # Created: 5/10/01
 #
-# $Id: snd_util.pl,v 1.3 2001-05-14 06:47:33 mcopenha Exp $
+# $Id: snd_util.pl,v 1.4 2001-05-14 20:04:23 mcopenha Exp $
 #
 
+require "ctime.pl";
+
+
 sub
-saymoney
+format_money
 #
-# Given a dollar amount in x.xx format, say the amount aloud. Festival 
-# recognizes the '$' sign and says 'dollars', but it's not smart enough
-# to get the change correct.
+# Given a dollar amount in x.xx format, return a string representation
+# that festival can parse correctly (Festival recognizes the '$' sign and 
+# says 'dollars', but it's not smart enough to get the change correct).
 #
 {
   my ($amt) = @_;
@@ -38,10 +41,42 @@ saymoney
   }
 
   if ($dollars > 0) {
-    &sayit("\\\$$dollars and $cents cents");
+    return "\\\$$dollars and $cents cents";
   } else {
-    &sayit("$cents cents");
+    return "$cents cents";
   }
+}
+
+
+sub
+say_greeting
+#
+# Say an appropriate greeting based on the time
+#
+{
+  my $hour = substr(&ctime(time), 11, 2);
+  my $greeting = "good";
+  if ($hour >= 17) {
+    $greeting .= "evening";
+  } elsif ($hour >= 12) {
+    $greeting .= "after noon";
+  } else {
+    $greeting .= "morning";
+  }
+  sayit($greeting);
+}
+
+
+sub
+say_goodbye
+{
+  @goodbyes = ( 
+    "goodbye",
+    "later, dude",
+    "have a nice day",
+    "shay bob kicks buttocks" 
+  );
+  sayit(splice(@goodbyes, rand @goodbyes, 1));
 }
 
 
@@ -49,6 +84,6 @@ sub
 sayit
 {
   my ($str) = @_;
-#  system("echo $str > /dev/speech");
+  system("echo $str > /dev/speech");
 }
 
