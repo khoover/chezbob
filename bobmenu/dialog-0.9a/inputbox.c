@@ -1,5 +1,5 @@
 /*
- *  $Id: inputbox.c,v 1.1 2001-05-17 18:46:10 mcopenha Exp $
+ *  $Id: inputbox.c,v 1.2 2001-05-17 23:13:01 mcopenha Exp $
  *
  *  inputbox.c -- implements the input box
  *
@@ -111,9 +111,11 @@ dialog_inputbox(const char *title, const char *cprompt, int height, int width,
 	if (button == -1) {	/* Input box selected */
 	    edit = dlg_edit_string(input, &offset, key, first);
 
+
+/* MAC: if password is true, pass 2 (show asteriks) to dlg_show_string */
 	    if (edit) {
 		dlg_show_string(dialog, input, offset, inputbox_attr,
-				box_y, box_x, box_width, password, first);
+				box_y, box_x, box_width, password ? 2 : 0, first);
 		first = FALSE;
 		continue;
 	    }

@@ -1,5 +1,5 @@
 /*
- * $Id: inputstr.c,v 1.1 2001-05-17 18:46:10 mcopenha Exp $
+ * $Id: inputstr.c,v 1.2 2001-05-17 23:13:01 mcopenha Exp $
  *
  *  inputstr.c -- functions for input/display of a string
  *
@@ -87,28 +87,44 @@ void
 dlg_show_string(WINDOW *win, char *string, int offset, chtype attr,
 		int y_base, int x_base, int x_last, bool hidden, bool force)
 {
-    if (hidden) {
-	if (force) {
-	    (void) wmove(win, y_base, x_base);
-	    wrefresh_lock(win);
-	}
-    } else {
-	int i, input_x;
-	int len = strlen(string);
-	int scrollamt = (offset + 1 - x_last);
+  int i, input_x, len, scrollamt;
+  len = strlen(string);
+  scrollamt = (offset + 1 - x_last);
 
-	if (scrollamt < 0)
-	    scrollamt = 0;
-	input_x = offset - scrollamt;
+  switch(hidden) {
+  case 0: 
+    if (scrollamt < 0)
+      scrollamt = 0;
+    input_x = offset - scrollamt;
 
-	wattrset(win, attr);
-	(void) wmove(win, y_base, x_base);
-	for (i = 0; i < x_last; i++)
-	    (void) waddch(win,
-			  (i + scrollamt) < len
-			  ? CharOf(string[scrollamt + i])
-			  : ' ');
-	(void) wmove(win, y_base, x_base + input_x);
-	wrefresh_lock(win);
+    wattrset(win, attr);
+    wmove(win, y_base, x_base);
+    for (i = 0; i < x_last; i++)
+      waddch(win, (i + scrollamt) < len ? CharOf(string[scrollamt + i]) : ' ');
+    wmove(win, y_base, x_base + input_x);
+    wrefresh_lock(win);
+    break;
+
+  case 1:
+    if (force) {
+      wmove(win, y_base, x_base);
+      wrefresh_lock(win);
     }
+    break;
+
+/* MAC: asteriks */
+  case 2: 
+    if (scrollamt < 0)
+        scrollamt = 0;
+    input_x = offset - scrollamt;
+
+    wattrset(win, attr);
+    wmove(win, y_base, x_base);
+/* MAC: unclear here */
+    for (i = 0; i < x_last; i++)
+      waddch(win, (i + scrollamt) < len ? '*' : ' ');
+    wmove(win, y_base, x_base + input_x);
+    wrefresh_lock(win);
+    break;
+  }
 }

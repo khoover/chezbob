@@ -1,5 +1,5 @@
 /*
- *  $Id: textbox.c,v 1.1 2001-05-17 18:46:10 mcopenha Exp $
+ *  $Id: textbox.c,v 1.2 2001-05-17 23:13:01 mcopenha Exp $
  *
  *  textbox.c -- implements the text box
  *
@@ -579,9 +579,11 @@ get_search_term(WINDOW *dialog, char *input, int height, int width)
 	    if (key == '\n' && *input != '\0')
 		return 0;
 	}
+
+/* MAC */
 	if (dlg_edit_string(input, &offset, key, first)) {
 	    dlg_show_string(dialog, input, offset, searchbox_attr,
-			    box_y, box_x, box_width, FALSE, first);
+			    box_y, box_x, box_width, 0, first);
 	    first = FALSE;
 	}
     }
