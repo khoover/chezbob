@@ -14,7 +14,7 @@
 # firing up festival each time we want to say something; also doesn't 
 # introduce 'device not available' errors.
 #
-# $Id: speech.pl,v 1.1 2001-05-18 05:41:44 mcopenha Exp $
+# $Id: speech.pl,v 1.2 2001-05-19 22:37:54 mcopenha Exp $
 #
 
 require "ctime.pl";
@@ -75,10 +75,7 @@ say_goodbye
     "have a nice day",
     "now get to work, ok?", 
     "shay bob thanks you",
-    "please feed me dollar bills, not pennies",
-    "go do some research",
-    "by the way, you look very nice today",
-    "remember that pee equals n pee, ok?"
+    "go do some research"
   );
   sayit(splice(@goodbyes, rand @goodbyes, 1));
 }

@@ -5,10 +5,16 @@
 # flexible, but it certainly makes the other code a lot simpler to read 
 # and maintain.  Any future database calls should be placed in this module.
 #
+# It's worth remembering that strings in most databases (incl. Postgres)
+# are delimited by single (') quotation marks/apostrophes.  The database
+# will crash if you try inserting a string with an apostrophe.  Check out
+# the 'esc_apos' function which looks for apostrophes in a string and 
+# escapes them by adding a second apostrophe.
+#
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
 #
-# $Id: bob_db.pl,v 1.13 2001-05-19 18:03:39 mcopenha Exp $
+# $Id: bob_db.pl,v 1.14 2001-05-19 22:37:54 mcopenha Exp $
 #
 
 use Pg;
@@ -72,7 +78,7 @@ bob_db_get_userid_from_username
     from users
     where username ~* '^%s$';
   };
-  my $result = $conn->exec(sprintf($queryFormat,$username));
+  my $result = $conn->exec(sprintf($queryFormat, &esc_apos($username)));
   if ($result->ntuples != 1) {
     return $NOT_FOUND;
   } else {
@@ -153,7 +159,10 @@ bob_db_add_user
     values(nextval('userid_seq'), '%s', '%s'); 
   };
 
-  my $result = $conn->exec(sprintf($insertqueryFormat, $username, $email));
+  my $query = sprintf($insertqueryFormat, 
+                      &esc_apos($username), 
+                      &esc_apos($email));
+  my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     print STDERR "error inserting record...exiting\n";
     exit 1;
@@ -193,7 +202,9 @@ bob_db_update_nickname
     where userid = %d;
   };      
 
-  my $result = $conn->exec(sprintf($updatequeryFormat, $name, $userid));
+  my $result = $conn->exec(sprintf($updatequeryFormat, 
+                                   &esc_apos($name), 
+                                   $userid));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     print STDERR "error updating new nickname\n";
     exit 1;
@@ -268,7 +279,11 @@ bob_db_update_balance
   };
 
   my $query = sprintf($updatequeryFormat, 
-                      $amt, $userid, $userid, $amt, uc($type));
+                      $amt, 
+                      $userid, 
+                      $userid, 
+                      $amt, 
+                      &esc_apos(uc($type)));
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     print STDERR "error update record...exiting\n";
@@ -290,7 +305,9 @@ bob_db_insert_msg
     values( nextval('msgid_seq'), 'now', %s, '%s');
   };
 
-  my $query = sprintf($insertqueryFormat, defined $userid ? $userid : "null", $msg);
+  my $query = sprintf($insertqueryFormat, 
+                      defined $userid ? $userid : "null", 
+                      &esc_apos($msg));
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     print STDERR "error inserting record...exiting\n";
@@ -434,8 +451,8 @@ bob_db_insert_product
     values('%s', '%s', '%s', %.2f, %d);
   };      
 
-  my $query = sprintf($insertqueryFormat, $barcode, $name, 
-                      $phonetic_name, $price, $stock);
+  my $query = sprintf($insertqueryFormat, $barcode, &esc_apos($name), 
+                      &esc_apos($phonetic_name), $price, $stock);
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     print STDERR "error inserting record...exiting\n";
@@ -472,7 +489,7 @@ bob_db_update_stock
     set stock = stock + %d
     where name = '%s';
   };
-  my $query = sprintf($updatequeryFormat, $delta, $prodname);
+  my $query = sprintf($updatequeryFormat, $delta, &esc_apos($prodname));
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     print STDERR "error update record...exiting\n";
@@ -630,7 +647,12 @@ bob_db_insert_bulk_item
     into bulk_items
     values('%s', '%s', '%s', %d);
   };
-  my $result = $conn->exec(sprintf($insertqueryFormat, $barcode, $name, $prodbarcode, $quan));
+  my $query = sprintf($insertqueryFormat, 
+                      $barcode, 
+                      &esc_apos($name), 
+                      &esc_apos($prodbarcode), 
+                      $quan);
+  my $result = $conn->exec($query);
 
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     print STDERR "error inserting record...exiting\n";
@@ -690,7 +712,9 @@ bob_db_get_profile_setting
     from profiles
     where userid = %d and property = '%s';
   };
-  my $result = $conn->exec(sprintf($queryFormat, $userid, $property));
+  my $result = $conn->exec(sprintf($queryFormat, 
+                                   $userid, 
+                                   &esc_apos($property)));
   if ($result->ntuples != 1) {
     return $NOT_FOUND;
   } else {
@@ -709,7 +733,8 @@ bob_db_insert_property
     into profiles
     values(%d, '%s', 0);
   };
-  my $result = $conn->exec(sprintf($insertqueryFormat, $userid, $property));
+  my $result = $conn->exec(sprintf($insertqueryFormat, 
+                                   $userid, &esc_apos($property)));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     print STDERR "error insert new property...exiting\n";
     exit 1;
@@ -729,7 +754,10 @@ bob_db_update_profile_settings
       set setting = %d
       where userid = %d and property = '%s'; 
     };
-    my $query = sprintf($updatequeryFormat, $setting, $userid, $property);
+    my $query = sprintf($updatequeryFormat, 
+                        $setting, 
+                        $userid, 
+                        &esc_apos($property));
     my $result = $conn->exec($query);
     if ($result->resultStatus != PGRES_COMMAND_OK) {
       print STDERR "error updating profile\n";
@@ -751,7 +779,11 @@ bob_db_insert_book
     into books
     values('%s', '%s', '%s', '%s');
   };
-  my $query = sprintf($insertqueryFormat, $barcode, $isbn, $author, $title);
+  my $query = sprintf($insertqueryFormat, 
+                      $barcode, 
+                      $isbn, 
+                      &esc_apos($author), 
+                      &esc_apos($title));
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     print STDERR "error insert new book...exiting\n";
@@ -777,6 +809,20 @@ bob_db_get_book_from_barcode
   } else {
     return $result->getvalue(0,0) . "\t" . $result->getvalue(0,1);
   }
+}
+
+#---------------------------------------------------------------------------
+# utilities 
+
+sub
+esc_apos
+#
+# escape any apostrophes
+#
+{
+  my ($str) = @_;
+  $str =~ s/\'/\'\'/g;
+  return $str;
 }
 
 

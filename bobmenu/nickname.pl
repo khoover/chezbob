@@ -2,7 +2,7 @@
 #
 # Nicknames are used by the speech synthesis program when greeting the user. 
 #
-# $Id: nickname.pl,v 1.1 2001-05-18 05:41:44 mcopenha Exp $
+# $Id: nickname.pl,v 1.2 2001-05-19 22:37:54 mcopenha Exp $
 #
 
 require "bob_db.pl";
@@ -62,7 +62,7 @@ invalid_nickname_win
 {
   my $win_title = "Invalid Nickname";
   my $win_text = q{
-Valid nicknames consist of alphanumeric characters only.};
+Valid nicknames consist of alphanumeric characters and no spaces.};
 
   system("$DLG --title \"$win_title\" --msgbox \"" .
          $win_text .  "\" 8 50 2> /dev/null");
