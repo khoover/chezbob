@@ -93,7 +93,7 @@ $Q{"users_overlimit"} =
   "select users.username, balances.balance, users.email\n" .
   "  from users, balances\n" .
   " where users.userid=balances.userid\n" .
-  "   and balances.balance < -8\n" .
+  "   and balances.balance <= -2\n" .
   " order by balances.balance;";
 
 $Q{"users_unused"} =
