@@ -1,0 +1,83 @@
+#!/bin/sh
+
+CB_MACH=chezbob.ucsd.edu
+MAIL_MACH=beowulf.ucsd.edu
+MAIL_CMD=/usr/local/MH/bin/send
+
+#
+# check to see if we have a home
+#
+if [ -z $HOME ]; then
+  echo "no home defined...exiting."
+  exit 1
+fi
+
+#
+# check for output directory
+#
+OUTDIR=$HOME/docs/chezbob/admin/overlimit
+if [ ! -d $OUTDIR ]; then
+  echo "no outdir ${OUTDIR}...exiting."
+  exit 1
+fi
+cd $OUTDIR
+
+#
+# check for ssh/scp
+#
+SSH=/usr/local/bin/ssh
+SCP=/usr/local/bin/scp
+if [ ! -x $SSH ]; then
+  echo "$SSH does not exist...exiting."
+  exit 1
+fi
+if [ ! -x $SCP ]; then
+  echo "$SCP does not exist...exiting."
+  exit 1
+fi
+
+#
+# check for agent configuration information
+#
+MACH=`hostname`
+ACFILE=$HOME/.ssh/agent_configs/agent_config_${MACH}_sh
+if [ ! -f $ACFILE ]; then
+  echo "no agent config file $ACFILE...exiting."
+  exit 1
+fi
+source $ACFILE
+
+if ( ! $SSH -n $CB_MACH true ); then
+  echo "unable to access ${CB_MACH}...exiting."
+  exit 1
+fi
+
+#if ( ! $SSH -n $CB_MACH q users_overlimit | grep -v -- -- | grep -v " rows" | grep -v flags | grep -v query: | sed -e '/^$/d' | tr '|' ' ' >./list1 ); then
+if ( ! $SSH -n $CB_MACH q users_overlimit | grep '|' | tr '|' ' ' >./list1 ); then
+  echo "unable to fetch overlimit list...exiting."
+  exit 1
+fi
+
+/bin/rm -f ./email1.*
+./makeform.pl ./email1 ./list1
+
+MAIL_TMPDIR=TMP_$$
+if ( ! $SSH -n $MAIL_MACH mkdir $MAIL_TMPDIR ); then
+  echo "unable to create temp directory ${MAIL_MACH}:$MAIL_TMPDIR...exiting."
+  exit 1
+fi
+if ( ! $SCP -q ./email1.* ${MAIL_MACH}:$MAIL_TMPDIR ); then
+  echo "unable to copy drafts..."
+else
+  if ( ! $SSH -n $MAIL_MACH $MAIL_CMD ~/${MAIL_TMPDIR}/email1.\* ); then
+    echo "unable to send drafts..."
+  else
+    if ( ! $SSH -n $MAIL_MACH rm ~/${MAIL_TMPDIR}/\* ); then
+      echo "unable to flush tmp directory..."
+    fi
+  fi
+fi
+if ( ! $SSH -n $MAIL_MACH rmdir $MAIL_TMPDIR ); then
+  echo "unable to remove temp directory ${MAIL_MACH}:$MAIL_TMPDIR...exiting."
+  exit 1
+fi
