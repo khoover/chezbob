@@ -4,7 +4,7 @@
 #
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 #
-# $Id: bc_win.pl,v 1.10 2001-05-15 04:03:01 mcopenha Exp $
+# $Id: bc_win.pl,v 1.11 2001-05-15 16:21:36 mcopenha Exp $
 #
 
 require "bc_util.pl";
@@ -213,6 +213,7 @@ isa_valid_user_barcode
   return (&isa_numeric_barcode($str) && $leng >= $MIN_BARCODE_LENG);
 }
 
+
 sub
 user_barcode_not_found_win
 {
@@ -225,7 +226,7 @@ barcode.  If you're a new user you'll need to first
 create a new account by entering a valid username.};
 
   system("$DLG --title \"$win_title\" --msgbox \"" .
-	 sprintf($win_text, $MIN_BARCODE_LENG) .  "\" 11 60 2> /dev/null");
+	 $win_text .  "\" 11 60 2> /dev/null");
 }
 
 1;
