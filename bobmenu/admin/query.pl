@@ -111,11 +111,22 @@ $Q{"users"} =
   " order by userid;";
 
 $Q{"bal_comp"} =
-  "select users.username, balances.balance, sum(transactions.xactvalue)\n".
+  "select users.username, balances.balance,\n" .
+  "       sum(transactions.xactvalue) as xact_sum\n" .
   "  from users, balances, transactions\n" .
   " where users.userid=balances.userid\n" .
   "   and users.userid=transactions.userid\n" .
   " group by users.username, balances.balance\n" .
+  " order by balances.balance;";
+
+$Q{"bal_comp_diff"} =
+  "select users.username, balances.balance,\n" .
+  "       sum(transactions.xactvalue) as xact_sum\n" .
+  "  from users, balances, transactions\n" .
+  " where users.userid=balances.userid\n" .
+  "   and users.userid=transactions.userid\n" .
+  " group by users.username, balances.balance\n" .
+  "having sum(transactions.xactvalue)-balances.balance >= 0.00001\n" .
   " order by balances.balance;";
 
 $Q{"transactions"} = $Q{"xacts"} =
