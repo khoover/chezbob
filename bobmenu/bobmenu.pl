@@ -181,7 +181,7 @@ sub
 sayit
 {
   my ($str) = @_;
-#  system("echo $str > /dev/speech");
+  system("echo $str > /dev/speech");
 }
 
 sub
@@ -273,9 +273,6 @@ The transaction will not be recorded until then. \n
       };
       my $result = $conn->exec(sprintf($selectqueryFormat, $prod_barcode));
       if ($result->ntuples != 1) {
-#        system ("$DLG --title \"$prod_barcode\""
-#                ." --clear --msgbox"
-#                ." \"Product not found.  Please try again\" 9 50");
         next;
       } 
       $prodname = $result->getvalue(0,0);
@@ -299,7 +296,7 @@ The transaction will not be recorded until then. \n
         &saytotal($total);
         &update_stock(@purchase);
         &update_balance($userid,$total);
-        &sayit("goodbye!");
+        &sayit("goodbye, $username!");
         return;
       } else {
         # Update dialog
@@ -312,7 +309,7 @@ The transaction will not be recorded until then. \n
       }
 
     } else {
-      invalidBarcode_win($guess);
+      # do nothing
       next;
     }
   } # while(1)
@@ -1281,7 +1278,7 @@ create a new account by entering a valid text login id.};
 ###
 
 $REVISION = q{
-$Revision: 1.16 $
+$Revision: 1.17 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
