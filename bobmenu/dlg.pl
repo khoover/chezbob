@@ -18,7 +18,7 @@
 #    instead of echoing nothing.  Changed files dialog.c, inputstr.c,
 #    and textbox.c.  Changes were taken from a broken patch file.
 #
-# $Id: dlg.pl,v 1.11 2001-05-23 03:35:29 mcopenha Exp $
+# $Id: dlg.pl,v 1.12 2001-05-23 03:42:04 mcopenha Exp $
 #
 
 $DLG = "$BOBPATH/dialog-0.9a/dialog";
@@ -44,6 +44,7 @@ remove_tmp_files
 {
   system("rm -f $TMP/input.*");
   system("rm -f $TMP/*.output.log");
+  system("rm -f /tmp/menuout");
 }
 
 1;
