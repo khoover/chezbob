@@ -1,5 +1,79 @@
 #!/usr/bin/perl
 
+sub parseARGV {
+  @params = @_;
+  $flags = "";
+  while (@params != ()) {
+    ($param, @params) = @params;
+    if ($param eq "--") {
+      $num = @params;
+      return ($flags, @params);
+    }
+    if ($param !~ /^-.*$/) {
+      return ($flags, $param, @params);
+    }
+
+    #
+    # invalid flags with args
+    #
+    if ($param eq "-a" ||
+        $param eq "-c" ||
+        $param eq "-d" ||
+        $param eq "-f" ||
+        $param eq "-h" ||
+        $param eq "-p" ||
+        $param eq "-T") {
+      print STDERR "warning: flag \"$param\" not supported\n";
+      ($dummyarg, @params) = @params;
+      print STDERR "         (discarding flag argument \"$dummyarg\")\n";
+      next;
+    }
+    #
+    # invalid flgas without args
+    #
+    if ($param eq "-l" ||
+        $param eq "-s" ||
+        $param eq "-S" ||
+        $param eq "-u") {
+      print STDERR "warning: flag \"$param\" not supported\n";
+      next;
+    }
+
+
+    #
+    # valid flags with args
+    #
+    if ($param eq "-F" ||
+        $param eq "-o" ||
+        $param eq "-T") {
+      ($arg, @params) = @params;
+      $flags .= " $param \"$arg\"";
+      next;
+    }
+    #
+    # valid flags without args
+    #
+    if ($param eq "-A" ||
+        $param eq "-e" ||
+        $param eq "-E" ||
+        $param eq "-H" ||
+        $param eq "-n" ||
+        $param eq "-q" ||
+        $param eq "-t" ||
+        $param eq "-x") {
+      $flags .= " $param";
+      next;
+    }
+
+    #
+    # unknown flag
+    #
+    print STDERR "unknown command-line parameter \"$param\", exiting.\n";
+    exit 1;
+  }
+  return ($flags, @params);
+}
+
 $DB = "bob";
 
 $Q{"negative_balance"} = $Q{"neg_bal"} =
@@ -61,7 +135,14 @@ $Q{"messages"} = $Q{"msgs"} =
   "  from messages\n" .
   " order by msgid;";
 
-foreach $query (@ARGV) {
+($psqlFlags, @queries) = &parseARGV(@ARGV);
+
+print "flags = [$psqlFlags]\n";
+foreach (@queries) {
+  print "query: \"$_\"\n";
+}
+
+foreach $query (@queries) {
   if ($query eq "list" || ! defined($Q{$query})) {
     print "list of available queries:\n";
     print "--------------------------\n";
@@ -70,5 +151,5 @@ foreach $query (@ARGV) {
     }
   }
 
-  print `psql bob -c '$Q{$query}\n'`;
+  print `psql bob $psqlFlags -c '$Q{$query}\n'`;
 }
