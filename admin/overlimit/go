@@ -54,21 +54,21 @@ fi
 cd $OUTDIR
 
 #
-# check for ssh/scp
-#
-if [ ! -x $SSH ]; then
-  echo "$SSH does not exist...exiting."
-  exit 1
-fi
-if [ ! -x $SCP ]; then
-  echo "$SCP does not exist...exiting."
-  exit 1
-fi
-
-#
 # check for agent configuration information, if needed
 #
 if [ "x${CB_MACH}" != "xlocalhost" -o "x${MAIL_MACH}" != "xlocalhost" ]; then
+  #
+  # check for ssh/scp
+  #
+  if [ ! -x $SSH ]; then
+    echo "$SSH does not exist...exiting."
+    exit 1
+  fi
+  if [ ! -x $SCP ]; then
+    echo "$SCP does not exist...exiting."
+    exit 1
+  fi
+
   #
   # need agent configuration info (output from ssh-agent) to
   # get access to the remote machines.  this better describe
