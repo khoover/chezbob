@@ -20,7 +20,7 @@
 #
 # Look for comments in the dialog code that begin with 'MAC'
 #
-# $Id: dlg.pl,v 1.22 2001-08-20 21:00:33 bellardo Exp $
+# $Id: dlg.pl,v 1.23 2001-08-21 00:01:34 bob Exp $
 #
 
 $DLG = "$BOBPATH/dialog-0.9a/dialog";
@@ -49,7 +49,7 @@ get_barcode_win
   $w ||= 40;
 
   my $win_title = "Scan Barcode";
-  my ($err, $result) = &get_dialof_result("--title \"$win_title\" --clear " .
+  my ($err, $result) = &get_dialog_result("--title \"$win_title\" --clear " .
                              "--cr-wrap --inputbox \"$msg\" $h $w");
   return undef if ($err != 0);
   return $result;
