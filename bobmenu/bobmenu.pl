@@ -214,7 +214,7 @@ barcode_action_win
   }
 
   &sayit("Welcome $username");
-  if ($balance < 5) {
+  if ($balance < -5.0) {
     &sayit("It is time you deposited some money");
   }
 
@@ -277,12 +277,12 @@ The transaction will not be recorded until then. \n
       } 
       $prodname = $result->getvalue(0,0);
 
-      my $selectqueryFormat = q{
+      $selectqueryFormat = q{
         select phonetic_name
         from products
         where barcode = '%s';
       };
-      my $result = $conn->exec(sprintf($selectqueryFormat, $prod_barcode));
+      $result = $conn->exec(sprintf($selectqueryFormat, $prod_barcode));
       if ($result->ntuples != 1) {
         next;
       } 
@@ -329,23 +329,30 @@ The transaction will not be recorded until then. \n
 ################################ MAIN WINDOW ################################
 
 sub
+isa_valid_username
+{
+  my ($username) = @_;
+  return ($username =~ /^\w+$/);
+}
+ 
+sub
 login_win
 {
   my ($rev) = @_;
 
   my $username = "";
-  my $win_title = "Bank of Bob 2000 (v.$rev)";
+  my $win_title = "Bank of Bob 2001 (v.$rev)";
   my $win_text = q{
 Welcome to the B.o.B. 2K!
 
 
-Enter your username (or your desired
-username if you are a new user):};
+Enter your username or scan your personal barcode. 
+(If you are a new user enter a new username):};
 
   while (1) {
     if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 	       $win_text .
-	       "\" 14 45 \"$username\" 2> /tmp/input.main") != 0) {
+	       "\" 14 55 \"$username\" 2> /tmp/input.main") != 0) {
       print "empty\n";
       return "";
     }
@@ -355,16 +362,14 @@ username if you are a new user):};
 
     # MAC: check if we're dealing with a regular username or a barcode
     if (&isa_barcode($username)) {
-      # Barcode: 
       return $username;
-    } elsif ($username !~ /^\w+$/) {
+    } elsif (isa_valid_username($username)) {
+      return $username;
+    } else {
       # Invalid username
       &invalidUsername_win();
       next;
-    } else {
-      # Valid username
-      return $username;
-    }
+    } 
   }
 }
 
@@ -375,7 +380,8 @@ invalidUsername_win
   my $win_text = q{
 Valid usernames must contain at least one
 character and consist of letters and numbers
-only.};
+only.
+  };
 
   system("$DLG --title \"$win_title\" --msgbox \"" .
 	 $win_text .
@@ -517,40 +523,10 @@ Do you currently *OWE* Bob money?};
   my $retval;
 
   while (1) {
-#     $retval = system("$DLG --title \"$win_title\" --clear --yesno \"" .
-# 		     $win_text .
-# 		     "\" 9 58 2> /dev/null");
 
-#     if ($retval != 0 && $retval != 256) {
-#       return -1;
-#     }
-
-#     if ($retval == 0) {
-#       $amt = - &askHowMuch_win("do you owe Bob");
-#       if ($amt > 0) {
-# 	next;
-#       }
-#     }
-#     else {
-#       $amt = &askHowMuch_win("does Bob owe you");
-#       if ($amt < 0) {
-# 	next;
-#       }
-#     }
-
-    my $insertqueryFormat = q{
-insert
-into balances
-values(
-  %d,
-  %.2f);
-insert
-into transactions
-values(
-  'now',
-  %d,
-  %.2f,
-  'INIT');
+    my $insertqueryFormat = q{ 
+      insert into balances values(%d, %.2f); 
+      insert into transactions values('now', %d, %.2f, 'INIT'); 
     };
 
     my $result = $conn->exec(sprintf($insertqueryFormat,
@@ -1288,13 +1264,10 @@ create a new account by entering a valid text login id.};
 ### main program
 ###
 
-$REVISION = q{
-$Revision: 1.18 $
-};
+$REVISION = q{$Revision: 1.19 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
-}
-else {
+} else {
   $REVISION = "0.0";
 }
 
@@ -1304,7 +1277,7 @@ do {
   $logintext = &login_win($REVISION);
 } while ($logintext eq "");
 
-# set up db
+# Set up db
 $conn = Pg::connectdb("dbname=bob");
 if ($conn->status == PGRES_CONNECTION_BAD) {
   print STDERR "MAIN: error connecting to database...exiting.\n";
