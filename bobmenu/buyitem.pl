@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.18 2001-06-08 18:28:25 bob Exp $
+# $Id: buyitem.pl,v 1.19 2001-06-11 21:53:21 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -50,12 +50,10 @@ What is the price of the item you are buying?
 (NOTE: Be sure to include the decimal point!)};
 
     while (1) {
-      if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .
-                 $win_text .  "\" 10 50 2> $TMP/input.deposit") != 0) {
-        return "";
-      }
+      (my $err, $amt) = &get_dialog_result("--title \"$win_title\" --clear ".
+                        "--cr-wrap --inputbox \"" .  $win_text .  "\" 10 50");
+      return "" if ($err != 0);
 
-      $amt = `cat $TMP/input.deposit`;
       if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
         if ($amt > $MAX_PURCHASE) {
           &exceed_max_purchase_win;
@@ -67,7 +65,7 @@ What is the price of the item you are buying?
         &invalid_purchase_win;
       }
     }  # while
-    &sayit(&format_money($amt));
+    &sayit(&format_money($amt)) if ($PROFILE{"Speech"});
 
   } else {
     if ($PROFILE{"Speech"}) { 
@@ -76,7 +74,7 @@ What is the price of the item you are buying?
       if ($slashpos > 0) {  
         $phonetic_name = substr($type, 0, $slashpos);
       }
-      &sayit("$phonetic_name"); 
+      &sayit("$phonetic_name") if ($PROFILE{"Speech"}); 
     }
   }
 
@@ -184,7 +182,7 @@ scan the product's barcode now.};
   }
 
   my $phonetic_name = &bob_db_get_phonetic_name_from_barcode($barcode);
-  &sayit("$phonetic_name");
+  &sayit("$phonetic_name") if ($PROFILE{"Speech"});
 
   &bob_db_update_stock(-1, $prodname);
 
@@ -199,8 +197,8 @@ invalid_product_barcode_win
   my $win_text = q{
 This is an invalid product barcode.};
 
-  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
-	 $win_text .  "\" 7 42 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --cr-wrap --msgbox \"" .
+	 $win_text .  "\" 7 42");
 }
 
 
@@ -210,8 +208,8 @@ exceed_max_purchase_win
   my $win_title = "Invalid amount";
   my $win_text = "\nThe maximum purchase amount is \\\$$MAX_PURCHASE";
 
-  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
-         $win_text .  "\" 7 40 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --cr-wrap --msgbox \"" .
+         $win_text .  "\" 7 40");
 }
 
 
@@ -223,8 +221,8 @@ invalid_purchase_win
 Valid amounts are positive numbers with up
 to two decimal places of precision.};
 
-  system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
-         $win_text .  "\" 8 50 2> /dev/null");
+  &get_dialog_result("--title \"$win_title\" --cr-wrap --msgbox \"" .
+         $win_text .  "\" 8 50");
 }
 
 

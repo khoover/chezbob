@@ -20,7 +20,7 @@
 #
 # Look for comments in the dialog code that begin with 'MAC'
 #
-# $Id: dlg.pl,v 1.19 2001-06-10 02:39:36 cse210 Exp $
+# $Id: dlg.pl,v 1.20 2001-06-11 21:53:21 bellardo Exp $
 #
 
 $DLG = "$BOBPATH/dialog-0.9a/dialog";
@@ -63,6 +63,34 @@ remove_tmp_files
 {
   system("rm -f $TMP/input.*");
   system("rm -f $TMP/*.output.log");
+}
+
+sub
+get_dialog_result
+{
+    my $cmd = shift;
+    local *CHILDIN;
+    local *CHILDOUT;
+    local *CHILDERR;
+    my $pid;
+    use FileHandle;
+    use IPC::Open3;
+    use POSIX;
+
+    $pid = open3(*CHILDIN, *CHILDOUT, *CHILDERR, "$DLG $cmd");
+    return("", "open3 failure for $cmd") if ($pid == 0 || $pid == -1);
+    close(CHILDIN);
+    return (-1, "") if(-1 == waitpid($pid, 0));
+    return (($? >> 8), "") if ($? != 0);
+
+    my $stderrLine = <CHILDERR>;
+    chomp $stderrLine;
+    #my $stdoutLine = <CHILDOUT>;
+    #chomp $stdoutLine;
+    close(CHILDERR);
+    close(CHILDOUT);
+
+    return (0, $stderrLine);
 }
 
 1;
