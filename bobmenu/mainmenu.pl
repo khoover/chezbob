@@ -6,7 +6,7 @@
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.9 2001-05-23 00:06:17 mcopenha Exp $
+# $Id: mainmenu.pl,v 1.10 2001-05-24 21:11:51 mcopenha Exp $
 #  
 
 require "passwd.pl";
@@ -55,14 +55,14 @@ MAINLOOP:
     SWITCH: {
 
     /^DIGITS$/ && do {
-      # grab the output of the dialog program in /tmp/menuout.  If 
+      # grab the output of the dialog program in $MENUOUT.  If 
       # it's equal to the user's barcode, we're done.
 
-      if (! -r "/tmp/menuout") {
-        &report_fatal("bob_action_win: /tmp/menuout from dialog not found\n");
+      if (! -r $MENUOUT) {
+        &report_fatal("bob_action_win: $MENUOUT from dialog not found\n");
       }
-      my $prodbarcode = `cat /tmp/menuout`;
-      system("rm -f /tmp/menuout");
+      my $prodbarcode = `cat $MENUOUT`;
+      system("rm -f $MENUOUT");
       if ($prodbarcode eq $userbarcode) { last MAINLOOP; }
       $curr_purchase = &buy_single_item_with_scanner($userid, $prodbarcode);
       last SWITCH;
