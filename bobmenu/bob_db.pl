@@ -14,13 +14,13 @@
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
 #
-# $Id: bob_db.pl,v 1.27 2001-06-07 20:43:03 mcopenha Exp $
+# $Id: bob_db.pl,v 1.28 2001-06-07 21:27:54 mcopenha Exp $
 #
 
 use Pg;
 require "ctime.pl";
 
-my $conn = "";         # the database connection    
+my $conn = "";         			# the database connection    
 my $ADMIN = 'root@chezbob.ucsd.edu';    # address to send admin. message
 
 $NOT_FOUND = -1;    
@@ -167,7 +167,8 @@ bob_db_add_user
                       &esc_apos($email));
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_add_user: error inserting new user's record.\n";
+    my $mesg = "In bob_db_add_user: error inserting new user's record.\n" .
+               "user: $username, $email";
     &report_fatal($mesg);
   }
 }
@@ -188,7 +189,8 @@ bob_db_update_user_barcode
   my $result = $conn->exec(sprintf($updatequeryFormat, $barcode, $userid));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     my $mesg = "In bob_db_update_user_barcode: ";
-    $mesg .= "error updating user's barcode.\n";
+    $mesg .= "error updating user's barcode.\n" .  
+             "userid: $userid, barcode = $barcode";
     &report_fatal($mesg);
   }
 }
@@ -210,7 +212,8 @@ bob_db_update_nickname
                                    &esc_apos($name), 
                                    $userid));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_update_nickname: error updating user's nickname.\n";
+    my $mesg = "In bob_db_update_nickname: error updating user's nickname.\n" .
+               "userid: $userid, nickname: $name";
     &report_fatal($mesg);
   }
 }
@@ -258,7 +261,8 @@ bob_db_init_balance
   my $query = sprintf($insertqueryFormat, $userid, 0.0, $userid, 0.0);
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_init_balance: error inserting record.\n";
+    my $mesg = "In bob_db_init_balance: error inserting record.\n" . 
+               "userid: $userid";
     &report_fatal($mesg);
   }
 }
@@ -292,7 +296,8 @@ bob_db_update_balance
                       &esc_apos(uc($type)));
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_update_balance: error updating record.\n";
+    my $mesg = "In bob_db_update_balance: error updating record.\n" .
+               "userid: $userid, amt: $amt, type: $type";
     &report_fatal($mesg);
   }
 }
@@ -317,7 +322,8 @@ bob_db_insert_msg
                       &esc_apos($msg));
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_insert_msg: error inserting record.\n";
+    my $mesg = "In bob_db_insert_msg: error inserting record.\n" .
+               "userid: $userid, msg: $msg";
     &report_fatal($mesg);
   }
 }
@@ -332,7 +338,8 @@ bob_db_log_transactions
 
   &bob_db_check_conn;
   if ( !open(LOG_OUT, "> $logfile")) {
-    my $mesg = "In bob_db_log_transaction: error writing to log file.\n";
+    my $mesg = "In bob_db_log_transaction: error writing to log file.\n" .
+               "userid: $userid, logfile: $logfile";
     &report_fatal($mesg);
   }
 
@@ -398,7 +405,8 @@ bob_db_remove_pwd
 
   my $result = $conn->exec($removequery);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_remove_pwd: error deleting record.\n";
+    my $mesg = "In bob_db_remove_pwd: error deleting record.\n" .
+               "userid: $userid";
     &report_fatal($mesg);
   }
 }
@@ -418,7 +426,8 @@ bob_db_update_pwd
 
   my $result = $conn->exec($updatequery);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_update_pwd: error updating record.\n";
+    my $mesg = "In bob_db_update_pwd: error updating record.\n" .
+               "userid: $userid";
     &report_fatal($mesg);
   }
 }
@@ -438,7 +447,8 @@ bob_db_insert_pwd
 
   my $result = $conn->exec($insertquery);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_insert_pwd: error inserting record.\n";
+    my $mesg = "In bob_db_insert_pwd: error inserting record.\n" .
+               "userid: $userid";
     &report_fatal($mesg);
   }
 }
@@ -462,7 +472,8 @@ bob_db_insert_product
                       &esc_apos($phonetic_name), $price, $stock);
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_insert_product: error inserting record.\n";
+    my $mesg = "In bob_db_insert_product: error inserting record.\n" .
+               "$name, $barocde, $phonetic_name, $price, $stock";
     &report_fatal($mesg);
   }
 }
@@ -481,7 +492,8 @@ bob_db_set_stock
   };
   my $result = $conn->exec(sprintf($updatequeryFormat, $stock, $barcode));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_set_stock: error updating record.\n";
+    my $mesg = "In bob_db_set_stock: error updating record.\n" .
+               "$barcode, $stock";
     &report_fatal($mesg);
   }
 }
@@ -501,7 +513,8 @@ bob_db_update_stock
   my $query = sprintf($updatequeryFormat, $delta, &esc_apos($prodname));
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_update_stock: error updating record.\n";
+    my $mesg = "In bob_db_update_stock: error updating record.\n" .
+               "product name: $prodname, change by $delta";
     &report_fatal($mesg);
   }
 }
@@ -600,7 +613,7 @@ bob_db_delete_product
   };
   $result = $conn->exec(sprintf($deletequeryFormat, $barcode));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_delete_stock: error deleting record.\n";
+    my $mesg = "In bob_db_delete_stock: error deleting record.\n" . "$barcode";
     &report_fatal($mesg);
   }
 }
@@ -640,7 +653,7 @@ bob_db_delete_bulk
   };
   $result = $conn->exec(sprintf($deletequeryFormat, $barcode));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_delete_bulk: error deleting record.\n";
+    my $mesg = "In bob_db_delete_bulk: error deleting record.\n" . "$barcode";
     &report_fatal($mesg);
   }
 }
@@ -664,7 +677,8 @@ bob_db_insert_bulk_item
                       $quan);
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_insert_bulk: error inserting record.\n";
+    my $mesg = "In bob_db_insert_bulk: error inserting record.\n" . 
+               "$name, $barcode, $prodbarcode, $quan";
     &report_fatal($mesg);
   }
 }
@@ -696,7 +710,7 @@ bob_db_update_products_in_bulk_item
       my $query = sprintf($updatequeryFormat, $quantoadd, $prodbarcode);
       my $rv = $conn->exec($query);
       if ($rv->resultStatus != PGRES_COMMAND_OK) {
-        my $mesg = "In bob_db_update_products_in_bulk_item: error updating record.\n";
+        my $mesg = "In bob_db_update_products_in_bulk_item: error updating record.\n" . "$bulk_barcode";
         &report_fatal($mesg);
       }
     }
@@ -741,7 +755,7 @@ bob_db_get_products_from_bulk_item
       # Non existence of an item in the products table goes unnoticed.
       }
   } else {
-      my $mesg = "In bob_db_get_products_from_bulk_item: error retrieving bulk item.\n";
+      my $mesg = "In bob_db_get_products_from_bulk_item: error retrieving bulk item.\n" . "$bulk_barcode";
       &report_fatal($mesg);
   }
   return \@stuff;
@@ -786,7 +800,8 @@ bob_db_insert_property
   my $result = $conn->exec(sprintf($insertqueryFormat, 
                                    $userid, &esc_apos($property)));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_insert_property: error inserting new property.\n";
+    my $mesg = "In bob_db_insert_property: error inserting new property.\n" .
+               "userid: $userid, property: $property";
     &report_fatal($mesg);
   }
 }
@@ -810,7 +825,7 @@ bob_db_update_profile_settings
                         &esc_apos($property));
     my $result = $conn->exec($query);
     if ($result->resultStatus != PGRES_COMMAND_OK) {
-      my $mesg = "In bob_db_update_profile_setting: error updating profile.\n";
+      my $mesg = "In bob_db_update_profile_setting: error updating profile.\n" . "userid: $userid, %newsettings";
       &report_fatal($mesg);
     }
   }
@@ -836,7 +851,7 @@ bob_db_insert_book
                       &esc_apos($title));
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_insert_book: error inseting new book.\n";
+    my $mesg = "In bob_db_insert_book: error inserting new book.\n";
     &report_fatal($mesg);
   }
 }
@@ -867,7 +882,7 @@ bob_db_get_book_from_barcode
 sub
 esc_apos
 #
-# escape any apostrophes
+# escape any apostrophes using an extra apostrophe
 #
 {
   my ($str) = @_;
@@ -894,6 +909,7 @@ sub report
   unlink($fname);
 }
 
+
 sub report_fatal
 {
   my ($message) = @_ ;
@@ -903,6 +919,7 @@ sub report_fatal
   &report($subject, $message);
   exit 1;
 }
+
 
 sub report_msg
 {
