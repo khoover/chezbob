@@ -158,6 +158,33 @@ update_stock
 }
 
 sub
+saytotal
+{
+  my ($total) = @_;
+
+  my $str = sprintf("%.2f", $total);
+  my @money = split(/\./, $str);
+  my $dollars = int($money[0]);
+  my $cents = $money[1];
+  if (substr($cents, 0, 1) eq "0") {
+    $cents = chop($cents);
+  }
+
+  if ($dollars > 0) {
+    &sayit("your total is \\\$$dollars and $cents cents");
+  } else {
+    &sayit("your total is $cents cents");
+  }
+}
+
+sub
+sayit
+{
+  my ($str) = @_;
+#  system("echo $str > /dev/speech");
+}
+
+sub
 barcode_action_win
 #
 # Nasty proc that shows the main menu in barcode mode.  Keeps a running 
@@ -184,6 +211,11 @@ barcode_action_win
   my $msg = "";
   if (-r "/tmp/message") {
     chop($msg = `cat /tmp/message`);
+  }
+
+  &sayit("Welcome $username");
+  if ($balance < 5) {
+    &sayit("It is time you deposited some money");
   }
 
   while (1) {
@@ -241,9 +273,9 @@ The transaction will not be recorded until then. \n
       };
       my $result = $conn->exec(sprintf($selectqueryFormat, $prod_barcode));
       if ($result->ntuples != 1) {
-        system ("$DLG --title \"$prod_barcode\""
-                ." --clear --msgbox"
-                ." \"Product not found.  Please try again\" 9 50");
+#        system ("$DLG --title \"$prod_barcode\""
+#                ." --clear --msgbox"
+#                ." \"Product not found.  Please try again\" 9 50");
         next;
       } 
       $prodname = $result->getvalue(0,0);
@@ -264,15 +296,17 @@ The transaction will not be recorded until then. \n
 
       if ($prodname eq "Done") {
         # Record all transactions at once
+        &saytotal($total);
         &update_stock(@purchase);
         &update_balance($userid,$total);
+        &sayit("goodbye!");
         return;
       } else {
         # Update dialog
         push(@purchase, $prodname);
         push(@prices, $price);
         $numbought++;
-#        system("echo \"$prodname\" > /dev/speech");
+        &sayit("$prodname");
         $leng += 1;
         next;
       }
@@ -1247,7 +1281,7 @@ create a new account by entering a valid text login id.};
 ###
 
 $REVISION = q{
-$Revision: 1.15 $
+$Revision: 1.16 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
