@@ -161,7 +161,7 @@ scan the barcode at the top of the monitor labeled 'done' \n\n};
         } else {
           # update dialog
           push(@purchase, $prodname);
-#  system("$FEST \"$prodname\" &");
+  system("$FEST \"$prodname\" &");
           $leng += 1;
           next;
         }
@@ -993,10 +993,148 @@ confirm_win
     return 0;
   }
 }
-################################# UTILITIES #################################
 
 
+################################# MAIN  #################################
 
+sub
+regular_login
+{
+  my ($username) = @_;
+  $userid = &checkUser($username,$conn);
+
+  if ($userid == -1) {
+    #
+    # new user!
+    #
+
+  # transaction causes problems...
+  #  $conn->exec("begin");
+
+    if (askStartNew_win($username,$conn) == -1) {
+      # canceled or refused
+      exit 1;
+    }
+
+    $userid = &checkUser($username,$conn);
+    if (&initBalance_win($userid,$conn) < 0) {
+#      $conn->exec("rollback");
+      exit 1;
+    }
+
+  #  $conn->exec("commit");
+  }
+
+  $p = &getPwd($userid,$conn);
+  if (defined $p && &checkPwd($p,&guess_pwd_win()) == 0) {
+    &invalidPassword_win();
+    exit 1;
+  }
+
+  # Output some annonying message if balance is really in the red
+  $balance = &getBalance($userid,$conn);
+  if ($balance < 10.00) {
+  #  system("$FEST \"It's about time to add money to your account!\"&");
+  }
+
+  my $action = "";
+  do {
+    #
+    # refresh the balance
+    #
+    $balance = &getBalance($userid,$conn);
+    if (! defined $balance) {
+      print "MAIN: no balance from database...exiting.\n";
+      exit 1;
+    }
+
+    #
+    # get the action
+    #
+    $action = &action_win($username,$userid,$balance,$conn);
+
+    $_ = $action;
+   SWITCH: {
+     /^Add$/ && do {
+       &add_win($userid,$conn);
+       last SWITCH;
+     };
+  
+     (/^Candy\/Can of Soda$/ || /^Snapple$/ || /^Juice$/ ||
+      /^Popcorn\/Chips\/etc.$/) && do {
+       &buy_win($userid,$conn,$_);
+       last SWITCH;
+     };
+  
+     /^Buy Other$/ && do {
+       &buy_win($userid,$conn);
+       last SWITCH;
+     };
+  
+     /^Message$/ && do {
+       &message_win($username,$userid,$conn);
+       last SWITCH;
+     };
+  
+     /^Transactions$/ && do {
+       &log_win($username,$userid,$conn);
+       last SWITCH;
+     };
+  
+     /^Modify Barcode$/ && do {
+       &barcode_win($username,$userid,$conn);
+       last SWITCH;
+     };
+  
+     /^Modify Password$/ && do {
+       &pwd_win($username,$userid,$conn);
+       last SWITCH;
+     };
+  
+     /^No action$/ && do {
+       last SWITCH;
+     };
+  
+     (! /^Quit$/) && do {
+       &unimplemented_win();
+       last SWITCH;
+     };
+   } # SWITCH
+  } while ($action ne "Quit");
+} 
+
+
+sub
+barcode_login
+{
+  my ($logintext) = @_;
+
+  # Do some preprocessing first: decode and retrieve corresponding username
+  $barcode = decode_barcode($logintext); 
+  my $selectqueryFormat = q{
+select username 
+from users 
+where userbarcode = '%s';
+  };
+  my $result = $conn->exec(sprintf($selectqueryFormat, $barcode));
+  if ($result->ntuples != 1) {
+    # does not exist
+    my $win_title = "Invalid barcode";
+    my $win_text = q{
+I could not find this barcode in the database. If you're 
+an existing user you can change your barcode login from 
+the main menu.  If you're a new user you'll need to first 
+create a new account by entering a valid text login id.}; 
+    system("$DLG --title \"$win_title\" --msgbox \"" .
+	 $win_text .
+	 "\" 10 65 2> /dev/null");
+    exit 1;
+  } else {
+    $username = $result->getvalue(0,0);
+    $userid = &checkUser($username,$conn);
+    &barcode_action_win($username,$userid,$conn);
+  }
+}
 
 
 ###
@@ -1004,7 +1142,7 @@ confirm_win
 ###
 
 $REVISION = q{
-$Revision: 1.11 $
+$Revision: 1.12 $
 };
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
@@ -1030,137 +1168,8 @@ if ($conn->status == PGRES_CONNECTION_BAD) {
 $username = "";
 
 if (&isa_barcode($logintext)) {
-  # Do some preprocessing first: decode and retrieve corresponding username
-  $barcode = decode_barcode($logintext); 
-  my $selectqueryFormat = q{
-select username 
-from users 
-where userbarcode = '%s';
-  };
-  my $result = $conn->exec(sprintf($selectqueryFormat,
-				   $barcode));
-  if ($result->ntuples != 1) {
-    # does not exist
-    my $win_title = "Invalid barcode";
-    my $win_text = q{
-I could not find this barcode in the database. If you're 
-an existing user you can change your barcode login from 
-the main menu.  If you're a new user you'll need to first 
-create a new account by entering a valid text login id.}; 
-    system("$DLG --title \"$win_title\" --msgbox \"" .
-	 $win_text .
-	 "\" 10 65 2> /dev/null");
-    exit 1;
-  } else {
-    $username = $result->getvalue(0,0);
-    $userid = &checkUser($username,$conn);
-    &barcode_action_win($username,$userid,$conn);
-  }
+  &barcode_login($logintext);
 } else {
-  $username = $logintext;
-
-#system("$DLG --msgbox $username 10 20");
-
-$userid = &checkUser($username,$conn);
-
-if ($userid == -1) {
-  #
-  # new user!
-  #
-
-# transaction causes problems...
-#  $conn->exec("begin");
-
-  if (askStartNew_win($username,$conn) == -1) {
-    # canceled or refused
-    exit 1;
-  }
-
-  $userid = &checkUser($username,$conn);
-  if (&initBalance_win($userid,$conn) < 0) {
-#    $conn->exec("rollback");
-    exit 1;
-  }
-
-#  $conn->exec("commit");
+  &regular_login($logintext);
 }
 
-$p = &getPwd($userid,$conn);
-if (defined $p && &checkPwd($p,&guess_pwd_win()) == 0) {
-  &invalidPassword_win();
-  exit 1;
-}
-
-# Output some annonying message if balance is really in the red
-$balance = &getBalance($userid,$conn);
-if ($balance < 10.00) {
-#  system("$FEST \"It's about time to add money to your account!\"&");
-}
-
-my $action = "";
-do {
-  #
-  # refresh the balance
-  #
-  $balance = &getBalance($userid,$conn);
-  if (! defined $balance) {
-    print "MAIN: no balance from database...exiting.\n";
-    exit 1;
-  }
-
-  #
-  # get the action
-  #
-  $action = &action_win($username,$userid,$balance,$conn);
-
-  $_ = $action;
- SWITCH: {
-   /^Add$/ && do {
-     &add_win($userid,$conn);
-     last SWITCH;
-   };
-
-   (/^Candy\/Can of Soda$/ || /^Snapple$/ || /^Juice$/ ||
-    /^Popcorn\/Chips\/etc.$/) && do {
-     &buy_win($userid,$conn,$_);
-     last SWITCH;
-   };
-
-   /^Buy Other$/ && do {
-     &buy_win($userid,$conn);
-     last SWITCH;
-   };
-
-   /^Message$/ && do {
-     &message_win($username,$userid,$conn);
-     last SWITCH;
-   };
-
-   /^Transactions$/ && do {
-     &log_win($username,$userid,$conn);
-     last SWITCH;
-   };
-
-   /^Modify Barcode$/ && do {
-     &barcode_win($username,$userid,$conn);
-     last SWITCH;
-   };
-
-   /^Modify Password$/ && do {
-     &pwd_win($username,$userid,$conn);
-     last SWITCH;
-   };
-
-   /^No action$/ && do {
-     last SWITCH;
-   };
-
-   (! /^Quit$/) && do {
-     &unimplemented_win();
-     last SWITCH;
-   };
- } # SWITCH
-} while ($action ne "Quit");
-
-
-} # end is not barcode
