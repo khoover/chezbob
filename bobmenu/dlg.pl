@@ -2,12 +2,12 @@
 #
 # This file was intended to encapsulate the calls to the dialog program
 # but that's too much of a pain.  Contains the location of the custom 
-# dialog program we're using (bobdialog).
+# dialog program we're using.
 #
-# $Id: dlg.pl,v 1.1 2001-05-18 05:41:44 mcopenha Exp $
+# $Id: dlg.pl,v 1.2 2001-05-18 05:47:56 mcopenha Exp $
 #
 
-$DLG = "./bobdialog";
+$DLG = "./dialog-0.9a/dialog";
 $CANCEL = -1;
 
 sub
