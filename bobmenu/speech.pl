@@ -14,19 +14,28 @@
 # firing up festival each time we want to say something; also doesn't 
 # introduce 'device not available' errors.
 #
-# $Id: speech.pl,v 1.5 2001-06-01 20:50:58 mcopenha Exp $
+# $Id: speech.pl,v 1.6 2001-06-07 21:16:14 mcopenha Exp $
 #
 
 use FileHandle;
 require "ctime.pl";
 require "flush.pl";
 
-$fifo = '/dev/speech';
+my $fifo = '/dev/speech';	# fifo to speechd
+my @goodbyes = ();		# an array of witty goodbyes
+
 
 sub
 speech_startup
+#
+# Open the fifo to speechd and initialize the goodbyes arrays
+#
 {
   open(FEST, ">> $fifo") || die "can't open $fifo: $!\n";
+  my $byefile = "$BOBPATH/goodbyes.txt";
+  open(BYE, $byefile) || print STDERR "can't open $byefile: $!\n";
+  @goodbyes = <BYE>;
+  close(BYE);
 }
 
 
@@ -92,26 +101,6 @@ say_greeting
 sub
 say_goodbye
 {
-  @goodbyes = ( 
-    "goodbye",
-    "later, dood",
-    "have a nice day",
-    "now get to work, ok?", 
-    "shay bob thanks you",
-    "go do some research",
-    "shay bob.  it's a good thing",
-    "tell your friends about me, ok?",
-    "stephen hawking's got nothing on me",
-    "you are making me hungry",
-    "Have you seen my good friend HAL?",
-    "you look like a million bucks",
-    "please take me back to england",
-    "i was born in Edinburgh, not san diego",
-    "your new balance is negative one million pounds.  just kidding",
-    "ha ha.  ho ho.  Shay bob wants your dough",
-    "carpay dee em",
-    "are we running out of corn nuts?"
-  );
   sayit(splice(@goodbyes, rand @goodbyes, 1));
 }
 
@@ -123,7 +112,6 @@ sayit
 #
 {
   my ($str) = @_;
-#  system("echo $str > /dev/speech");
   print FEST $str, "\n" ; 
   autoflush FEST 1;
 }
