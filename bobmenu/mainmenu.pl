@@ -6,7 +6,7 @@
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.10 2001-05-24 21:11:51 mcopenha Exp $
+# $Id: mainmenu.pl,v 1.11 2001-05-24 21:18:25 mcopenha Exp $
 #  
 
 require "passwd.pl";
@@ -62,7 +62,6 @@ MAINLOOP:
         &report_fatal("bob_action_win: $MENUOUT from dialog not found\n");
       }
       my $prodbarcode = `cat $MENUOUT`;
-      system("rm -f $MENUOUT");
       if ($prodbarcode eq $userbarcode) { last MAINLOOP; }
       $curr_purchase = &buy_single_item_with_scanner($userid, $prodbarcode);
       last SWITCH;
