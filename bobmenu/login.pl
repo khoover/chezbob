@@ -2,7 +2,7 @@
 #
 # Routines for processing login names, both text and barcode
 #
-# $Id: login.pl,v 1.5 2001-05-22 03:29:31 mcopenha Exp $
+# $Id: login.pl,v 1.6 2001-05-22 23:14:11 mcopenha Exp $
 #
 
 $MIN_BARCODE_LENG = 6;
@@ -72,12 +72,12 @@ Enter your username or scan your personal barcode.
 sub
 isa_valid_username
 #
-# usernames must consist of at least 1 char and can only contain
-# non-digit (\D) chars.
+# usernames can only have letters 
 #
 {
   my ($username) = @_;
-  return ($username =~ /^\D+$/);
+#  return ($username =~ /^\D+$/);
+  return ($username =~ /^[a-zA-Z]+$/);
 }
 
 
@@ -87,7 +87,7 @@ invalidUsername_win
   my $win_title = "Invalid username";
   my $win_text = q{
 Valid usernames must contain at least one
-character and cannot have any digits.};
+letter and cannot have any digits.};
 
   system("$DLG --title \"$win_title\" --msgbox \"" .
          $win_text .  "\" 9 45 2> /dev/null");
