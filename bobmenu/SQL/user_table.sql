@@ -3,7 +3,8 @@ create table users
   userid int            not null               ,
   username varchar      not null               ,
   email varchar         not null               ,
-  userbarcode varchar	not null	       ,	
+  userbarcode varchar	,	
+  nickname varchar      ,
 
   primary key (userid),
   unique (username),
