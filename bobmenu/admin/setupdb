@@ -30,3 +30,12 @@ psql bob -f SQL/transaction_table.sql
 #
 psql bob -f SQL/pwd_table.sql
 
+#
+# the products table
+#
+psql bob -f SQL/products_table.sql
+
+#
+# the bulk_items table
+#
+psql bob -f SQL/bulk_items.sql
