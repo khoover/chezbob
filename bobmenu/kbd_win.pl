@@ -9,7 +9,7 @@
 #
 # Al Su (alsu@cs.ucsd.edu)
 #
-# $Id: kbd_win.pl,v 1.7 2001-05-14 07:13:29 mcopenha Exp $
+# $Id: kbd_win.pl,v 1.8 2001-05-14 22:06:51 mcopenha Exp $
 #  
 
 $DLG = "/usr/bin/dialog";
@@ -129,14 +129,6 @@ Valid email addresses take the form
 }
 
 ########################### BALANCE INIT WINDOWS ############################
-
-sub
-initBalance
-{
-  my ($userid) = @_;
-  &bob_db_init_balance($userid);
-}
-
 
 sub
 askHowMuch_win
@@ -511,7 +503,7 @@ kbd_action_win
     #
     my $balance = &bob_db_get_balance($userid);
     if (! defined $balance) {
-      print "MAIN: no balance from database...exiting.\n";
+      print "no balance from database...exiting.\n";
       exit 1;
     }
 

@@ -4,7 +4,7 @@
 #
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 #
-# $Id: bc_win.pl,v 1.5 2001-05-14 20:04:23 mcopenha Exp $
+# $Id: bc_win.pl,v 1.6 2001-05-14 22:06:51 mcopenha Exp $
 #
 
 my $DLG = "/usr/bin/dialog";
@@ -157,8 +157,8 @@ sub
 get_user_barcode_win
 {
   my $win_title = "Scan your barcode:";
-  if (system("$DLG --title \"$win_title\" --clear" .
-             "--inputbox \"\" 8 45 2> /tmp/input.barcode") != 0) {
+  if (system("$DLG --title \"$win_title\" --clear " .
+      " --inputbox \"\" 8 45 2> /tmp/input.barcode") != 0) {
     return "";
   }
 

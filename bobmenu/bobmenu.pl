@@ -8,7 +8,7 @@
 # Al Su (alsu@cs.ucsd.edu)
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # 
-# $Id: bobmenu.pl,v 1.26 2001-05-14 20:04:23 mcopenha Exp $
+# $Id: bobmenu.pl,v 1.27 2001-05-14 22:06:51 mcopenha Exp $
 #
 
 do 'bc_win.pl';		# barcode login windows
@@ -20,7 +20,7 @@ do 'bob_db.pl';		# database routines
 $DLG = "/usr/bin/dialog";
 
 
-$REVISION = q{$Revision: 1.26 $};
+$REVISION = q{$Revision: 1.27 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -96,7 +96,9 @@ kbd_login
       return;
     }
 
-    &initBalance($userid);
+    # get the new userid
+    $userid = &bob_db_get_userid_from_username($username);
+    &bob_db_init_balance($userid);
   }
 
   $pwd = &bob_db_get_pwd($userid);
