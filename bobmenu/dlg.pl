@@ -20,13 +20,12 @@
 #
 # Look for comments in the dialog code that begin with 'MAC'
 #
-# $Id: dlg.pl,v 1.18 2001-06-10 01:58:59 cse210 Exp $
+# $Id: dlg.pl,v 1.19 2001-06-10 02:39:36 cse210 Exp $
 #
 
 $DLG = "$BOBPATH/dialog-0.9a/dialog";
 $CANCEL = -1;
 $TMP = "$BOBPATH";		# locn of temp files for dialog output
-$MENUOUT = "/tmp/menuout"; 	# tmp file created by dialog's menu
 
 
 sub
@@ -64,7 +63,6 @@ remove_tmp_files
 {
   system("rm -f $TMP/input.*");
   system("rm -f $TMP/*.output.log");
-  system("rm -f $MENUOUT");
 }
 
 1;

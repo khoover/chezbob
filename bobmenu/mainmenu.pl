@@ -6,7 +6,7 @@
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
 #
-# $Id: mainmenu.pl,v 1.16 2001-06-08 17:55:16 cse210 Exp $
+# $Id: mainmenu.pl,v 1.17 2001-06-10 02:39:36 cse210 Exp $
 #  
 
 require "$BOBPATH/passwd.pl";
@@ -56,88 +56,84 @@ MAINLOOP:
       &report_fatal("mainmenu: no balance from database.\n");
     }
 
-    $action = &action_win($username,$userid,$balance,$last_purchase);
+    $action = &action_win($username, $userid, $balance, $last_purchase);
     my $curr_purchase = "";
 
-    $_ = $action;
-    SWITCH: {
-
-    /^DIGITS$/ && do {
-      # grab the output of the dialog program in $MENUOUT.  If 
-      # it's equal to the user's barcode, we're done.
-
-      if (! -r $MENUOUT) {
-        &report_fatal("bob_action_win: $MENUOUT from dialog not found\n");
-      }
-      my $prodbarcode = `cat $MENUOUT`;
+    # First check if we're dealing with a barcode
+    if (&isa_numeric_barcode($action)) {
+      my $prodbarcode = &preprocess_barcode($action);
       if ($prodbarcode eq $userbarcode) { last MAINLOOP; }
       $curr_purchase = &buy_single_item_with_scanner($userid, $prodbarcode);
-      last SWITCH;
-    };
+    } else {
+      # Otherwise, check for any of the visible menu options
 
-    /^Add Money$/ && do {
-      &add_win($userid);
-      last SWITCH;
-    };
+      $_ = $action;
+      SWITCH: {
 
-    (/^Candy\/Can of Soda$/ || /^Snapple$/ || /^Juice$/ ||
-     /^Popcorn\/Chips\/etc.$/) && do {
-      $curr_purchase = &buy_win($userid, $_);
-      last SWITCH;
-    };
+      /^Add Money$/ && do {
+        &add_win($userid);
+        last SWITCH;
+      };
+
+      (/^Candy\/Can of Soda$/ || /^Snapple$/ || /^Juice$/ ||
+       /^Popcorn\/Chips\/etc.$/) && do {
+        $curr_purchase = &buy_win($userid, $_);
+        last SWITCH;
+      };
     
-    /^Buy Other$/ && do {
-      $curr_purchase = &buy_win($userid, $_);
-      last SWITCH;
-    };
+      /^Buy Other$/ && do {
+        $curr_purchase = &buy_win($userid, $_);
+        last SWITCH;
+      };
   
-    /^Message$/ && do {
-      &message_win($username, $userid);
-      last SWITCH;
-    };
-  
-    /^Transactions$/ && do {
-      &log_win($userid);
-      last SWITCH;
-    };
-   
-    /^My Chez Bob$/ && do {
-      &profile_win($userid);
-      last SWITCH;
-    };
-
-    /^Barcode ID$/ && do {
-      &update_user_barcode($userid);
-      $userbarcode = &bob_db_get_userbarcode_from_userid($userid);
-      last SWITCH;
-    };
-  
-    /^Nickname$/ && do {
-      &update_nickname($userid);
-      last SWITCH;
-    };
-
-    /^Password$/ && do {
-      &pwd_win($userid);
-      last SWITCH;
-    };
-  
-    /^Checkout a Book$/ && do {
-      &checkout_book($userid, $username);
-      last SWITCH;
-    };
-
-    /^No action$/ && do {
-      last SWITCH;
-    };
-   
-    (! /^Quit$/) && do {
-      &unimplemented_win;
-      last SWITCH;
-    };
+      /^Message$/ && do {
+        &message_win($username, $userid);
+        last SWITCH;
+      };
     
-    }  # SWITCH
-
+      /^Transactions$/ && do {
+        &log_win($userid);
+        last SWITCH;
+      };
+     
+      /^My Chez Bob$/ && do {
+        &profile_win($userid);
+        last SWITCH;
+      };
+  
+      /^Barcode ID$/ && do {
+        &update_user_barcode($userid);
+        $userbarcode = &bob_db_get_userbarcode_from_userid($userid);
+        last SWITCH;
+      };
+    
+      /^Nickname$/ && do {
+        &update_nickname($userid);
+        last SWITCH;
+      };
+  
+      /^Password$/ && do {
+        &pwd_win($userid);
+        last SWITCH;
+      };
+    
+      /^Checkout a Book$/ && do {
+        &checkout_book($userid, $username);
+        last SWITCH;
+      };
+  
+      /^No action$/ && do {
+        last SWITCH;
+      };
+     
+      (! /^Quit$/) && do {
+        &unimplemented_win;
+        last SWITCH;
+      };
+    
+      }  # SWITCH
+    }  # ELSE
+  
     if ($curr_purchase ne "") {
       # User did *not* cancel purchase
       $last_purchase = $curr_purchase;
@@ -155,7 +151,7 @@ action_win
 #
 # Print the text for Bob's main menu.  Return the menu selection the user
 # chooses.  If the user scans an item with the scanner, the dialog program
-# will return the special value DIGITS.  
+# will return only numeric input.   
 #
 {
   my ($username,$userid,$balance,$last_purchase) = @_;
