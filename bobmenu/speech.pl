@@ -14,11 +14,11 @@
 # firing up festival each time we want to say something; also doesn't 
 # introduce 'device not available' errors.
 #
-# $Id: speech.pl,v 1.7 2001-06-08 20:22:33 cse210 Exp $
+# $Id: speech.pl,v 1.8 2001-08-21 00:04:48 bob Exp $
 #
 
 use FileHandle;
-require "ctime.pl";
+require "ctime.pl" unless defined &ctime;
 require "flush.pl";
 
 my $fifo = '/dev/speech';	# fifo to speechd
