@@ -9,7 +9,7 @@
 #
 # Al Su (alsu@cs.ucsd.edu)
 #
-# $Id: kbd_win.pl,v 1.13 2001-05-18 00:54:05 mcopenha Exp $
+# $Id: kbd_win.pl,v 1.14 2001-05-18 01:11:15 mcopenha Exp $
 #  
 
 require "bob_db.pl";
@@ -31,8 +31,6 @@ sub
 kbd_action_win
 {
   my ($userid, $username) = @_;
-  my $last_purchase = "";
-
   my $nickname = &bob_db_get_nickname_from_userid($userid);
   &say_greeting($nickname);
 
@@ -64,13 +62,33 @@ kbd_action_win
         last SWITCH;
       };
   
-      (/^Candy\/Can of Soda$/ || /^Snapple$/ || /^Juice$/ ||
-       /^Popcorn\/Chips\/etc.$/) && do {
+      /^Candy\/Can of Soda$/ && do {
+        $last_purchase = "Candy/Can of Soda";
+        &buy_win($userid,$_);
+        last SWITCH;
+      };
+    
+      /^Snapple$/ && do {
+        $last_purchase = "Snapple";
+        &buy_win($userid,$_);
+        last SWITCH;
+      };
+    
+      /^Juice$/ && do {
+        $last_purchase = "Juice";
+        &buy_win($userid,$_);
+        last SWITCH;
+      };
+    
+      /^Popcorn\/Chips\/etc.$/ && do {
+        $last_purchase = "Popcorn/Chips";
         &buy_win($userid,$_);
         last SWITCH;
       };
     
       /^Buy Other$/ && do {
+        $last_purchase = "Other";
+        $last_purchase = "Other";
         &buy_win($userid);
         last SWITCH;
       };
