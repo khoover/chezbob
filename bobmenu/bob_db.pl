@@ -11,7 +11,7 @@
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # Created: 5/2/00
 #
-# $Id: bob_db.pl,v 1.9 2001-05-17 23:33:10 wleong Exp $
+# $Id: bob_db.pl,v 1.10 2001-05-18 00:54:05 mcopenha Exp $
 #
 
 use Pg;
@@ -125,6 +125,26 @@ bob_db_get_userid_from_userbarcode
 
 
 sub
+bob_db_get_nickname_from_userid
+{
+  my ($userid) = @_;
+
+  &bob_db_check_conn;
+  my $queryFormat = q{
+    select nickname
+    from users
+    where userid = %d;
+  };
+  my $result = $conn->exec(sprintf($queryFormat, $userid));
+  if ($result->ntuples != 1) {
+    return undef;
+  } else {
+    return ($result->getvalue(0,0));
+  }
+}
+
+
+sub
 bob_db_get_userbarcode_from_userid
 {
   my ($userid) = @_;
@@ -179,6 +199,26 @@ bob_db_update_user_barcode
   my $result = $conn->exec(sprintf($updatequeryFormat, $barcode, $userid));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     print STDERR "error updating new barcode\n";
+    exit 1;
+  }
+}
+
+
+sub
+bob_db_update_nickname
+{
+  my ($userid, $name) = @_;
+
+  &bob_db_check_conn;
+  my $updatequeryFormat = q{
+    update users
+    set nickname = '%s'
+    where userid = %d;
+  };      
+
+  my $result = $conn->exec(sprintf($updatequeryFormat, $name, $userid));
+  if ($result->resultStatus != PGRES_COMMAND_OK) {
+    print STDERR "error updating new nickname\n";
     exit 1;
   }
 }

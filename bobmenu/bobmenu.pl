@@ -7,7 +7,7 @@
 # Al Su (alsu@cs.ucsd.edu)
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # 
-# $Id: bobmenu.pl,v 1.33 2001-05-17 23:23:38 mcopenha Exp $
+# $Id: bobmenu.pl,v 1.34 2001-05-18 00:54:05 mcopenha Exp $
 #
 
 require "bc_win.pl";	# barcode login windows
@@ -21,7 +21,7 @@ my $NOT_FOUND = -1;
 $CANCEL = -1;
 
 
-$REVISION = q{$Revision: 1.33 $};
+$REVISION = q{$Revision: 1.34 $};
 if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
   $REVISION = $1;
 } else {
@@ -73,8 +73,7 @@ Enter your username or scan your personal barcode.
 (If you are a new user enter a new username):
 };
 
-  if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .
-         $win_text .  "\" 14 55 \"$username\" 2> input.main") != 0) {
+  if (system("$DLG --backtitle \"Chez Bob 2001\" --title \"$win_title\" --clear --cr-wrap --inputbox \"" .  $win_text .  "\" 14 55 \"$username\" 2> input.main") != 0) {
     return "";
   }
 

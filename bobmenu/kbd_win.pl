@@ -9,7 +9,7 @@
 #
 # Al Su (alsu@cs.ucsd.edu)
 #
-# $Id: kbd_win.pl,v 1.12 2001-05-17 23:20:23 mcopenha Exp $
+# $Id: kbd_win.pl,v 1.13 2001-05-18 00:54:05 mcopenha Exp $
 #  
 
 require "bob_db.pl";
@@ -32,7 +32,9 @@ kbd_action_win
 {
   my ($userid, $username) = @_;
   my $last_purchase = "";
-  &say_greeting;
+
+  my $nickname = &bob_db_get_nickname_from_userid($userid);
+  &say_greeting($nickname);
 
   my $action = "";
   do {
@@ -88,6 +90,11 @@ kbd_action_win
         last SWITCH;
       };
   
+      /^Modify Nickname$/ && do {
+        &update_nickname($userid);
+        last SWITCH;
+      };
+
       /^Modify Password$/ && do {
         &pwd_win($userid);
         last SWITCH;
@@ -162,7 +169,7 @@ for you?};
   while (1) {
     if (system("$DLG --title \"$win_title\" --clear --yesno \"" .
 	       sprintf($win_textFormat, $username) .
-	       "\" 9 58 2> /dev/null") != 0) {
+	       "\" 9 50 2> /dev/null") != 0) {
       return $CANCEL;
     }
 
@@ -229,7 +236,8 @@ USER INFORMATION:
   %s
   Last Item Purchased: %s
 
-Choose one of the following actions (scroll down for more options):};
+Choose one of the following actions (scroll down for more options) 
+or scan an item using the barcode scanner.};
 
   my $balanceString = &get_balance_string($balance);
   my $msg = &get_msg;
@@ -257,6 +265,8 @@ Choose one of the following actions (scroll down for more options):};
 	       "\"Finished\!                                      \" " .
 	   "\"Modify Barcode ID\" " .
 	       "\"Set your personal barcode                     \" " .
+	   "\"Modify Nickname\" " .
+	       "\"Set your nickname\" " .
 	   "\"Modify Password\" " .
 	       "\"Set, change, or delete your password           \" " .
 	   "\"Transactions\" " .
@@ -471,6 +481,42 @@ No changes were made.};
 
 
 sub
+get_nickname_win
+{
+  my $win_title = "Enter nickname:";
+  if (system("$DLG --title \"$win_title\" --clear " .
+      " --inputbox \"\" 8 45 2> input.nickname") != 0) {
+    return undef;
+  }
+
+  return `cat input.nickname`;
+}
+
+
+sub
+update_nickname
+{
+  my ($userid) = @_;
+
+  while (1) {
+    my $name = &get_nickname_win;
+    if (!defined $name) { 
+      # User canceled
+      return;
+    }
+    if (&isa_valid_nickname($name)) {
+      &bob_db_update_nickname($userid, $name);
+      system ("$DLG --title \"Nickname\" --clear --msgbox"
+              ." \"Nickname successfully updated!\" 6 50");
+      return;
+    } else {
+      &invalid_nickname_win;
+    }
+  }
+}
+
+
+sub
 unimplemented_win
 {
   my $win_title = "Unimplemented function";
@@ -495,6 +541,31 @@ isa_valid_username
   return ($username =~ /^\D+$/); 
 }
  
+
+sub
+isa_valid_nickname
+# 
+# Nicknames contain only alphanumeric characters.  Things get really 
+# screwed up if the user enters an apostrophe; in postgres an apostrophe 
+# delimits a string
+#
+{
+  my ($name) = @_;
+  return ($name =~ /^\w+$/);
+}
+
+
+sub
+invalid_nickname_win
+{
+  my $win_title = "Invalid Nickname";
+  my $win_text = q{
+Valid nicknames consist of alphanumeric characters only.}; 
+
+  system("$DLG --title \"$win_title\" --msgbox \"" .
+	 $win_text .  "\" 8 50 2> /dev/null");
+}
+
 
 sub
 checkPwd

@@ -17,7 +17,7 @@
 # Michael Copenhafer (mcopenha@cs.ucsd.edu)
 # Created: 5/10/01
 #
-# $Id: snd_util.pl,v 1.8 2001-05-16 02:39:51 mcopenha Exp $
+# $Id: snd_util.pl,v 1.9 2001-05-18 00:54:05 mcopenha Exp $
 #
 
 require "ctime.pl";
@@ -54,15 +54,17 @@ say_greeting
 # Say an appropriate greeting based on the time
 #
 {
+  my ($name) = @_;
   my $hour = substr(&ctime(time), 11, 2);
   my $greeting = "good ";
   if ($hour >= 17) {
-    $greeting .= "evening";
+    $greeting .= "evening ";
   } elsif ($hour >= 12) {
-    $greeting .= "after noon";
+    $greeting .= "after noon ";
   } else {
-    $greeting .= "morning";
+    $greeting .= "morning ";
   }
+  $greeting .= $name;
   sayit($greeting);
 }
 
