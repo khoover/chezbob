@@ -1,8 +1,10 @@
 #!/bin/sh
 
 CB_MACH=chezbob.ucsd.edu
-MAIL_MACH=beowulf.ucsd.edu
-MAIL_CMD=/usr/local/MH/bin/send
+#MAIL_MACH=beowulf.ucsd.edu
+#MAIL_CMD=/usr/local/MH/bin/send
+MAIL_MACH=localhost
+MAIL_CMD=/usr/bin/mh/send
 
 #
 # check to see if we have a home
@@ -62,22 +64,43 @@ fi
 ./makeform.pl ./email1 ./list1
 
 MAIL_TMPDIR=TMP_$$
-if ( ! $SSH -n $MAIL_MACH mkdir $MAIL_TMPDIR ); then
-  echo "unable to create temp directory ${MAIL_MACH}:$MAIL_TMPDIR...exiting."
-  exit 1
-fi
-if ( ! $SCP -q ./email1.* ${MAIL_MACH}:$MAIL_TMPDIR ); then
-  echo "unable to copy drafts..."
-else
-  if ( ! $SSH -n $MAIL_MACH $MAIL_CMD ~/${MAIL_TMPDIR}/email1.\* ); then
-    echo "unable to send drafts..."
+if [ "x$MAIL_MACH" == "xlocalhost" ]; then
+  if ( ! mkdir $MAIL_TMPDIR ); then
+    echo "(local) unable to create temp directory ${MAIL_TMPDIR}...exiting."
+  fi
+  if ( ! cp ./email1.* ${MAIL_TMPDIR} ); then
+    echo "(local) unable to copy drafts..."
   else
-    if ( ! $SSH -n $MAIL_MACH rm ~/${MAIL_TMPDIR}/\* ); then
-      echo "unable to flush tmp directory..."
+    if ( ! $MAIL_CMD ${MAIL_TMPDIR}/email1.\* ); then
+      echo "(local) unable to send drafts..."
+    else
+      if ( ! /bin/rm ~/${MAIL_TMPDIR}/\* ); then
+        echo "(local) unable to flush tmp directory..."
+      fi
     fi
   fi
-fi
-if ( ! $SSH -n $MAIL_MACH rmdir $MAIL_TMPDIR ); then
-  echo "unable to remove temp directory ${MAIL_MACH}:$MAIL_TMPDIR...exiting."
-  exit 1
+  if ( ! rmdir ${MAIL_TMPDIR} ); then
+    echo "(local) unable to remove temp directory ${MAIL_TMPDIR}...exiting."
+    exit 1
+  fi
+else
+  if ( ! $SSH -n $MAIL_MACH mkdir $MAIL_TMPDIR ); then
+    echo "unable to create temp directory ${MAIL_MACH}:${MAIL_TMPDIR}...exiting."
+    exit 1
+  fi
+  if ( ! $SCP -q ./email1.* ${MAIL_MACH}:$MAIL_TMPDIR ); then
+    echo "unable to copy drafts..."
+  else
+    if ( ! $SSH -n $MAIL_MACH $MAIL_CMD ~/${MAIL_TMPDIR}/email1.\* ); then
+      echo "unable to send drafts..."
+    else
+      if ( ! $SSH -n $MAIL_MACH /bin/rm ~/${MAIL_TMPDIR}/\* ); then
+        echo "unable to flush tmp directory..."
+      fi
+    fi
+  fi
+  if ( ! $SSH -n $MAIL_MACH rmdir $MAIL_TMPDIR ); then
+    echo "unable to remove temp directory ${MAIL_MACH}:${MAIL_TMPDIR}...exiting."
+    exit 1
+  fi
 fi
