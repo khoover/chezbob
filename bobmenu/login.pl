@@ -2,7 +2,7 @@
 #
 # Routines for processing login names, both text and barcode
 #
-# $Id: login.pl,v 1.9 2001-05-25 19:42:00 mcopenha Exp $
+# $Id: login.pl,v 1.10 2001-05-25 23:10:32 mcopenha Exp $
 #
 
 $MIN_BARCODE_LENG = 6;
@@ -118,7 +118,7 @@ invalid_user_barcode_win
   my $win_title = "Invalid User Barcode";
   my $win_text = q{
 Valid user barcodes must contain at 
-least %d digits and no characters.};
+least %d digits and no letters.};
 
   system("$DLG --title \"$win_title\" --cr-wrap --msgbox \"" .
 	 sprintf($win_text, $MIN_BARCODE_LENG) .  "\" 8 45 2> /dev/null");
