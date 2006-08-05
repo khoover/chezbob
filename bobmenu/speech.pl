@@ -21,7 +21,8 @@ use FileHandle;
 require "ctime.pl" unless defined &ctime;
 require "flush.pl";
 
-my $fifo = '/dev/speech';	# fifo to speechd
+#my $fifo = '/dev/speech';	# fifo to speechd
+my $fifo = '/dev/null';		# fifo to speechd
 my @goodbyes = ();		# an array of witty goodbyes
 
 

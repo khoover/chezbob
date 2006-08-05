@@ -65,11 +65,14 @@ isa_upc_barcode
 # barcodes plus the first digit of overhead, but misses the last overhead
 # digit (see decode_cuecat_barcode).  The metrologic misses both overhead 
 # digits when scanning type E.
+#
+# (We'll also try to accept 13-digit barcodes (EAN-13), and treat them the same
+# as UPC barcodes.  Hope the Chez Bob code doesn't mind... --Michael Vrable)
 # 
 {
   my ($barcode) = @_;
   my $leng = length($barcode);
-  return (($leng == 12 || $leng == 6)
+  return (($leng == 13 || $leng == 12 || $leng == 6)
           && &isa_numeric_barcode($barcode));
 }
 

@@ -29,7 +29,7 @@ $NOT_FOUND = -9999.9999;
 sub
 bob_db_connect
 {
-  $conn = Pg::connectdb("dbname=bob");
+  $conn = Pg::connectdb("dbname=bob host=soda.ucsd.edu");
   if ($conn->status == PGRES_CONNECTION_BAD) {
     my $mesg = "Error connecting to database.\n";
     $mesg .= $conn->errorMessage;
