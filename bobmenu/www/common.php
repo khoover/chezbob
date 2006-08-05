@@ -59,20 +59,20 @@ function db_close(){
 	db_closeConn($db_conn);
 }
 
-function makeHeader($pageTitle){
+function makeHeader($pageTitle, $headerfile){
 $ret= "<html><head><title>".$pageTitle."</title>\n";
 $ret=$ret."</head>\n<body bgcolor='white'>\n"; 
-$in = easyRead('header');
+$in = easyRead($headerfile);
 $ret=$ret.$in;
 return $ret;
 }
 
-function makeHeaderWithStyle($pageTitle){
+function makeHeaderWithStyle($pageTitle, $headerfile){
 $ret= "<html><head><title>".$pageTitle."</title>\n";
 $in= easyRead('style');
 $ret=$ret.$in;
 $ret=$ret."</head>\n<body bgcolor='white'>\n"; 
-$in = easyRead('header');
+$in = easyRead($headerfile);
 $ret=$ret.$in;
 return $ret;
 }

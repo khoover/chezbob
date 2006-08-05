@@ -18,7 +18,7 @@
 # New users of the system automatically have every property of their 
 # profile turned 'off'.  
 #
-# $Id: profile.pl,v 1.10 2001-06-25 21:41:37 bellardo Exp $
+# $Id: profile.pl,v 1.10 2001/06/25 21:41:37 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";

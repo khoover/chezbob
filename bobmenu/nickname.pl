@@ -2,7 +2,7 @@
 #
 # Nicknames are used by the speech synthesis program when greeting the user. 
 #
-# $Id: nickname.pl,v 1.7 2001-06-25 21:41:37 bellardo Exp $
+# $Id: nickname.pl,v 1.7 2001/06/25 21:41:37 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";

@@ -1,5 +1,5 @@
 /*
- * $Id: dialog.c,v 1.3 2001-06-10 02:39:54 cse210 Exp $
+ * $Id: dialog.c,v 1.3 2001/06/10 02:39:54 cse210 Exp $
  *
  *  cdialog - Display simple dialog boxes from shell scripts
  *

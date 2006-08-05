@@ -3,7 +3,7 @@
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
 #
-# $Id: buyitem.pl,v 1.24 2002-09-18 18:14:21 alsu Exp $
+# $Id: buyitem.pl,v 1.24 2002/09/18 18:14:21 alsu Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -107,7 +107,7 @@ buy_single_item_with_scanner
   my $ent;
 
   # Check for the magic 'shell access' barcode
-  if ($prodbarcode eq '898972437')
+  if ($prodbarcode eq '898972437' || $prodbarcode eq '31415926535')
   {
     # Alan Su  -- 1001
     # Mike C.  -- 1174
@@ -116,10 +116,14 @@ buy_single_item_with_scanner
     # Vic Gidofalvi -- 1261
     # Wenjing Rao -- 1349
     # Mike McCracken -- 1347
+    # Kirill Levchenko -- 1436
+    # Michael Vrable -- 1743
+    # Justin Ma -- 1721
     if ($userid != 1001 && $userid != 1174 &&
         $userid != 1181 && $userid != 1191 &&
         $userid != 1261 && $userid != 1349 &&
-        $userid != 1347)
+        $userid != 1347 && $userid != 1436 &&
+        $userid != 1743 && $userid != 1721)
     {
       return "";
     }
@@ -158,10 +162,10 @@ buy_single_item_with_scanner
       $txt = sprintf("\nReally purchase another $prodname for \\\$%.2f?", $amt);
     }
     if (! &confirm_win($prodname, $txt, 40)) {
-      &report("ChezBob: Questionable Duplicate Purchase", "Questionable duplicate purchase declined by $userid: $prodname\n") if ($dup_purchase);
+      #&report("ChezBob: Questionable Duplicate Purchase", "Questionable duplicate purchase declined by $userid: $prodname\n") if ($dup_purchase);
       return "";
     }
-    &report("ChezBob: Valid Duplicate Purchase", "Duplicate purchase accepted by $userid: $prodname\n") if ($dup_purchase);
+    #&report("ChezBob: Valid Duplicate Purchase", "Duplicate purchase accepted by $userid: $prodname\n") if ($dup_purchase);
   }
   $main::this_purchase_list[$#main::this_purchase_list + 1] = { Prod => $prodname, Time => $buy_time };
 

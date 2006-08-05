@@ -1,5 +1,5 @@
 /*
- *  $Id: buttons.c,v 1.1.1.1 2001-05-17 18:46:09 mcopenha Exp $
+ *  $Id: buttons.c,v 1.1.1.1 2001/05/17 18:46:09 mcopenha Exp $
  *
  *  buttons.c
  *

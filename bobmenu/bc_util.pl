@@ -25,7 +25,7 @@
 # Refer to http://www.adams1.com/pub/russadam/upccode.html for general 
 # information on barcode standards.
 #
-# $Id: bc_util.pl,v 1.13 2001-06-01 20:58:31 mcopenha Exp $
+# $Id: bc_util.pl,v 1.13 2001/06/01 20:58:31 mcopenha Exp $
 #
 
 

@@ -1,5 +1,5 @@
 /*
- *  $Id: msgbox.c,v 1.1.1.1 2001-05-17 18:46:10 mcopenha Exp $
+ *  $Id: msgbox.c,v 1.1.1.1 2001/05/17 18:46:10 mcopenha Exp $
  *
  *  msgbox.c -- implements the message box and info box
  *

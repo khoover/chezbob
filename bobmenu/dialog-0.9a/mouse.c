@@ -1,5 +1,5 @@
 /*
- * $Id: mouse.c,v 1.1.1.1 2001-05-17 18:46:10 mcopenha Exp $
+ * $Id: mouse.c,v 1.1.1.1 2001/05/17 18:46:10 mcopenha Exp $
  *
  * mouse.c - mouse support for cdialog
  *

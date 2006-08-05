@@ -2,7 +2,7 @@
 #
 # Routines for updating and checking user passwords
 # 
-# $Id: passwd.pl,v 1.6 2001-06-25 21:41:37 bellardo Exp $
+# $Id: passwd.pl,v 1.6 2001/06/25 21:41:37 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";
@@ -28,6 +28,20 @@ invalidPassword_win
   my $win_text = "\nWrong password entered!\n";
   &get_dialog_result("--title \"$win_title\" --msgbox \"" .
          $win_text .  "\" 7 30");
+}
+
+
+sub
+expiredAccount_win
+{
+  my $win_title = "Closed Account";
+  my $win_text = <<'ENDMSG';
+This account has been closed.  Please contact
+chezbob@cs.ucsd.edu if you believe this to be
+in error.
+ENDMSG
+  &get_dialog_result("--title \"$win_title\" --msgbox \"" .
+         $win_text .  "\" 11 50");
 }
 
 

@@ -2,7 +2,7 @@
 #
 # Routine for recording a message for Bob in the db. 
 #
-# $Id: msgtobob.pl,v 1.8 2001-06-25 21:41:37 bellardo Exp $
+# $Id: msgtobob.pl,v 1.8 2001/06/25 21:41:37 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";

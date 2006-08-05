@@ -11,7 +11,7 @@
 # 2. Personal Barcode: The user scans his/her id card, or personal barcode.
 # 3. Username: The user types in their standard username.
 #
-# $Id: bobmenu.pl,v 1.38 2001-06-08 18:28:25 bob Exp $
+# $Id: bobmenu.pl,v 1.38 2001/06/08 18:28:25 bob Exp $
 #
 
 # Find the full path to this executable file (bobmenu) and store it in

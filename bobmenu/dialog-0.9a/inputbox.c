@@ -1,5 +1,5 @@
 /*
- *  $Id: inputbox.c,v 1.2 2001-05-17 23:13:01 mcopenha Exp $
+ *  $Id: inputbox.c,v 1.2 2001/05/17 23:13:01 mcopenha Exp $
  *
  *  inputbox.c -- implements the input box
  *

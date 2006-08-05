@@ -10,7 +10,7 @@
 # records which user checked out a book, the date checked out, due date,
 # etc.  We may also send mail to the head librarian (Julie?). 
 #
-# $Id: library.pl,v 1.5 2001-06-25 21:41:37 bellardo Exp $
+# $Id: library.pl,v 1.5 2001/06/25 21:41:37 bellardo Exp $
 #
 
 require "$BOBPATH/bob_db.pl";

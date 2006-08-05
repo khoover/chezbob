@@ -2,7 +2,7 @@
 include('common.php');
 
 function getInventoryFromSQL(){
-$out = makeHeader("Chez Bob Inventory");
+$out = makeHeader("Chez Bob Inventory", "header.inventory");
 
 db_connect();
 db_query('SELECT * from products ORDER by name;');

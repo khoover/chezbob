@@ -1,5 +1,5 @@
 /*
- *  $Id: menubox.c,v 1.5 2001-06-10 02:39:54 cse210 Exp $
+ *  $Id: menubox.c,v 1.5 2001/06/10 02:39:54 cse210 Exp $
  *
  *  menubox.c -- implements the menu box
  *

@@ -1,5 +1,5 @@
 /*
- *  $Id: rc.c,v 1.1.1.1 2001-05-17 18:46:10 mcopenha Exp $
+ *  $Id: rc.c,v 1.1.1.1 2001/05/17 18:46:10 mcopenha Exp $
  *
  *  rc.c -- routines for processing the configuration file
  *

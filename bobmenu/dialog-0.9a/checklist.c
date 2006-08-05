@@ -1,5 +1,5 @@
 /*
- *  $Id: checklist.c,v 1.1.1.1 2001-05-17 18:46:09 mcopenha Exp $
+ *  $Id: checklist.c,v 1.1.1.1 2001/05/17 18:46:09 mcopenha Exp $
  *
  *  checklist.c -- implements the checklist box
  *

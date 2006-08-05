@@ -1,5 +1,5 @@
 /*
- * $Id: timebox.c,v 1.1.1.1 2001-05-17 18:46:10 mcopenha Exp $
+ * $Id: timebox.c,v 1.1.1.1 2001/05/17 18:46:10 mcopenha Exp $
  *
  *  timebox.c -- implements the timebox dialog
  *

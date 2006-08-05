@@ -2,7 +2,7 @@
 #
 # Routines for processing login names, both text and barcode
 #
-# $Id: login.pl,v 1.13 2001-06-25 21:41:37 bellardo Exp $
+# $Id: login.pl,v 1.13 2001/06/25 21:41:37 bellardo Exp $
 #
 
 $MIN_BARCODE_LENG = 6;
@@ -36,8 +36,12 @@ process_login
     &bob_db_init_balance($userid);
   }
 
+  my $pwd = &bob_db_get_pwd($userid);
+  if ($pwd =~ /^closed/) {
+    &expiredAccount_win;
+    return;
+  }
   if ($checkpass) {
-    my $pwd = &bob_db_get_pwd($userid);
     if (defined $pwd && &checkPwd($pwd, &guess_pwd_win) == 0) {
       &invalidPassword_win;
       return;
