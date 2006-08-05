@@ -1,6 +1,4 @@
 /*
- *  $Id: rc.c,v 1.1.1.1 2001/05/17 18:46:10 mcopenha Exp $
- *
  *  rc.c -- routines for processing the configuration file
  *
  *  AUTHOR: Savio Lam (lam836@cs.cuhk.hk)

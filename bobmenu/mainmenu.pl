@@ -5,9 +5,6 @@
 # barcode id), viewing transactions, sending messages to Bob, updating 
 # user profiles, and checking out books (limited).  Routines for each of 
 # these options is contained in separate files.
-#
-# $Id: mainmenu.pl,v 1.19 2002/08/01 21:59:50 alsu Exp $
-#  
 
 require "$BOBPATH/passwd.pl";
 require "$BOBPATH/bob_db.pl";

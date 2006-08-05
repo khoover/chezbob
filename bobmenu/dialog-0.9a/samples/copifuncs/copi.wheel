@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id: copi.wheel,v 1.1.1.1 2001/05/17 18:46:10 mcopenha Exp $
 
 mkstemp size
 dialog --print-maxsize 2>$tmp_size

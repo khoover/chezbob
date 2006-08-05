@@ -19,9 +19,6 @@
 #    and textbox.c.  Changes were taken from a broken patch file.
 #
 # Look for comments in the dialog code that begin with 'MAC'
-#
-# $Id: dlg.pl,v 1.23 2001/08/21 00:01:34 bob Exp $
-#
 
 $DLG = "$BOBPATH/dialog-0.9a/dialog";
 $CANCEL = -1;

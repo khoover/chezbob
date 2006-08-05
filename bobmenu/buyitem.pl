@@ -2,9 +2,6 @@
 #
 # Routines for purchasing products with both keyboard input (buy_win) and 
 # barcode input (buy_single_item_with_scanner).
-#
-# $Id: buyitem.pl,v 1.24 2002/09/18 18:14:21 alsu Exp $
-#
 
 require "$BOBPATH/bob_db.pl";
 require "$BOBPATH/dlg.pl";

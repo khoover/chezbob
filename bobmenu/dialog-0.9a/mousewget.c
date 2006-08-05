@@ -1,6 +1,4 @@
 /*
- * $Id: mousewget.c,v 1.1.1.1 2001/05/17 18:46:10 mcopenha Exp $
- *
  * mousewget.c - mouse_wgetch support for cdialog 0.9a+
  *
  * Copyright 1995   demarco_p@abramo.it (Pasquale De Marco)

@@ -1,6 +1,4 @@
 /*
- * $Id: inputstr.c,v 1.2 2001/05/17 23:13:01 mcopenha Exp $
- *
  *  inputstr.c -- functions for input/display of a string
  *
  *  AUTHOR: Thomas Dickey

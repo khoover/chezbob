@@ -1,6 +1,4 @@
 /*
- * $Id: calendar.c,v 1.1.1.1 2001/05/17 18:46:09 mcopenha Exp $
- *
  *  calendar.c -- implements the calendar box
  *
  *  AUTHOR: Thomas E. Dickey

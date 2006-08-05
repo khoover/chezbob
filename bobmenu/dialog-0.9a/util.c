@@ -1,6 +1,4 @@
 /*
- *  $Id: util.c,v 1.1.1.1 2001/05/17 18:46:10 mcopenha Exp $
- *
  *  util.c
  *
  *  AUTHOR: Savio Lam (lam836@cs.cuhk.hk)

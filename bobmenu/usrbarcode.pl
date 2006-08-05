@@ -2,9 +2,6 @@
 #
 # Routines for updating a user's personal barcode ID.  The user can login
 # to the system using this personal barcode.
-#
-# $Id: usrbarcode.pl,v 1.6 2001/06/25 21:41:37 bellardo Exp $
-#
 
 require "$BOBPATH/bc_util.pl";
 require "$BOBPATH/bob_db.pl";

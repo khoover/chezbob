@@ -10,9 +10,6 @@
 #    the stock of that particular product.
 # 2. Personal Barcode: The user scans his/her id card, or personal barcode.
 # 3. Username: The user types in their standard username.
-#
-# $Id: bobmenu.pl,v 1.38 2001/06/08 18:28:25 bob Exp $
-#
 
 # Find the full path to this executable file (bobmenu) and store it in
 # global variable BOBPATH.  You *must* prefix any require paths with this
@@ -32,12 +29,7 @@ $CASH_BARCODE = "888888";
 
 $main::drop_to_shell = 0;
 
-$REVISION = q{$Revision: 1.38 $};
-if ($REVISION =~ /\$Revisio[n]: ([\d\.]*)\s*\$$/) {
-  $REVISION = $1;
-} else {
-  $REVISION = "0.0";
-}
+$REVISION = "1.40";
 
 print "rev is $REVISION\n";
 &bob_db_connect;

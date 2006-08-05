@@ -13,9 +13,6 @@
 # and allows us to simply pipe text to /dev/speech.  Works a lot faster than
 # firing up festival each time we want to say something; also doesn't 
 # introduce 'device not available' errors.
-#
-# $Id: speech.pl,v 1.8 2001/08/21 00:04:48 bob Exp $
-#
 
 use FileHandle;
 require "ctime.pl" unless defined &ctime;

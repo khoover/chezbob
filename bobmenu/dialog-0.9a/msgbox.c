@@ -1,6 +1,4 @@
 /*
- *  $Id: msgbox.c,v 1.1.1.1 2001/05/17 18:46:10 mcopenha Exp $
- *
  *  msgbox.c -- implements the message box and info box
  *
  *  AUTHOR: Savio Lam (lam836@cs.cuhk.hk)

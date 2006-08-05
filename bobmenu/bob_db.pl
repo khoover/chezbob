@@ -13,9 +13,6 @@
 #
 # 'Pg' is a Perl module that allows us to access a Postgres database.  
 # Packages are available for both Redhat and Debian.
-#
-# $Id: bob_db.pl,v 1.32 2001/08/21 00:04:48 bob Exp $
-#
 
 use Pg;
 require "ctime.pl" unless defined &ctime;

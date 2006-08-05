@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# $Header: /home/bob/CVS/bobmenu/admin/cleandb.pl,v 1.2 2001/06/15 15:04:16 bob Exp $
-
 ###
 ### libs
 ###

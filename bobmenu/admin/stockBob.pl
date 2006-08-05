@@ -9,9 +9,6 @@
 #
 # Wesley Leong (wleong@cs.ucsd.edu)
 # Created: 5/2/01
-#
-# $Id: stockBob.pl,v 1.11 2001/06/08 18:54:03 cse210 Exp $
-#
 
 # Make sure Perl can find all of our files by storing the path to the
 # executable (stockBob) in BOBPATH

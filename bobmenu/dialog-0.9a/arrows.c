@@ -1,6 +1,4 @@
 /*
- *  $Id: arrows.c,v 1.1.1.1 2001/05/17 18:46:09 mcopenha Exp $
- *
  *  arrows.c -- draw arrows to indicate end-of-range for lists
  *
  *  AUTHOR: Thomas Dickey

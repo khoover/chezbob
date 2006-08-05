@@ -1,5 +1,4 @@
 #! /bin/sh
-##  $Revision: 1.1.1.1 $
 ##  SH script to send UUCP batches out.
 
 ##  =()<. @<_PATH_SHELLVARS>@>()=

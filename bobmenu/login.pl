@@ -1,9 +1,6 @@
 # login_win.pl
 #
 # Routines for processing login names, both text and barcode
-#
-# $Id: login.pl,v 1.13 2001/06/25 21:41:37 bellardo Exp $
-#
 
 $MIN_BARCODE_LENG = 6;
 

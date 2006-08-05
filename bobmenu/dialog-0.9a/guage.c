@@ -1,6 +1,4 @@
 /*
- *  $Id: guage.c,v 1.1.1.1 2001/05/17 18:46:10 mcopenha Exp $
- *
  *  guage.c -- implements the gauge dialog
  *
  *  AUTHOR: Marc Ewing, Red Hat Software

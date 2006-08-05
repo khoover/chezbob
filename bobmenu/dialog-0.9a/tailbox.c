@@ -1,6 +1,4 @@
 /*
- *  $Id: tailbox.c,v 1.1.1.1 2001/05/17 18:46:10 mcopenha Exp $
- *
  *  tailbox.c -- implements the tail box
  *
  *  AUTHOR: Pasquale De Marco (demarco_p@abramo.it)

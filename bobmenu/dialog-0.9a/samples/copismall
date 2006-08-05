@@ -1,5 +1,4 @@
 #!/bin/bash
-# $Id: copismall,v 1.1.1.1 2001/05/17 18:46:10 mcopenha Exp $
 #
 #  ComeOn Point Installer! v0.9a.small (small version for cdialog v0.9a)
 #  - installa il point in modo visuale e auto-detecting. Versione light.
