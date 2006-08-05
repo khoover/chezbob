@@ -83,7 +83,7 @@ dlg_edit_string(char *string, int *offset, int key, bool force)
 
 void
 dlg_show_string(WINDOW *win, char *string, int offset, chtype attr,
-		int y_base, int x_base, int x_last, bool hidden, bool force)
+		int y_base, int x_base, int x_last, int hidden, bool force)
 {
   int i, input_x, len, scrollamt;
   len = strlen(string);

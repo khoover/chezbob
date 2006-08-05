@@ -343,7 +343,7 @@ extern void dlg_draw_buttons(WINDOW *win, int y, int x, const char **labels, int
 
 /* inputstr.c */
 extern bool dlg_edit_string(char *string, int *offset, int key, bool force);
-extern void dlg_show_string(WINDOW *win, char *string, int offset, chtype attr, int y_base, int x_base, int x_last, bool hidden, bool force);
+extern void dlg_show_string(WINDOW *win, char *string, int offset, chtype attr, int y_base, int x_base, int x_last, int hidden, bool force);
 
 /* util.c */
 extern int dlg_default_item(char **items, int llen);
