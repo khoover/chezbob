@@ -16,6 +16,7 @@ Based on the article at <http://en.wikipedia.org/wiki/Universal_Product_Code>.
 
 __author__ = "Michael Vrable <mvrable@cs.ucsd.edu>"
 
+import re
 import sys
 import Image
 
@@ -68,12 +69,46 @@ def upc_to_bits(digits):
 
     return barcode
 
-def bits_to_image(bits, height=40):
+def bits_to_image(bits, height=50):
     rawbits = "".join([{'0': '\377', '1': '\0'}[c] for c in bits])
     im = Image.fromstring('L', (len(bits), 1), rawbits)
     return im.resize((len(bits), height)).convert('1')
 
+def generate_template(barcode_list, template, output):
+    """Generate an HTML page containing a collection of barcodes.
+
+    barcode_list should be a list of descriptions of the barcodes to include.
+    DOCUMENT FORMAT HERE.  template should be a string with the HTML template
+    to use; it should contain the text "%BARCODES%" which will be replaced with
+    the actual set of barcodes.  output should be an open file-like object to
+    which the page will be written.
+    """
+
+    barcodes = []
+    for (title, img, subtext) in barcode_list:
+        barcodes.append('<div class="barcodeblock">\n'
+                        '  <div class="barcodetitle">%s</div>\n'
+                        '  <img src="%s" class="barcode" />\n'
+                        '  <div class="digits">%s</div>\n'
+                        '</div>' % (title, img, subtext))
+
+    output.write(re.sub("%BARCODES%", "\n\n".join(barcodes), template))
+
 if __name__ == '__main__':
-    for b in sys.argv[1:]:
-        image = bits_to_image(upc_to_bits(b))
-        image.save(b + ".png")
+    barcode_list = []
+    for l in open("barcodes.txt").readlines():
+        l = l.strip()
+        m = re.match(r"^(\d{12}):(.*)$", l)
+        if m:
+            (barcode, text) = (m.group(1), m.group(2))
+            image = bits_to_image(upc_to_bits(barcode))
+            filename = barcode + ".png"
+            image.save(filename)
+            barcode_list.append((text, filename, barcode))
+        else:
+            print >>sys.stderr, "Ignoring line: " + l
+
+    if barcode_list:
+        template = open("barcodes-template.html").read()
+        output = open("barcodes.html", 'w')
+        generate_template(barcode_list, template, output)
