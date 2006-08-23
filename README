@@ -7,13 +7,14 @@ files in this repository is:
     barcodes/
         Data and code for generating extra UPC barcodes for products.
     bobmenu/
-        Source code for the Chez Bob text interface.  Also includes
-        various other data, such as the Chez Bob web pages.
+        Source code for the Chez Bob text interface.
     finance/
         Code for financial analysis and some financial records.
     sshb/
         Old utility to permit ssh logins from chezbob to remote
         computers.  No longer used.
+    www/
+        Chez Bob public web pages.
 These files are subject to reorganization; however, if directories are
 changed, this file should be updated to match.
 
