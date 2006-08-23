@@ -74,6 +74,15 @@ def bits_to_image(bits, height=50):
     im = Image.fromstring('L', (len(bits), 1), rawbits)
     return im.resize((len(bits), height)).convert('1')
 
+def html_escape(text):
+    """Replace HTML characters with escape characters as needed.
+
+    This function only escapes the four characters <, >, &, and ".
+    """
+
+    names = {'<': "lt", '>': "gt", '&': "amp", '"': "quot"}
+    return re.sub('([<>&"])', lambda m: "&" + names[m.group(1)] + ";", text)
+
 def generate_template(barcode_list, template, output):
     """Generate an HTML page containing a collection of barcodes.
 
@@ -88,9 +97,10 @@ def generate_template(barcode_list, template, output):
     for (title, img, subtext) in barcode_list:
         barcodes.append('<div class="barcodeblock">\n'
                         '  <div class="barcodetitle">%s</div>\n'
-                        '  <img src="%s" class="barcode" />\n'
+                        '  <img src="%s" class="barcode" '
+                           'alt="[Barcode: %s]" />\n'
                         '  <div class="digits">%s</div>\n'
-                        '</div>' % (title, img, subtext))
+                        '</div>' % (html_escape(title), img, subtext, subtext))
 
     output.write(re.sub("%BARCODES%", "\n\n".join(barcodes), template))
 
