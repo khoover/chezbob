@@ -168,7 +168,8 @@ buy_single_item_with_scanner
 
   &bob_db_update_stock(-1, $prodname);
   my $type = $PROFILE{"Privacy"} ? "BUY" : "BUY $prodname";
-  &bob_db_update_balance($userid, -$amt, $type);
+  &bob_db_update_balance($userid, -$amt, $type,
+                         $PROFILE{"Privacy"} ? undef : $barcode);
 
   return $prodname;
 }

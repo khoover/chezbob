@@ -279,7 +279,13 @@ bob_db_update_balance
 # in the balances table of 'userid'.  Note that 'amt' may be negative.
 #
 {
-  my($userid, $amt, $type) = @_;
+  my($userid, $amt, $type, $barcode) = @_;
+
+  if (defined $barcode) {
+    $barcode = "'$barcode'";
+  } else {
+    $barcode = "NULL";
+  }
 
   &bob_db_check_conn;
   my $updatequeryFormat = q{
@@ -288,8 +294,8 @@ bob_db_update_balance
     where userid = %d;
 
     insert
-    into transaction(xacttime, userid, xactvalue, xacttype)
-    values('now', %d, %.2f, '%s'); 
+    into transaction(xacttime, userid, xactvalue, xacttype, barcode)
+    values('now', %d, %.2f, '%s', %s); 
   };
 
   my $query = sprintf($updatequeryFormat, 
@@ -297,7 +303,8 @@ bob_db_update_balance
                       $userid, 
                       $userid, 
                       $amt, 
-                      &esc_apos(uc($type)));
+                      &esc_apos(uc($type))
+                      $barcode);
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     my $mesg = "In bob_db_update_balance: error updating record.\n" .
