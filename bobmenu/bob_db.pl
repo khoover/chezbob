@@ -279,10 +279,12 @@ bob_db_update_balance
 # in the balances table of 'userid'.  Note that 'amt' may be negative.
 #
 {
-  my($userid, $amt, $type, $barcode) = @_;
+  my($userid, $amt, $type, $barcode, $privacy) = @_;
+
+  $privacy = 0 if !defined($privacy);
 
   if (defined $barcode) {
-    $barcode = "'$barcode'";
+    $barcode = "'" . &esc_apos($barcode) . "'";
   } else {
     $barcode = "NULL";
   }
@@ -304,12 +306,24 @@ bob_db_update_balance
                       $userid, 
                       $amt, 
                       &esc_apos(uc($type)),
-                      $barcode);
+                      $privacy ? "NULL" : $barcode);
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     my $mesg = "In bob_db_update_balance: error updating record.\n" .
                "userid: $userid, amt: $amt, type: $type";
     &report_fatal($mesg);
+  }
+
+  if ($barcode ne 'NULL') {
+    $query = "insert into aggregate_purchases(date, barcode, quantity)
+              values (now(), $barcode, 1);";
+    $result = $conn->exec($query);
+    if ($result->resultStatus != PGRES_COMMAND_OK) {
+      my $mesg = "In bob_db_update_balance: error adding aggregate " .
+                 "purchase record.\n" .
+                 "type: $type, barcode: $barcode";
+      &report_nonfatal($mesg);
+    }
   }
 }
 
@@ -929,6 +943,16 @@ sub report_fatal
   print STDERR $message;
   &report($subject, $message);
   exit 1;
+}
+
+
+sub report_nonfatal
+{
+  my ($message) = @_ ;
+  my $subject = "BOB ERROR - a non-fatal error has occurred";
+
+  print STDERR $message;
+  &report($subject, $message);
 }
 
 
