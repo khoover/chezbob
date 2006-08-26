@@ -294,7 +294,7 @@ bob_db_update_balance
     where userid = %d;
 
     insert
-    into transaction(xacttime, userid, xactvalue, xacttype, barcode)
+    into transactions(xacttime, userid, xactvalue, xacttype, barcode)
     values('now', %d, %.2f, '%s', %s); 
   };
 
