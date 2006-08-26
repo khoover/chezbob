@@ -29,7 +29,14 @@ $CASH_BARCODE = "888888";
 
 $main::drop_to_shell = 0;
 
-$REVISION = "1.40";
+# Attempt to determine the Mercurial revision number of the current code.  We
+# expect at least 12 hex digits.
+my $hg_id = `cd $BOBPATH; hg id`;
+if ($hg_id =~ /^([[:xdigit:]]{12}\S*)/) {
+  $REVISION = $1;
+} else {
+  $REVISION = "unknown";
+}
 
 print "rev is $REVISION\n";
 &bob_db_connect;

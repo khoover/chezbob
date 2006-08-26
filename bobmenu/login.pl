@@ -55,7 +55,8 @@ login_win
   my ($rev) = @_;
   my $username = "";
   my $errCode;
-  my $win_title = "Bank of Bob 2001 (v.$rev)";
+  my $back_title = "Chez Bob 2001 (changeset $rev)";
+  my $win_title = "Bank of Bob 2001";
   my $win_text = q{
 Welcome to the B.o.B. 2001!
 
@@ -63,7 +64,7 @@ Welcome to the B.o.B. 2001!
 Enter your username or scan your personal barcode.
 (If you are a new user enter a new username):};
 
-  ($errCode, $username) = &get_dialog_result("--backtitle \"Chez Bob 2001\" --title \"$win_title\" --clear --cr-wrap --inputbox \"" . $win_text .  "\" 14 55 \"$username\"");
+  ($errCode, $username) = &get_dialog_result("--backtitle \"$back_title\" --title \"$win_title\" --clear --cr-wrap --inputbox \"" . $win_text .  "\" 14 55 \"$username\"");
 
   return "" if ($errCode != 0);
   return $username;
