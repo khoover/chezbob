@@ -162,7 +162,7 @@ bob_db_add_user
   &bob_db_check_conn;
   my $insertqueryFormat = q{
     insert
-    into users
+    into users(userid, username, email)
     values(nextval('userid_seq'), '%s', '%s'); 
   };
 
@@ -254,11 +254,11 @@ bob_db_init_balance
   &bob_db_check_conn;
   my $insertqueryFormat = q{ 
     insert 
-    into balances 
+    into balances(userid, balance)
     values(%d, %.2f); 
 
     insert 
-    into transactions 
+    into transactions(xacttime, userid, xactvalue, xacttype)
     values('now', %d, %.2f, 'INIT'); 
   };
 
@@ -288,7 +288,7 @@ bob_db_update_balance
     where userid = %d;
 
     insert
-    into transactions
+    into transaction(xacttime, userid, xactvalue, xacttype)
     values('now', %d, %.2f, '%s'); 
   };
 
@@ -317,7 +317,7 @@ bob_db_insert_msg
   &bob_db_check_conn;
   my $insertqueryFormat = q{
     insert
-    into messages
+    into messages(msgid, msgtime, userid, message)
     values( nextval('msgid_seq'), 'now', %s, '%s');
   };
 
@@ -445,7 +445,7 @@ bob_db_insert_pwd
   &bob_db_check_conn;
   my $insertquery = qq{
     insert
-    into pwd
+    into pwd(userid, p)
     values($userid, '$c_pwd'); 
   };
 
@@ -468,7 +468,7 @@ bob_db_insert_product
 
   my $insertqueryFormat = q{
     insert 
-    into products 
+    into products(barcode, name, phonetic_name, price, stock)
     values('%s', '%s', '%s', %.2f, %d);
   };      
 
@@ -671,7 +671,7 @@ bob_db_insert_bulk_item
 
   my $insertqueryFormat = q{
     insert 
-    into bulk_items
+    into bulk_items(bulk_barcode, bulk_name, item_barcode, item_quantity)
     values('%s', '%s', '%s', %d);
   };
   my $query = sprintf($insertqueryFormat, 
@@ -695,7 +695,7 @@ bob_db_update_products_in_bulk_item
 
   &bob_db_check_conn;
   my $selectqueryFormat = q{
-    select *
+    select bulk_barcode, bulk_name, item_barcode, item_quantity
     from bulk_items
     where bulk_barcode = '%s';
   };
@@ -734,7 +734,7 @@ bob_db_get_products_from_bulk_item
 
   &bob_db_check_conn;
   my $selectqueryFormat = q{
-    select *
+    select bulk_barcode, bulk_name, item_barcode, item_quantity
     from bulk_items
     where bulk_barcode = '%s';
   };
@@ -798,7 +798,7 @@ bob_db_insert_property
   &bob_db_check_conn;
   my $insertqueryFormat = q{
     insert
-    into profiles
+    into profiles(userid, property, setting)
     values(%d, '%s', 0);
   };
   my $result = $conn->exec(sprintf($insertqueryFormat, 
@@ -845,7 +845,7 @@ bob_db_insert_book
   &bob_db_check_conn;
   my $insertqueryFormat = q{
     insert
-    into books
+    into books(barcode, isbn, author, title)
     values('%s', '%s', '%s', '%s');
   };
   my $query = sprintf($insertqueryFormat, 
