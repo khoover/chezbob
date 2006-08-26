@@ -303,7 +303,7 @@ bob_db_update_balance
                       $userid, 
                       $userid, 
                       $amt, 
-                      &esc_apos(uc($type))
+                      &esc_apos(uc($type)),
                       $barcode);
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
