@@ -294,8 +294,8 @@ bob_db_update_balance
     where userid = %d;
 
     insert
-    into transactions(xacttime, userid, xactvalue, xacttype, barcode)
-    values('now', %d, %.2f, '%s', %s); 
+    into transactions(xacttime, userid, xactvalue, xacttype, barcode, source)
+    values('now', %d, %.2f, '%s', %s, 'chezbob'); 
   };
 
   my $query = sprintf($updatequeryFormat, 
