@@ -135,6 +135,15 @@ open TEMPLATE, $ARGV[0] or die "Cannot open template $ARGV[0]: $!";
 my $template = join '', <TEMPLATE>;
 close TEMPLATE;
 
-my $msg = build_message($template, USERNAME => "test", BALANCE => "1.15");
-$msg = fixup_headers($msg, To => 'root@localhost');
-mail($msg, 'mvrable@localhost');
+while (<STDIN>) {
+    if (m/^(\w+) +\| +(\S+) +\| +(\S+) *$/) {
+        my ($user, $email, $balance) = ($1, $2, $3);
+        print "$user <$email>: $balance\n";
+        my $msg = build_message($template,
+                                USERNAME => $user, BALANCE => $balance);
+        $msg = fixup_headers($msg, To => $email);
+        mail($msg, 'mvrable@localhost', $email);
+    } else {
+        print STDERR "Bad line: $_\n";
+    }
+}
