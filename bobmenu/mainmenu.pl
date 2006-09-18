@@ -1,10 +1,10 @@
 # mainmenu.pl
 #
 # The main menu for Chez Bob which currently contains options for depositing
-# money, purchasing products, updating user settings (passwd, nickname, 
-# barcode id), viewing transactions, sending messages to Bob, updating 
-# user profiles, and checking out books (limited).  Routines for each of 
-# these options is contained in separate files.
+# money, purchasing products, updating user settings (passwd, nickname,
+# barcode id), viewing transactions, sending messages to Bob, and updating
+# user profiles.  Routines for each of these options is contained in separate
+# files.
 
 require "$BOBPATH/passwd.pl";
 require "$BOBPATH/bob_db.pl";
@@ -17,7 +17,6 @@ require "$BOBPATH/nickname.pl";
 require "$BOBPATH/usrbarcode.pl";
 require "$BOBPATH/dlg.pl";
 require "$BOBPATH/profile.pl";
-require "$BOBPATH/library.pl";
 
 my $MIN_BALANCE = -1.00;
 my $MIN_BALANCE_ANNOUNCE = -2.00;
@@ -172,11 +171,6 @@ MAINLOOP:
         last SWITCH;
       };
     
-      /^Checkout a Book$/ && do {
-        &checkout_book($userid, $username);
-        last SWITCH;
-      };
-  
       /^No action$/ && do {
         last SWITCH;
       };
@@ -266,9 +260,7 @@ or scan an item using the barcode scanner.};
 	   "\"Password\" " .
 	       "\"Set your password           \" " .
 	   "\"Transactions\" " .
-	       "\"List recent transactions                       \" " .
-	   "\"Checkout a Book\" " .
-	       "\"Checkout a book from the lounge library        \" ");
+	       "\"List recent transactions                       \" ");
 
   if ($retval != 0 || $action eq "Quit") {
     return "Quit";
