@@ -342,7 +342,7 @@ extras_win
   open EXTRAS, "$BOBPATH/extras.txt" or do {
     &noextras_win();
     return "No action";
-  }
+  };
 
   while (<EXTRAS>) {
     # We allow comments in extras.txt.  Ignore them.
@@ -351,7 +351,7 @@ extras_win
 
     # Valid barcodes should be at least six digits long.  If we find one, try
     # to look it up.
-    if (m/(\d+{6,})/) {
+    if (m/(\d{6,})/) {
       my $barcode = $1;
       my $name = &bob_db_get_productname_from_barcode($barcode);
       my $price = &bob_db_get_price_from_barcode($barcode);
