@@ -86,55 +86,7 @@ MAINLOOP:
         $curr_purchase = &buy_win($userid, $_);
         last SWITCH;
       };
-    
-      /^Espresso, Single$/ && do {
-	  $prodbarcode = &preprocess_barcode("034707031043");
-	  $curr_purchase = &buy_single_item_with_scanner($userid, $prodbarcode);
-	  last SWITCH;
-      };
-      
-      /^Espresso, Double$/ && do {
-	  $prodbarcode = &preprocess_barcode("075678356124");
-	  $curr_purchase = &buy_single_item_with_scanner($userid, $prodbarcode);
-	  last SWITCH;
-      };
-      
-      /^Cappuccino, Single$/ && do {
-	  $prodbarcode = &preprocess_barcode("075140005154");
-	  $curr_purchase = &buy_single_item_with_scanner($userid, $prodbarcode);
-	  last SWITCH;
-      };
-      
-      /^Cappuccino, Double$/ && do {
-	  $prodbarcode = &preprocess_barcode("077711012318");
-	  $curr_purchase = &buy_single_item_with_scanner($userid, $prodbarcode);
-	  last SWITCH;
-      };
-      
-      /^Latte, Single$/ && do {
-	  $prodbarcode = &preprocess_barcode("093624835028");
-	  $curr_purchase = &buy_single_item_with_scanner($userid, $prodbarcode);
-	  last SWITCH;
-      };
-      
-      /^Latte, Double$/ && do {
-	  $prodbarcode = &preprocess_barcode("042491500010");
-	  $curr_purchase = &buy_single_item_with_scanner($userid, $prodbarcode);
-	  last SWITCH;
-      };
-      
-      /^Mocha, Single$/ && do {
-	  $prodbarcode = &preprocess_barcode("074182260170");
-	  $curr_purchase = &buy_single_item_with_scanner($userid, $prodbarcode);
-	  last SWITCH;
-      };
-      
-      /^Mocha, Double$/ && do {
-	  $prodbarcode = &preprocess_barcode("074711331081");
-	  $curr_purchase = &buy_single_item_with_scanner($userid, $prodbarcode);
-	  last SWITCH;
-      };
-      
+
       /^Buy Other$/ && do {
         $curr_purchase = &buy_win($userid, $_);
         last SWITCH;
@@ -266,65 +218,10 @@ or scan an item using the barcode scanner.};
     return "Quit";
   }
 
-  if ($action eq "Espresso") {
-      $action = &espresso_win($userid, $_);
-  }
-
   if ($action eq "Extra Items") {
       $action = &extras_win();
   }
 
-  return $action;
-}
-
-
-sub
-espresso_win
-#
-# Print the espresso items and return the barcode for the selected item.
-#
-{
-  my ($username,$userid,$balance,$last_purchase) = @_;
-  my $win_title = "Espresso Menu";
-  my $win_textFormat = q{
-Choose one of the following espresso items (scroll down for more options).};
-
-  my $balanceString = "";
-  if ($balance < 0.0) {
-    $balanceString = sprintf("owe Bob \\\$%.2f", -$balance);
-  } else {
-    $balanceString = sprintf("have a credit balance of \\\$%.2f", $balance);
-  }
-  if (-r "message") {
-    chop($msg = `cat message`);
-  } 
-
-  my ($retval, $action) =
-    &get_dialog_result("--title \"$win_title\" --clear --cr-wrap --menu \"" .
-	   sprintf($win_textFormat, $username,
-		   $balanceString, "", $last_purchase) .
-	   "\" 24 76 8 " .
-	   "\"Espresso, Single\" " .
-	       "\"Espresso, Single                        (\\\$0.50)\" " .
-	   "\"Espresso, Double\" " .
-	       "\"Espresso, Double                        (\\\$1.00)\" " .
-	   "\"Cappuccino, Single\" " .
-	       "\"Cappuccino, Single                       (\\\$1.50)\" " .
-	   "\"Cappuccino, Double\" " .
-	       "\"Cappuccino, Double                       (\\\$2.00)\" " .
-	   "\"Latte, Single\" " .
-	       "\"Latte, Single                           (\\\$1.50)\" " .
-	   "\"Latte, Double\" " .
-	       "\"Latte, Double                           (\\\$2.00)\" " .
-	   "\"Mocha, Single\" " .
-	       "\"Mocha, Single                           (\\\$2.00)\" " .
-	   "\"Mocha, Double\" " .
-	       "\"Mocha, Double                           (\\\$2.50)\" ");
-
-  if ($retval != 0 || $action eq "Quit") {
-    return "Quit";
-  }
-  
   return $action;
 }
 
