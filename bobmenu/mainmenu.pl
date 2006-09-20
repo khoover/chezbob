@@ -243,8 +243,8 @@ or scan an item using the barcode scanner.};
 	       "\"Buy a Snapple drink from Bob            (\\\$0.80)\" " .
 	   "\"Popcorn/Chips/etc.\" " .
 	       "\"Buy popcorn, chips, etc. from Bob       (\\\$0.30)\" " .
-	   "\"Espresso\" " .
-	       "\"Buy espresso from Bob                          \" " .
+	   "\"Extra Items\" " .
+	       "\"Buy espresso and other items from Bob             \" " .
 	   "\"Buy Other\" " .
 	       "\"Buy something else from Bob                    \" " .
 	   "\"Quit\" " .
@@ -268,6 +268,10 @@ or scan an item using the barcode scanner.};
 
   if ($action eq "Espresso") {
       $action = &espresso_win($userid, $_);
+  }
+
+  if ($action eq "Extra Items") {
+      $action = &extras_win();
   }
 
   return $action;
@@ -324,6 +328,80 @@ Choose one of the following espresso items (scroll down for more options).};
   return $action;
 }
 
+
+sub
+extras_win
+#
+# Read a list of barcodes from $BOBPATH/extras.txt and provide the user with a
+# menu to purchase one of them.
+#
+{
+  my @barcode_list = ();        # Barcodes listed, in order
+  my %extras = ();              # Product information, keyed by barcode
+
+  open EXTRAS, "$BOBPATH/extras.txt" or do {
+    &noextras_win();
+    return "No action";
+  }
+
+  while (<EXTRAS>) {
+    # We allow comments in extras.txt.  Ignore them.
+    chomp;
+    s/#.*$//;
+
+    # Valid barcodes should be at least six digits long.  If we find one, try
+    # to look it up.
+    if (m/(\d+{6,})/) {
+      my $barcode = $1;
+      my $name = &bob_db_get_productname_from_barcode($barcode);
+      my $price = &bob_db_get_price_from_barcode($barcode);
+      next unless $name && $price;
+
+      # We're currently passing off text to dialog as a command with shell
+      # expansion, so strange characters could throw us off.  The name will be
+      # enclosed in a single set of double quotes.  Be conservative in which
+      # characters we allow through in the product name.
+      $name =~ s/[^-A-Za-z0-9()&:.,'+ ]//g;
+
+      push @barcode_list, $barcode;
+      $extras{$barcode} = [$name, $price];
+    }
+  }
+
+  close EXTRAS;
+  unless (@barcode_list) {
+    &noextras_win();
+    return "No action";
+  }
+
+  my $win_title = "Extra Items Menu";
+  my $win_text = "Choose one of the following items to purchase.";
+
+  my $menu_items = "";
+  foreach (0 .. $#barcode_list) {
+    my $barcode = $barcode_list[$_];
+    my ($name, $price) = @{$extras{$barcode}};
+    $menu_items .= sprintf(qq{ %d "%s (\\\$%.2f)"}, $_ + 1, $name, $price);
+  }
+
+  my ($retval, $action) =
+    &get_dialog_result(qq{--title "$win_title" --clear --cr-wrap --menu } .
+                       qq{"$win_text" 24 76 8 $menu_items});
+
+  if ($retval != 0) {
+    return "No action";
+  }
+
+  if ($action =~ /^(\d+)$/) {
+    my $n = $1 - 1;
+    if ($n >= 0 && $n <= $#barcode_list) {
+      return $barcode_list[$n];
+    }
+  }
+
+  return "No action";
+}
+
 sub
 balanceNag_win
 {
@@ -337,6 +415,16 @@ ENDMSG
 
   &get_dialog_result("--title \"$win_title\" --msgbox \"" .
          $win_text .  "\" 10 60");
+}
+
+sub
+noextras_win
+{
+  my $win_title = "No Extra Items";
+  my $win_text = "No additional items are available for purchase at this time.";
+
+  &get_dialog_result ("--title \"$win_title\" --clear --msgbox \"" .
+	  $win_text .  "\" 8 40");
 }
 
 sub
