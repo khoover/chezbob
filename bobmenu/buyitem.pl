@@ -213,11 +213,12 @@ sub
 invalid_product_barcode_win
 {
   my $win_title = "Invalid Product";
-  my $win_text = q{
-This is an invalid product barcode.};
+  my $win_text = q{This is an invalid product barcode.
+If you think this item should be valid, send a message to chezbob@cs.ucsd.edu
+to let us know to fix it.};
 
   &get_dialog_result("--title \"$win_title\" --cr-wrap --msgbox \"" .
-	 $win_text .  "\" 7 42");
+	 $win_text .  "\" 9 50");
 }
 
 
