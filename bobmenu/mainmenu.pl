@@ -182,37 +182,29 @@ or scan an item using the barcode scanner.};
                        "--default-item \"Add Money\" --menu \"" .
 	   sprintf($win_textFormat, $username,
 		   $balanceString, "", $last_purchase) .
-	   "\" 24 76 9 " .
+	   "\" 24 76 7 " .
 	   "\"Soda Login\" " .
 	       "\"Log in to the soda machine (in progress)        \" " .
 	   "\"Add Money\" " .
 	       "\"Add money to your Chez Bob account             \" " .
-	   "\"Candy/Can of Soda\" " .
-	       "\"Buy candy or a can of soda from Bob     (\\\$0.45)\" " .
-	   "\"Juice\" " .
-	       "\"Buy apple/orange/Kern's juice from Bob  (\\\$0.70)\" " .
-	   "\"Snapple\" " .
-	       "\"Buy a Snapple drink from Bob            (\\\$0.80)\" " .
-	   "\"Popcorn/Chips/etc.\" " .
-	       "\"Buy popcorn, chips, etc. from Bob       (\\\$0.30)\" " .
 	   "\"Extra Items\" " .
 	       "\"Buy espresso and other items from Bob             \" " .
 	   "\"Buy Other\" " .
-	       "\"Buy something else from Bob                    \" " .
+	       "\"Manually enter purchase price                    \" " .
+	   "\"Message\" " .
+	       "\"Leave a message for Bob                        \" " .
+	   "\"Transactions\" " .
+	       "\"List recent transactions                       \" " .
 	   "\"Quit\" " .
 	       "\"Finished\!                                      \" " .
 	   "\"My Chez Bob\" " .
 	       "\"Update your personal settings                     \" " .
-	   "\"Message\" " .
-	       "\"Leave a message for Bob                        \" " .
-	   "\"Nickname\" " .
-	       "\"Set your nickname                             \" " .
 	   "\"Barcode ID\" " .
 	       "\"Set your personal barcode login                \" " .
+	   "\"Nickname\" " .
+	       "\"Set your nickname                             \" " .
 	   "\"Password\" " .
-	       "\"Set your password           \" " .
-	   "\"Transactions\" " .
-	       "\"List recent transactions                       \" ");
+	       "\"Set your password           \" ");
 
   if ($retval != 0 || $action eq "Quit") {
     return "Quit";
