@@ -142,4 +142,26 @@ create a new account by entering a valid username.};
 	 $win_text .  "\" 11 62");
 }
 
+# Display a window giving the name of an item and its price if a user scans an
+# item barcode from the login screen.
+sub
+pricecheck_win
+{
+  my $barcode = shift;
+
+  my $name = &bob_db_get_productname_from_barcode($barcode);
+  my $price = &bob_db_get_price_from_barcode($barcode);
+
+  # We shouldn't have been called unless the item is in the database, so this
+  # should always be true...
+  if (defined($name) && defined($price)) {
+    my $win_title = "Item Price Check";
+    my $win_text = sprintf("Item: %s\nPrice: \$%.02f", $name, $price);
+    $win_text = &shell_escape($win_text);
+    &get_dialog_result("--title \"$win_title\" --cr-wrap " .
+                       "--msgbox \"$win_text\" 11 62");
+
+  }
+}
+
 1;

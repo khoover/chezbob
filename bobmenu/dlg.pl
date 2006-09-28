@@ -99,4 +99,14 @@ get_dialog_result
     #return (0, $stderrLine, $stdoutLine);
 }
 
+# Escape a string so that it can be passed on the shell enclosed in
+# double-quotes.
+sub
+shell_escape
+{
+  my $text = shift;
+  $test =~ s/([\$\\`"])/\\$1/g;
+  return $test;
+}
+
 1;
