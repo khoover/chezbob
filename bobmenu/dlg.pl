@@ -105,8 +105,8 @@ sub
 shell_escape
 {
   my $text = shift;
-  $test =~ s/([\$\\`"])/\\$1/g;
-  return $test;
+  $text =~ s/([\$\\`"])/\\$1/g;
+  return $text;
 }
 
 1;

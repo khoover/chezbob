@@ -159,7 +159,7 @@ pricecheck_win
     my $win_text = sprintf("Item: %s\nPrice: \$%.02f", $name, $price);
     $win_text = &shell_escape($win_text);
     &get_dialog_result("--title \"$win_title\" --cr-wrap " .
-                       "--msgbox \"$win_text\" 11 62");
+                       "--msgbox \"$win_text\" 8 50");
 
   }
 }

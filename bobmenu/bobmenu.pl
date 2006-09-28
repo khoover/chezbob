@@ -54,8 +54,7 @@ if ($barcode eq $CASH_BARCODE) {
   if (defined $username) {
     &process_login($username, 0);
   } else {
-    my $price = &bob_db_get_price_from_barcode($barcode);
-    if (defined $price) {
+    if (defined &bob_db_get_productname_from_barcode($barcode)) {
       &pricecheck_win($barcode);
     } else {
       &user_barcode_not_found_win;
