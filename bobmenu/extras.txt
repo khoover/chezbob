@@ -8,3 +8,6 @@
 436710464281    # Lipton Tea Bag
 438334145539    # Herbal Tea Bag
 431016311314    # Decaffeinated Lipton Tea Bag
+456628750566    # Applesauce
+418686540282    # Banana
+476989929852    # Apple
