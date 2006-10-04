@@ -92,10 +92,10 @@ What is the price of the item you are buying?
 sub
 buy_single_item_with_scanner
 #
-# Look up 'prodbarcode' from the products table and update the product's 
-# stock (-1) and the user's balance.  On failure (product does not
-# exist or user cancels) return empty string; on success (user buys product)
-# return the name of the product purchased.  
+# Look up 'prodbarcode' from the products table and update the transaction
+# table and the user's balance.  On failure (product does not exist or user
+# cancels) return empty string; on success (user buys product) return the name
+# of the product purchased.
 #
 {
   my ($userid, $prodbarcode) = @_;
@@ -166,7 +166,6 @@ buy_single_item_with_scanner
   }
   $main::this_purchase_list[$#main::this_purchase_list + 1] = { Prod => $prodname, Time => $buy_time };
 
-  &bob_db_update_stock(-1, $prodname);
   my $type = $PROFILE{"Privacy"} ? "BUY" : "BUY $prodname";
   &bob_db_update_balance($userid, -$amt, $type, $barcode, $PROFILE{"Privacy"});
 
@@ -177,10 +176,9 @@ buy_single_item_with_scanner
 sub
 buy_with_cash
 #
-# Call get_barcode_win to get item barcode, look it up and update 
-# the product's stock (-1).  On failure (product does not
-# exist or user cancels) return empty string; on success (user buys product)
-# return the name of the product purchased.  
+# Call get_barcode_win to get item barcode, look it up and purchase it.  On
+# failure (product does not exist or user cancels) return empty string; on
+# success (user buys product) return the name of the product purchased.
 #
 {
   my $msg = q{
@@ -202,8 +200,6 @@ scan the product's barcode now.};
 
   my $phonetic_name = &bob_db_get_phonetic_name_from_barcode($barcode);
   &sayit("$phonetic_name") if ($PROFILE{"Speech"});
-
-  &bob_db_update_stock(-1, $prodname);
 
   return $prodname;
 }

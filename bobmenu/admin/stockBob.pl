@@ -48,7 +48,6 @@ newProduct_win
   my $newName = "";
   my $newPhonetic_Name = "";
   my $newPrice = "";
-  my $newStock = "";
 
   # ASK FOR NEW NAME FOR NEW PRODUCT
   my $win_title = "New Product";
@@ -73,7 +72,7 @@ This is a new product.  Enter the product's name.
 	  return "";
       }
       $newPhonetic_Name = `cat ./input.product`;
-      # check for proper input and then ask for quantity for stock.  
+      # check for proper input
   }
 
   # ASK FOR PRICE
@@ -88,23 +87,11 @@ This is a new product.  Enter the product's name.
       $newPrice = `cat ./input.product`;
   }
 
-  while ($newStock !~ /^\d+$/) {
-      $win_title = "Enter the STOCK of $newName";
-      $win_text = "Please enter the amount in stock.";
-      
-      if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-		 $win_text .
-		 "\" 8 55 2> ./input.product") != 0) {
-	  return "";
-      }
-      $newStock = `cat ./input.product`;
-  }
-  
-  &bob_db_insert_product($newBarcode, $newName, $newPhonetic_Name, $newPrice, $newStock);
+  &bob_db_insert_product($newBarcode, $newName, $newPhonetic_Name, $newPrice);
 
   $win_title = "New Product Entered into Database";
   $win_text = "The following product has been entered:\n"
-      ."Name: $newName\nPrice:$newPrice\nStock:$newStock";
+      ."Name: $newName\nPrice:$newPrice";
   system("$DLG --title \"$win_title\" --clear --cr-wrap --msgbox \"" .
 	 $win_text .
 	 "\" 8 55");
@@ -115,7 +102,8 @@ This is a new product.  Enter the product's name.
 sub
 oldProduct_win
 {
-  my ($barcode, $name, $stock) = @_;
+  my $stock = 0;
+  my ($barcode, $name) = @_;
 
   my $win_title = "Restock an Individual Product";
   my $win_text = q{
@@ -135,7 +123,6 @@ Enter an amount to add to the present stock total
   my $newStock = `cat ./input.product`;
 
   $newStock = $newStock + $stock;
-  &bob_db_set_stock($barcode, $newStock);
   
   $win_title = "Stock Updated";
   $win_text = "You updated the stock to a new total of $newStock.";
@@ -170,8 +157,7 @@ enterBarcode
 	    my $name = &bob_db_get_productname_from_barcode($newBarcode);
 	    if (defined $name) {
 		# assign each value in DB to a perl variable.
-		my $stock = &bob_db_get_stock_from_barcode($newBarcode);
-		&oldProduct_win($newBarcode, $name, $stock);
+		&oldProduct_win($newBarcode, $name);
 	    } else {
 		# product not found... enter new product;
 		&newProduct_win($newBarcode);

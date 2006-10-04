@@ -484,62 +484,21 @@ bob_db_insert_pwd
 sub
 bob_db_insert_product
 {
-  my ($barcode, $name, $phonetic_name, $price, $stock) = @_;
+  my ($barcode, $name, $phonetic_name, $price) = @_;
   &bob_db_check_conn;
 
   my $insertqueryFormat = q{
     insert 
-    into products(barcode, name, phonetic_name, price, stock)
-    values('%s', '%s', '%s', %.2f, %d);
+    into products(barcode, name, phonetic_name, price)
+    values('%s', '%s', '%s', %.2f);
   };      
 
   my $query = sprintf($insertqueryFormat, $barcode, &esc_apos($name), 
-                      &esc_apos($phonetic_name), $price, $stock);
+                      &esc_apos($phonetic_name), $price);
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     my $mesg = "In bob_db_insert_product: error inserting record.\n" .
-               "$name, $barocde, $phonetic_name, $price, $stock";
-    &report_fatal($mesg);
-  }
-}
-
-
-sub
-bob_db_set_stock
-{
-  my ($barcode, $stock) = @_;
-
-  &bob_db_check_conn;
-  $updatequeryFormat = q{
-    update products
-    set stock = %d
-    where barcode = '%s';
-  };
-  my $result = $conn->exec(sprintf($updatequeryFormat, $stock, $barcode));
-  if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_set_stock: error updating record.\n" .
-               "$barcode, $stock";
-    &report_fatal($mesg);
-  }
-}
-
-
-sub
-bob_db_update_stock
-{
-  my ($delta, $prodname) = @_;
-
-  &bob_db_check_conn;
-  my $updatequeryFormat = q{
-    update products
-    set stock = stock + %d
-    where name = '%s';
-  };
-  my $query = sprintf($updatequeryFormat, $delta, &esc_apos($prodname));
-  my $result = $conn->exec($query);
-  if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_update_stock: error updating record.\n" .
-               "product name: $prodname, change by $delta";
+               "$name, $barocde, $phonetic_name, $price";
     &report_fatal($mesg);
   }
 }
@@ -606,26 +565,6 @@ bob_db_get_price_from_barcode
 
 
 sub
-bob_db_get_stock_from_barcode
-{
-  my ($barcode) = @_;
-
-  &bob_db_check_conn;
-  my $selectqueryFormat = q{
-    select stock
-    from products
-    where barcode = '%s';
-  };
-  my $result = $conn->exec(sprintf($selectqueryFormat, $barcode));
-  if ($result->ntuples != 1) {
-    return $NOT_FOUND;
-  } else {
-    return $result->getvalue(0,0);
-  }
-}
-
-
-sub
 bob_db_delete_product
 {
   my ($barcode) = @_;
@@ -638,7 +577,7 @@ bob_db_delete_product
   };
   $result = $conn->exec(sprintf($deletequeryFormat, $barcode));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_delete_stock: error deleting record.\n" . "$barcode";
+    my $mesg = "In bob_db_delete_product: error deleting record.\n" . "$barcode";
     &report_fatal($mesg);
   }
 }
