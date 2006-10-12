@@ -498,7 +498,7 @@ bob_db_insert_product
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     my $mesg = "In bob_db_insert_product: error inserting record.\n" .
-               "$name, $barocde, $phonetic_name, $price";
+               "$name, $barcode, $phonetic_name, $price";
     &report_fatal($mesg);
   }
 }
