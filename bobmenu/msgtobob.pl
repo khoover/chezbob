@@ -9,6 +9,7 @@ sub
 message_win
 {
   my ($username, $userid) = @_;
+  my $email = &bob_db_get_email_from_userid($userid);
   my $win_title = "Leave a Message for Bob";
   my $win_text = q{
 Leave a message for Bob!  We need your feedback about:
@@ -25,15 +26,20 @@ What is your message?};
                    "\nDo you want to send your message anonymously?", 55)) {
     $username = "anonymous";
     undef $userid;
+    undef $email;
   }
 
   my ($dlgErr, $msgText) = &get_dialog_result("--title \"$win_title\" --clear ".
              "--cr-wrap --inputbox \"" .  $win_text . "\" 18 74");
   if ($dlgErr == 0)
   {
-    my $msg = "From $username: $msgText";
+    my $msg = "Message from $username: $msgText";
     &bob_db_insert_msg($userid, $msg);
-    &report_msg($userid, $msg);
+    if ($email) {
+      &report_msg($userid, $msg, $email);
+    } else {
+      &report_msg($userid, $msg);
+    }
   }
 }
 

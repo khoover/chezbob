@@ -155,6 +155,25 @@ bob_db_get_userbarcode_from_userid
 
 
 sub
+bob_db_get_email_from_userid
+{
+  my ($userid) = @_;
+
+  my $queryFormat = q{
+    select email
+    from users
+    where userid = %d;
+  };
+  my $result = $conn->exec(sprintf($queryFormat, $userid));
+  if ($result->ntuples != 1) {
+    return undef;
+  } else {
+    return ($result->getvalue(0,0));
+  }
+}
+
+
+sub
 bob_db_add_user
 {
   my ($username, $email) = @_;
@@ -714,7 +733,7 @@ esc_apos
 
 sub report
 {
-  my ($subject, $mesg) =  @_ ;
+  my ($subject, $mesg, @addresses) =  @_ ;
 
   my $MAIL = '/usr/bin/mail';
   my $fname = "/tmp/email$$";
@@ -724,7 +743,7 @@ sub report
   print MESG "$mesg";
   close(MESG);
 
-  system("$MAIL -s \"$subject\" $ADMIN < $fname");
+  system("$MAIL -s \"$subject\" $ADMIN @addresses < $fname");
   unlink($fname);
 }
 
@@ -752,9 +771,9 @@ sub report_nonfatal
 
 sub report_msg
 {
-  my ($userid, $message) = @_ ;
+  my ($userid, $message, @addresses) = @_ ;
   my ($subject) = "Message to Bob";
-  &report($subject, $message);
+  &report($subject, $message, @addresses);
 }
 
 1;
