@@ -60,9 +60,9 @@ login_win
   my $win_text = q{
 Welcome to the B.o.B. 2001!
 
-
 Enter your username or scan your personal barcode.
-(If you are a new user enter a new username):};
+(If you are a new user enter a new username)
+Or, scan an item to find its price:};
 
   ($errCode, $username) = &get_dialog_result("--backtitle \"$back_title\" --title \"$win_title\" --clear --cr-wrap --inputbox \"" . $win_text .  "\" 14 55 \"$username\"");
 
@@ -130,16 +130,17 @@ least %d digits and no letters.};
 sub
 user_barcode_not_found_win
 {
-  my $win_title = "Unknown User Barcode";
+  my $win_title = "Unknown Barcode";
   my $win_text = q{
 I could not find this barcode in the database. If you're
 an existing user you must log into your regular account 
 and choose the 'Barcode ID' option to change your user
 barcode.  If you're a new user you'll need to first
-create a new account by entering a valid username.};
+create a new account by entering a valid username.
+If this is a product, it isn't yet in the database.};
 
   &get_dialog_result("--title \"$win_title\" --cr-wrap --msgbox \"" .
-	 $win_text .  "\" 11 62");
+	 $win_text .  "\" 12 62");
 }
 
 # Display a window giving the name of an item and its price if a user scans an
