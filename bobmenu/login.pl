@@ -35,7 +35,7 @@ process_login
   }
 
   my $pwd = &bob_db_get_pwd($userid);
-  if ($pwd =~ /^closed/) {
+  if ($pwd && $pwd =~ /^closed/) {
     &expiredAccount_win;
     return;
   }

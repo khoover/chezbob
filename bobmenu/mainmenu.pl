@@ -184,7 +184,7 @@ or scan an item using the barcode scanner.};
 		   $balanceString, "", $last_purchase) .
 	   "\" 24 76 7 " .
 	   "\"Soda Login\" " .
-	       "\"Log in to the soda machine (in progress)        \" " .
+	       "\"Log in to the soda machine                      \" " .
 	   "\"Add Money\" " .
 	       "\"Add money to your Chez Bob account             \" " .
 	   "\"Extra Items\" " .
