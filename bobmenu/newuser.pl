@@ -103,7 +103,7 @@ the following information with your message:
 --Chez Bob
 END
 
-  open MAIL, "|-", "sendmail", "--", $email;
+  open MAIL, "|-", "/usr/sbin/sendmail", "--", $email;
   print MAIL $msg;
   close MAIL;
 }
