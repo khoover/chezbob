@@ -69,4 +69,43 @@ Valid email addresses take the form
          $win_text .  "\" 8 50");
 }
 
+sub
+notify_new_user
+{
+  my $username = shift;
+  my $userid = &bob_db_get_userid_from_username($username);
+  return if $userid < 0;
+  my $email = &bob_db_get_email_from_userid($userid);
+  my $date = `date -R`; chomp $date;
+
+  my $msg = <<"END";
+Date: $date
+From: Chez Bob <chezbob\@cs.ucsd.edu>
+To: $email
+Subject: Your New Chez Bob Account
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Thank you for creating an account with Chez Bob, the UCSD graduate
+student food co-op.  We hope you'll find Chez Bob useful.  You can find
+more information about Chez Bob at http://chezbob.ucsd.edu/.  Feel free
+to send us questions, comments, and suggestions at chezbob\@cs.ucsd.edu.
+
+If you did not create an account with Chez Bob, and believe that someone
+else may have opened an account in your name, please let us know
+immediately so that we may close the account.  Send a message to
+chezbob\@cs.ucsd.edu (or simply reply to this message).  Please include
+the following information with your message:
+    Account name: $username
+    E-mail address: $email
+
+--Chez Bob
+END
+
+  open MAIL, "|-", "sendmail", "--", $email;
+  print MAIL $msg;
+  close MAIL;
+}
+
 1;

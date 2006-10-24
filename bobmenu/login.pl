@@ -31,6 +31,7 @@ process_login
     # Get the new userid
     $userid = &bob_db_get_userid_from_username($username);
     &bob_db_init_balance($userid);
+    &notify_new_user($username);
   }
 
   my $pwd = &bob_db_get_pwd($userid);
