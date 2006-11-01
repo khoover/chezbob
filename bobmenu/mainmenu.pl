@@ -40,7 +40,7 @@ bob_action_win
   my $balance = &bob_db_get_balance($userid);
   if ($balance <= $MIN_BALANCE) {
     if ($balance <= $MIN_BALANCE_ANNOUNCE) {
-      system("play $BOBPATH/negative_balance.wav >/dev/null &");
+      system("ogg123 -q $BOBPATH/negative_balance.ogg >/dev/null &");
     }
     &balanceNag_win($balance);
   } elsif ($PROFILE{"Speech"}) { 
