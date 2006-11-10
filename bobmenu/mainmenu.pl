@@ -275,7 +275,7 @@ extras_win
 
   my ($retval, $action) =
     &get_dialog_result(qq{--title "$win_title" --clear --cr-wrap --menu } .
-                       qq{"$win_text" 20 76 12 $menu_items});
+                       qq{"$win_text" 22 76 14 $menu_items});
 
   if ($retval != 0) {
     return "No action";
