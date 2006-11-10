@@ -388,23 +388,27 @@ bob_db_log_transactions
   }
 
   my $logqueryFormat = q{
-    select xacttime,xactvalue,xacttype
+    select date_trunc('second', xacttime), xactvalue, xacttype
     from transactions
     where userid = %d
     order by xacttime;
   };
 
+  my $balance = 0.00;
+  print LOG_OUT "Balance|         Time         |Amount|Description\n";
   my $result = $conn->exec(sprintf($logqueryFormat, $userid));
   for ($i = 0 ; $i < $result->ntuples ; $i++) {
     $time = $result->getvalue($i,0);
     $val = $result->getvalue($i,1);
     $type = $result->getvalue($i,2);
+    $balance += $val;
 
     if ($i == 0) {
       $win_title .= " since $time";
     }
 
-    print LOG_OUT sprintf("%s: %.2f (%s)\n", $time, $val, $type);
+    print LOG_OUT sprintf("%7.2f|%22s|%6.2f|%s\n",
+                          $balance, $time, $val, $type);
   }
 
   close(LOG_OUT);
