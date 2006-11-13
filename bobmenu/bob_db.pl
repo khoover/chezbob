@@ -22,6 +22,15 @@ my $ADMIN = 'chezbob@cs.ucsd.edu';    # address to send admin. message
 
 $NOT_FOUND = -9999.9999;    
 
+# Transactions are tagged with a source which indicates how the transaction was
+# entered into the database.  Currently used sources are: "chezbob", "soda",
+# and "socialhour".  This code defaults to "chezbob", but this can be
+# overridden by called bob_db_set_source.
+my $database_source = 'chezbob';
+sub bob_db_set_source {
+  my $source = shift;
+  $database_source = $source || 'chezbob';
+}
 
 sub
 bob_db_connect
@@ -316,7 +325,7 @@ bob_db_update_balance
 
     insert
     into transactions(xacttime, userid, xactvalue, xacttype, barcode, source)
-    values('now', %d, %.2f, '%s', %s, 'chezbob'); 
+    values('now', %d, %.2f, '%s', %s, '%s'); 
   };
 
   my $query = sprintf($updatequeryFormat, 
@@ -325,7 +334,8 @@ bob_db_update_balance
                       $userid, 
                       $amt, 
                       &esc_apos(uc($type)),
-                      $privacy ? "NULL" : $barcode);
+                      $privacy ? "NULL" : $barcode,
+                      $database_source);
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     my $mesg = "In bob_db_update_balance: error updating record.\n" .
