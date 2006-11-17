@@ -195,7 +195,7 @@ Choose one of the following actions};
                        "--menu \"" .
 	   sprintf($win_textFormat, $username,
 		   $balanceString, "", $last_purchase) .
-	   "\" 23 76 7 " .
+	   "\" 23 76 8 " .
 	   "\"Donate\" " .
 	       "\"Donate \\\$0.25 to Social Hour                 \" " .
 	   "\"Donate Other\" " .
