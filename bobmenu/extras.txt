@@ -7,6 +7,7 @@
 436710464281    # Lipton Tea Bag
 438334145539    # Herbal Tea Bag
 431016311314    # Decaffeinated Lipton Tea Bag
+496649737986    # Juicy Juice
 456628750566    # Applesauce
 464121094254    # Orange
 418686540282    # Banana
