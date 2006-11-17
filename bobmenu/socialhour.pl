@@ -121,6 +121,11 @@ MAINLOOP:
       };
 
       /^Donate$/ && do {
+        &social_donate($userid, 0.25);
+        last SWITCH;
+      };
+  
+      /^Donate Other$/ && do {
         &social_donate($userid);
         last SWITCH;
       };
@@ -187,14 +192,16 @@ Choose one of the following actions};
 
   my ($retval, $action) =
     &get_dialog_result("--title \"$win_title\" --clear --cr-wrap " .
-                       "--default-item \"Add Money\" --menu \"" .
+                       "--menu \"" .
 	   sprintf($win_textFormat, $username,
 		   $balanceString, "", $last_purchase) .
 	   "\" 23 76 7 " .
+	   "\"Donate\" " .
+	       "\"Donate \\\$0.25 to Social Hour                 \" " .
+	   "\"Donate Other\" " .
+	       "\"Donate other amount to Social Hour             \" " .
 	   "\"Add Money\" " .
 	       "\"Add money to your Chez Bob account             \" " .
-	   "\"Donate\" " .
-	       "\"Donate to Social Hour                          \" " .
 	   "\"Message\" " .
 	       "\"Leave a message for Bob                        \" " .
 	   "\"Transactions\" " .
@@ -216,35 +223,35 @@ Choose one of the following actions};
 sub
 social_donate
 {
-  my ($userid) = @_;
+  my ($userid, $amt) = @_;
 
-  my $amt;
   my $confirmMsg;
-  undef $amt;
 
-  $confirmMsg = "Donation amount?";
+  if (!defined $amt) {
+    $confirmMsg = "Donation amount?";
 
-  my $win_title = "Donate to Social Hour";
-  my $win_text = q{
-How much would you like to donate to Social Hour?
-(This amount will be deducted from your BoB account.)};
+    my $win_title = "Donate to Social Hour";
+    my $win_text = q{
+  How much would you like to donate to Social Hour?
+  (This amount will be deducted from your BoB account.)};
 
-  while (1) {
-    (my $err, $amt) = &get_dialog_result("--title \"$win_title\" --clear ".
-                      "--cr-wrap --inputbox \"" .  $win_text .  "\" 10 65");
-    return if ($err != 0);
+    while (1) {
+      (my $err, $amt) = &get_dialog_result("--title \"$win_title\" --clear ".
+                        "--cr-wrap --inputbox \"" .  $win_text .  "\" 10 65");
+      return if ($err != 0);
 
-    if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
-      if ($amt > $MAX_PURCHASE) {
-        &exceed_max_purchase_win;
+      if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
+        if ($amt > $MAX_PURCHASE) {
+          &exceed_max_purchase_win;
+        } else {
+          # amt entered is OK
+          last;
+        }
       } else {
-        # amt entered is OK
-        last;
+        &invalid_purchase_win;
       }
-    } else {
-      &invalid_purchase_win;
-    }
-  }  # while
+    }  # while
+  }
 
   if (! &confirm_win($confirmMsg,
                    sprintf("\nIs your donation amount \\\$%.2f?", $amt),40)) {
