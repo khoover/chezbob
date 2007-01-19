@@ -120,8 +120,13 @@ MAINLOOP:
         last SWITCH;
       };
 
-      /^Donate$/ && do {
+      /^Donate 0.25$/ && do {
         &social_donate($userid, 0.25);
+        last SWITCH;
+      };
+  
+      /^Donate 0.50$/ && do {
+        &social_donate($userid, 0.50);
         last SWITCH;
       };
   
@@ -195,9 +200,11 @@ Choose one of the following actions};
                        "--menu \"" .
 	   sprintf($win_textFormat, $username,
 		   $balanceString, "", $last_purchase) .
-	   "\" 23 76 8 " .
-	   "\"Donate\" " .
+	   "\" 23 76 9 " .
+	   "\"Donate 0.25\" " .
 	       "\"Donate \\\$0.25 to Social Hour                 \" " .
+	   "\"Donate 0.50\" " .
+	       "\"Donate \\\$0.50 to Social Hour                 \" " .
 	   "\"Donate Other\" " .
 	       "\"Donate other amount to Social Hour             \" " .
 	   "\"Add Money\" " .
