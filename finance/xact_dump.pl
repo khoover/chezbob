@@ -22,7 +22,7 @@ sub encode_user {
     return $users{$id};
 }
 
-my $dbh = DBI->connect("dbi:Pg:dbname=bob", "mvrable")
+my $dbh = DBI->connect("dbi:Pg:dbname=bob", "bob")
     or die "Unable to connect to ChezBob database";
 
 my $sth = $dbh->prepare(
