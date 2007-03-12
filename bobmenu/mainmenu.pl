@@ -38,7 +38,10 @@ bob_action_win
   &get_user_profile($userid);
   
   my $balance = &bob_db_get_balance($userid);
-  if ($balance <= $MIN_BALANCE) {
+
+  # Don't complain to the visitday account (uid=1998) about a negative balance.
+  # Might later want to come up with a cleaner way to do this.
+  if ($balance <= $MIN_BALANCE && $userid != 1998) {
     if ($balance <= $MIN_BALANCE_ANNOUNCE) {
       system("ogg123 -q $BOBPATH/negative_balance.ogg >/dev/null &");
     }
