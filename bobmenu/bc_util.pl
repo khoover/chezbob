@@ -69,7 +69,7 @@ isa_upc_barcode
 {
   my ($barcode) = @_;
   my $leng = length($barcode);
-  return (($leng == 13 || $leng == 12 || $leng == 6)
+  return (($leng == 13 || $leng == 12 || $leng == 8 || $leng == 6)
           && &isa_numeric_barcode($barcode));
 }
 
