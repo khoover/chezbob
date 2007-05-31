@@ -1,0 +1,3 @@
+# m h  dom mon dow   command
+14 */6 * * *      psql -q -f $HOME/aggregate_maintenance.sql bob
+*/10 * * * *      $HOME/chezbob.hg/reports/wall_of_shame.pl >$HOME/www/wall_of_shame.html
