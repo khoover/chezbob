@@ -21,6 +21,11 @@ require "$BOBPATH/dlg.pl";
 require "$BOBPATH/bc_util.pl";
 require "$BOBPATH/bob_db.pl";
 
+my $tmpdir = `mktemp -d`;
+chomp $tmpdir;
+unless (-d $tmpdir) {
+    die "Could not create temporary directory $tmpdir";
+}
 
 sub
 errorBarcode
@@ -57,10 +62,10 @@ This is a new product.  Enter the product's name.
 
   while ($newName !~ /\w+/) {
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-		 $win_text .  "\" 8 55 2> ./input.product") != 0) {
+		 $win_text .  "\" 8 55 2> $tmpdir/input.product") != 0) {
 	  return "";
       }
-      $newName = `cat ./input.product`;
+      $newName = `cat $tmpdir/input.product`;
   }
 
   # ASK FOR PHONETIC NAME
@@ -68,10 +73,10 @@ This is a new product.  Enter the product's name.
   $win_text = " Please enter a PHONETIC NAME for the Speech Synthesis.";
   while ($newPhonetic_Name !~ /\w+/) {
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-		 $win_text .  "\" 8 55 2> ./input.product") != 0) {
+		 $win_text .  "\" 8 55 2> $tmpdir/input.product") != 0) {
 	  return "";
       }
-      $newPhonetic_Name = `cat ./input.product`;
+      $newPhonetic_Name = `cat $tmpdir/input.product`;
       # check for proper input
   }
 
@@ -81,10 +86,10 @@ This is a new product.  Enter the product's name.
   while ($newPrice !~ /^\d*\.\d{0,2}$/) {
       if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
 		 $win_text .
-		 "\" 8 55 2> ./input.product") != 0) {
+		 "\" 8 55 2> $tmpdir/input.product") != 0) {
 	  return "";
       }      
-      $newPrice = `cat ./input.product`;
+      $newPrice = `cat $tmpdir/input.product`;
   }
 
   &bob_db_insert_product($newBarcode, $newName, $newPhonetic_Name, $newPrice);
@@ -116,11 +121,11 @@ Enter an amount to add to the present stock total
 
   if (system("$DLG --title \"$win_title\" --clear --cr-wrap --inputbox \"" .
              sprintf($win_text, $name, $stock) .
-	     "\" 14 55 2> ./input.product") != 0) {
+	     "\" 14 55 2> $tmpdir/input.product") != 0) {
       return "";
   }
 
-  my $newStock = `cat ./input.product`;
+  my $newStock = `cat $tmpdir/input.product`;
 
   $newStock = $newStock + $stock;
   
@@ -142,11 +147,11 @@ enterBarcode
     my $win_text = "Enter the barcode of a product";
     
 	if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-		   $win_text .  "\" 8 55 2> ./input.barcode") != 0) {
+		   $win_text .  "\" 8 55 2> $tmpdir/input.barcode") != 0) {
 	    return "";
 	}
 	
-	$guess = `cat ./input.barcode`;
+	$guess = `cat $tmpdir/input.barcode`;
 
 	$newBarcode = &preprocess_barcode($guess);
 
@@ -177,11 +182,11 @@ deleteProduct
 
   while (1) {
    if (system("$DLG --title \"$win_title\" --clear --inputbox \"" .
-     $win_text .  "\" 8 55 2> ./input.barcode") != 0) {
+     $win_text .  "\" 8 55 2> $tmpdir/input.barcode") != 0) {
      return "";
    }
 
-	$guess = `cat ./input.barcode`;
+	$guess = `cat $tmpdir/input.barcode`;
 	
 	$newBarcode = &preprocess_barcode($guess);
 	
@@ -241,9 +246,9 @@ mainMenu
     "\"DELETE a product from the inventory\" " .
     "\"Quit\" " .
     "\"QUIT this program\" " .
-    " 2> ./input.action");
+    " 2> $tmpdir/input.action");
     
-  my $action = `cat ./input.action`;
+  my $action = `cat $tmpdir/input.action`;
 
   if ($action eq "") {
     $action = "Quit";
@@ -254,7 +259,6 @@ mainMenu
 
 
 &bob_db_connect;
-system("rm -f ./input.*");
 
 $action = "";
 
@@ -275,6 +279,6 @@ while ($action ne "Quit") {
   }
 }
 
-system("rm -f ./input.*");
+system("rm -rf $tmpdir");
 system("rm -f /tmp/menuout");
 
