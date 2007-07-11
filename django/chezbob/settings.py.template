@@ -6,6 +6,7 @@
 #   - Fill in the contents of SECRET_KEY appropriately.  (Copy the value used
 #     by a pre-existing site, or for a new installation create a random ~50
 #     character string.)
+#   - Edit any paths as necessary based on install location.
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -68,6 +69,7 @@ ROOT_URLCONF = 'chezbob.urls'
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates".
     # Always use forward slashes, even on Windows.
+    "/home/mvrable/chezbob.hg/django/chezbob/bobdb/templates",
 )
 
 INSTALLED_APPS = (
