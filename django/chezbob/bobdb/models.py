@@ -4,7 +4,7 @@ class BulkItem(models.Model):
     class Meta:
         db_table = 'bulk_items'
 
-    bulkid = models.IntegerField(primary_key=True)
+    bulkid = models.AutoField(primary_key=True)
     description = models.TextField()
     price = models.FloatField(max_digits=12, decimal_places=2)
     taxable = models.BooleanField()
