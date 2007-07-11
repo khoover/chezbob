@@ -34,11 +34,24 @@ class Product(models.Model):
     phonetic_name = models.CharField(maxlength=256)
     price = models.FloatField(max_digits=12, decimal_places=2, core=True)
     stock = models.IntegerField()
-    bulkid = models.ForeignKey(BulkItem, db_column='bulkid', blank=True,
-                               edit_inline=models.TABULAR)
+    bulk = models.ForeignKey(BulkItem, db_column='bulkid', blank=True,
+                             edit_inline=models.TABULAR)
 
     def __str__(self):
         return "%s [%s]" % (self.name, self.barcode)
+
+    def get_absolute_url(self):
+        return "/products/%s/" % (self.barcode)
+
+    def sales_stats(self):
+        """Return a list with historical sales per day."""
+
+        from django.db import connection
+        cursor = connection.cursor()
+        cursor.execute("""SELECT date, sum(quantity) FROM aggregate_purchases
+                          WHERE barcode = %s GROUP BY date ORDER BY date""",
+                       [self.barcode])
+        return cursor.fetchall()
 
     class Admin:
         ordering = ['name']
