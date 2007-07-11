@@ -29,7 +29,7 @@ def products(request):
             return None
     products.sort(lambda x, y: cmp(sort_field(x), sort_field(y)))
 
-    return render_to_response('base.html',
+    return render_to_response('chezbob/base.html',
                               {'user': request.user,
                                'title': "Products Overview",
                                'products': products})
