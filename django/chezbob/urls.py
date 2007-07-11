@@ -1,6 +1,8 @@
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns('',
-    # Uncomment this for admin:
+    # Default admin interface for editing database
     (r'^admin/', include('django.contrib.admin.urls')),
+
+    (r'^products/', 'chezbob.bobdb.views.products'),
 )
