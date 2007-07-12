@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from chezbob.bobdb.models import Product
 
@@ -29,7 +29,21 @@ def products(request):
             return None
     products.sort(lambda x, y: cmp(sort_field(x), sort_field(y)))
 
-    return render_to_response('chezbob/base.html',
+    return render_to_response('bobdb/product_list.html',
                               {'user': request.user,
                                'title': "Products Overview",
                                'products': products})
+
+def product_detail(request, barcode):
+    product = get_object_or_404(Product, barcode=barcode)
+
+    try:
+        product.markup_amt = product.price - product.bulk.unit_price()
+        product.markup_pct = ((product.price / product.bulk.unit_price()) - 1.0) * 100
+    except ObjectDoesNotExist:
+        pass
+
+    return render_to_response('bobdb/product_detail.html',
+                              {'user': request.user,
+                               'title': "Product Detail",
+                               'product': product})

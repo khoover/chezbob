@@ -23,33 +23,6 @@
         {% block content_title %}{% if title %}<h1>{{ title|escape }}</h1>{% endif %}{% endblock %}
         {% block content %}{{ content }}{% endblock %}
         {% block sidebar %}{% endblock %}
-
-<table cellspacing="0">
-
-<thead>
-<tr>
-    <th><a href="?o=0">Product</a></th>
-    <th><a href="?o=1">Price</a></th>
-    <th><a href="?o=2">Unit Cost</a></th>
-    <th><a href="?o=3">Markup ($)</a></th>
-    <th><a href="?o=4">Markup (%)</a></th>
-</tr>
-</thead>
-<tbody>
-
-{% for product in products %}
-    <tr class="{% cycle row1,row2 %}">
-        <td>{{ product.name|escape }}</td>
-        <td>{{ product.price|stringformat:".2f" }}</td>
-        <td>{{ product.bulk.unit_price|stringformat:".4f" }}</td>
-        <td>{{ product.markup_amt|stringformat:".4f" }}</td>
-        <td>{{ product.markup_pct|stringformat:".1f" }}</td>
-    </tr>
-{% endfor %}
-
-</tbody>
-</table>
-
         <br class="clear" />
     </div>
 
