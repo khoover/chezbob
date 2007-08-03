@@ -1,0 +1,70 @@
+{% extends "chezbob/base.html" %}
+{% block title %}Update Order{% endblock %}
+
+{% block content %}
+<h1>Update - {{ order.date }}: {{ order.description }}</h1>
+
+<!--
+{% filter escape %}{% debug %}{% endfilter %}
+-->
+<form action="" method="post">
+
+<table cellspacing="0">
+
+<thead>
+<tr>
+    <th>Ordered</th>
+    <th>Type</th>
+    <th>Unit Cost</th>
+    <th></th>
+</tr>
+</thead>
+
+<tbody>
+{% for item in items %}
+<tr class="{% cycle row1,row2 %}">
+    <input type="hidden" name="id.{{ forloop.counter }}" value="{{ item.id }}" />
+    {% if item.blank %}
+        <td>
+            <input type="text" size="4" name="number.{{ forloop.counter }}" value="" />
+        </td>
+        <td>
+            <input type="text" size="40" name="type.{{ forloop.counter }}" value="{{ item.type }}" />
+        </td>
+        <td></td>
+    {% else %}
+        <td>
+            <input type="text" size="4" name="number.{{ forloop.counter }}" value="{{ item.number }}" />
+        </td>
+        <td>
+            <input type="hidden" name="type_code.{{ forloop.counter }}" value="{{ item.type.bulkid }}" />
+            <span style="{% if item.id %}font-weight: bold{% endif %}">{{ item.type.description|escape }}</span>
+            (<input type="text" size="4" name="quantity.{{ forloop.counter }}" value="{{ item.quantity }}" />)
+        </td>
+        <td>
+            <input type="text" size="6" name="nontaxable.{{ forloop.counter }}" value="{{ item.nontaxable|stringformat:".2f" }}" /> +
+            <input type="text" size="6" name="taxable.{{ forloop.counter }}" value="{{ item.taxable|stringformat:".2f" }}" /> T
+        </td>
+    {% endif %}
+    <td>{{ item.message|escape }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+<div>
+Total:
+{{ total_notax|stringformat:".2f" }} (Non-Taxable)
++ {{ total_tax|stringformat:".2f" }} (Taxable)
+= {{ total|stringformat:".2f" }}
+</div>
+
+<div>Actual Total: {{ order.amount|stringformat:".2f" }}</div>
+
+<div class="submit-row">
+<input type="submit" value="Save" class="default" />
+</div>
+
+</form>
+
+{% endblock %}

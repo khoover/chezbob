@@ -8,4 +8,5 @@ urlpatterns = patterns('',
     (r'^products/([0-9]+)/$', 'chezbob.bobdb.views.product_detail'),
 
     (r'^orders/([0-9]+)/$', 'chezbob.bobdb.views.view_order'),
+    (r'^orders/([0-9]+)/update/$', 'chezbob.bobdb.views.update_order'),
 )

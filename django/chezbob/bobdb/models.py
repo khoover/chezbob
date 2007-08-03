@@ -18,15 +18,23 @@ class BulkItem(models.Model):
     def __str__(self):
         return self.description
 
+    def cost_taxable(self):
+        """Portion of total price which is taxed."""
+        amt = 0.0
+        if self.taxable: amt += self.price
+        if self.crv_taxable: amt += self.crv
+        return amt
+
+    def cost_nontaxable(self):
+        """Portion of total price which is not taxed."""
+        amt = 0.0
+        if not self.taxable: amt += self.price
+        if not self.crv_taxable: amt += self.crv
+        return amt
+
     def total_price(self):
         """Total price of a product, including all applicable tax and CRV."""
-
-        tax = crv_tax = 1.00
-        if self.taxable: tax = 1 + TAX_RATE
-        if self.crv_taxable: crv_tax = 1 + TAX_RATE
-
-        amt = self.price * tax + self.crv * crv_tax
-
+        amt = (1 + TAX_RATE) * self.cost_taxable() + self.cost_nontaxable()
         return round(amt, 2)
 
     def unit_price(self):
