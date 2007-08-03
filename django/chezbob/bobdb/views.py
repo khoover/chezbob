@@ -1,7 +1,8 @@
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
-from chezbob.bobdb.models import Product
+from chezbob.bobdb.models import Product, Order
 
+##### Product summary information #####
 def products(request):
     products = list(Product.objects.all())
 
@@ -47,3 +48,15 @@ def product_detail(request, barcode):
                               {'user': request.user,
                                'title': "Product Detail",
                                'product': product})
+
+##### Order tracking #####
+def view_order(request, order):
+    order = get_object_or_404(Order, id=int(order))
+    items = order.orderitem_set.all()
+
+    return render_to_response('bobdb/order_info.html',
+                              {'user': request.user,
+                               'title': "Order Summary",
+                               'order': order,
+                               'items': items})
+

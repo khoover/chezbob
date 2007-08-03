@@ -78,3 +78,53 @@ class Product(models.Model):
         ordering = ['name']
         search_fields = ['barcode', 'name']
         list_display = ['barcode', 'name', 'price']
+
+class Order(models.Model):
+    class Meta:
+        db_table = 'orders'
+
+    date = models.DateField()
+    description = models.CharField(maxlength=256)
+    amount = models.FloatField(max_digits=12, decimal_places=2)
+
+    def __str__(self):
+        return "%s %s" % (self.date, self.description)
+
+    class Admin:
+        ordering = ['date', 'description']
+        search_fields = ['date', 'description']
+        list_display = ['date', 'amount', 'description']
+
+class OrderItem(models.Model):
+    class Meta:
+        db_table = 'order_items'
+
+    # What order is this line item part of?
+    order = models.ForeignKey(Order)
+
+    # What was ordered?  This refers to BulkItem rather than Product since a
+    # single unit ordered might contain multiple items with different UPC
+    # barcodes.
+    bulk_type = models.ForeignKey(BulkItem)
+
+    # Number of individual items that come in each unit ordered.  Should match
+    # bulk_type.quantity except in unusual cases.
+    quantity = models.IntegerField()
+
+    # Number of units ordered.  The total number of individual items received
+    # will be number*quantity.
+    number = models.IntegerField()
+
+    # Cost for each unit ordered.  To get the total cost, multiply by number.
+    # The cost is split into taxable and non-taxable components; we do this
+    # instead of using a "taxable" boolean since both could be present (for
+    # example, item is not taxable but the CRV on the item is).  In most cases,
+    # one of the costs will be zero.
+    cost_taxable = models.FloatField(max_digits=12, decimal_places=2)
+    cost_nontaxable = models.FloatField(max_digits=12, decimal_places=2)
+
+    def __str__(self):
+        return "%d %s" % (self.number, self.bulk_type)
+
+    class Admin:
+        list_display = ['bulk_type', 'number', 'order']

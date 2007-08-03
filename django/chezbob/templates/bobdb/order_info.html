@@ -1,0 +1,29 @@
+{% extends "chezbob/base.html" %}
+{% block title %}Order Summary{% endblock %}
+
+{% block content %}
+<h1>{{ order.date }}: {{ order.description }}</h1>
+
+<p>Total Cost: ${{ order.amount|stringformat:".2f" }}</p>
+
+<table cellspacing="0">
+
+<thead>
+<tr>
+    <th>Quantity</th>
+    <th>Item</th>
+    <th>Cost</th>
+</tr>
+</thead>
+
+<tbody>
+{% for item in items %}
+<tr class="{% cycle row1,row2 %}">
+    <td style="text-align: right">{{ item.number }} &times; {{ item.quantity }}</td>
+    <td>{{ item.bulk_type }}</td>
+    <td>{{ item.cost_nontaxable|stringformat:".2f" }} + {{ item.cost_taxable|stringformat:".2f" }}T</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}
