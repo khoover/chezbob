@@ -1,3 +1,6 @@
+import datetime
+from time import strptime
+
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required
@@ -186,3 +189,74 @@ def update_order(request, order):
                                'total_notax': total_notax,
                                'total_tax': total_tax,
                                'total': total})
+
+##### Inventory and Stats by Bulk Type #####
+def inventory(request):
+    bulk = BulkItem.objects.order_by('description')
+
+    return render_to_response('bobdb/inventory_list.html',
+                              {'user': request.user,
+                               'title': "Inventory Overview",
+                               'items': bulk})
+
+def inventory_detail(request, bulkid):
+    item = get_object_or_404(BulkItem, bulkid=bulkid)
+
+    # The individual products sold that fall under this bulk item--for example,
+    # the bulk item might be a variety pack, and the individual products are
+    # each of the flavors (assuming a separate barcode for each).
+    products = item.product_set.all()
+
+    # Construct a table giving both aggregate daily sales statistics for this
+    # item, and records of purchases made.  Dictionary is keyed by date.  Each
+    # value is a tuple (sales, received).
+    daily_stats = {}
+    for p in products:
+        for (date, sales) in p.sales_stats():
+            if not daily_stats.has_key(date): daily_stats[date] = [0, 0]
+            daily_stats[date][0] += sales
+
+    for order in item.orderitem_set.all():
+        date = order.order.date
+        if not daily_stats.has_key(date): daily_stats[date] = [0, 0]
+        daily_stats[date][1] += order.number * order.quantity
+
+    # Produce a flattened version of the daily sales stats: convert it to a
+    # list, sorted by date, of dictionaries with keys ('date', 'sales',
+    # 'purchases').
+    daily_stats_list = []
+    dates = daily_stats.keys()
+    dates.sort()
+    for d in dates:
+        stats = daily_stats[d]
+        daily_stats_list.append({'date': d,
+                                 'sales': stats[0], 'purchases': stats[1]})
+
+    # If a starting date was provided, drop any statistics before that point in
+    # time.
+    try:
+        since = datetime.date(*strptime(request.GET['since'], "%Y-%m-%d")[0:3])
+    except:
+        since = None
+
+    if since:
+        daily_stats_list = [d for d in daily_stats_list
+                            if d['date'] >= since]
+
+    # Produce cumulative sales statistics.  Store them under keys 'sales_sum'
+    # and 'purchases_sum'.
+    sales_sum = 0
+    purchases_sum = 0
+    for day in daily_stats_list:
+        sales_sum += day['sales']
+        purchases_sum += day['purchases']
+        day['sales_sum'] = sales_sum
+        day['purchases_sum'] = purchases_sum
+        day['inventory'] = purchases_sum - sales_sum
+
+    return render_to_response('bobdb/inventory_detail.html',
+                              {'user': request.user,
+                               'title': "Inventory Detail",
+                               'item': item,
+                               'raw_stats': daily_stats,
+                               'stats': daily_stats_list})

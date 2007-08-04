@@ -1,0 +1,21 @@
+{% extends "chezbob/base.html" %}
+{% block title %}Product Inventory Listing{% endblock %}
+
+{% block content %}
+<table cellspacing="0">
+
+<thead>
+<tr>
+    <th>Product</th>
+</tr>
+</thead>
+
+<tbody>
+{% for item in items %}
+<tr class="{% cycle row1,row2 %}">
+    <td><a href="{{ item.bulkid }}/">{{ item.description|escape }}</a></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}
