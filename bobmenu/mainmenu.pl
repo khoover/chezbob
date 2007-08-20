@@ -84,12 +84,6 @@ MAINLOOP:
         last SWITCH;
       };
 
-      (/^Candy\/Can of Soda$/ || /^Snapple$/ || /^Juice$/ ||
-       /^Popcorn\/Chips\/etc.$/) && do {
-        $curr_purchase = &buy_win($userid, $_);
-        last SWITCH;
-      };
-
       /^Buy Other$/ && do {
         $curr_purchase = &buy_win($userid, $_);
         last SWITCH;
