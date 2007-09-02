@@ -3,10 +3,11 @@ from time import strptime
 
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from chezbob.bobdb.models import BulkItem, Product, Order, OrderItem, TAX_RATE
 
 ##### Product summary information #####
+@login_required
 def products(request):
     products = list(Product.objects.all())
 
@@ -39,6 +40,7 @@ def products(request):
                                'title': "Products Overview",
                                'products': products})
 
+@login_required
 def product_detail(request, barcode):
     product = get_object_or_404(Product, barcode=barcode)
 
@@ -54,6 +56,9 @@ def product_detail(request, barcode):
                                'product': product})
 
 ##### Order tracking #####
+edit_orders_required = \
+    user_passes_test(lambda u: u.has_perm('bobdb.edit_orders'))
+
 @login_required
 def view_order(request, order):
     order = get_object_or_404(Order, id=int(order))
@@ -65,7 +70,7 @@ def view_order(request, order):
                                'order': order,
                                'items': items})
 
-@login_required
+@edit_orders_required
 def update_order(request, order):
     order = get_object_or_404(Order, id=int(order))
 
@@ -191,6 +196,7 @@ def update_order(request, order):
                                'total': total})
 
 ##### Inventory and Stats by Bulk Type #####
+@login_required
 def inventory(request):
     bulk = BulkItem.objects.order_by('description')
 
@@ -199,6 +205,7 @@ def inventory(request):
                                'title': "Inventory Overview",
                                'items': bulk})
 
+@login_required
 def inventory_detail(request, bulkid):
     item = get_object_or_404(BulkItem, bulkid=bulkid)
 

@@ -90,6 +90,7 @@ class Product(models.Model):
 class Order(models.Model):
     class Meta:
         db_table = 'orders'
+        permissions = [("edit_orders", "Enter Order Information")]
 
     date = models.DateField()
     description = models.CharField(maxlength=256)
