@@ -1,0 +1,48 @@
+{% extends "chezbob/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<table width="100%">
+    <tr>
+        <th align="left" width="10%">Date</th>
+        <th align="left" width="30%">Description</th>
+        <th align="left" width="30%"></th>
+        <th align="right" width="10%">Debit</th>
+        <th align="right" width="10%">Credit</th>
+        <th align="right" width="10%">Balance</th>
+    </tr>
+    <tr>
+        <th></th>
+        <th align="left">Notes</th>
+        <th align="left">Account</th>
+        <th></th>
+        <th></th>
+        <th></th>
+    </tr>
+
+{% for t in transactions %}
+
+    <tr><td colspan="6"><hr /></td></tr>
+
+    <tr>
+        <td>{{ t.info.date }}</td>
+        <td colspan="2"><a href="/finance/transaction/{{ t.info.id }}/">{{ t.info.description }}</a></td>
+        <td></td>
+        <td></td>
+        <td align="right">{{ t.balance }}</td>
+    </tr>
+    {% for s in t.splits %}
+    <tr>
+        <td></td>
+        <td>{{ s.memo }}</td>
+        <td><a href="/finance/account/{{s.account.id}}/">{{ s.account }}</a></td>
+        <td align="right">{{ s.debit }}</td>
+        <td align="right">{{ s.credit }}</td>
+        <td></td>
+    </tr>
+    {% endfor %}
+
+{% endfor %}
+
+</table>
+{% endblock %}

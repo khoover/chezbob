@@ -1,0 +1,60 @@
+{% extends "chezbob/base.html" %}
+{% block title %}Edit Transaction{% endblock %}
+
+{% block content %}
+<h1>Edit Transaction - {{ transaction.date }}: {{ transaction.description }}</h1>
+
+<form action="" method="post">
+
+<div class="form-row">
+    <label for="date">Date:</label>
+    <input type="text" name="date" value="{{ transaction.date }}" />
+</div>
+
+<div class="form-row">
+    <label for="desc">Description:</label>
+    <input type="text" name="desc" value="{{ transaction.description }}" />
+</div>
+
+<table cellspacing="0">
+
+<thead>
+<tr>
+    <th>Notes</th>
+    <th>Account</th>
+    <th>Debit</th>
+    <th>Credit</th>
+</tr>
+</thead>
+
+<tbody>
+{% for split in splits %}
+<tr class="{% cycle row1,row2 %}">
+    <td>
+        <input type="text" name="note.{{ forloop.counter }}" value="{{ split.memo|escape }}" />
+    </td>
+    <td>
+        <select name="account.{{ forloop.counter }}">
+            <option value="">--------</option>
+            {% for a in accounts %}
+            <option value="{{ a.id }}" {% ifequal a.id split.account.id %}selected="selected"{% endifequal %}>{{ a|escape }}</option>
+            {% endfor %}
+        </select>
+    </td>
+    <td>
+        <input type="text" name="debit.{{ forloop.counter }}" value="{{ split.debit }}" />
+    </td>
+    <td>
+        <input type="text" name="credit.{{ forloop.counter }}" value="{{ split.credit }}" />
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+
+<div class="submit-row">
+<input type="submit" value="Save" class="default" />
+</div>
+
+</form>
+{% endblock %}
