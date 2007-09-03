@@ -31,13 +31,20 @@ def account_list(request):
         if not balances.has_key(id): balances[id] = 0.0
         balances[id] += s.amount
 
+    totals = {}
+
     for a in accounts:
         a.balance = balances.get(a.id, 0.0)
         if a.is_reversed(): a.balance = -a.balance
         a.balance = round(a.balance, 2)
+        ty = Account.TYPES[a.type]
+        totals[ty] = totals.get(ty, 0.0) + a.balance
 
+    total_list = totals.items()
+    total_list.sort()
     return render_to_response('finance/accounts.html',
-                              {'accounts': accounts})
+                              {'accounts': accounts,
+                               'totals': total_list})
 
 @view_perm_required
 def ledger(request, account=None):

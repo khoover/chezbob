@@ -16,4 +16,12 @@
 {% endfor %}
 </table>
 
+<h2>Totals</h2>
+{% for t in totals %}
+<p>
+    <span style="font-weight: bold">{{ t.0 }}: </span>
+    {{ t.1|stringformat:".2f" }}
+</p>
+{% endfor %}
+
 {% endblock %}
