@@ -31,6 +31,7 @@
 {% for split in splits %}
 <tr class="{% cycle row1,row2 %}">
     <td>
+        {{ split.id }}
         <input type="text" name="note.{{ forloop.counter }}" value="{{ split.memo|escape }}" />
     </td>
     <td>
@@ -42,10 +43,10 @@
         </select>
     </td>
     <td>
-        <input type="text" name="debit.{{ forloop.counter }}" value="{{ split.debit }}" />
+        <input type="text" name="debit.{{ forloop.counter }}" value="{% if split.debit %}{{ split.debit|stringformat:".2f" }}{% endif %}" />
     </td>
     <td>
-        <input type="text" name="credit.{{ forloop.counter }}" value="{{ split.credit }}" />
+        <input type="text" name="credit.{{ forloop.counter }}" value="{% if split.credit %}{{ split.credit|stringformat:".2f" }}{% endif %}" />
     </td>
 </tr>
 {% endfor %}
@@ -53,6 +54,7 @@
 </table>
 
 <div class="submit-row">
+<input type="submit" value="Update" name="_update" />
 <input type="submit" value="Save" class="default" />
 </div>
 

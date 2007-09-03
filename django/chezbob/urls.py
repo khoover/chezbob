@@ -16,7 +16,9 @@ urlpatterns = patterns('',
     (r'^inventory/([0-9]+)/$', 'chezbob.bobdb.views.inventory_detail'),
 
     # Accounting
-    (r'^finance/ledger/', 'chezbob.finance.views.ledger'),
-    (r'^finance/account/(\d+)', 'chezbob.finance.views.ledger'),
-    (r'^finance/transaction/(\d+)', 'chezbob.finance.views.edit_transaction'),
+    (r'^finance/accounts/$', 'chezbob.finance.views.account_list'),
+    (r'^finance/ledger/$', 'chezbob.finance.views.ledger'),
+    (r'^finance/account/(\d+)/$', 'chezbob.finance.views.ledger'),
+    (r'^finance/transaction/(\d+)/$', 'chezbob.finance.views.edit_transaction'),
+    (r'^finance/transaction/new/$', 'chezbob.finance.views.edit_transaction'),
 )

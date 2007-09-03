@@ -24,6 +24,9 @@ class Account(models.Model):
     def __str__(self):
         return "%s [%s]" % (self.name, self.TYPES[self.type])
 
+    def is_reversed(self):
+        return self.type in ('Q', 'I', 'L')
+
     class Admin:
         pass
 
@@ -37,7 +40,7 @@ class Transaction(models.Model):
     description = models.TextField()
 
     def __str__(self):
-        return "#%d %s %s" % (self.id, self.date, self.description)
+        return "%s %s" % (self.date, self.description)
 
     class Admin:
         pass
