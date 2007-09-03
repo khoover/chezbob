@@ -4,6 +4,7 @@ from time import strptime
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import HttpResponseRedirect
 from chezbob.finance.models import Account, Transaction, Split
 
 view_perm_required = \
@@ -88,6 +89,10 @@ def edit_transaction(request, transaction=None):
 
     commit = True               # Is it safe to commit this transaction?
 
+    # If the user clicked the "Update" button, don't commit yet.
+    if request.POST.has_key("_update"):
+        commit = False
+
     # If POST data was submitted, we're in the middle of editing a transaction.
     # Pull the transaction data out of the POST data.  Otherwise, we need to
     # load the initial data from the database.
@@ -154,6 +159,7 @@ def edit_transaction(request, transaction=None):
                           memo=s['memo'],
                           amount=s['amount'])
             split.save()
+        return HttpResponseRedirect("/finance/ledger/#t%d" % (transaction.id,))
 
     # Include a few blank splits at the end of the transaction for entering
     # additional data.

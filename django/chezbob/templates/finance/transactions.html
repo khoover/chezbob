@@ -24,7 +24,7 @@
 
     <tr><td colspan="6"><hr /></td></tr>
 
-    <tr>
+    <tr id="t{{ t.info.id }}">
         <td>{{ t.info.date }}</td>
         <td colspan="2"><a href="/finance/transaction/{{ t.info.id }}/">{{ t.info.description }}</a></td>
         <td></td>
@@ -36,8 +36,8 @@
         <td></td>
         <td>{{ s.memo }}</td>
         <td><a href="/finance/account/{{s.account.id}}/">{{ s.account }}</a></td>
-        <td align="right">{{ s.debit }}</td>
-        <td align="right">{{ s.credit }}</td>
+        <td align="right">{% if s.debit %}{{ s.debit|stringformat:".2f" }}{% endif %}</td>
+        <td align="right">{% if s.credit %}{{ s.credit|stringformat:".2f" }}{% endif %}</td>
         <td></td>
     </tr>
     {% endfor %}
