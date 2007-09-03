@@ -81,7 +81,8 @@ def edit_transaction(request, transaction=None):
     load_from_database = True
 
     if transaction == None:
-        transaction = Transaction()
+        transaction = Transaction(date=datetime.date.today(),
+                                  auto_generated=False)
         load_from_database = False
     else:
         transaction = get_object_or_404(Transaction, id=int(transaction))
@@ -99,6 +100,7 @@ def edit_transaction(request, transaction=None):
     try:
         transaction.date = parse_date(request.POST['date'])
         transaction.description = request.POST['desc']
+        transaction.auto_generated = request.POST.has_key('auto_generated')
 
         n = 0
         while True:

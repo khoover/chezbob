@@ -16,6 +16,11 @@
     <input type="text" name="desc" value="{{ transaction.description }}" />
 </div>
 
+<div class="form-row checkbox-row">
+    <input type="checkbox" name="auto_generated" {% if transaction.auto_generated %}checked="checked" {% endif %}/>
+    <label for="auto_generated">Auto-generated</label>
+</div>
+
 <table cellspacing="0">
 
 <thead>

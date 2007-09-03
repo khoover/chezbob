@@ -26,10 +26,10 @@
 
     <tr id="t{{ t.info.id }}">
         <td>{{ t.info.date }}</td>
-        <td colspan="2"><a href="/finance/transaction/{{ t.info.id }}/">{{ t.info.description }}</a></td>
+        <td colspan="2"><a href="/finance/transaction/{{ t.info.id }}/" {% if t.info.auto_generated %}style="font-style: italic"{% else %}style="font-weight: bold"{% endif %}>{{ t.info.description }}</a></td>
         <td></td>
         <td></td>
-        <td align="right">{{ t.balance }}</td>
+        <td align="right">{% if t.balance %}{{ t.balance|stringformat:".2f" }}{% endif %}</td>
     </tr>
     {% for s in t.splits %}
     <tr>

@@ -38,6 +38,7 @@ class Transaction(models.Model):
 
     date = models.DateField()
     description = models.TextField()
+    auto_generated = models.BooleanField()
 
     def __str__(self):
         return "%s %s" % (self.date, self.description)
