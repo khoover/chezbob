@@ -128,8 +128,10 @@ class TransactionParser(GenericTransactionParser):
 acct_deposits = Account.objects.get(id=2)
 acct_cash = Account.objects.get(id=7)
 acct_purchases = Account.objects.get(id=4)
+acct_donations = Account.objects.get(id=12)
+acct_writeoff = Account.objects.get(id=13)
 
-def update_ledger(date, deposits, purchases):
+def update_ledger(date, deposits, purchases, donations, writeoffs):
     for t in list(Transaction.objects.filter(date=date, auto_generated=True)):
         t.split_set.all().delete()
         t.delete()
@@ -150,6 +152,22 @@ def update_ledger(date, deposits, purchases):
         s = Split(transaction=t, account=acct_deposits, amount=purchases)
         s.save()
 
+    if donations:
+        t = Transaction(date=date, description="Donations", auto_generated=True)
+        t.save()
+        s = Split(transaction=t, account=acct_donations, amount=-donations)
+        s.save()
+        s = Split(transaction=t, account=acct_deposits, amount=donations)
+        s.save()
+
+    if writeoffs:
+        t = Transaction(date=date, description="Debt Written Off", auto_generated=True)
+        t.save()
+        s = Split(transaction=t, account=acct_writeoff, amount=writeoffs)
+        s.save()
+        s = Split(transaction=t, account=acct_deposits, amount=-writeoffs)
+        s.save()
+
 def process_log(fp):
     p = TransactionParser(fp)
     error_flag = False
@@ -164,10 +182,13 @@ def process_log(fp):
 
         if next_date != old_date:
             if old_date is not None:
-                print old_date, deposits, purchases
-                update_ledger(old_date, deposits / 100.0, purchases / 100.0)
+                print old_date, deposits, purchases, donations, writeoffs
+                update_ledger(old_date, deposits / 100.0, purchases / 100.0,
+                              donations / 100.0, writeoffs / 100.0)
             deposits = 0
             purchases = 0
+            donations = 0
+            writeoffs = 0
 
         if next_date is None:
             break
@@ -181,10 +202,10 @@ def process_log(fp):
             purchases -= amt
         elif desc == "ADD" and amt > 0:
             deposits += amt
-#        elif desc == "DONATION":
-#            pass #TODO
-#        elif desc == "WRITEOFF":
-#            pass #TODO
+        elif desc == "DONATION":
+            donations -= amt
+        elif desc == "WRITEOFF":
+            writeoffs += amt
 #        elif desc == "SOCIAL HOUR":
 #            pass #TODO
         else:
