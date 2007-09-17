@@ -130,8 +130,11 @@ acct_cash = Account.objects.get(id=7)
 acct_purchases = Account.objects.get(id=4)
 acct_donations = Account.objects.get(id=12)
 acct_writeoff = Account.objects.get(id=13)
+acct_bank = Account.objects.get(id=1)
+acct_social_restricted = Account.objects.get(id=21)
+acct_social_donations = Account.objects.get(id=20)
 
-def update_ledger(date, deposits, purchases, donations, writeoffs):
+def update_ledger(date, deposits, purchases, donations, writeoffs, social_hour):
     for t in list(Transaction.objects.filter(date=date, auto_generated=True)):
         t.split_set.all().delete()
         t.delete()
@@ -168,6 +171,22 @@ def update_ledger(date, deposits, purchases, donations, writeoffs):
         s = Split(transaction=t, account=acct_deposits, amount=-writeoffs)
         s.save()
 
+    if social_hour:
+        t = Transaction(date=date, description="Social Hour Donations", auto_generated=True)
+        t.save()
+        s = Split(transaction=t, account=acct_social_donations,
+                  amount=-social_hour)
+        s.save()
+        s = Split(transaction=t, account=acct_bank,
+                  amount=-social_hour)
+        s.save()
+        s = Split(transaction=t, account=acct_deposits,
+                  amount=social_hour)
+        s.save()
+        s = Split(transaction=t, account=acct_social_restricted,
+                  amount=social_hour)
+        s.save()
+
 def process_log(fp):
     p = TransactionParser(fp)
     error_flag = False
@@ -182,13 +201,15 @@ def process_log(fp):
 
         if next_date != old_date:
             if old_date is not None:
-                print old_date, deposits, purchases, donations, writeoffs
+                print old_date, deposits, purchases, donations, writeoffs, social_hour
                 update_ledger(old_date, deposits / 100.0, purchases / 100.0,
-                              donations / 100.0, writeoffs / 100.0)
+                              donations / 100.0, writeoffs / 100.0,
+                              social_hour / 100.0)
             deposits = 0
             purchases = 0
             donations = 0
             writeoffs = 0
+            social_hour = 0
 
         if next_date is None:
             break
@@ -206,8 +227,8 @@ def process_log(fp):
             donations -= amt
         elif desc == "WRITEOFF":
             writeoffs += amt
-#        elif desc == "SOCIAL HOUR":
-#            pass #TODO
+        elif desc == "SOCIAL HOUR":
+            social_hour -= amt
         else:
             print "Unknown transaction entry:", row
             error_flag = True
