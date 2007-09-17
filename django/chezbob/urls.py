@@ -21,4 +21,5 @@ urlpatterns = patterns('',
     (r'^finance/account/(\d+)/$', 'chezbob.finance.views.ledger'),
     (r'^finance/transaction/(\d+)/$', 'chezbob.finance.views.edit_transaction'),
     (r'^finance/transaction/new/$', 'chezbob.finance.views.edit_transaction'),
+    (r'^finance/dump/$', 'chezbob.finance.views.gnuplot_dump'),
 )

@@ -28,7 +28,7 @@ class Account(models.Model):
         return self.type in ('Q', 'I', 'L')
 
     class Admin:
-        pass
+        ordering = ['name']
 
 class Transaction(models.Model):
     class Meta:

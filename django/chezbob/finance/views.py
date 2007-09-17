@@ -4,7 +4,7 @@ from time import strptime
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect
 from chezbob.finance.models import Account, Transaction, Split
 
 view_perm_required = \
@@ -56,7 +56,10 @@ def ledger(request, account=None):
 
     transactions = []
     balance = 0
-    for t in Transaction.objects.all().order_by('date', 'id'):
+    transaction_set = Transaction.objects.all()
+    if account is None and not request.GET.has_key('all'):
+        transaction_set = transaction_set.filter(auto_generated=False)
+    for t in transaction_set.order_by('date', 'id'):
         splits = []
         include = False
         for s in t.split_set.all().order_by('-amount'):
@@ -168,7 +171,11 @@ def edit_transaction(request, transaction=None):
                           memo=s['memo'],
                           amount=s['amount'])
             split.save()
-        return HttpResponseRedirect("/finance/ledger/#t%d" % (transaction.id,))
+        if transaction.auto_generated:
+            url = "/finance/ledger/?all#t%d" % (transaction.id,)
+        else:
+            url = "/finance/ledger/#t%d" % (transaction.id,)
+        return HttpResponseRedirect(url)
 
     # Include a few blank splits at the end of the transaction for entering
     # additional data.
@@ -187,3 +194,42 @@ def edit_transaction(request, transaction=None):
                                'accounts': Account.objects.order_by('name'),
                                'transaction': transaction,
                                'splits': splits})
+
+@view_perm_required
+def gnuplot_dump(request):
+    response = HttpResponse(mimetype="text/plain")
+
+    columns = {}
+
+    response.write("# Chez Bob accounting dump\n#\n# Columns:\n")
+    response.write("# 1: Date\n")
+    i = 0
+    for a in Account.objects.order_by('name'):
+        response.write("# %d: %s\n" % (i + 2, a))
+        columns[a.id] = i
+        i += 1
+
+    balances = [0.0] * len(columns)
+    date = None
+    multiplier = [1] * len(columns)
+    for (id, i) in columns.items():
+        if Account.objects.get(id=id).is_reversed():
+            multiplier[i] = -1
+
+    def dump_row():
+        response.write(str(date) + "\t")
+        for i in range(len(balances)):
+            balances[i] = round(balances[i], 2)
+        response.write("\t".join(["%.2f" % (b,) for b in balances]) + "\n")
+
+    for t in Transaction.objects.order_by('date'):
+        if t.date != date:
+            if date != None:
+                dump_row()
+            date = t.date
+        for s in t.split_set.all():
+            i = columns[s.account.id]
+            balances[i] += s.amount * multiplier[i]
+    dump_row()
+
+    return response
