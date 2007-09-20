@@ -23,22 +23,16 @@ def parse_date(datestr):
 
 @view_perm_required
 def account_list(request):
-    accounts = Account.objects.all().order_by('name')
-    balances = {}
-
-    for s in Split.objects.all():
-        id = s.account.id;
-        if not balances.has_key(id): balances[id] = 0.0
-        balances[id] += s.amount
-
+    accounts = []
     totals = {}
+    for (a, b) in Account.get_balances():
+        if a.is_reversed():
+            b = -b
+        a.balance = b
+        accounts.append(a)
 
-    for a in accounts:
-        a.balance = balances.get(a.id, 0.0)
-        if a.is_reversed(): a.balance = -a.balance
-        a.balance = round(a.balance, 2)
         ty = Account.TYPES[a.type]
-        totals[ty] = totals.get(ty, 0.0) + a.balance
+        totals[ty] = totals.get(ty, 0.0) + b
 
     total_list = totals.items()
     total_list.sort()
@@ -56,13 +50,15 @@ def ledger(request, account=None):
 
     transactions = []
     balance = 0
-    transaction_set = Transaction.objects.all()
+
+    include_auto = True
     if account is None and not request.GET.has_key('all'):
-        transaction_set = transaction_set.filter(auto_generated=False)
-    for t in transaction_set.order_by('date', 'id'):
-        splits = []
-        include = False
-        for s in t.split_set.all().order_by('-amount'):
+        include_auto = False
+
+    for (t, splits) in Transaction.fetch_all(account=account,
+                                             include_auto=include_auto):
+        split_list = []
+        for s in splits:
             split = {'memo': s.memo,
                      'account': s.account,
                      'debit': "",
@@ -71,14 +67,14 @@ def ledger(request, account=None):
                 split['debit'] = s.amount
             else:
                 split['credit'] = -s.amount
-            splits.append(split)
+            split_list.append(split)
             if account is not None and s.account.id == account.id:
-                include = True
                 balance += s.amount
         if account is None:
-            transactions.append({'info': t, 'splits': splits})
-        elif include:
-            transactions.append({'info': t, 'splits': splits, 'balance': balance})
+            transactions.append({'info': t, 'splits': split_list})
+        else:
+            transactions.append({'info': t, 'splits': split_list,
+                                 'balance': balance})
 
     if account and account.is_reversed():
         for t in transactions:
