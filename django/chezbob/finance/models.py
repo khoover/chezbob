@@ -83,6 +83,9 @@ class Transaction(models.Model):
 
         if not include_auto:
             extra_conditions += "AND NOT finance_transactions.auto_generated "
+        if account is not None:
+            extra_conditions += "AND finance_transactions.id IN (SELECT transaction_id FROM finance_splits WHERE account_id = %s) "
+            extra_arguments.append(account.id)
         query = """SELECT finance_transactions.id,
                           finance_transactions.date,
                           finance_transactions.description,
@@ -99,14 +102,13 @@ class Transaction(models.Model):
         cursor.execute(query, extra_arguments)
 
         transaction = None
-        account_matches = False
         for (id, date, desc, auto, split_id, acct, amt, memo) in cursor.fetchall():
             if transaction is None or transaction[0].id != id:
-                if account_matches: result.append(transaction)
+                if transaction is not None:
+                    result.append(transaction)
                 transaction = (Transaction(id=id, date=date, description=desc,
                                            auto_generated=auto),
                                [])
-                account_matches = False
             transaction[1].append(Split(id=split_id,
                                         transaction=transaction[0],
                                         account=accounts[acct],
@@ -118,8 +120,8 @@ class Transaction(models.Model):
             # this.
             transaction[1][-1]._account_cache = accounts[acct]
 
-            if account is None or account.id == acct: account_matches = True
-        if account_matches: result.append(transaction)
+        if transaction is not None:
+            result.append(transaction)
 
         for (t, splits) in result:
             splits.sort(key=lambda s: -s.amount)
