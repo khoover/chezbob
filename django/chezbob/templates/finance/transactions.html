@@ -9,7 +9,7 @@
         <th style="text-align: left" width="30%"></th>
         <th style="text-align: right" width="10%">Debit</th>
         <th style="text-align: right" width="10%">Credit</th>
-        <th style="text-align: right" width="10%">Balance</th>
+        <th style="text-align: right" width="10%">{% if balances %}Balance{% endif %}</th>
     </tr>
     <tr>
         <th></th>
@@ -29,7 +29,7 @@
         <td colspan="2"><a href="/finance/transaction/{{ t.info.id }}/" {% if t.info.auto_generated %}style="font-style: italic"{% else %}style="font-weight: bold"{% endif %}>{{ t.info.description }}</a></td>
         <td></td>
         <td></td>
-        <td align="right">{% if t.balance %}{{ t.balance|stringformat:".2f" }}{% endif %}</td>
+        <td align="right">{% if balances %}{{ t.balance|stringformat:".2f" }}{% endif %}</td>
     </tr>
     {% for s in t.splits %}
     <tr>

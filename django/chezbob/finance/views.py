@@ -12,6 +12,13 @@ view_perm_required = \
 edit_perm_required = \
     user_passes_test(lambda u: u.has_perm('finance.edit_transactions'))
 
+def round2(amt):
+    """Round an amount to two digits after the decimal place.
+
+    Also ensures that -0.0 is represented as 0.0"""
+
+    return round(round(amt, 2) + 0.001, 2)
+
 def parse_date(datestr):
     """Parse a string representation of a date into a datetime.Date object.
 
@@ -76,11 +83,13 @@ def ledger(request, account=None):
             transactions.append({'info': t, 'splits': split_list,
                                  'balance': balance})
 
-    if account and account.is_reversed():
+    if account:
         for t in transactions:
-            t['balance'] *= -1
+            if account.is_reversed():
+                t['balance'] *= -1
+            t['balance'] = round2(t['balance'])
 
-    return render_to_response('finance/transactions.html', {'title': title, 'transactions': transactions})
+    return render_to_response('finance/transactions.html', {'title': title, 'transactions': transactions, 'balances': account is not None})
 
 @edit_perm_required
 def edit_transaction(request, transaction=None):
@@ -123,7 +132,7 @@ def edit_transaction(request, transaction=None):
                 amount += float(request.POST['debit.' + n])
             if request.POST['credit.' + n] != "":
                 amount -= float(request.POST['credit.' + n])
-            amount = round(amount, 2)
+            amount = round2(amount)
 
             load_from_database = False
 
@@ -151,7 +160,7 @@ def edit_transaction(request, transaction=None):
     # be filled in by the user.
     total = 0.0
     for s in splits: total += s['amount']
-    total = round(total, 2)
+    total = round2(total)
     if total != 0.0:
         splits.append({'memo': "", 'account': None, 'amount': -total})
         commit = False
@@ -215,7 +224,7 @@ def gnuplot_dump(request):
     def dump_row():
         response.write(str(date) + "\t")
         for i in range(len(balances)):
-            balances[i] = round(balances[i], 2)
+            balances[i] = round2(balances[i])
         response.write("\t".join(["%.2f" % (b,) for b in balances]) + "\n")
 
     for t in Transaction.objects.order_by('date'):
