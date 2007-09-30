@@ -9,22 +9,18 @@ require "$BOBPATH/speech.pl";
 require "$BOBPATH/profile.pl";
 require "$BOBPATH/bc_util.pl";
 
-$PRICES{"Candy/Can of Soda"} = 0.45;
-$PRICES{"Juice"} = 0.70;
-$PRICES{"Snapple"} = 0.80;
-$PRICES{"Popcorn/Chips/etc."} = 0.30;
-
 my $MAX_PURCHASE = 100;		# dollars
 
 
 sub
 buy_win
+# Routine for handling "Buy Other" purchases.  This also used to handle food
+# categories (candy/can of soda/chips/etc.), but no longer does so since those
+# categories are removed and users must use the barcode scanner.
 #
-# Legacy routine for purchasing an item from one of the food categories
-# in the PRICES array.  If 'type' is not found in PRICES then ask the 
-# user to input the price of their purchase.  Return the name of the 
-# product category on success; return blank string otherwise (user 
-# canceled).
+# The privacy option is not consulted, since we'd like a purchase of an item
+# with a barcode to be distinguished from a BUY OTHER even for users with
+# privacy turned on.
 #
 {
   my ($userid, $type) = @_;
@@ -33,47 +29,30 @@ buy_win
   my $confirmMsg;
   undef $amt;
 
-  if (defined $PRICES{$type}) {
-    $amt = $PRICES{$type};
-    $confirmMsg = "Buy ${type}?";
-  }
+  $confirmMsg = "Purchase amount?";
 
-  if (! defined $amt) {
-    $confirmMsg = "Purchase amount?";
-
-    my $win_title = "Buy Stuff from Chez Bob";
-    my $win_text = q{
+  my $win_title = "Buy Stuff from Chez Bob";
+  my $win_text = q{
 What is the price of the item you are buying?
 (NOTE: Be sure to include the decimal point!)};
 
-    while (1) {
-      (my $err, $amt) = &get_dialog_result("--title \"$win_title\" --clear ".
-                        "--cr-wrap --inputbox \"" .  $win_text .  "\" 10 50");
-      return "" if ($err != 0);
+  while (1) {
+    (my $err, $amt) = &get_dialog_result("--title \"$win_title\" --clear ".
+                      "--cr-wrap --inputbox \"" .  $win_text .  "\" 10 50");
+    return "" if ($err != 0);
 
-      if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
-        if ($amt > $MAX_PURCHASE) {
-          &exceed_max_purchase_win;
-        } else {
-          # amt entered is OK
-          last;
-        }
+    if ($amt =~ /^\d+$/ || $amt =~ /^\d*\.\d{0,2}$/) {
+      if ($amt > $MAX_PURCHASE) {
+        &exceed_max_purchase_win;
       } else {
-        &invalid_purchase_win;
+        # amt entered is OK
+        last;
       }
-    }  # while
-    &sayit(&format_money($amt)) if ($PROFILE{"Speech"});
-
-  } else {
-    if ($PROFILE{"Speech"}) { 
-      my $phonetic_name = $type;
-      my $slashpos = index($type, "/");
-      if ($slashpos > 0) {  
-        $phonetic_name = substr($type, 0, $slashpos);
-      }
-      &sayit("$phonetic_name") if ($PROFILE{"Speech"}); 
+    } else {
+      &invalid_purchase_win;
     }
-  }
+  }  # while
+  &sayit(&format_money($amt)) if ($PROFILE{"Speech"});
 
   if (! $PROFILE{"No Confirmation"}) {
     if (! &confirm_win($confirmMsg,
@@ -82,8 +61,7 @@ What is the price of the item you are buying?
     }
   }
 
-  my $buy = $PROFILE{"Privacy"} ? "BUY" : $type;
-  &bob_db_update_balance($userid, -$amt, $buy);
+  &bob_db_update_balance($userid, -$amt, $type);
 
   return $type;
 }

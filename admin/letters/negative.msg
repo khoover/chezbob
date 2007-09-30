@@ -22,4 +22,4 @@ Subject: Your Chez Bob Account: %USERNAME%
 | returning to UCSD and wish to make other arrangements to pay off your
 | balance, let us know.
 
---The Chez Bob Team
+--Chez Bob

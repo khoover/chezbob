@@ -7,6 +7,7 @@
 
 use strict;
 use DBI;
+use POSIX qw(strftime);
 
 sub format_table_rows {
     my @rows = @_;
@@ -65,7 +66,7 @@ while ((@row = $sth->fetchrow_array)) {
 }
 format_table_rows @rows;
 
-my $updated = scalar localtime;
+my $updated = strftime "%Y-%m-%d %H:%M:%S %z", localtime;
 
 print <<END;
 </table>
