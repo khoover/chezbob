@@ -17,6 +17,7 @@ def round2(amt):
 
     Also ensures that -0.0 is represented as 0.0"""
 
+    # Maybe not elegant, but it ought to work...
     return round(round(amt, 2) + 0.001, 2)
 
 def parse_date(datestr):
@@ -35,11 +36,11 @@ def account_list(request):
     for (a, b) in Account.get_balances():
         if a.is_reversed():
             b = -b
-        a.balance = b
+        a.balance = round2(b)
         accounts.append(a)
 
         ty = Account.TYPES[a.type]
-        totals[ty] = totals.get(ty, 0.0) + b
+        totals[ty] = round2(totals.get(ty, 0.0) + b)
 
     total_list = totals.items()
     total_list.sort()
