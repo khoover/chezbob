@@ -5,7 +5,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseRedirect
-from chezbob.finance.models import Account, Transaction, Split
+from chezbob.finance.models import Account, Transaction, Split, DepositBalances
 
 view_perm_required = \
     user_passes_test(lambda u: u.has_perm('finance.view_transactions'))
@@ -207,13 +207,16 @@ def gnuplot_dump(request):
 
     columns = {}
 
-    response.write("# Chez Bob accounting dump\n#\n# Columns:\n")
+    response.write("# Chez Bob Account Balances Dump\n#\n# Columns:\n")
     response.write("# 1: Date\n")
     i = 0
     for a in Account.objects.order_by('name'):
         response.write("# %d: %s\n" % (i + 2, a))
         columns[a.id] = i
         i += 1
+    response.write("#\n# Additional Data:\n")
+    response.write("# %d: %s\n" % (i + 2, "Bank of Bob Accounts: Positive"))
+    response.write("# %d: %s\n" % (i + 3, "Bank of Bob Accounts: Negative"))
 
     balances = [0.0] * len(columns)
     date = None
@@ -226,7 +229,13 @@ def gnuplot_dump(request):
         response.write(str(date) + "\t")
         for i in range(len(balances)):
             balances[i] = round2(balances[i])
-        response.write("\t".join(["%.2f" % (b,) for b in balances]) + "\n")
+        response.write("\t".join(["%.2f" % (b,) for b in balances]))
+        try:
+            d = DepositBalances.objects.get(date=date)
+            response.write("\t%.2f\t%.2f" % (d.positive, d.negative))
+        except DepositBalances.DoesNotExist:
+            pass
+        response.write("\n")
 
     for t in Transaction.objects.order_by('date'):
         if t.date != date:
