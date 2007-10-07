@@ -1,5 +1,12 @@
 from django.db import models
 
+# The core of the double-entry bookkeeping system is in the three tables
+# Account, Transaction, and Split.  A transaction consists of a set of splits,
+# each of which represents money flowing into or out of a single account.  A
+# transaction must be balanced--the sum of the values of all the splits in a
+# transaction must be zero.  This constraint is not currently enforced by the
+# database, and so must be maintained by any code editing the database.
+
 class Account(models.Model):
     class Meta:
         db_table = 'finance_accounts'
@@ -57,6 +64,12 @@ class Transaction(models.Model):
 
     date = models.DateField()
     description = models.TextField()
+
+    # The auto_generated field is used to mark transactions that have been
+    # created automatically by copying data from the Chez Bob transactions
+    # table.  These transactions may be inserted, deleted, or updated by
+    # scripts without warning the user.  A transaction with auto_generated set
+    # to false will never be touched by the automated systems.
     auto_generated = models.BooleanField()
 
     def __str__(self):
@@ -144,3 +157,20 @@ class Split(models.Model):
 
     class Admin:
         pass
+
+# The "Bank of Bob Liabilities" account does not separate out positive-balance
+# accounts from negative- ones, and merely records the total.  But this
+# information is still useful to have.  We use an auxiliary table to store the
+# separated values for each date.  The sum (positive - negative) should be
+# equal to the true Bank of Bob account balance at each date, but this
+# constraint is not currently enforced by the database.
+class DepositBalances(models.Model):
+    class Meta:
+        db_table = 'finance_deposit_summary'
+
+    date = models.DateField(primary_key=True)
+    positive = models.FloatField(max_digits=12, decimal_places=2)
+    negative = models.FloatField(max_digits=12, decimal_places=2)
+
+    def __str__(self):
+        return "%s +%.2f -%.2f" % (self.date, self.positive, self.negative)

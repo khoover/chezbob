@@ -6,7 +6,7 @@ insert daily aggregate amounts into the main finance ledger.
 
 import datetime, time, re, sys
 
-from chezbob.finance.models import Account, Split, Transaction
+from chezbob.finance.models import Account, Split, Transaction, DepositBalances
 
 dry_run = False
 
@@ -50,9 +50,22 @@ def insert_transaction(date, type, amount):
         s = Split(transaction=t, account=i[1], amount=amt)
         s.save()
 
+# A running total of Bank of Bob liabilities (in cents)
+bob_liabilities = 0
+
 def update_day(date, amounts):
     old_transactions = list(Transaction.objects.filter(date=date,
                                                        auto_generated=True))
+
+    # Should separated Bank of Bob liabilities (positive/negative) be
+    # recomputed?
+    update_bob_liabilities = False
+    try:
+        d = DepositBalances.objects.get(date=date)
+        if int(round(100 * (d.positive - d.negative))) != bob_liabilities:
+            update_bob_liabilities = True
+    except DepositBalances.DoesNotExist:
+        update_bob_liabilities = True
 
     for ty in sorted(amounts.keys()):
         info = auto_transactions[ty]
@@ -96,8 +109,39 @@ def update_day(date, amounts):
                     old.delete()
                 old = None
 
+                # If we're updating transactions for this date, recompute Bank
+                # of Bob balances as well, just to be safe
+                update_bob_liabilities = True
+
         if old is None and amounts[ty] != 0:
             insert_transaction(date, ty, amounts[ty])
+            update_bob_liabilities = True
+
+    # Recompute positive/negative Bank of Bob balances and insert if needed
+    if update_bob_liabilities:
+        from django.db import connection
+        cursor = connection.cursor()
+        cursor.execute("""SELECT SUM(balance)
+                          FROM (SELECT userid, SUM(xactvalue) AS balance
+                                FROM transactions WHERE xacttime::date <= '%s'
+                                GROUP BY userid) AS balances
+                          WHERE balance > 0""", (date,))
+        positive = cursor.fetchone()[0]
+
+        cursor.execute("""SELECT -SUM(balance)
+                          FROM (SELECT userid, SUM(xactvalue) AS balance
+                                FROM transactions WHERE xacttime::date <= '%s'
+                                GROUP BY userid) AS balances
+                          WHERE balance < 0""", (date,))
+        negative = cursor.fetchone()[0]
+
+        print "Update balances summary: +%.2f -%.2f" % (positive, negative)
+        # FIXME: Deletion through the database API didn't seem to work (problem
+        # with date as a primary key?)
+        cursor.execute("DELETE FROM finance_deposit_summary WHERE date='%s'",
+                       (date,))
+        d = DepositBalances(date=date, positive=positive, negative=negative)
+        d.save()
 
     # If there were any transactions found that weren't matched at all, report
     # them
@@ -105,6 +149,8 @@ def update_day(date, amounts):
         print "Unmatched transactions:", old_transactions
 
 def sync_day(date):
+    global bob_liabilities
+
     from django.db import connection
     cursor = connection.cursor()
 
@@ -117,6 +163,7 @@ def sync_day(date):
 
     for (amt, desc) in cursor.fetchall():
         amt = int(round(amt * 100))
+        bob_liabilities += amt
         category = desc.split()[0]
         if category in ("INIT", "TRANSFER"):
             continue
@@ -140,6 +187,9 @@ def sync_day(date):
                       'writeoff': sum_writeoff})
 
 def sync():
+    global bob_liabilities
+    bob_liabilities = 0
+
     from django.db import connection
     cursor = connection.cursor()
 
