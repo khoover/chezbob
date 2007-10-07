@@ -239,3 +239,22 @@ def gnuplot_dump(request):
     dump_row()
 
     return response
+
+@view_perm_required
+def transaction_dump(request):
+    response = HttpResponse(mimetype="text/plain")
+
+    for (t, splits) in Transaction.fetch_all(include_auto=True):
+        if t.auto_generated:
+            auto_str = "<auto> "
+        else:
+            auto_str = ""
+        response.write("%s  %s%s\n" % (t.date, auto_str, t.description))
+        for s in splits:
+            response.write("    %10.2f [%s]" % (s.amount, s.account.name))
+            if s.memo:
+                response.write("  %s" % (s.memo,))
+            response.write("\n")
+        response.write("\n")
+
+    return response
