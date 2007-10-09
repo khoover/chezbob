@@ -207,29 +207,46 @@ def gnuplot_dump(request):
 
     columns = {}
 
-    response.write("# Chez Bob Account Balances Dump\n#\n# Columns:\n")
+    response.write("# Chez Bob Account Balances Dump\n#\n")
     response.write("# 1: Date\n")
     i = 0
+    response.write("#\n# Accounts:\n")
     for a in Account.objects.order_by('name'):
         response.write("# %d: %s\n" % (i + 2, a))
         columns[a.id] = i
         i += 1
     response.write("#\n# Additional Data:\n")
+    for t in sorted(Account.TYPES.keys()):
+        response.write("# %d: %s Total\n" % (i + 2, Account.TYPES[t]))
+        i += 1
     response.write("# %d: %s\n" % (i + 2, "Bank of Bob Accounts: Positive"))
     response.write("# %d: %s\n" % (i + 3, "Bank of Bob Accounts: Negative"))
 
     balances = [0.0] * len(columns)
     date = None
     multiplier = [1] * len(columns)
+
+    totals = {}
+    for t in Account.TYPES:
+        totals[t] = 0.0
+
     for (id, i) in columns.items():
         if Account.objects.get(id=id).is_reversed():
             multiplier[i] = -1
 
     def dump_row():
         response.write(str(date) + "\t")
+
+        # Accounts
         for i in range(len(balances)):
             balances[i] = round2(balances[i])
         response.write("\t".join(["%.2f" % (b,) for b in balances]))
+
+        # Totals
+        for t in sorted(Account.TYPES.keys()):
+            response.write("\t%.2f" % (totals[t],))
+
+        # Positive/negative BoB balances
         try:
             d = DepositBalances.objects.get(date=date)
             response.write("\t%.2f\t%.2f" % (d.positive, d.negative))
@@ -245,6 +262,7 @@ def gnuplot_dump(request):
         for s in t.split_set.all():
             i = columns[s.account.id]
             balances[i] += s.amount * multiplier[i]
+            totals[s.account.type] += s.amount * multiplier[i]
     dump_row()
 
     return response
