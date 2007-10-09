@@ -13,12 +13,9 @@ edit_perm_required = \
     user_passes_test(lambda u: u.has_perm('finance.edit_transactions'))
 
 def round2(amt):
-    """Round an amount to two digits after the decimal place.
+    """Round an amount to two digits after the decimal place."""
 
-    Also ensures that -0.0 is represented as 0.0"""
-
-    # Maybe not elegant, but it ought to work...
-    return round(round(amt, 2) + 0.001, 2)
+    return round(amt, 2)
 
 def parse_date(datestr):
     """Parse a string representation of a date into a datetime.Date object.
