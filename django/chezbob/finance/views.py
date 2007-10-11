@@ -15,7 +15,7 @@ edit_perm_required = \
 def round2(amt):
     """Round an amount to two digits after the decimal place."""
 
-    return round(amt, 2)
+    return round(round(amt, 2), 2)
 
 def parse_date(datestr):
     """Parse a string representation of a date into a datetime.Date object.
