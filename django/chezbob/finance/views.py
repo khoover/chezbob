@@ -28,22 +28,29 @@ def parse_date(datestr):
 
 @view_perm_required
 def account_list(request):
-    accounts = []
+    accounts = {}
+    for t in Account.TYPES:
+        accounts[t] = []
     totals = {}
-    for (a, b) in Account.get_balances():
+    try:
+        date = parse_date(request.GET['date'])
+    except:
+        date = None
+    for (a, b) in Account.get_balances(date=date):
         if a.is_reversed():
             b = -b
         a.balance = round2(b)
-        accounts.append(a)
+        accounts[a.type].append(a)
+        totals[a.type] = round2(totals.get(a.type, 0.0) + b)
 
-        ty = Account.TYPES[a.type]
-        totals[ty] = round2(totals.get(ty, 0.0) + b)
-
-    total_list = totals.items()
-    total_list.sort()
+    account_groups = []
+    for t in ('A', 'L', 'I', 'E', 'Q'):
+        account_groups.append({'group': Account.TYPES[t],
+                               'accounts': accounts[t],
+                               'total': totals[t]})
     return render_to_response('finance/accounts.html',
-                              {'accounts': accounts,
-                               'totals': total_list})
+                              {'account_groups': account_groups,
+                               'date': date})
 
 @view_perm_required
 def ledger(request, account=None):
