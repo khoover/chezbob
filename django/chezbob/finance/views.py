@@ -189,7 +189,7 @@ def edit_transaction(request, transaction=None):
 
     # Include a few blank splits at the end of the transaction for entering
     # additional data.
-    for i in range(2):
+    for i in range(4):
         splits.append({'memo': "", 'account': None, 'amount': 0.00})
 
     # Convert splits to a separated debit/credit format

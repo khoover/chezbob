@@ -3,7 +3,7 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns('',
     # Default admin interface for editing database
     (r'^admin/', include('django.contrib.admin.urls')),
-    #(r'^accounts/login/$', 'django.contrib.auth.views.login'),
+    (r'^accounts/login/$', 'django.contrib.auth.views.login'),
 
     # Chez Bob pages
     (r'^products/$', 'chezbob.bobdb.views.products'),
@@ -23,4 +23,7 @@ urlpatterns = patterns('',
     (r'^finance/transaction/new/$', 'chezbob.finance.views.edit_transaction'),
     (r'^finance/dump/$', 'chezbob.finance.views.gnuplot_dump'),
     (r'^finance/xactdump/$', 'chezbob.finance.views.transaction_dump'),
+
+    # Cashout
+    (r'^cashout/', include('chezbob.cashout.urls')),
 )
