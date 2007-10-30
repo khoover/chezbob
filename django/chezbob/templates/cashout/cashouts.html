@@ -6,15 +6,15 @@
     <tr>
         <th style="text-align: left" width="20%">Date</th>
         <th style="text-align: left" width="30%">Description</th>
-        <th style="text-align: left" width="30%"></th>
+        <th style="text-align: left" width="20%"></th>
         <th style="text-align: right" width="10%">Debit</th>
-        <th style="text-align: right" width="10%">Credit</th>
-        <th style="text-align: right" width="10%">{% if balances %}Balance{% endif %}</th>
+        <th style="text-align: right" width="10%">Total</th>
+        <th style="text-align: right" width="10%">Balance</th>
     </tr>
     <tr>
         <th></th>
         <th>Notes</th>
-        <th>Account</th>
+        <th>Entity</th>
         <th></th>
         <th></th>
         <th></th>
@@ -28,15 +28,16 @@
         <td><a href="/cashout/{{ c.info.id }}/" style="font-weight: bold">{{ c.info.datetime }}</a></td>
         <td colspan="2"><a href="/cashout/{{ c.info.id }}/" style="font-weight: bold">{{ c.info.notes }}</a></td>
         <td></td>
-        <td>{{ c.total|stringformat:".2f" }}</td>
-        <td align="right">{% if balances %}{{ c.balance|stringformat:".2f" }}{% endif %}</td>
+        <td align="right">{{ c.total|stringformat:".2f" }}</td>
+        <td align="right">{{ c.balance|stringformat:".2f" }}</td>
     </tr>
     {% for s in c.counts %}
     <tr>
         <td></td>
         <td>{{ s.memo }}</td>
         <td><a href="/cashout/entity/{{s.entity.id}}/">{{ s.entity }}</a></td>
-        <td align="right">{% if s.total %}{{ s.total|stringformat:".2f" }}{% endif %}</td>
+        <td></td>
+        <td>{{ s.total|stringformat:".2f" }}</td>
         <td></td>
     </tr>
     {% endfor %}

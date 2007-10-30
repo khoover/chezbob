@@ -14,16 +14,24 @@ edit_perm_required = \
         user_passes_test(lambda u: u.has_perm('cashcount.edit_transactions'))
 
 time_format = "%Y-%m-%d %H:%M"
+time_format2 = "%Y-%m-%d %H:%M:%S"
 
 def parse_datetime(datetimestr):
-    return time.strftime(time_format,(time.strptime(datetimestr, time_format)))
+    try:
+        return time.strftime(time_format,(time.strptime(datetimestr, time_format)))
+    except ValueError:
+        pass
+
+    return time.strftime(time_format2,(time.strptime(datetimestr, time_format2)))
+
 
 @view_perm_required
 def ledger(request):
-    title = 'Moo'
+    title = 'Cashouts'
 
     cashouts = []
 
+    balance = 0
     for (c, cashcounts) in CashOut.fetch_all():
         cashcount_list = [];
 
@@ -36,10 +44,12 @@ def ledger(request):
 
             cashcount_list.append(cashcount)
 
+        balance += total
         cashouts.append({
                          'info': c, 
                          'counts': cashcount_list,
-                         'total':total
+                         'total':total,
+                         'balance':balance
                          })
 
     return render_to_response('cashout/cashouts.html',
@@ -138,7 +148,7 @@ def edit_cashout(request, cashout=None):
 
             load_from_database = False
 
-            if entity:
+            if entity and total != 0:
                 counts.append({
                                 'memo' : memo,
                                 'entity' : entity,
@@ -217,9 +227,10 @@ def edit_cashout(request, cashout=None):
 
     # Include blank entities?
     entitys = Entity.objects.order_by('name')
-    for e in entitys:
-        if not e in map(lambda s:s['entity'], counts):
-            counts.append({'memo': "", 'entity': e})
+    if len(counts) == 0:
+        for e in entitys:
+            if not e in map(lambda s:s['entity'], counts):
+                counts.append({'memo': "", 'entity': e})
 
     for i in range(1):
         counts.append({'memo': ""})
