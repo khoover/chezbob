@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.conf.urls.defaults import *
 from django.http import HttpResponse, HttpResponseRedirect
 from chezbob.cashout.models import CashOut, Entity, CashCount
+import re
 
 view_perm_required = \
         user_passes_test(lambda u: u.has_perm('cashcount.view_transactions'))
@@ -57,6 +58,56 @@ def ledger(request):
                                'cashouts': cashouts
                                })
 
+@view_perm_required
+def cashonhand(request):
+    title = 'Cashouts'
+
+    fields = CashCount.fields
+    field_names = CashCount.field_names
+    cashouts = []
+
+    onhand_total = {};
+    for f in fields:
+        onhand_total[f] = 0
+
+    m = re.compile(r'^(?:bill|coin)')
+
+    for (c, cashcounts) in CashOut.fetch_all():
+        cashcount_list = [];
+
+        for s in cashcounts:
+            cashcount = []
+            for f in fields:
+                try:
+                    onhand_total[f] += s.__dict__[f]
+                except TypeError:
+                    pass # Probably 0 anyway.
+
+                if m.search(f):
+                    cashcount.append("%d" % (s.__dict__[f]))
+                else:
+                    cashcount.append("%.2f" % (s.__dict__[f]))
+
+            cashcount_list.append({'count':cashcount, 
+                                   'entity':s.entity})
+
+        total = []
+        for f in fields:
+            total.append(onhand_total[f])
+
+        cashouts.append({
+                         'info': c, 
+                         'counts': cashcount_list,
+                         'total':total,
+                         })
+
+    return render_to_response('cashout/cashonhand.html',
+                              {'title': title,
+                               'cashouts': cashouts,
+                               'fields': fields,
+                               'field_names': field_names
+                               })
+
 @edit_perm_required
 def edit_cashout(request, cashout=None):
     load_from_database = True
@@ -71,6 +122,10 @@ def edit_cashout(request, cashout=None):
 
     commit = True
 
+    fields = CashCount.fields
+    field_values = CashCount.field_values
+    field_names = CashCount.field_names
+
     if request.POST.has_key("_update"):
         commit = False
 
@@ -84,62 +139,20 @@ def edit_cashout(request, cashout=None):
             memo = request.POST['memo.' + n]
             entity = request.POST['entity.' + n]
 
-            try:
-                bill100 = int(request.POST['bill100.' + n])
-            except ValueError: bill100 = 0
-            try:
-                bill50  = int(request.POST['bill50.' + n])
-            except ValueError: bill50 = 0
-            try:
-                bill20  = int(request.POST['bill20.' + n])
-            except ValueError: bill20 = 0 
-            try:
-                bill10  = int(request.POST['bill10.' + n])
-            except ValueError: bill10 = 0 
-            try:
-                bill5   = int(request.POST['bill5.' + n])
-            except ValueError: bill5  = 0 
-            try:
-                bill1   = int(request.POST['bill1.' + n])
-            except ValueError: bill1  = 0 
-            try:
-                coin100 = int(request.POST['coin100.' + n])
-            except ValueError: coin100 = 0
-            try:
-                coin50  = int(request.POST['coin50.' + n])
-            except ValueError: coin50 = 0 
-            try:
-                coin25  = int(request.POST['coin25.' + n])
-            except ValueError: coin25 = 0 
-            try:
-                coin10  = int(request.POST['coin10.' + n])
-            except ValueError: coin10 = 0 
-            try:
-                coin5   = int(request.POST['coin5.' + n])
-            except ValueError: coin5  = 0 
-            try:
-                coin1   = int(request.POST['coin1.' + n])
-            except ValueError: coin1  = 0 
-            try:
-                other   = float(request.POST['other.' + n])
-            except ValueError: other  = 0 
+            values = {}
 
-            total =  \
-                      bill100 * 100 +\
-                      bill50 * 50 +\
-                      bill20 * 20 +\
-                      bill10 * 10 +\
-                      bill5 * 5 +\
-                      bill1 +\
-                      coin100 +\
-                      coin50 * 0.50 +\
-                      coin25 * 0.25 +\
-                      coin10 * 0.10 +\
-                      coin5 * 0.05 +\
-                      coin1 * 0.01 +\
-                      other
-                      
-                    
+            for f in fields[:-1]:
+                try:
+                    if f != 'other':
+                        values[f] = int(request.POST[f + '.' + n])
+                    else:
+                        values[f] = float(request.POST[f + '.' + n])
+                except ValueError: values[f] = 0
+
+            total = 0
+
+            for f in fields[:-1]:
+                total += values[f] * field_values[f]
 
             if entity == "":
                 entity = None
@@ -149,24 +162,22 @@ def edit_cashout(request, cashout=None):
             load_from_database = False
 
             if entity and total != 0:
-                counts.append({
-                                'memo' : memo,
-                                'entity' : entity,
-                                'bill100': bill100,
-                                'bill50': bill50,
-                                'bill20': bill20,
-                                'bill10': bill10,
-                                'bill5': bill5,
-                                'bill1': bill1,
-                                'coin100': coin100,
-                                'coin50': coin50,
-                                'coin25': coin25,
-                                'coin10': coin10,
-                                'coin5': coin5,
-                                'coin1': coin1,
-                                'other': other,
-                                'total': total
-                              })
+                count_count = []
+
+                count = {
+                         'memo' : memo,
+                         'entity' : entity,
+                         'total' : total
+                         }
+
+                for f in fields[:-1]:
+                    count[f] = values[f]
+                    count_count.append(values[f])
+
+                count_count.append(total)
+                count['count_value'] = count_count
+
+                counts.append(count)
     except KeyError:
         # Assume we hit the end of the inputs
         pass
@@ -176,25 +187,19 @@ def edit_cashout(request, cashout=None):
 
     if load_from_database:
         for c in cashout.cashcount_set.all().order_by('entity'):
-            counts.append({
-                            'id': c.id,
-                            'memo': c.memo,
-                            'entity': c.entity,
-                            'bill100': c.bill100,
-                            'bill50': c.bill50,
-                            'bill20': c.bill20,
-                            'bill10': c.bill10,
-                            'bill5': c.bill5,
-                            'bill1': c.bill1,
-                            'coin100': c.coin100,
-                            'coin50': c.coin50,
-                            'coin25': c.coin25,
-                            'coin10': c.coin10,
-                            'coin5': c.coin5,
-                            'coin1': c.coin1,
-                            'other': c.other,
-                            'total': c.total
-                           })
+            count = {
+                   'id':c.id,
+                   'memo':c.memo,
+                   'entity':c.entity
+                   }
+            count_count = []
+            for f in fields:
+                count[f] = c.__dict__[f]
+                count_count.append(count[f])
+
+            count['count_value'] = count_count
+            counts.append(count)
+
             commit = False
 
     if commit:
@@ -225,21 +230,31 @@ def edit_cashout(request, cashout=None):
 
         return HttpResponseRedirect(url)
 
+    blank_values = []
+    for f in fields:
+        blank_values.append("")
+
     # Include blank entities?
     entitys = Entity.objects.order_by('name')
     if len(counts) == 0:
         for e in entitys:
             if not e in map(lambda s:s['entity'], counts):
-                counts.append({'memo': "", 'entity': e})
+                counts.append({'memo': "", 
+                              'entity': e,
+                              'count_value':blank_values})
 
     for i in range(1):
-        counts.append({'memo': ""})
+        counts.append({'memo': "", 'count_value':blank_values})
 
     return render_to_response('cashout/cashout_update.html',
                               {
                                'user': request.user,
                                'entitys': entitys,
                                'cashout': cashout,
-                               'cashcounts': counts
+                               'cashcounts': counts,
+                               'fields' : CashCount.fields,
+                               'field_names': CashCount.field_names,
+                               'field_index' : range(0,
+                                                     len(CashCount.fields[:-1]))
                               }
                               )

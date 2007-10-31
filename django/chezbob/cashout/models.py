@@ -28,8 +28,6 @@ class CashOut(models.Model):
 
     @classmethod
     def fetch_all(cls):
-        from django.db import connection
-        cursor = connection.cursor()
 
         entitys = {}
         for e in Entity.objects.all():
@@ -37,38 +35,10 @@ class CashOut(models.Model):
 
         result = []
 
-        query = """SELECT cashout_cashout.id,
-                          cashout_cashout.datetime,
-                          cashout_cashout.notes,
-                          cashout_cashcount.id,
-                          cashout_cashcount.entity_id,
-                          cashout_cashcount.total,
-                          cashout_cashcount.memo
-                   FROM cashout_cashout, cashout_cashcount, cashout_entity
-                   WHERE cashout_cashcount.cashout_id = cashout_cashout.id
-                         AND
-                         cashout_cashcount.entity_id = cashout_entity.id
-                   ORDER BY cashout_cashout.datetime,
-                            cashout_entity.name"""
-        cursor.execute(query)
-
-        cashout = None
-        for (id, datetime, notes, count_id, entity, total, memo) in cursor.fetchall():
-            if cashout is None or cashout[0].id != id:
-                if cashout is not None:
-                    result.append(cashout)
-                cashout = (CashOut(id=id, datetime=datetime, notes=notes), [])
-
-            cashout[1].append(CashCount(id=count_id,
-                                        cashout=cashout[0],
-                                        entity=entitys[entity],
-                                        total=total,
-                                        memo=memo))
-
-            # Mike's hack ommitted for now
-
-        if cashout is not None:
-            result.append(cashout)
+        cashouts = CashOut.objects.all().order_by('datetime')
+        for cashout in cashouts:
+            counts = CashCount.objects.filter(cashout=cashout)
+            result.append([cashout, counts])
 
         return result
 
@@ -94,29 +64,74 @@ class CashCount(models.Model):
     bill10  = models.IntegerField('$10')
     bill5   = models.IntegerField('$5')
     bill1   = models.IntegerField('$1')
-    coin100 = models.IntegerField('\xa2100') # \xa2 is cent symbol
-    coin50  = models.IntegerField('\xa250')
-    coin25  = models.IntegerField('\xa225')
-    coin10  = models.IntegerField('\xa210')
-    coin5   = models.IntegerField('\xa25')
-    coin1   = models.IntegerField('\xa21')
+    coin100 = models.IntegerField('&cent;100') # \xa2 is cent symbol
+    coin50  = models.IntegerField('&cent;50')
+    coin25  = models.IntegerField('&cent;25')
+    coin10  = models.IntegerField('&cent;10')
+    coin5   = models.IntegerField('&cent;5')
+    coin1   = models.IntegerField('&cent;1')
     other   = models.FloatField(max_digits=12, decimal_places=2)
     total   = models.FloatField(max_digits=12, decimal_places=2, editable=False)
 
+    # Meta-data
+    fields = (
+            'bill100',
+            'bill50',
+            'bill20',
+            'bill10',
+            'bill5',
+            'bill1',
+            'coin25',
+            'coin10',
+            'coin5',
+            'coin1',
+            'other',
+            'coin100',
+            'coin50',
+            'total'
+            )
+
+    field_names = (
+            '$100',
+            '$50',
+            '$20',
+            '$10',
+            '$5',
+            '$1',
+            '&cent;25',
+            '&cent;10',
+            '&cent;5',
+            '&cent;1',
+            'other',
+            '&cent;100',
+            '&cent;50',
+            'total'
+            )
+
+    field_values = {
+            'bill100' : 100,
+            'bill50' : 50,
+            'bill20' : 20,
+            'bill10' : 10,
+            'bill5' : 5,
+            'bill1' : 1,
+            'coin25' : 0.25,
+            'coin10' : 0.10,
+            'coin5' : 0.05,
+            'coin1' : 0.01,
+            'other' : 1,
+            'coin100' : 1.00,
+            'coin50' : 0.50,
+            'total' : 1
+            }
+
+
     def save(self):
-        self.total = \
-                self.bill100 * 100 +\
-                self.bill50 * 50 +\
-                self.bill20 * 20 +\
-                self.bill10 * 10 +\
-                self.bill5 * 5 +\
-                self.bill1 * 1 +\
-                self.coin100 +\
-                self.coin50 * 0.50 +\
-                self.coin25 * 0.25 +\
-                self.coin10 * 0.10 +\
-                self.coin5 * 0.05 +\
-                self.coin1 * 0.01 +\
-                self.other
+        total = 0
+
+        for f in CashCount.fields[:-1]:
+            total += self.__dict__[f] * CashCount.field_values[f]
+
+        self.total = total
 
         super(CashCount, self).save() # Call the real save func
