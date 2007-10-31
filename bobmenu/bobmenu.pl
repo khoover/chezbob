@@ -42,29 +42,44 @@ print "rev is $REVISION\n";
 &bob_db_connect;
 &speech_startup;
 
-do {
-  $logintxt = &login_win($REVISION);
-} while ($logintxt eq "");
-
-my $barcode = &preprocess_barcode($logintxt); 
-if ($barcode eq $CASH_BARCODE) {
-  &buy_with_cash;
-} elsif (&isa_valid_user_barcode($barcode)) {
-  my $username = &bob_db_get_username_from_userbarcode($barcode);
-  if (defined $username) {
-    &process_login($username, 0);
+# If a username was specified on the command-line, directly log into that
+# account, bypassing password checks.  This is used for administrative access.
+# Otherwise, prompt for the username.
+my $direct_login = $ARGV[0] || "";
+if ($direct_login) {
+  $logintxt = $direct_login;
+  my $userid = &bob_db_get_userid_from_username($direct_login);
+  if ($userid > 0) {
+    &bob_action_win($userid, $direct_login);
   } else {
-    if (defined &bob_db_get_productname_from_barcode($barcode)) {
-      &pricecheck_win($barcode);
-    } else {
-      &user_barcode_not_found_win;
-    }
+    print STDERR "User $direct_login not found!\n";
+    exit 1;
   }
-} elsif (&isa_valid_username($logintxt)) {
-  &process_login($logintxt, 1);
 } else {
-  &invalidUsername_win;
-} 
+  do {
+    $logintxt = &login_win($REVISION);
+  } while ($logintxt eq "");
+
+  my $barcode = &preprocess_barcode($logintxt); 
+  if ($barcode eq $CASH_BARCODE) {
+    &buy_with_cash;
+  } elsif (&isa_valid_user_barcode($barcode)) {
+    my $username = &bob_db_get_username_from_userbarcode($barcode);
+    if (defined $username) {
+      &process_login($username, 0);
+    } else {
+      if (defined &bob_db_get_productname_from_barcode($barcode)) {
+	&pricecheck_win($barcode);
+      } else {
+	&user_barcode_not_found_win;
+      }
+    }
+  } elsif (&isa_valid_username($logintxt)) {
+    &process_login($logintxt, 1);
+  } else {
+    &invalidUsername_win;
+  } 
+}
 
 &remove_tmp_files;
 &speech_shutdown;
