@@ -35,15 +35,23 @@ class Account(models.Model):
         return self.type in ('Q', 'I', 'L')
 
     @classmethod
-    def get_balances(cls):
+    def get_balances(cls, date=None):
         """Return a list of all accounts, and their current balances."""
 
         from django.db import connection
         cursor = connection.cursor()
 
         balances = {}
-        cursor.execute("""SELECT account_id, sum(amount)
-                          FROM finance_splits GROUP BY account_id""")
+        if date is None:
+            cursor.execute("""SELECT account_id, sum(amount)
+                              FROM finance_splits GROUP BY account_id""")
+        else:
+            cursor.execute("""SELECT account_id, sum(amount)
+                              FROM finance_splits
+                              WHERE transaction_id in
+                                  (SELECT id FROM finance_transactions
+                                   WHERE date <= '%s')
+                              GROUP BY account_id""", (date,))
         for (id, balance) in cursor.fetchall():
             balances[id] = balance
 
@@ -76,7 +84,7 @@ class Transaction(models.Model):
         return "%s %s" % (self.date, self.description)
 
     @classmethod
-    def fetch_all(cls, account=None, include_auto=True):
+    def fetch_all(cls, account=None, include_auto=True, end_date=None):
         """Return a list of all transactions and splits in the database.
 
         The result is a sequence of tuples: (transaction, [split list]).
@@ -99,6 +107,9 @@ class Transaction(models.Model):
         if account is not None:
             extra_conditions += "AND finance_transactions.id IN (SELECT transaction_id FROM finance_splits WHERE account_id = %s) "
             extra_arguments.append(account.id)
+        if end_date is not None:
+            extra_conditions += "AND finance_transactions.date <= '%s' "
+            extra_arguments.append(end_date)
         query = """SELECT finance_transactions.id,
                           finance_transactions.date,
                           finance_transactions.description,

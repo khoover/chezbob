@@ -13,12 +13,9 @@ edit_perm_required = \
     user_passes_test(lambda u: u.has_perm('finance.edit_transactions'))
 
 def round2(amt):
-    """Round an amount to two digits after the decimal place.
+    """Round an amount to two digits after the decimal place."""
 
-    Also ensures that -0.0 is represented as 0.0"""
-
-    # Maybe not elegant, but it ought to work...
-    return round(round(amt, 2) + 0.001, 2)
+    return round(round(amt, 2), 2)
 
 def parse_date(datestr):
     """Parse a string representation of a date into a datetime.Date object.
@@ -31,22 +28,29 @@ def parse_date(datestr):
 
 @view_perm_required
 def account_list(request):
-    accounts = []
+    accounts = {}
+    for t in Account.TYPES:
+        accounts[t] = []
     totals = {}
-    for (a, b) in Account.get_balances():
+    try:
+        date = parse_date(request.GET['date'])
+    except:
+        date = None
+    for (a, b) in Account.get_balances(date=date):
         if a.is_reversed():
             b = -b
         a.balance = round2(b)
-        accounts.append(a)
+        accounts[a.type].append(a)
+        totals[a.type] = round2(totals.get(a.type, 0.0) + b)
 
-        ty = Account.TYPES[a.type]
-        totals[ty] = round2(totals.get(ty, 0.0) + b)
-
-    total_list = totals.items()
-    total_list.sort()
+    account_groups = []
+    for t in ('A', 'L', 'I', 'E', 'Q'):
+        account_groups.append({'group': Account.TYPES[t],
+                               'accounts': accounts[t],
+                               'total': totals[t]})
     return render_to_response('finance/accounts.html',
-                              {'accounts': accounts,
-                               'totals': total_list})
+                              {'account_groups': account_groups,
+                               'date': date})
 
 @view_perm_required
 def ledger(request, account=None):
@@ -185,7 +189,7 @@ def edit_transaction(request, transaction=None):
 
     # Include a few blank splits at the end of the transaction for entering
     # additional data.
-    for i in range(2):
+    for i in range(4):
         splits.append({'memo': "", 'account': None, 'amount': 0.00})
 
     # Convert splits to a separated debit/credit format
@@ -207,29 +211,46 @@ def gnuplot_dump(request):
 
     columns = {}
 
-    response.write("# Chez Bob Account Balances Dump\n#\n# Columns:\n")
+    response.write("# Chez Bob Account Balances Dump\n#\n")
     response.write("# 1: Date\n")
     i = 0
+    response.write("#\n# Accounts:\n")
     for a in Account.objects.order_by('name'):
         response.write("# %d: %s\n" % (i + 2, a))
         columns[a.id] = i
         i += 1
     response.write("#\n# Additional Data:\n")
+    for t in sorted(Account.TYPES.keys()):
+        response.write("# %d: %s Total\n" % (i + 2, Account.TYPES[t]))
+        i += 1
     response.write("# %d: %s\n" % (i + 2, "Bank of Bob Accounts: Positive"))
     response.write("# %d: %s\n" % (i + 3, "Bank of Bob Accounts: Negative"))
 
     balances = [0.0] * len(columns)
     date = None
     multiplier = [1] * len(columns)
+
+    totals = {}
+    for t in Account.TYPES:
+        totals[t] = 0.0
+
     for (id, i) in columns.items():
         if Account.objects.get(id=id).is_reversed():
             multiplier[i] = -1
 
     def dump_row():
         response.write(str(date) + "\t")
+
+        # Accounts
         for i in range(len(balances)):
             balances[i] = round2(balances[i])
         response.write("\t".join(["%.2f" % (b,) for b in balances]))
+
+        # Totals
+        for t in sorted(Account.TYPES.keys()):
+            response.write("\t%.2f" % (totals[t],))
+
+        # Positive/negative BoB balances
         try:
             d = DepositBalances.objects.get(date=date)
             response.write("\t%.2f\t%.2f" % (d.positive, d.negative))
@@ -245,6 +266,7 @@ def gnuplot_dump(request):
         for s in t.split_set.all():
             i = columns[s.account.id]
             balances[i] += s.amount * multiplier[i]
+            totals[s.account.type] += s.amount * multiplier[i]
     dump_row()
 
     return response

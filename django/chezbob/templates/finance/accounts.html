@@ -1,27 +1,26 @@
 {% extends "chezbob/base.html" %}
 {% block title %}Account Balances{% endblock %}
 
+{% block content_title %}
+<h1>Account Balances{% if date %}: {{ date }}{% endif %}</h1>
+{% endblock %}
+
 {% block content %}
-<table width="100%">
-    <tr>
-        <th>Account</th>
-        <th style="text-align: right">Balance</th>
-    </tr>
+{% for g in account_groups %}
+<h2>{{ g.group }} Accounts</h2>
+    <table width="100%">
+    {% for a in g.accounts %}
+        <tr>
+            <td><a href="/finance/account/{{ a.id }}/">{{ a }}</a></td>
+            <td style="text-align: right">{{ a.balance|stringformat:".2f" }}</td>
+        </tr>
+    {% endfor %}
 
-{% for a in accounts %}
-    <tr>
-        <td><a href="/finance/account/{{ a.id }}/">{{ a }}</a></td>
-        <td style="text-align: right">{{ a.balance|stringformat:".2f" }}</td>
-    </tr>
-{% endfor %}
-</table>
-
-<h2>Totals</h2>
-{% for t in totals %}
-<p>
-    <span style="font-weight: bold">{{ t.0 }}: </span>
-    {{ t.1|stringformat:".2f" }}
-</p>
+        <tr>
+            <th>Total</th>
+            <th style="text-align: right">{{ g.total|stringformat:".2f" }}</th>
+        </tr>
+    </table>
 {% endfor %}
 
 {% endblock %}

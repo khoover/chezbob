@@ -1,0 +1,110 @@
+{% extends "chezbob/base.html" %}
+{% block title %}Edit Cashout {% endblock %}
+
+{% block content %}
+<h1>Edit Transaction - {{ cashout.datetime }} -- {{ cashout.notes }}</h1>
+
+<form action="" method="post">
+
+<div class="form-row">
+    <label for="datetime">Date:</label>
+    <input type="text" name="datetime" value="{{ cashout.datetime }}" />
+</div>
+
+<div class="form-row">
+    <label for="notes">Notes:</label>
+    <input type="text" name="notes" size="60" value="{{ cashout.notes }}" />
+</div>
+
+<table cellspacing="0">
+
+<thead>
+<tr>
+    <th>Notes</th>
+    <th>Account</th>
+    <th>$100</th>
+    <th>$50</th>
+    <th>$20</th>
+    <th>$10</th>
+    <th>$5</th>
+    <th>$1</th>
+    <th>&cent;25</th>
+    <th>&cent;10</th>
+    <th>&cent;5</th>
+    <th>&cent;1</th>
+    <th>&cent;100</th>
+    <th>&cent;50</th>
+    <th>Other</th>
+    <th>Total</th>
+</tr>
+</thead>
+
+<tbody>
+{% for count in cashcounts %}
+<tr class="{% cycle row1,row2 %}">
+    <td>
+        {{ count.id }}
+        <input type="text" name="memo.{{ forloop.counter }}" value="{{ count.memo|escape }}" />
+    </td>
+    <td>
+        <select name="entity.{{ forloop.counter }}">
+            <option value="">--------</option>
+            {% for e in entitys %}
+            <option value="{{ e.id }}" {% ifequal e.id count.entity.id %}selected="selected"{% endifequal %}>{{ e|escape }}</option>
+            {% endfor %}
+        </select>
+    </td>
+    <td>
+        <input type="text" name="bill100.{{ forloop.counter }}" value="{{ count.bill100|escape }}" size=4/>
+    </td>
+    <td>
+        <input type="text" name="bill50.{{ forloop.counter }}" value="{{ count.bill50|escape }}" size=4/>
+    </td>
+    <td>
+        <input type="text" name="bill20.{{ forloop.counter }}" value="{{ count.bill20|escape }}" size=4/>
+    </td>
+    <td>
+        <input type="text" name="bill10.{{ forloop.counter }}" value="{{ count.bill10|escape }}" size=4/>
+    </td>
+    <td>
+        <input type="text" name="bill5.{{ forloop.counter }}" value="{{ count.bill5|escape }}" size=4/>
+    </td>
+    <td>
+        <input type="text" name="bill1.{{ forloop.counter }}" value="{{ count.bill1|escape }}" size=4/>
+    </td>
+    <td>
+        <input type="text" name="coin25.{{ forloop.counter }}" value="{{ count.coin25|escape }}" size=4/>
+    </td>
+    <td>
+        <input type="text" name="coin10.{{ forloop.counter }}" value="{{ count.coin10|escape }}" size=4/>
+    </td>
+    <td>
+        <input type="text" name="coin5.{{ forloop.counter }}" value="{{ count.coin5|escape }}" size=4/>
+    </td>
+    <td>
+        <input type="text" name="coin1.{{ forloop.counter }}" value="{{ count.coin1|escape }}" size=4/>
+    </td>
+    <td>
+        <input type="text" name="coin100.{{ forloop.counter }}" value="{{ count.coin100|escape }}" size=4/>
+    </td>
+    <td>
+        <input type="text" name="coin50.{{ forloop.counter }}" value="{{ count.coin50|escape }}" size=4/>
+    </td>
+    <td>
+        <input type="text" name="other.{{ forloop.counter }}" value="{{ count.other|escape }}" size=4/>
+    </td>
+    <td>
+        {{ count.total|stringformat:".2f" }}
+    </td>
+</tr>
+{% endfor %}
+
+</table>
+
+<div class="submit-row">
+<input type="submit" value="Update" name="_update" />
+<input type="submit" value="Save" class="default" />
+</div>
+
+</form>
+{% endblock %}
