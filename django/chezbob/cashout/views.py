@@ -7,12 +7,15 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.conf.urls.defaults import *
 from django.http import HttpResponse, HttpResponseRedirect
 from chezbob.cashout.models import CashOut, Entity, CashCount
+
+import chezbob.finance.models as finance
+
 import re
 
 view_perm_required = \
-        user_passes_test(lambda u: u.has_perm('cashcount.view_transactions'))
+        user_passes_test(lambda u: u.has_perm('cashout.view_cashouts'))
 edit_perm_required = \
-        user_passes_test(lambda u: u.has_perm('cashcount.edit_transactions'))
+        user_passes_test(lambda u: u.has_perm('cashout.change_cashout'))
 
 time_format = "%Y-%m-%d %H:%M"
 time_format2 = "%Y-%m-%d %H:%M:%S"
@@ -24,6 +27,14 @@ def parse_datetime(datetimestr):
         pass
 
     return time.strftime(time_format2,(time.strptime(datetimestr, time_format2)))
+
+def datetimetodate(datetimestr):
+    try:
+        return time.strftime("%Y-%m-%d",(time.strptime(datetimestr, time_format)))
+    except ValueError:
+        pass
+
+    return time.strftime("%Y-%m-%d",(time.strptime(datetimestr, time_format2)))
 
 
 @view_perm_required
@@ -258,3 +269,77 @@ def edit_cashout(request, cashout=None):
                                                      len(CashCount.fields[:-1]))
                               }
                               )
+
+@edit_perm_required
+def gen_transaction(request, cashout):
+    cashout = get_object_or_404(CashOut, id=int(cashout))
+   
+    transaction = finance.Transaction(date=datetimetodate(
+                                                str(cashout.datetime)
+                                                         ), 
+                                      auto_generated=False)
+
+
+    splits = []
+
+    account_name = {
+            'cash' : 7,
+            'collected' : 24,
+            'bank' : 1,
+            'inventory' : 5
+            }
+
+    balance = 0
+    for c in cashout.cashcount_set.all().order_by('entity'):
+        total = c.total
+        balance += total
+        split = {}
+
+        if c.entity.name in ("Soda Machine", "Cash Box"):
+            transaction.description = "Cash Collected"
+            split['account'] = finance.Account.objects.get(
+                                        id=int(account_name['cash'])
+                                                          )
+
+            split['memo'] = c.entity.name 
+
+        elif c.entity.name in ("To Bank"):
+            split['account'] = finance.Account.objects.get(
+                                        id=int(account_name['bank'])
+                                                          )
+            split['memo'] = ""
+            transaction.description = "Cash Deposit"
+
+        elif c.entity.name in ("Payment"):
+            transaction.description = cashout.notes
+            split['account'] = finance.Account.objects.get(
+                                        id=int(account_name['inventory'])
+                                                          )
+            split['memo'] = ""
+
+
+        if total < 0: split['debit'] = -total
+        if total > 0: split['credit'] = total
+
+        splits.append(split)
+
+    s = {
+          'account':
+                finance.Account.objects.get(id=int(account_name['collected'])),
+           'amount':balance
+        }
+    if balance > 0: s['debit'] = total
+    if balance < 0: s['credit'] = -total
+
+    splits.append(s)
+                
+
+    return render_to_response('finance/transaction_update.html',
+                              {
+                          'user': request.user,
+                          'accounts': finance.Account.objects.order_by('name'),
+                          'transaction': transaction,
+                          'splits': splits,
+                          'action':'/finance/transaction/new/'
+                               })
+    
