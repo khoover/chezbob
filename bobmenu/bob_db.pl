@@ -59,6 +59,25 @@ bob_db_disconnect
     undef $conn;
 }
 
+sub
+bob_db_xact_begin
+{
+  &bob_db_check_conn;
+  my $result = $conn->exec("BEGIN;");
+  if ($result->resultStatus != PGRES_COMMAND_OK) {
+    &report_fatal("Error in bob_db_xact_begin\n");
+  }
+}
+
+sub
+bob_db_xact_commit
+{
+  &bob_db_check_conn;
+  my $result = $conn->exec("COMMIT;");
+  if ($result->resultStatus != PGRES_COMMAND_OK) {
+    &report_fatal("Error in bob_db_xact_commit\n");
+  }
+}
 
 #---------------------------------------------------------------------------
 # users table

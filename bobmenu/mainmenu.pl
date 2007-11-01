@@ -104,6 +104,11 @@ MAINLOOP:
         last SWITCH;
       };
   
+      /^Transfer$/ && do {
+	&handle_transfer($userid, $username);
+        last SWITCH;
+      };
+  
       /^Barcode ID$/ && do {
         &update_user_barcode($userid);
         $userbarcode = &bob_db_get_userbarcode_from_userid($userid);
@@ -181,25 +186,27 @@ or scan an item using the barcode scanner.};
 		   $balanceString, "", $last_purchase) .
 	   "\" 24 76 7 " .
 	   "\"Soda Login\" " .
-	       "\"Log in to the soda machine                      \" " .
+	       "\"Log in to the soda machine                     \" " .
 	   "\"Add Money\" " .
 	       "\"Add money to your Chez Bob account             \" " .
 	   "\"Extra Items\" " .
-	       "\"Buy espresso and other items from Bob             \" " .
+	       "\"Buy espresso and other items from Bob          \" " .
 	   "\"Buy Other\" " .
-	       "\"Manually enter purchase price                    \" " .
+	       "\"Manually enter purchase price                  \" " .
 	   "\"Message\" " .
 	       "\"Leave a message for Bob                        \" " .
 	   "\"Transactions\" " .
 	       "\"List recent transactions                       \" " .
 	   "\"Quit\" " .
-	       "\"Finished\!                                      \" " .
+	       "\"Finished\!                                     \" " .
 	   "\"My Chez Bob\" " .
-	       "\"Update your personal settings                     \" " .
+	       "\"Update your personal settings                  \" " .
+	   "\"Transfer\" " .
+	       "\"Transfer funds between BoB accounts            \" " .
 	   "\"Barcode ID\" " .
 	       "\"Set your personal barcode login                \" " .
 	   "\"Nickname\" " .
-	       "\"Set your nickname                             \" " .
+	       "\"Set your nickname                              \" " .
 	   "\"Password\" " .
 	       "\"Set your password           \" ");
 
@@ -348,6 +355,57 @@ soda_rlogin
                         "\"Remote soda machine login failed.\" 5 40");
     return 1;
   }
+}
+
+sub
+handle_transfer
+{
+  my ($source_id, $source_name) = @_;
+  my $dlgErr;
+
+  my ($target_id, $target_name);
+  ($dlgErr, $target_name) =
+    &get_dialog_result("--title \"Transfer Funds\" --clear --inputbox " .
+		       "\"Transfer funds to which user?\" 8 60");
+  return if $dlgErr;
+  if ($target_name !~ m/^[a-zA-Z0-9]+$/
+      || ($target_id = &bob_db_get_userid_from_username($target_name)) < 0) {
+    &get_dialog_result("--title \"Bad Username\" --msgbox " .
+                       "\"Invalid username or user not found.\" 6 60");
+    return;
+  }
+
+  my $amt;
+  ($dlgErr, $amt) =
+    &get_dialog_result("--title \"Transfer Funds\" --clear --inputbox " .
+		       "\"Amount to transfer?\" 8 60");
+  return if $dlgErr;
+
+  $amt = int($amt * 100.0 + 0.5) / 100.0;
+  if ($amt <= 0.0) {
+    &get_dialog_result("--title \"Bad Amount\" --msgbox " .
+                       "\"Error: Can only transfer a positive amount.\" 6 60");
+    return;
+  }
+
+  my $source_balance = &bob_db_get_balance($source_id);
+  if ($amt > $source_balance) {
+    &get_dialog_result("--title \"Insufficient Funds\" --msgbox " .
+                       "\"Error: Insufficient funds for transfer.\" 6 60");
+    return;
+  }
+
+  my $confirm_text = sprintf('Really transfer \$%.02f to user %s?',
+			     $amt, $target_name);
+  my ($retval, $res) =
+    &get_dialog_result("--title \"Confirm Transfer\" --clear " .
+		       "--yesno \"$confirm_text\" 7 50");
+  return if $retval;
+
+  &bob_db_xact_begin();
+  &bob_db_update_balance($source_id, -$amt, "TRANSFER TO " . $target_name);
+  &bob_db_update_balance($target_id, $amt, "TRANSFER FROM " . $source_name);
+  &bob_db_xact_commit();
 }
 
 1;
