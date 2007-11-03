@@ -14,6 +14,7 @@ class BulkItem(models.Model):
     crv_taxable = models.BooleanField()
     quantity = models.IntegerField()
     updated = models.DateField()
+    active = models.BooleanField()
 
     def __str__(self):
         return self.description
@@ -45,14 +46,15 @@ class BulkItem(models.Model):
     class Admin:
         search_fields = ['description']
         fields = [
-            ("Details", {'fields': ('description', 'quantity', 'updated')}),
+            ("Details", {'fields': ('description', 'quantity', 'updated',
+                                    'active')}),
             ("Pricing", {'fields': (('price', 'taxable'),
                                     ('crv', 'crv_taxable'))}),
         ]
         ordering = ['description']
-        list_filter = ['updated']
+        list_filter = ['updated', 'active']
         list_display = ['description', 'quantity', 'price', 'taxable',
-                        'crv', 'crv_taxable', 'updated']
+                        'crv', 'crv_taxable', 'updated', 'active']
 
 class Product(models.Model):
     class Meta:

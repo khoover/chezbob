@@ -18,6 +18,15 @@ def products(request):
         except ObjectDoesNotExist:
             pass
 
+    if request.GET.has_key('short'):
+        def filter(p):
+            try:
+                if not p.bulk.active: return False
+            except ObjectDoesNotExist:
+                return False
+            return True
+        products = [p for p in products if filter(p)]
+
     def sort_field(p):
         try:
             key = int(request.GET.get("o", 0))
