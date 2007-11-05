@@ -123,6 +123,9 @@ buy_single_item_with_scanner
     return "";
   }
 
+  # Play a sound to give feedback that the barcode was processed.
+  system("ogg123 -q $BOBPATH/purchased.ogg >/dev/null &");
+
   my $phonetic_name = &bob_db_get_phonetic_name_from_barcode($barcode);
   if ($PROFILE{"Speech"}) { &sayit("$phonetic_name"); }
   my $amt = &bob_db_get_price_from_barcode($barcode);
