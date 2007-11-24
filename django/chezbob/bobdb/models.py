@@ -64,7 +64,6 @@ class Product(models.Model):
     name = models.CharField(maxlength=256, core=True)
     phonetic_name = models.CharField(maxlength=256)
     price = models.FloatField(max_digits=12, decimal_places=2, core=True)
-    stock = models.IntegerField()
     bulk = models.ForeignKey(BulkItem, db_column='bulkid', blank=True,
                              edit_inline=models.TABULAR)
 
