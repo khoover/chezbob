@@ -16,6 +16,7 @@ class Entity(models.Model):
 class CashOut(models.Model):
     class Meta:
         db_table = 'cashout_cashout'
+        permissions = [("view_cashouts", "View CashOut Ledger")]
 
     class Admin:
         pass

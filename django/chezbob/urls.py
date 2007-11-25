@@ -3,7 +3,7 @@ from django.conf.urls.defaults import *
 urlpatterns = patterns('',
     # Default admin interface for editing database
     (r'^admin/', include('django.contrib.admin.urls')),
-    (r'^accounts/login/$', 'django.contrib.auth.views.login'),
+    #(r'^accounts/login/$', 'django.contrib.auth.views.login'),
 
     # Chez Bob pages
     (r'^products/$', 'chezbob.bobdb.views.products'),
