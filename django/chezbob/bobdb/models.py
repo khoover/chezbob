@@ -138,3 +138,54 @@ class OrderItem(models.Model):
 
     class Admin:
         list_display = ['bulk_type', 'number', 'order']
+
+class Inventory(models.Model):
+    class Meta:
+        db_table = 'inventory'
+
+    inventoryid = models.AutoField(primary_key=True)
+    inventory_time = models.DateField()
+
+    def __str__(self):
+        return "#%d %s" % (self.inventoryid, self.inventory_time)
+
+    def get_items(self):
+        """Returns counts for all items in this inventory.
+
+        The returned value is a dictionary mapping a bulkid to a tuple (count,
+        exact).  count is the number of the item at the time of inventory, and
+        exact is a boolean indicating whether this is an estimate or an exact
+        value.
+        """
+
+        from django.db import connection
+        cursor = connection.cursor()
+        cursor.execute("""SELECT bulkid, units, exact FROM inventory_item
+                          WHERE inventoryid = %s""", [self.inventoryid])
+
+        inventory = {}
+        for (bulkid, units, exact) in cursor.fetchall():
+            inventory[bulkid] = (units, exact)
+        return inventory
+
+    @classmethod
+    def last_inventory(cls, date):
+        """Find the most recent inventory on or before the given date.
+
+        This will return, for each product, the date inventory for that product
+        was last taken (on or before the specified date), and the count from
+        that inventory.  The returned value is a dictionary mapping bulkids to
+        (date, units, exact) tuples.
+        """
+
+    class Admin:
+        list_display = ['inventoryid', 'inventory_time']
+
+#class InventoryItem(models.Model):
+#    class Meta:
+#        db_table = 'inventory_item'
+#
+#    inventoryid = models.ForeignKey(Inventory, db_column='inventoryid')
+#    bulkid = models.ForeignKey(BulkItem, db_column='bulkid')
+#    units = models.IntegerField()
+#    exact = models.BooleanField()

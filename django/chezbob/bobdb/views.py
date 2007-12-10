@@ -4,7 +4,7 @@ from time import strptime
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required, user_passes_test
-from chezbob.bobdb.models import BulkItem, Product, Order, OrderItem, TAX_RATE
+from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, TAX_RATE
 
 ##### Product summary information #####
 @login_required
@@ -204,7 +204,7 @@ def update_order(request, order):
                                'total_tax': total_tax,
                                'total': total})
 
-##### Inventory and Stats by Bulk Type #####
+##### Sales Stats by Bulk Type #####
 @login_required
 def inventory(request):
     bulk = BulkItem.objects.order_by('description')
@@ -276,3 +276,32 @@ def inventory_detail(request, bulkid):
                                'item': item,
                                'raw_stats': daily_stats,
                                'stats': daily_stats_list})
+
+##### Inventory Tracking and Order Estimation #####
+inventory_perm_required = \
+    user_passes_test(lambda u: u.has_perm('bobdb.change_inventory'))
+
+@inventory_perm_required
+def take_inventory(request, inventory):
+    inventory = get_object_or_404(Inventory, inventoryid=int(inventory))
+    counts = inventory.get_items()
+
+    items = []
+    for i in BulkItem.objects.order_by('description'):
+        if i.bulkid in counts:
+            inv = counts[i.bulkid]
+            items.append({'type': i,
+                          'count_unit': inv[0] // i.quantity,
+                          'count_item': inv[0] % i.quantity,
+                          'exact': inv[1]})
+        else:
+            items.append({'type': i,
+                          'count_unit': "",
+                          'count_item': "",
+                          'exact': False})
+
+    return render_to_response('bobdb/take_inventory.html',
+                              {'user': request.user,
+                               'title': "Take Inventory",
+                               'inventory': inventory,
+                               'items': items})

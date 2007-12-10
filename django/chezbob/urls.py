@@ -5,15 +5,15 @@ urlpatterns = patterns('',
     (r'^admin/', include('django.contrib.admin.urls')),
     #(r'^accounts/login/$', 'django.contrib.auth.views.login'),
 
-    # Chez Bob pages
+    # Chez Bob products, pricing, and inventory
     (r'^products/$', 'chezbob.bobdb.views.products'),
     (r'^products/([0-9]+)/$', 'chezbob.bobdb.views.product_detail'),
-
     (r'^orders/([0-9]+)/$', 'chezbob.bobdb.views.view_order'),
     (r'^orders/([0-9]+)/update/$', 'chezbob.bobdb.views.update_order'),
+    (r'^sales/$', 'chezbob.bobdb.views.inventory'),
+    (r'^sales/([0-9]+)/$', 'chezbob.bobdb.views.inventory_detail'),
 
-    (r'^inventory/$', 'chezbob.bobdb.views.inventory'),
-    (r'^inventory/([0-9]+)/$', 'chezbob.bobdb.views.inventory_detail'),
+    (r'^inventory/([0-9]+)/$', 'chezbob.bobdb.views.take_inventory'),
 
     # Accounting
     (r'^finance/accounts/$', 'chezbob.finance.views.account_list'),

@@ -1,0 +1,47 @@
+{% extends "chezbob/base.html" %}
+{% block title %}Take Inventory{% endblock %}
+
+{% block content %}
+<h1>Update Inventory - {{ inventory.inventory_time }}</h1>
+
+<form action="" method="post">
+
+<table cellspacing="0">
+
+<thead>
+<tr>
+    <th>Description</th>
+    <th>Unit Count</th>
+    <th>Item Count</th>
+    <th>Exact?</th>
+</tr>
+</thead>
+
+<tbody>
+{% for item in items %}
+<tr class="{% cycle row1,row2 %}">
+    <input type="hidden" name="id.{{ forloop.counter }}" value="{{ item.type.bulkid }}" />
+    <td>
+        <span style="font-weight: bold">{{ item.type.description|escape }}</span>
+    </td>
+    <td>
+        <input type="text" size="6" name="count.{{ forloop.counter }}" value="{{ item.count_unit }}" />
+        &times; {{ item.type.quantity }}
+    </td>
+    <td>
+        + <input type="text" size="6" name="count.{{ forloop.counter }}" value="{{ item.count_item }}" />
+    </td>
+    <td>
+        <input type="checkbox" name="exact.{{ forloop.counter }}" {% if item.exact %}selected="true" {% endif %}/>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+<div class="submit-row">
+<input type="submit" value="Save" class="default" />
+</div>
+
+</form>
+{% endblock %}
