@@ -2,7 +2,7 @@
 {% block title %}Take Inventory{% endblock %}
 
 {% block content %}
-<h1>Update Inventory - {{ inventory.inventory_time }}</h1>
+<h1>Update Inventory - {{ date }}</h1>
 
 <form action="" method="post">
 
@@ -11,9 +11,11 @@
 <thead>
 <tr>
     <th>Description</th>
-    <th>Unit Count</th>
-    <th>Item Count</th>
+    <th>Cases</th>
+    <th>Items</th>
     <th>Exact?</th>
+    <th>Estimate</th>
+    <th>Last Inventory</th>
 </tr>
 </thead>
 
@@ -25,15 +27,18 @@
         <span style="font-weight: bold">{{ item.type.description|escape }}</span>
     </td>
     <td>
-        <input type="text" size="6" name="count.{{ forloop.counter }}" value="{{ item.count_unit }}" />
+        <input type="text" size="6" name="cases.{{ forloop.counter }}" value="{{ item.count_unit }}" />
         &times; {{ item.type.quantity }}
+        <input type="hidden" name="multiplier.{{ forloop.counter }}" value="{{ item.type.quantity }}" />
     </td>
     <td>
-        + <input type="text" size="6" name="count.{{ forloop.counter }}" value="{{ item.count_item }}" />
+        + <input type="text" size="6" name="items.{{ forloop.counter }}" value="{{ item.count_item }}" />
     </td>
     <td>
-        <input type="checkbox" name="exact.{{ forloop.counter }}" {% if item.exact %}selected="true" {% endif %}/>
+        <input type="checkbox" name="exact.{{ forloop.counter }}" {% if item.exact %}checked="true" {% endif %}/>
     </td>
+    <td><abbr title="{{ item.prev_count }} + {{ item.est_add }} - {{ item.est_sub }}">{{ item.estimate }}</abbr></td>
+    <td>{{ item.prev_date }}</td>
 </tr>
 {% endfor %}
 </tbody>

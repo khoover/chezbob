@@ -6,6 +6,15 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required, user_passes_test
 from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, TAX_RATE
 
+def parse_date(datestr):
+    """Parse a string representation of a date into a datetime.Date object.
+
+    At the moment this only supports ISO-style dates (2007-01-31).  In the
+    future it might be extended to other formats, and auto-detect.
+    """
+
+    return datetime.date(*strptime(datestr, "%Y-%m-%d")[0:3])
+
 ##### Product summary information #####
 @login_required
 def products(request):
@@ -282,26 +291,78 @@ inventory_perm_required = \
     user_passes_test(lambda u: u.has_perm('bobdb.change_inventory'))
 
 @inventory_perm_required
-def take_inventory(request, inventory):
-    inventory = get_object_or_404(Inventory, inventoryid=int(inventory))
-    counts = inventory.get_items()
+def list_inventories(request):
+    return render_to_response('bobdb/list_inventories.html',
+                              {'user': request.user,
+                               'title': "Available Inventories",
+                               'today': datetime.date.today(),
+                               'dates': Inventory.all_inventories()})
+
+@inventory_perm_required
+def take_inventory(request, date):
+    date = parse_date(date)
+
+    # If a POST request was submitted, apply any updates to the inventory data
+    # in the database before rendering the response.
+    try:
+        n = 0
+        while True:
+            n = str(int(n) + 1)
+
+            bulkid = int(request.POST['id.' + n])
+
+            count = 0
+            count_valid = False
+            try:
+                count = float(request.POST['cases.' + n]) \
+                        * int(request.POST['multiplier.' + n])
+                count = int(round(count))
+                count_valid = True
+            except:
+                pass
+
+            try:
+                count += int(request.POST['items.' + n])
+                count_valid = True
+            except:
+                pass
+
+            if not count_valid: count = None
+
+            exact = request.POST.has_key('exact.' + n)
+
+            Inventory.set_inventory(date, bulkid, count, exact)
+
+    except KeyError:
+        # Assume we hit the end of the POST inputs
+        pass
+
+    counts = Inventory.get_inventory(date)
+    previous = Inventory.last_inventory(date - datetime.timedelta(days=1))
 
     items = []
     for i in BulkItem.objects.order_by('description'):
+        d = {'type': i, 'count_unit': "", 'count_item': "", 'exact': True}
         if i.bulkid in counts:
             inv = counts[i.bulkid]
-            items.append({'type': i,
-                          'count_unit': inv[0] // i.quantity,
-                          'count_item': inv[0] % i.quantity,
-                          'exact': inv[1]})
+            d.update({'count_unit': inv[0] // i.quantity,
+                      'count_item': inv[0] % i.quantity,
+                      'exact': inv[1]})
+        if i.bulkid in previous:
+            d.update({'prev_date': previous[i.bulkid][0],
+                      'prev_count': previous[i.bulkid][1]})
+            start_date = previous[i.bulkid][0] + datetime.timedelta(days=1)
         else:
-            items.append({'type': i,
-                          'count_unit': "",
-                          'count_item': "",
-                          'exact': False})
+            d['prev_count'] = 0
+            start_date = None
+        (sales, purchases) = Inventory.estimate_change(i.bulkid,
+                                                       start_date, date)
+        d.update({'est_add': purchases, 'est_sub': sales})
+        d['estimate'] = d['prev_count'] + purchases - sales
+        items.append(d)
 
     return render_to_response('bobdb/take_inventory.html',
                               {'user': request.user,
                                'title': "Take Inventory",
-                               'inventory': inventory,
+                               'date': date,
                                'items': items})

@@ -1,0 +1,12 @@
+{% extends "chezbob/base.html" %}
+{% block title %}Take Inventory{% endblock %}
+
+{% block content %}
+
+{% for date in dates %}
+<p><a href="{{ date }}/">{{ date }}</a></p>
+{% endfor %}
+
+<p><a href="{{ today }}/">Take New Inventory</a></p>
+
+{% endblock %}
