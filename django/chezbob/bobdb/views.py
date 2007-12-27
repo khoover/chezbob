@@ -331,7 +331,16 @@ def take_inventory(request, date):
 
             exact = request.POST.has_key('exact.' + n)
 
-            Inventory.set_inventory(date, bulkid, count, exact)
+            # Compare with previous values, and only update database if there
+            # was a change.
+            old_exact = request.POST.has_key('old_exact.' + n)
+            try:
+                old_count = int(request.POST['old_count.' + n])
+            except:
+                old_count = None
+
+            if old_exact != exact or old_count != count:
+                Inventory.set_inventory(date, bulkid, count, exact)
 
     except KeyError:
         # Assume we hit the end of the POST inputs
@@ -345,7 +354,8 @@ def take_inventory(request, date):
         d = {'type': i, 'count_unit': "", 'count_item': "", 'exact': True}
         if i.bulkid in counts:
             inv = counts[i.bulkid]
-            d.update({'count_unit': inv[0] // i.quantity,
+            d.update({'count': inv[0],
+                      'count_unit': inv[0] // i.quantity,
                       'count_item': inv[0] % i.quantity,
                       'exact': inv[1]})
         if i.bulkid in previous:

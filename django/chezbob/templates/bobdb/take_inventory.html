@@ -23,6 +23,7 @@
 {% for item in items %}
 <tr class="{% cycle row1,row2 %}">
     <input type="hidden" name="id.{{ forloop.counter }}" value="{{ item.type.bulkid }}" />
+    <input type="hidden" name="old_count.{{ forloop.counter }}" value="{{ item.count }}" />
     <td>
         <span style="font-weight: bold">{{ item.type.description|escape }}</span>
     </td>
@@ -36,6 +37,7 @@
     </td>
     <td>
         <input type="checkbox" name="exact.{{ forloop.counter }}" {% if item.exact %}checked="true" {% endif %}/>
+        {% if item.exact %}<input type="hidden" name="old_exact.{{ forloop.counter }}" value="true" />{% endif %}
     </td>
     <td><abbr title="{{ item.prev_count }} + {{ item.est_add }} - {{ item.est_sub }}">{{ item.estimate }}</abbr></td>
     <td>{{ item.prev_date }}</td>
