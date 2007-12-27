@@ -1,8 +1,8 @@
-import datetime
+import base64, datetime
 from time import strptime
 
 from django.shortcuts import render_to_response, get_object_or_404
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.contrib.auth.decorators import login_required, user_passes_test
 from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, TAX_RATE
 
@@ -14,6 +14,28 @@ def parse_date(datestr):
     """
 
     return datetime.date(*strptime(datestr, "%Y-%m-%d")[0:3])
+
+# It may be better to switch to a per-form key rather than a per-session key,
+# but this should provide some protection for now.
+def get_session_key(request):
+    """Return a session key associated with this user.
+
+    If a session key does not yet exist, one will be generated and saved with
+    the session state in the database.  The session key can be used as a second
+    form of authorization in addition to the session cookie--it should be
+    included as a hidden field in any form which makes any changes, and
+    verified before committing any changes.  Doing so will guard against
+    cross-site request forgery attacks.
+    """
+
+    session = request.session
+
+    KEY_FIELD = 'chezbob_session_key'
+    if KEY_FIELD not in session:
+        random_bytes = open('/dev/urandom').read(9)
+        session[KEY_FIELD] = base64.b64encode(random_bytes)
+
+    return session[KEY_FIELD]
 
 ##### Product summary information #####
 @login_required
@@ -304,6 +326,10 @@ def take_inventory(request, date):
 
     # If a POST request was submitted, apply any updates to the inventory data
     # in the database before rendering the response.
+    if request.method == 'POST':
+        if request.POST.get('session_key') != get_session_key(request):
+            raise PermissionDenied
+
     try:
         n = 0
         while True:
@@ -375,4 +401,5 @@ def take_inventory(request, date):
                               {'user': request.user,
                                'title': "Take Inventory",
                                'date': date,
-                               'items': items})
+                               'items': items,
+                               'session_key': get_session_key(request)})
