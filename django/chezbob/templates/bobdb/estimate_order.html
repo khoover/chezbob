@@ -1,0 +1,50 @@
+{% extends "chezbob/base.html" %}
+{% block title %}Order Estimation{% endblock %}
+
+{% block content %}
+
+<form action="" method="get">
+Source: <select name="source">
+    {% for s in sources %}
+    <option value="{{ s.id }}"{% ifequal s.id source %} selected="selected"{% endifequal %}>{{ s.description|escape }}</option>
+    {% endfor %}
+</select><br />
+
+Sales from: <input type="text" name="from" value="{{ date_from }}" />
+to: <input type="text" name="to" value="{{ date_to }}" />
+<input type="submit" value="Estimate" class="default" />
+</form>
+
+<table cellspacing="0">
+
+<thead>
+<tr>
+    <th>Description</th>
+    <th>Inventory</th>
+    <th>Sales</th>
+    <th>Reserve</th>
+    <th>Order</th>
+    <th>Cost</th>
+</tr>
+</thead>
+
+<tbody>
+{% for item in items %}
+<tr class="{% cycle row1,row2 %}">
+    <td>
+        <span style="font-weight: bold">{{ item.type.description|escape }}</span>
+    </td>
+    <td><abbr title="{{ item.inventory.old_count }} + {{ item.inventory.purchases }} - {{ item.inventory.sales }}">{{ item.inventory.estimate }}</abbr></td>
+    <td>{{ item.sales }}</td>
+    <td>{{ item.type.reserve }}</td>
+    <td><input type="text" size="4" name="order.{{ forloop.counter }}" value="{{ item.order }}" /> &times; {{ item.type.quantity }} </td>
+    <td>${{ item.cost|stringformat:".2f" }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+<hr />
+<p>Total Cost: ${{ cost|stringformat:".2f" }}</p>
+
+{% endblock %}

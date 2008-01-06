@@ -1,3 +1,4 @@
+import datetime
 from django.db import models
 
 TAX_RATE = 0.0775
@@ -26,6 +27,7 @@ class BulkItem(models.Model):
     quantity = models.IntegerField()
     updated = models.DateField()
     source = models.ForeignKey(ProductSource, db_column='source')
+    reserve = models.IntegerField()
     active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -59,7 +61,7 @@ class BulkItem(models.Model):
         search_fields = ['description']
         fields = [
             ("Details", {'fields': ('description', 'quantity', 'updated',
-                                    'source', 'active')}),
+                                    'source', 'reserve', 'active')}),
             ("Pricing", {'fields': (('price', 'taxable'),
                                     ('crv', 'crv_taxable'))}),
         ]
@@ -277,6 +279,57 @@ class Inventory(models.Model):
         if purchases is None: purchases = 0
 
         return (sales, purchases)
+
+    @classmethod
+    def get_inventory_estimate(cls, date):
+        """Returns inventory estimates for all items on the given date.
+
+        The returned value is a dictionary mapping a bulkid to a second
+        per-item dictionary with the following keys:
+            estimate: estimate for the inventory
+            date: date last inventory was taken for this item
+            old_count: count at last inventory
+            exact: whether the last inventory was exact
+            sales: number of this item sold since last inventory
+            purchases: number of this item received since last inventory
+        """
+
+        counts = Inventory.get_inventory(date)
+        previous = Inventory.last_inventory(date - datetime.timedelta(days=1))
+
+        estimates = {}
+        for i in BulkItem.objects.all():
+            bulkid = i.bulkid
+            d = {}
+
+            if bulkid in previous:
+                (d['date'], d['old_count'], d['exact']) = previous[bulkid]
+                start_date = d['date'] + datetime.timedelta(days=1)
+            else:
+                d['old_count'] = 0
+                start_date = None
+
+            (sales, purchases) = Inventory.estimate_change(bulkid,
+                                                           start_date, date)
+            (d['sales'], d['purchases']) = (sales, purchases)
+            d['estimate'] = d['old_count'] + purchases - sales
+            estimates[bulkid] = d
+
+        return estimates
+
+    @classmethod
+    def get_sales(cls, date_from, date_to):
+        """Returns total sales of each bulk item in the given date range."""
+
+        from django.db import connection
+        cursor = connection.cursor()
+
+        cursor.execute("""SELECT bulkid, sum(aggregate_purchases.quantity)
+                          FROM aggregate_purchases JOIN products USING (barcode)
+                          WHERE date >= '%s' AND date <= '%s'
+                                AND bulkid is not NULL
+                          GROUP BY bulkid""", [date_from, date_to])
+        return dict(cursor.fetchall())
 
     class Admin:
         list_display = ['inventoryid', 'inventory_time']

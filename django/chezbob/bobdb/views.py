@@ -1,10 +1,10 @@
-import base64, datetime
+import base64, datetime, math
 from time import strptime
 
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.contrib.auth.decorators import login_required, user_passes_test
-from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, TAX_RATE
+from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, ProductSource, TAX_RATE
 
 def parse_date(datestr):
     """Parse a string representation of a date into a datetime.Date object.
@@ -13,6 +13,7 @@ def parse_date(datestr):
     future it might be extended to other formats, and auto-detect.
     """
 
+    if isinstance(datestr, datetime.date): return datestr
     return datetime.date(*strptime(datestr, "%Y-%m-%d")[0:3])
 
 # It may be better to switch to a per-form key rather than a per-session key,
@@ -403,3 +404,43 @@ def take_inventory(request, date):
                                'date': date,
                                'items': items,
                                'session_key': get_session_key(request)})
+
+@inventory_perm_required
+def estimate_order(request):
+    products = BulkItem.objects.order_by('description')
+    inventory = Inventory.get_inventory_estimate(datetime.date.today())
+
+    source = int(request.GET.get("source", 1))
+    date_to = parse_date(request.GET.get("to", datetime.date.today()))
+    date_from = parse_date(request.GET.get("from", date_to - datetime.timedelta(days=14)))
+    sales = Inventory.get_sales(date_from, date_to)
+
+    cost = 0.0
+    items = []
+    for p in products:
+        if p.source.id != source: continue
+        info = {'type': p,
+                'inventory': inventory[p.bulkid],
+                'sales': sales.get(p.bulkid, 0)}
+
+        needed = info['sales'] - max(info['inventory']['estimate'], 0)
+        needed += p.reserve
+        needed = float(needed) / p.quantity
+        if info['inventory']['estimate'] <= 0 and info['sales'] > 0:
+            needed += 0.5
+        needed = max(int(math.ceil(needed)), 0)
+        info['order'] = needed
+        info['cost'] = needed * p.total_price()
+        cost += info['cost']
+
+        items.append(info)
+
+    return render_to_response('bobdb/estimate_order.html',
+                              {'user': request.user,
+                               'title': "Order Estimatation",
+                               'source': source,
+                               'sources': ProductSource.objects.order_by('description'),
+                               'date_from': date_from,
+                               'date_to': date_to,
+                               'items': items,
+                               'cost': cost})
