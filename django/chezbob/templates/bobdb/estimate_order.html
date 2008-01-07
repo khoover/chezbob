@@ -15,6 +15,7 @@ to: <input type="text" name="to" value="{{ date_to }}" />
 <input type="submit" value="Estimate" class="default" />
 </form>
 
+<form action="print/" method="post">
 <table cellspacing="0">
 
 <thead>
@@ -31,6 +32,7 @@ to: <input type="text" name="to" value="{{ date_to }}" />
 <tbody>
 {% for item in items %}
 <tr class="{% cycle row1,row2 %}">
+    <input type="hidden" name="id.{{ forloop.counter }}" value="{{ item.type.bulkid }}" />
     <td>
         <span style="font-weight: bold">{{ item.type.description|escape }}</span>
     </td>
@@ -46,5 +48,10 @@ to: <input type="text" name="to" value="{{ date_to }}" />
 
 <hr />
 <p>Total Cost: ${{ cost|stringformat:".2f" }}</p>
+<div class="submit-row">
+<input type="submit" value="Print" class="default" />
+</div>
+
+</form>
 
 {% endblock %}

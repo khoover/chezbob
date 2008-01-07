@@ -16,6 +16,7 @@ urlpatterns = patterns('',
     (r'^inventory/$', 'chezbob.bobdb.views.list_inventories'),
     (r'^inventory/(\d{4}-\d{1,2}-\d{1,2})/$', 'chezbob.bobdb.views.take_inventory'),
     (r'^inventory/order/$', 'chezbob.bobdb.views.estimate_order'),
+    (r'^inventory/order/print/$', 'chezbob.bobdb.views.display_order'),
 
     # Accounting
     (r'^finance/accounts/$', 'chezbob.finance.views.account_list'),

@@ -4,6 +4,7 @@ from time import strptime
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import HttpResponse, HttpResponseRedirect
 from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, ProductSource, TAX_RATE
 
 def parse_date(datestr):
@@ -444,3 +445,30 @@ def estimate_order(request):
                                'date_to': date_to,
                                'items': items,
                                'cost': cost})
+
+@inventory_perm_required
+def display_order(request):
+    response = HttpResponse(mimetype="text/plain")
+
+    cost = 0.0
+
+    try:
+        n = 0
+        while True:
+            n = str(int(n) + 1)
+
+            bulkid = int(request.POST['id.' + n])
+            quantity = int(request.POST['order.' + n])
+
+            if quantity > 0:
+                product = BulkItem.objects.get(bulkid=bulkid)
+                response.write("%-4d %s\n" % (quantity, product.description))
+                cost += quantity * product.total_price()
+
+    except KeyError:
+        # Assume we hit the end of the POST inputs
+        pass
+
+    response.write("\nEstimated Cost: $%.2f\n" % (cost,))
+
+    return response
