@@ -328,8 +328,8 @@ def gen_transaction(request, cashout):
                 finance.Account.objects.get(id=int(account_name['collected'])),
            'amount':balance
         }
-    if balance > 0: s['debit'] = total
-    if balance < 0: s['credit'] = -total
+    if balance > 0: s['debit'] = balance
+    if balance < 0: s['credit'] = -balance
 
     splits.append(s)
                 
