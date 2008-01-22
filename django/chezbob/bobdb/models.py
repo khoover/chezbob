@@ -281,7 +281,7 @@ class Inventory(models.Model):
         return (sales, purchases)
 
     @classmethod
-    def get_inventory_estimate(cls, date):
+    def get_inventory_estimate(cls, date, include_latest=False):
         """Returns inventory estimates for all items on the given date.
 
         The returned value is a dictionary mapping a bulkid to a second
@@ -294,8 +294,10 @@ class Inventory(models.Model):
             purchases: number of this item received since last inventory
         """
 
-        counts = Inventory.get_inventory(date)
-        previous = Inventory.last_inventory(date - datetime.timedelta(days=1))
+        inventory_date = date
+        if not include_latest:
+            inventory_date -= datetime.timedelta(days=1)
+        previous = Inventory.last_inventory(inventory_date)
 
         estimates = {}
         for i in BulkItem.objects.all():

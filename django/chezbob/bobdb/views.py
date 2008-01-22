@@ -409,7 +409,7 @@ def take_inventory(request, date):
 @inventory_perm_required
 def estimate_order(request):
     products = BulkItem.objects.order_by('description')
-    inventory = Inventory.get_inventory_estimate(datetime.date.today())
+    inventory = Inventory.get_inventory_estimate(datetime.date.today(), True)
 
     source = int(request.GET.get("source", 1))
     date_to = parse_date(request.GET.get("to", datetime.date.today()))
