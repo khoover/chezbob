@@ -363,8 +363,8 @@ bob_db_update_balance
   }
 
   if ($barcode ne 'NULL') {
-    $query = "insert into aggregate_purchases(date, barcode, quantity)
-              values (now(), $barcode, 1);";
+    $query = "insert into aggregate_purchases(date, barcode, quantity, price)
+              values (now(), $barcode, 1, @{[-$amt]});";
     $result = $conn->exec($query);
     if ($result->resultStatus != PGRES_COMMAND_OK) {
       my $mesg = "In bob_db_update_balance: error adding aggregate " .

@@ -12,10 +12,12 @@
  -- result for the duration of a transaction.
 begin;
 set transaction isolation level serializable;
-create temp table aggregated(date date, barcode text, quantity integer)
+create temp table aggregated(date date, barcode text, quantity integer,
+                             price numeric(12,2))
     on commit drop;
 insert into aggregated
-    select date, barcode, sum(quantity) as quantity from aggregate_purchases
+    select date, barcode, sum(quantity) as quantity, sum(price) as price
+        from aggregate_purchases
         where date > now() - interval '2 day'
         group by date, barcode;
 delete from aggregate_purchases where date > now() - interval '2 day';
