@@ -7,6 +7,7 @@ insert daily aggregate amounts into the main finance ledger.
 import datetime, time, re, sys
 
 from chezbob.finance.models import Account, Split, Transaction, DepositBalances
+from chezbob.cashout.models import Entity, CashOut, CashCount
 
 dry_run = False
 
@@ -19,6 +20,9 @@ acct_purchases = Account.objects.get(id=4)
 acct_social_restricted = Account.objects.get(id=21)
 acct_social_donations = Account.objects.get(id=20)
 acct_writeoff = Account.objects.get(id=13)
+
+cashout_entity_soda = Entity.objects.get(id=1)
+cashout_entity_box = Entity.objects.get(id=2)
 
 # A description of the transactions that should automatically be created to
 # reflect various types of activity.  In each list, the first item is the
@@ -201,3 +205,75 @@ def sync():
     while date <= end_date:
         sync_day(date)
         date += datetime.timedelta(days=1)
+
+def check_cash():
+    from django.db import connection
+    cursor = connection.cursor()
+
+    cursor.execute("""SELECT MIN(xacttime::date) FROM transactions""")
+    (last_date,) = cursor.fetchone()
+
+    cursor.execute("""SELECT sum(amount)
+                      FROM finance_splits s JOIN finance_transactions t
+                           ON (s.transaction_id = t.id)
+                      WHERE account_id = %s AND date < '%s'""",
+                   [acct_cash.id, last_date])
+    (balance,) = cursor.fetchone()
+
+    cash_deltas = {'soda': 0.0, 'chezbob': 0.0}
+
+    print "Starting cash: %.02f on %s" % (balance, last_date)
+    print
+
+    source_totals = {}
+    for cashout in CashOut.objects.order_by('datetime'):
+        print cashout
+        cursor.execute("""SELECT source, sum(xactvalue)
+                          FROM transactions
+                          WHERE xacttype = 'ADD'
+                            AND xacttime >= '%s' AND xacttime < '%s'
+                          GROUP BY source""",
+                       [last_date, cashout.datetime])
+        for (source, amt) in cursor.fetchall():
+            print "    Deposit: %.02f (%s)" % (amt, source)
+            balance += amt
+            source_totals[source] = source_totals.get(source, 0.0) + amt
+
+        cursor.execute("""SELECT sum(amount)
+                          FROM finance_splits s JOIN finance_transactions t
+                               ON (s.transaction_id = t.id)
+                          WHERE account_id = %s AND NOT auto_generated
+                            AND date::timestamp >= '%s'
+                            AND date::timestamp < '%s'""",
+                       [acct_cash.id, last_date, cashout.datetime])
+        (other,) = cursor.fetchone()
+        if other is None: other = 0.0
+        balance += other
+        print "    Other: %.02f" % (other,)
+
+        cashcount = False
+        for c in cashout.cashcount_set.all():
+            if c.entity in (cashout_entity_soda, cashout_entity_box) \
+                and c.total > 0:
+                print "  Cash Count: %.02f (%s)" % (c.total, c.entity.name)
+                cashcount = True
+                if c.entity == cashout_entity_soda:
+                    cash_deltas['soda'] += c.total
+                else:
+                    cash_deltas['chezbob'] += c.total
+        if cashcount:
+            print "  Expected:"
+            for (s, t) in source_totals.items():
+                print "    %.02f %s" % (t, s)
+                cash_deltas[s] -= t
+            source_totals.clear()
+
+            print "  Cumulative Errors:"
+            for (s, t) in cash_deltas.items():
+                print "    %.02f %s" % (t, s)
+
+            if abs(balance) >= 20:
+                print "**********"
+            print "  BALANCE: %.02f" % (balance,)
+
+        last_date = cashout.datetime
