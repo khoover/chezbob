@@ -40,7 +40,7 @@
         <input type="checkbox" name="exact.{{ forloop.counter }}" {% if item.exact %}checked="true" {% endif %}/>
         {% if item.exact %}<input type="hidden" name="old_exact.{{ forloop.counter }}" value="true" />{% endif %}
     </td>
-    <td><abbr title="{{ item.prev_count }} + {{ item.est_add }} - {{ item.est_sub }}">{{ item.estimate }}</abbr></td>
+    <td>{% if item.active %}<abbr title="{{ item.prev_count }} + {{ item.est_add }} - {{ item.est_sub }}">{{ item.estimate }}</abbr>{% else %}{{ item.estimate }}{% endif %}</td>
     <td>{{ item.prev_date }}</td>
 </tr>
 {% endfor %}

@@ -379,6 +379,10 @@ def take_inventory(request, date):
 
     items = []
     for i in BulkItem.objects.order_by('description'):
+        # active is set to True if the count for this item is non-zero, or if
+        # there have been any purchases or sales since the last inventory.
+        active = False
+
         d = {'type': i, 'count_unit': "", 'count_item': "", 'exact': True}
         if i.bulkid in counts:
             inv = counts[i.bulkid]
@@ -386,6 +390,7 @@ def take_inventory(request, date):
                       'count_unit': inv[0] // i.quantity,
                       'count_item': inv[0] % i.quantity,
                       'exact': inv[1]})
+            if inv[0]: active = True
         if i.bulkid in previous:
             d.update({'prev_date': previous[i.bulkid][0],
                       'prev_count': previous[i.bulkid][1]})
@@ -393,10 +398,13 @@ def take_inventory(request, date):
         else:
             d['prev_count'] = 0
             start_date = None
+        if d['prev_count']: active = True
         (sales, purchases) = Inventory.estimate_change(i.bulkid,
                                                        start_date, date)
         d.update({'est_add': purchases, 'est_sub': sales})
         d['estimate'] = d['prev_count'] + purchases - sales
+        if sales or purchases: active = True
+        d['active'] = active
         items.append(d)
 
     return render_to_response('bobdb/take_inventory.html',
