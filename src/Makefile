@@ -18,6 +18,7 @@ install:
 	make -C fp-server install
 	make -C scripts install
 	make -C lib install
+	make -C conf install
 
 docs:
 	make -C lib docs
