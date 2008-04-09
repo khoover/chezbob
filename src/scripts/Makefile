@@ -1,6 +1,6 @@
 include ../sodacom.in
 
-SCRIPTS=controller.pl ctool cprocman stockcount-serv.pl freevend-serv.pl uictrl-serv.pl barcode-serv.pl backend
+SCRIPTS=controller.pl ctool cprocman stockcount-serv.pl freevend-serv.pl uictrl-serv.pl barcode-serv.pl backend backend.py sodagui.py
 
 all:
 

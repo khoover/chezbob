@@ -19,6 +19,9 @@ install:
 	make -C scripts install
 	make -C lib install
 
+docs:
+	make -C lib docs
+
 
 clean:
 	rm -rf *~ *.o doc/*~

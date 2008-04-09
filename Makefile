@@ -4,10 +4,13 @@ BNAME_C=${BNAME}-code.tar.gz
 
 
 all:
-	cd src && MAKELEVEL= make all
+	cd src && MAKELEVEL= make all docs
 
 install:
 	cd src && MAKELEVEL= make install
+
+docs:
+	cd src && MAKELEVEL= make docs
 
 clean:
 	rm -rf *~ *.o doc/*~

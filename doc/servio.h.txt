@@ -7,7 +7,11 @@
 
 // open comms. 0 for ok, -1 for error
 // parses command-line arguments, removes parsed, adds the ones that came from config file
-// uses SODACTRL_PORT and SERVIO_DEBUG env variables
+// uses SODACTRL_PORT and SODACTRL_IP env variables
+// NOTE: if SODACTRL_PORT is unset, uses STDIN/STDOUT for server comm
+// if SERVIO_DEBUG is set, this is debug level (def 50; LOG=+100, WARN=+400, ERR=+500)
+// SERVIO_COMMDUMP is bitflag: 1=show writes, 2=show reads, 
+// if 
 // NOTE: if -1 is returned, program should exit ASAP
 // NOTE: the connection is open in the 'exclusive' mode (only one app with given appname allowed)
 //       if you do not want this, put '+' in front of the appname
@@ -46,6 +50,7 @@ int sio_write(int level, char * format, ...);
 //    if it selected for read
 // NOTE: if -1 is returned, program should exit ASAP
 // NOTE: result might be changed even in case of timeout or error.
+// NOTE: if two threads both call read(), the second read will fail with sr_error
 int sio_read(std::string &result, int timeout=-1, int pollfd = -1);
 
 // read the expected mesage from channel
@@ -137,6 +142,7 @@ std::string sio_field(const std::string & msg, int field);
 //      1   if variable value was recieved
 //      0   if timeout occured or ? was specified
 //     -1   if error of some sort ocured
+// WARNING: not thread-safe!!
 int sio_getvar(const char * varname, const char* format, ...);
 
 
@@ -156,11 +162,11 @@ int sio_getvar(const char * varname, const char* format, ...);
 //      1   if variable was sent
 //      0   if + was specified and variable did not change 
 //     -1   if error occured
+// WARNING: not thread-safe!!
 int sio_setvar(const char *varname, const char* format, ...);
 
 // call before exit - flushes all buffers
 void sio_close(int excode=0, char*comment="");
-
 
 // helper - useconds since epoch as 64-bit int
 #ifndef int64
@@ -168,5 +174,18 @@ typedef long long int int64;
 #endif
 int64 time64();
 
+// multithreading:
+//  install 'global lock' / 'global unlock' handlers
+//  they would be called at start and end of each function
+//  if global_lock returns -1, whole function will also return -1
+// call this AFTER sio_open, but before any other function
+int sio_register_lock( int (*glob_lock)(void * arg),
+		       int (*glob_unlock)(void * arg),
+		       void * arg );
+
+
+#if !defined(min)
+#define min(x, y)   (( (x) < (y) ) ? (x) : (y))
+#endif
 
 #endif

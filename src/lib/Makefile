@@ -2,7 +2,7 @@
 include ../sodacom.in
 
 JFILES:=$(shell find com/theamk/ambus/ -name *.java)
-JAVADOC=/usr/java/jdk1.5.0_05/bin/javadoc
+JAVADOC=javadoc
 
 all: ServIO.jar ${VLIBS} 
 
@@ -20,6 +20,7 @@ docs:
 
 install:
 	cp ServIO.jar ${BIN}/../lib
+	cp *.py *.pm ${BIN}/../lib
 
 ServIO.jar:  ${JFILES}
 	javac  -source 1.4 ${JFILES}
