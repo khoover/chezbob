@@ -1,0 +1,108 @@
+*** VMC-CLI interface ***
+
+VMC is vending machine controller. It is responsible for processing buttons on front panel and 
+actually giving out the soda cans. It can be in one of the following
+states:
+
+  OFFLINE             - the machine is powered off or the cable is disconnected;
+                         or the service is starting up or there is jam/total out-of-stock
+  READY               - the machine is ready, but not in session.
+                        all buttons are ignored in this mode
+  SESSION             - the machine in the session mode.
+                        any button press will cause VEND-REQUEST message
+  CONFIRM             - the machine has sent VEND-REQUEST message and now expecting 
+                        VEND-APPROVED or VEND-DENIED message
+  DISPENSE            - the machine has recieved VEND-APPROVED message and is now 
+                        dispensing product
+
+#
+#
+#
+#          TODO: add timeout to data / automatic reset after 10 min inactivity
+#
+#
+
+Command:  VEND-RESET
+Required mode: any
+ Causes the reset of VMC, putting it eventually into READY mode. 
+ Sends VEND-READY when done,
+
+Callback: VEND-READY
+Resulting mode: READY
+ This callback is sent when vending machine controller is booted, and ready. After the callback
+ is recieved, machine is in the READY mode.
+ This message could be sent at any time, even in the middle of transaction - all UI will be typically
+ reset as a result of it. This is followed by VEND-STATE message if the state was change.
+
+Callback: VEND-OFFLINE<tab>reason
+Resulting mode: OFFLINE
+ This callback is called when the machine is stuck in the offline mode for 
+ a long time. In this mode, machine cannot start session. If VMC fixes itself, then 
+ VEND-READY will be issued
+ The "reason" gives the reason for offline:
+    DISABLED      - disabled by VMC (all prodfucts out of stock, machine jam)
+    DISCONNECTED  - no response from VMC (cable unplugged, VMC powered down)
+
+Command: VEND-STATUS
+ This command requests re-send of all status messages. As a result of this command.
+  VEND-STATE is re-send.
+ Note that during state changes, state reported may be insconsistent with last message - 
+  for example, after VEND-RESET, VMC goes thru DISCONNECTED, DISABLED, and REAYD modes,
+  but only last one will be reported to user
+
+Callback: VEND-STATE<tab>status
+ This callback notifies that the new state is active. It is only issued as a response to VEND-STATUS
+  message
+
+Command:  VEND-SSTART<tab>available-money
+Required mode: READY
+Resulting mode: SESSION
+ This command starts a new session. The display will show available-money (which should be in
+ cents). Warning: if the amount is less than cost of the soda can, the corresponding button
+ will be blocked. 
+
+Callback: VEND-REQUEST<tab>button-number<tab>price
+Required mode: SESSION
+Resulting mode: CONFIRM
+ This callback is sent when the button is pressed. The buttons are numbered upside down.
+ 'price' is item price in cents, as machine remembers it.
+ The UI must respond to that with VEND-DENIED or VEND-GRANTED command.
+
+Command:  VENT-DENIED
+Required mode: CONFIRM
+Resulting mode: SESSION
+ Denies the vend - the machine goes into SESSION mode, but display now shows the price 
+ of the selection.
+
+Command:  VEND-APPROVED
+Command:  VEND-APPROVED<tab>real-price
+Required mode: CONFIRM
+Resulting mode: DISPENSE
+ Approves the vend - the machine tries to give the soda.
+ If real-price is specified, the machine will show 'money-available'-'real-price' for a second.
+ The message will be followed with VEND-SUCCESS or VEND-FAILED callback
+
+Callback: VEND-FAILED
+Required mode: DISPENSE
+Resulting mode: SESSION
+ The vend did not go thru. Most common reason is out-of-stock.
+ Machine stays in SESSION mode
+
+Callback: VEND-SUCCESS<tab>price
+Required mode: DISPENSE
+Resulting mode: READY or SESSION
+ The vend worked - the user got the soda. Account should be deduced.
+
+Command: VEND-SCANCEL
+Required mode: SESSION
+ Asks VMC to cancel current session. This message will be followed by VEND-SDONE
+
+Callback: VEND-SDONE
+Required mode: SESSION
+Resulting mode: READY
+ Notifies that VMC session ended. Could appear after sucessful vend, or after timeout.
+
+Callback: VEND-STAT<tab>index<tab>name<tab>value
+ Statistics information. All non-zero fields are reported.
+ 'index' decreases, so last record has an index of 0.
+

@@ -1,0 +1,233 @@
+*** SODA MACHINE internal protocol ***
+
+all processes connect to the controller using TCP/IP protocol on host 'localhost', port 
+specified in the SODACTRL_PORT variable.
+
+the messages are sent/recieved in the ASCII encoding, exactly one command per packet 
+the messages are <tab>-separated strings (<tab> is ASCII TAB, code 8, \t)
+The messages are terminated with a single '\n' character (ASCII 10)
+If the connecion is closed, the program should immediately exit.
+
+Terminlogy:
+   "command"  is a message sent from the client to the controller
+   "callback" is a message sent from the controller to all clients
+   "response" is a message sent from the controller to client which issued the command
+   "variable" is a client state variable (see variables section)
+
+controller sends any unknown command is as callback to all other clients.
+This means that sometimes, the component might get unknown messages. They should be ignored.
+
+In the documentation below, " | " and "<tab>" represents the tab character. Thus, to accept all messages, the following
+string must be sent:
+SYS-ACCEPT\t*\n
+
+N/I means that feature is not implemented yet. Ask mafanasyev if you need it.
+
+*** Binary Escapes ***
+NOTE: this is N/I   (not implemented)
+
+To transfer binary data (chars with codes 0-31) in arguments, the binary escaping scheme could be used. 
+The escaping works by replacing all characted with codes 0-31 and character '#' with 
+sequence of '#'+ chr(code of character + 64).  thus, \x00 will be replaced with '#@', tab with '#I', 
+newline with '#J', and # with '#c'.
+
+Each client indicates if it understands escaping in its SYS-INIT command; if it does not, then 
+any data sent to such client will be unescaped and all non-printable chars will be replaced with '#'
+
+
+*** Startup and Shutdown (required) ***
+
+Command:   SYS-INIT | proto | appname | appver | PID | clientID
+ The command must send this message when connected. Without it, the application might not recieve any messages.
+   proto   - version of the protocol to use. The 'proto' is a string in format 'caps:flags'
+             'caps' is decimal value of following OR'ed values:
+                1  - binary escapes are supported
+                2  - callbacks and responses are prefixed by timestamp<tab>conn-id<tab>
+                4  - advanced array operations are supported (N/I)
+             'flags' values (multiple values are possible)
+                u  - appid must be unique - if app with same appid exists, SYS-NOTWELCOME will be sent. 
+                s  - application is short-lived. Less logging will be done.
+				m  - monitor mode - additional messages usefule for debugging would be sent
+				a  - accept all - default accept mask is '*', not ''
+              For compatibility, the following values are also accepted:
+              100  - same as '0:a'
+              101  - same as '0:'
+              103  - same as '0:s'
+              106  - same as '0:u'
+              110  - same as '3:m'
+   appname  - name of applicaion (ex: MDBC)
+   appver   - version of appliation (ex: 1.1)
+   PID      - process ID of application  (for remote apps, host:processid)
+   clientID - client information (REMOTE_ADDR, login name, port used, or something else)
+
+ If there were variables defined for this application, the SYS-SET commands would be issued to set them. Those commands would be
+ sent to application even if the connection is not set to accept them.
+
+
+Response:  SYS-WELCOME | server-name
+ Sent to confirm that the program on the other end is indeed a controller. 
+    server-name  - some internal server name, probably derived from the hostname and server PID.
+
+Response:  SYS-NOTWELCOME | reason | message | args...
+ Sent when the program is not allowed to connect to controller. The program should close the connection and exit.
+    reason       - reason for rejection. One of the following values:
+         "non-unique"  - 'u' flag was given, but another application with same APPID exists
+         "bad-init"    - invalid data in SYS-INIT message
+    message      - human-readable error message
+    args         - for "non-unique", PID of the application that exists
+
+Command:   SYS-ACCEPT | filter | filter2...
+Command:   SYS-ACCEPT | + | filter | filter2...
+Command:   SYS-ACCEPT | - | filter | filter2...
+  This command sends an 'acceptance filter' for callbacks. Only callbacks that match the filter will be sent to this application.
+  If multiple filters are specified, message that match any of the filters are accepted.
+  If + or - are specified as first argument, then the filters are added or removed from the filter list; otherwise, the list is replaced.
+  Each filter could be in one of three formats:
+     *          - will accept any message
+    string      - will accept any message that starts with 'string'
+    ^RE         - will accept any message that match given RE.
+  To match more than first field, binary escaping could be used to put tabs in RE; additionally, sequence ' | ' (space-bar-space)
+  will be replaced with Tab character. 
+  If no filters are defined, then all callbacks are rejected.
+ NOTE:   the - form is N/I
+
+Command:   SYS-DONE | APPID | errorcode | message
+  The command should be sent just before application exits. 
+   errorcode is 0 for normal exit, other values for invalid exit
+   message should be empty for normal exit.
+   appname must match one given in SYS-INIT
+
+Commmand:  SYS-ONCLOSE | num | cmd | arg...
+ This is equalent to SYS-SET | appname | _onclose% | num | cmd | arg... 
+ Kept for compatibility reasons.
+
+Callback:  SYS-SIGNAL | sig-number | signal-name
+ Note: this message is always sent, no matter what the SYS-ACCEPT mask is
+  This is broadcasted to all apps when the server is about to go down due to signal sig-number.
+  App should finalize all its tasks within 3 seconds, send SYS-DONE, disconnect and exit
+ Note: this is N/I
+
+***  Other required commands ***
+   
+Callback:  SYS-CPING | tag1 | tag2 | tag3
+ Note: this may  not be propagated to all applications
+ Client ping - on reception of the command, the client should immediately respond with 
+  SYS-CPONG command with same 'tag1' and 'tag2' arguments
+ The total command length is guaranteed to be less than 256 chars
+ Note: servio(C/C++) and ServIO(Perl) handle this command automatically, without passing
+ it to user
+
+Command:   SYS-CPONG | tag1 | tag2 | tag3
+ Note: this is not propagated to all applications
+ send as response to SYS-CPING
+
+Command:   SYS-DO-PING | unique-id | client-id
+ Note: this is not propagated to all applications
+  Makes server ping the client. The server sends SYS-CPING to client-id, which could be 
+ either appname or '#' followed by server's FD. The SYS-CPONG will be forwarded to the pinger,
+ with tag1=unique-id, tag2=client-id, tag3=<#>pinger's-fd  and 
+
+*** System commands ***
+
+Command:   SYS-LOG | appname | message | arg1 | arg2 | arg3
+ This command writes a message into system log. 
+  It should be used for all non-debug output
+  appname is same name as used in SYS-INIT
+
+Command:   SYS-DEBUG | appname | level | message | arg1 | arg2 | arg3
+ This commad writes a debug message to system log when debug messages are enabled.
+  level is debug level, 0 to 100, with 100 being most verbose.
+
+Command:   SYS-APP-LIST
+  Requests connection information for all connections. The SYS-APP-ENTRY messages are sent in response.
+  Note: this is kept for legacy reasons. Use CONTROLLER._apps% variable instead.
+
+Response:  SYS-APP-ENTRY | fdnum | ipconn | propcount | res2 | INIT-args
+Response:  SYS-APP-ENTRY
+
+
+*** Variables ***
+
+Each application has some variables asociated with it. Those variables are erased when applications are closed.
+It is recommended to use variables to keep application state.
+There are two kinds of variables:
+   simple  - a list of strings (one or more).
+   map     - a map (hash) of simple variables. Their names always end in '%'
+             note: map keys can not be empty.
+Variable name could be any set of alphanumeric characters + "." . System variables' names start from _, so user variables hosuld
+not be named like that to avoid conflicts.
+
+Command:  SYS-SET | app | name | | v1 | v2....
+  set the 'simple' variable. 
+  "app" must match appname or connif of one of the apps. If there are multiple apps with given appname, then the request will be
+  directed to some (randomly selected) application. 
+  v1, v2... are elements of the list that would be stored
+  There must be an empty field between variable name and values.
+
+Command:  SYS-SET | app | name% | key | v1 | v2...
+  change the map variable. If variable does not exists, it is created.
+  'key' is the key in the map
+        If key is empty, then values are ignored, and empty map is created.
+  v1, v2... are the elements of the the list to set
+
+Command:  SYS-UNSET | app | name
+  Removes all elements from the map, then removes the variable itself.
+
+Command:  SYS-UNSET | app | name% | key1 | key2...
+  Removes the specified keys from the map variables.
+  Empty keys are ignored.
+
+Command:  SYS-GET | app | name 
+Command:  SYS-GET | app | name% | key1 | key2...
+  get the value of variable. Sends a SYS-SET response for each key given.
+  map: if key is empty, sends a simple list with all keys on the map in sorted order
+  if the name is empty string, sends a simple list with all variables defined for this application
+
+Response: SYS-VALUE | app | name | | v1 | v2...
+Response: SYS-VALUE | app | name% | key | v1 | v2...
+  response to SYS-GET command. The app and name are the same as used in original request.
+  In case of any error (variable is not set, given item does not exists, app does not exists), the empty list is sent.
+
+Callback: SYS-SET ...
+Callback: SYS-UNSET ...
+  The SYS-SET and SYS-UNSET commands would be propagated to all other apps if their filter accepts it. 
+  This allows applications to be notified when variable is changed.
+
+
+*** System Variables ***
+
+The controller is present with name CONTROLLER. If there is a need for semi-persistent data storage, the variables for this app
+could be changed. Of course, all values would be lost if the controller is restarted. 
+
+Variable: CONTROLLER._apps% | connid | type | appid | ipconn | varcount
+  read-only variable that maintains list of applications connected to client. 
+  controller sends SYS-SET updates with this variables when applications connect and disconnect from the server.
+     connid    - the key to the hash, connection ID, which is a short unique string assigned to each connection.
+	 type      - object type. only 'listen' and 'client' could be queried
+     appname   - application name
+     ipconn    - IP address for remote connection
+     varcount  - number of variables set
+
+
+Each app can also have some magical variables:
+
+Variable:  appname._onclose% | key | COMMAND | arg1 | arg2...
+  when application disconnects, all values in the _onclose map are send as commands (in the order of sorted keys).
+
+Variable:  appname._init | INIT-args
+  this read-only variable keeps arguments to SYS-INIT that this application used
+
+Variable:  appname._accept | filter1 | filter2 ...
+  this read-only variable keeps current accept mask of process, as set by SYS-ACCEPT
+
+
+*** Other Applications *** 
+
+(see PROTO_*.txt files for protocols of other devices)
+
+
+
+
+;;; Local Variables: ***
+;;; fill-column: 130 ***
+;;; End: ***

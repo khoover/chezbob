@@ -1,0 +1,84 @@
+--- ./xkbd-0.8.15/src/xkbd.c.orig	2006-03-01 15:03:54.000000000 -0800
++++ ./xkbd-0.8.15/src/xkbd.c	2006-03-01 15:10:30.000000000 -0800
+@@ -42,6 +42,9 @@
+ Window   win;
+ int      screen_num;	
+ 
++// 0 = send keys; 1 = send + print on stdout; 2 = print only; use -p to increase
++int print_key=0;
++
+ enum {
+   WM_UNKNOWN,
+   WM_EHWM_UNKNOWN,
+@@ -233,6 +236,9 @@
+ 	       version();
+ 	       exit(0);
+ 	       break;
++   	   case 'p':
++         print_key ++;
++		 break;
+ 	    default:
+ 	       usage();
+ 	       exit(0);
+--- ./xkbd-0.8.15/src/kb.c.orig	2006-03-01 19:46:59.000000000 -0800
++++ ./xkbd-0.8.15/src/kb.c	2006-03-01 20:08:57.000000000 -0800
+@@ -32,6 +32,8 @@
+ 
+ #include "libvirtkeys.h"
+ 
++extern int print_key;
++
+ #ifdef DEBUG
+ #define DBG(txt, args... ) fprintf(stderr, "DEBUG" txt "\n", ##args )
+ #else
+@@ -1001,11 +1003,41 @@
+ 	}
+     }
+ 
++
++
+   if (ks == 0) ks = b->default_ks;
+ 
+   if (ks == 0) return; /* no keysym defined, abort */
++  
++  char * label = 0;
++
++  if (lookupKeyCodeSequence(ks, vk_keycodes, &label)) {
++
++	if (print_key > 0) {
++	  char * txt = b->default_txt;
++	  if (label && (*label<32)) {
++		char * l2 = (char*)malloc(strlen(label)*4+2);
++		char * c;
++		strcpy(l2, "0x");
++		for(c=label; *c; c++)
++		  sprintf(strchr(l2,0), "%.2X", (unsigned char)*c);
++		free(label);
++		label = l2;
++	  };
++
++	  printf("UI-KEY-EVENT\t%s\t%d\t%s\t%s\t%d\n", 
++			 "CODE", (signed short)ks, 
++			 (!label)?"??":label,
++			 (!txt)?"??":txt,
++			 b->kb->state
++			 );
++	  fflush(stdout);
++	};
++	if (label) free(label);
++
++	if (print_key > 1)
++	  return;
+ 
+-  if (lookupKeyCodeSequence(ks, vk_keycodes, NULL))
+      sendKeySequence(vk_keycodes,
+ 	  ( (b->kb->state & KB_STATE_CTRL)  || (slide_flag == KB_STATE_CTRL) ),
+ 	  ( (b->kb->state & KB_STATE_META)  || (slide_flag == KB_STATE_META) ),
+@@ -1013,6 +1045,7 @@
+ 		     0 /* ( (b->kb->state & KB_STATE_SHIFT) || (slide_flag == KB_STATE_SHIFT) ) */
+ 		  );
+ 
++  };
+ }
+ 
+ 

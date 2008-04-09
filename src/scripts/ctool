@@ -1,0 +1,220 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use FindBin qw[$Bin];
+use lib "$Bin/../lib";
+use ServIO;
+use Time::HiRes qw[time];
+
+my $tm = time();
+my $ttotal = $tm;
+sioOpen("CTOOL*", "1.21");
+sioHookExit();
+$tm = time() - $tm;
+printf "warning: sioOpen took %.2f sec\n", $tm if ($tm > 0.1);
+
+my @todo = @ARGV;
+push(@todo, "-list") unless @todo;
+
+my $timeout = 10; # timeout for all operations
+my $ecode = 0;
+$|=1;
+
+$tm = time();
+sioWrite('DATA', 'SYS-ACCEPT', '*');
+$tm = time() - $tm;
+printf "warning: first sioWrite took %.2f sec\n", $tm if ($tm > 0.1);
+
+
+while (@todo) {
+  my $cmd = shift(@todo);
+  if ($cmd eq '-list') {
+	print "list of active clients:\n";
+
+	my %APPS;
+	my @appids;
+
+	# get applist and core app info
+	sioWrite('DATA', 'SYS-GET', "CONTROLLER", "_apps%", "");
+	my $ln;
+	while ($ln = sioRead($timeout) || die "timed out\n") {
+		last if $ln =~ m/^SYS-VALUE\t/; 
+	};	
+	(undef, undef, undef, undef, @appids) = split(/\t/, $ln);
+	my $cnt = (0+@appids);
+	sioWrite('DATA', 'SYS-GET', "CONTROLLER", "_apps%", @appids);
+	while ($cnt-- > 0) {
+		$ln = sioRead($timeout) || die "timed out\n";
+		next unless $ln =~ m/^SYS-VALUE\t/; 
+		my (undef, undef, undef, $id, @dat) = split(/\t/, $ln);
+		$APPS{$id} = { fd => $id, ipconn=>$dat[2], var=>$dat[3] };
+	};
+
+	
+	# now go over applist, requesting additional info for each app
+	foreach my $id (@appids) {
+		sioWrite('DATA', 'SYS-GET', $id, "_init", "");
+		my $ln;
+		while ($ln = sioRead($timeout) || die "timed out\n") {
+			last if $ln =~ m/^SYS-VALUE\t/; 
+		};	
+		my (undef, undef, undef, undef, @info) = split(/\t/, $ln);
+		
+		my ($ver, $appname, $appver, $pid, $client) = @info;
+		my $ipconn = $APPS{$id}{'ipconn'};
+		$client ||= 'none';
+		$ipconn =~ s/^\Q127.0.0.1:/:/;
+		my $ext = '';
+		$ext .= " var ".$APPS{$id}{'var'} if $APPS{$id}{'var'};
+		$ext .= " for $client " if $client;
+		printf( " %-3s %-15s %-4s pid %-5s, ip %5s, pv %-4s%s \n",
+				"$id", $appname, $appver, $pid, $APPS{$id}{'ipconn'}, $ver, $ext);
+	};
+	print "end of list\n";
+  } elsif (($cmd eq '-timeout') || ($cmd eq '-t')) {
+	my $arg = shift(@todo) || die "No argument for $cmd\n";
+	$timeout = $arg+0;
+
+  } elsif ($cmd eq '-send') {
+	my $cmd = shift(@todo) || die "No argument for send\n";
+	$cmd =~ s/\s*\|\s*/\t/g;
+	sioWrite('DATA', $cmd);
+
+  } elsif ($cmd eq '-log') {
+	my $cmd = shift(@todo) || die "No argument for log\n";
+	$cmd =~ s/\s*\|\s*/\t/g;
+	sioWrite('LOG', $cmd);
+
+  } elsif ($cmd eq '-setp') {
+	my $anm = shift(@todo) || die "No appname for setp\n";
+	my $cmd = shift(@todo); defined($cmd) || die "No value for setp\n";
+	my ($app, $name, $key) = 
+		($anm =~ m/^(.*?)\.(.*?)\[(.*)\]$/) ? ($1, $2, $3) : 
+		($anm =~ m/^(.*?)\.(.*)$/) ? ($1, $2, '') : 
+		die "Invalid value format ($anm) for setp\n";
+
+	$tm = time();
+	sioWrite('DATA', 'SYS-SET', $app, $name, $key, length($cmd) ? split(/\s*\|\s*/, $cmd) : ());
+	$tm = time() - $tm;
+	printf "warning: sioWrite took %.2f sec\n", $tm if ($tm > 0.25);
+
+  } elsif ($cmd eq '-unsetp') {
+	my $anm = shift(@todo) || die "No appname for unsetp\n";
+	my ($app, $name, $key) = 
+		($anm =~ m/^(.*?)\.(.*?)\[(.*)\]$/) ? ($1, $2, $3) : 
+		($anm =~ m/^(.*?)\.(.*)$/) ? ($1, $2, '') : 
+		die "Invalid value format ($anm) for unsetp\n";
+
+	sioWrite('DATA', 'SYS-UNSET', $app, $name, $key);
+
+
+  } elsif ($cmd eq '-getp') {
+	my $anm = shift(@todo) || die "No appname for getp\n";
+	my ($app, $name, @keys) = 
+		($anm =~ m/^(.*?)\.(.+?)\[(.*)\]$/) ? ($1, $2, $3) : 
+		($anm =~ m/^(.*?)\.(.+)$/) ? ($1, $2) : 
+		($anm, '');
+
+	sioWrite('DATA', 'SYS-GET', $app, $name, @keys);
+	my $ln;
+	while ($ln = sioRead($timeout) || die "timed out\n") {
+		last if $ln =~ m/^SYS-VALUE\t/; #\t([^\t]*?)\t([^\t]*?)\t([^\t]*?)\t(.*)$/;
+	};
+	my (undef, undef, undef, undef, @val) = split(/\t/, $ln);
+	if ($name eq '') {
+		foreach my $val (sort @val) {
+			my $cnt = 1;
+			sioWrite('DATA', 'SYS-GET', $app, $val, "");
+			while ($cnt > 0) {
+				$ln = sioRead($timeout) || die "timed out\n";
+				next unless $ln =~ m/^SYS-VALUE\t/;  $cnt--;
+				my (undef, undef,$key, undef, @v2) = split(/\t/, $ln);
+				print "$key = ".join(" | ", @v2)."\n";
+			};
+		};
+	} elsif (($name !~ m/%$/) || (@keys!=0)) {
+		print join("\n", @val, "");		
+	} else {
+		my $cnt = 0+@val;
+		sioWrite('DATA', 'SYS-GET', $app, $name, @val);
+		while ($cnt > 0) {
+			$ln = sioRead($timeout) || die "timed out\n";
+			next unless $ln =~ m/^SYS-VALUE\t/; 
+			$cnt--;
+			my (undef, undef, undef, $key, @v2) = split(/\t/, $ln);
+			print "$key = ".join(" | ", @v2)."\n";
+		};
+	};
+
+  } elsif ($cmd eq '-getconf') {
+	my $anm = shift(@todo) || die "No arg for getconf\n";
+
+	my $x = sioConf();
+	foreach my $key (sort keys %$x) {
+	  my $v = $$x{$key};
+	  if (ref($v)) {
+		print $key."[$_]=$$v{$_}\n" foreach sort keys %$v;
+	  } else {
+		print "$key=$v\n";
+	  };
+	};
+
+  } elsif ($cmd eq '-ping') {
+	my $addr = shift(@todo) || die "No argument for ping\n";
+	print "Ping $addr ... ";
+	my $t0 = time();
+	sioWrite('DATA', "SYS-DO-PING", $t0, $addr);
+	my $resp = sioRead($timeout);
+	my $t = time() - $t0;
+	if ($resp eq '') {
+	  $ecode = 1;
+	  print "timed out\n";
+	} elsif ($resp =~ m/^SYS-CPONG\t$t0\t/) {
+	  print "".(int($t*1000)/1000)." seconds\n";
+	} else {
+	  $ecode = 2;
+	  print "junk response\n";
+	  die "Bad PING response: $resp\n";
+	};
+
+  } elsif ($cmd eq '-monitor') {
+	my $arg = shift(@todo) || die "No argument for $cmd\n";
+	while (1) {
+	  my $ln = sioRead($timeout);
+	  $ln =~ s/\t/ | /g;
+	  print $ln."\n";
+	  last if $ln=~m/^$arg/;
+	};
+  } elsif (($cmd eq '-h') || ($cmd eq '-help')) {
+	print(STDERR "Usage: ctool.pl command1 command2 ...\n".
+		  "Command could be one of the following:\n".
+		  "    -list                    - list all clients connected to server. default command if none is given\n".
+		  "    -timeout TT or -t TT     - set the timeout for all following commands to TT seconds\n".
+		  "    -send 'data|arg1|arg2'   - send a message to server. the vertical ber is replaced by tab\n".
+		  "    -log 'message'           - write a message to server log\n".
+		  "    -ping #TT                - ping a connection by server's FD number, or..\n".
+		  "    -ping APPNAME            - ping first connection with this appname\n".
+		  "    -monitor STOP-RE         - copy commands to STDOUT; stop after commnad matching STOP-RE will be copied\n".
+		  "    -setp APPNAME.KEY VAL    - set the app-specific property\n".
+		  "    -unsetp APPNAME.KEY VAL  - unset the app-specific property\n".
+		  "    -getp APPNAME.KEY        - get app-specific property (simple list)\n".
+		  "    -getp APPNAME.KEY[index] - get app-specific property (hash)\n".
+		  "    -getp APPNAME            - show all properties for APPNAME\n".
+		  "    -getconf arg             - show server's config file\n".
+		  "Return value is:\n".
+		  "    0   if all commands executed normally\n".
+		  "    1   if at least one ping timed out\n");
+  } else {
+	warn "Invalid command to ctool: $cmd. try -h for help. exiting\n";
+	last;
+  };
+};
+
+$tm = time() - $ttotal;
+printf "total time: %.2f sec\n", $tm if ($tm > 0.25);
+
+exit ($ecode);
+
+# Local Variables:
+# mode:perl
+# End:

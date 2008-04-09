@@ -1,0 +1,138 @@
+*** USER INTERFACE server commands ***
+
+Command:  UI-RESET
+ Resets user system by restarting the firefox process.
+ Hides the keyboard if it was shown
+ Closes any userapp if it was running
+
+Callback: UI-READY
+ Notifies that webbrowser just navigated to the start page (whic can happen at boot, after UI-RESET, 
+ or as a result of X windows crash)
+
+*** Web-browsing control ***
+
+Command: UI-OPEN | url [ | frame ]
+ Opens web browser on specified URL. The URL could be in one of two forms:
+    http://..     - global URL
+    dir/file      - URL in the 'lh' directory
+ The URL is loaded in the kiosk mode
+ frame is frame to load in. empty string for whole window.
+ frame can be given as a number or a a frame name/id
+
+Command: UI-RELOAD [ frame ]
+ Reloads the whole page or selected frame
+
+Callback: UI-COMMAND<tab>command<tab>wpid<tab>arg1...
+ Sent any time the browser opens URL:
+      /cmd?c=COMM&redir=/otherurl&wpid=&a1=arg1&a2=arg2&....
+ or
+      /cmd/COMMAND?redir=...
+ URL parameters:
+      redir=URL
+      r=URL
+            - URL to redirect to after the messgae is sent
+              if not specified, shows generic 'Command Accepted' page
+              if it is equal to '-', sends back to referer
+              if it is relative, taken relative to referer
+      cmd=CMD
+      c=CMD
+      c_CMD=(any text, ignored)
+	  /cmd/CMD  (as part of path)
+            - command to send. If there is no argument c= or cmd=, but
+              there is one named c_CMD, then CMD is sent. This is done
+              so you can do this code:
+              <form method='post' action='/lh/cmd' target='_hidden'>
+                <input type=submit name='c_YES' value='Yeah, sure'>
+                <input type=submit name='c_NO' value='Never'>
+			  </form>
+      wpid=WPID
+            - sequential web page id, used to make sure the right
+              button on the right page is pressed. If not specified,
+              it is extracted from REFERER (N/I)
+      a1=ARG1..
+            - the rest of arguments
+
+
+
+note: N/I = not implemented yet
+
+*** Alternative UI Methods ***
+
+Command: UI-KEYBOARD-SHOW
+ Shows on-screen keyboard
+  this is implemented using Xkbd, so no specific browser support is needed
+  this reduces browser/userapp size to avoid overlaps
+
+Command: UI-KEYBOARD-HIDE
+ Hides on-screen keyboard
+
+Command: UI-APP-SHOW<tab>cmdline
+ *** NOT IMPLEMENTED ***
+ Minimizes browser window, and starts specified user application, passing in "-geometry" command 
+    line to run full-screen
+ When application exits, restores the webbrowser
+
+Command: UI-APP-KILL<tab>signal
+ *** NOT IMPLEMENTED ***
+ Kills the user application (with given signal if specified)
+ Signal could be integer, or three-letter standart name
+
+Callback: UI-APP-DONE<tab>exitcode
+  Specifies that user application is done, with given exitcode
+
+Command: UI-WIN-LIST
+  requests list of processes that use X display
+
+Callback: UI-WIN-LIST-ENTRY | windowid< | name[@mach] | inst/class | pid | cmd
+ window information callback
+    windowid - widow ID, in 0x... form - could be used for UI-WIN-KILL
+	name     - client name
+    @mach     - client machine name, or empty string if local
+    inst/class - window instance and class spearated by /
+    pid      - client process id, might be empty if not implemented
+    cmd      - client command line
+
+Callback: UI-WIN-LIST-ENTRY
+  signals that tha last window entry was sent
+
+*** UI Lock ***
+
+Variable:  lock_holder		r, str, int
+ Keeps the name and priority of current lock owner
+
+Variable:  lock_queue%	    r, double => str
+ Array with key being the propiority.starttime and the value being the appname.
+
+Command:   UI-LOCK-REQUEST | appid | priority
+ Posted by a new UI app when it wants to get the main UI lock.
+ This puts the named app to 'waiting for lock' list.
+ If lock-holding app hears this message, it should pause and send UI-LOCK-RELEASE message ASAP.
+ 'priority' is an integer. If it is missing, 0 is assumed.
+   Applications pop-ups (like critical errors) should have priority of 100.
+   User's UI apps should use default (0)
+   Login app should use -50.
+
+NOTE: while waiting for UI-LOCK-GRANTED message, app might recieve UI-READY. If this happens, app should exit/restart, as its lock
+queue position is now lost.
+
+Callback:  UI-LOCK-GRANTED | appid
+ Sent by UI controller when the UI lock ownership is granted to the named app. 
+ After the app recieves this message, it can do other commands like UI-OPEN without fear of being interrupted.
+ Note: make sure to check that appid is the correct one before assuming that the lock was granted.
+
+Command:   UI-LOCK-RELEASE | appid | new-priority
+ Sent by app when it is releasing the lock. 
+ If new-priority is not an empty string, re-puts the app on the lock request queue with given priority.
+ This message is assumed when the app holding the lock exits.
+ If send by app not-on-queue, changes app priority or removes app from queue.
+ The UI controller will send LOCK-GRANTED to next app.
+
+Callback:  UI-LOCK-PAUSE | appid
+ Sent by UI controller to lock holder when a higher-priority app requests lock.
+ The app holder should pause all of its actions, save state if possible, and send UI-LOCK-RELEASE message, possibly with
+ new-priority parameter to get the lock back when high-priority app exits.
+ 
+
+;;; Local Variables: ***
+;;; fill-column: 130 ***
+;;; End: ***

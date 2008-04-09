@@ -1,0 +1,88 @@
+(Currently out-of-date and needs updating.)
+
+*** CHEZBOB DATABASE interface ***
+
+BOBDB is the interface to the ChezBob database.  The database currently
+physically resides on chezbob.ucsd.edu and is an old PostgreSQL database.  The
+BOBDB interface, accessible over the soda machine bus, implements a high-level
+interface to the database.
+
+BOBDB is stateless; when the server is up, it is always prepared to respond to
+commands.  BOBDB never issues any callbacks asynchronously; all messages are
+sent in response to a command received.
+
+To allow for requests and responses to be properly matched up, each request is
+assigned a tag when the message is sent.  This tag is not interpreted by the
+BOBDB server, but is simply echoed back with the response.  It is up to other
+services to use some mechanism for generating tags that will ensure uniqueness,
+if needed.
+
+Callback: BOBDB-FATAL
+  Potential response to any query to indicate that some unknown error has
+  occurred and the transaction has likely failed.  More information may be
+  available in the system log.  Depending upon circumstances, manual
+  intervention may be required to get the system working again.
+
+Callback: BOBDB-SUCCESS<tab>tag
+  Response indicating that a command to update the database was successful, but
+  no other information need be returned.
+
+Callback: BOBDB-FAIL<tab>tag<tab>error-code
+  Response to indicate a recoverable error.  This message might be sent, for
+  instance, to indicate that a user was not found when looking up user
+  information, or that a product doesn't exist to be purchased.
+
+  List of possible error codes:
+    NO-USER: the specified user does not exist
+    NO-PROUDCT: the specified product does not exist
+
+Command: BOBDB-QUERYUSER<tab>tag<tab>username
+  Queries the database for information about the specified user.  Results in
+  either a BOBDB-USERINFO callback, or BOBDB-FAIL/NO-USER.
+
+Callback: BOBDB-USERINFO<tab>tag<tab>username<tab>balance<tab>hashed_password
+  Indicates that the specified user exists in the ChezBob database, and
+  provides the user's current balance.
+
+Command: BOBDB-QUERYUSERPREF<tab>tag<tab>username<tab>preference
+  Queries the database to get user preferences.  The key "preference" is looked
+  up in the user's profile, and the value (an integer) is return.  Results in a
+  BOBDB-USERPREF message or BOBDB-FAIL/NO-USER.  Preference keys that do not
+  exist result in a default value of 0.
+
+  Currently defined preference keys are:
+    Auto Logout
+    No Confirmation
+    Privacy
+    Speech
+
+Callback: BOBDB-USERPREF<tab>tag<tab>username<tab>preference<tab>value
+  Returns the result of a user preference lookup.  The name of the preference
+  key (a string) and its value (an integer) are given.
+
+Command: BOBDB-QUERYTRANSACTIONLOG<tab>tag<tab>username
+  Queries the database for the most recent five transactions made by the
+  specified user.
+
+Callback: BOBDB-TRANSACTIONLOG<tab>tag<tab>transactions...
+  Up to five values are returned, each of which is a string describing a
+  transaction.  The format of these strings is "<date>;<amount>;<description".
+  The values are listed in chronologically increasing order.
+
+Command: BOBDB-QUERYPRODUCT<tab>tag<tab>barcode
+  Queries the database for information about the specified product.  Results in
+  either a BOBDB-PRODUCTINFO callback, or BOBDB-FAIL/NO-PRODUCT.
+
+Callback: BOBDB-PRODUCTINFO<tab>tag<tab>barcode<tab>name<tab>price<tab>stock
+  Provides information about a product, including a name to display, the
+  purchase price, and the number in stock, according to the Chez Bob database.
+
+Command: BOBDB-PURCHASE<tab>tag<tab>username<tab>barcode
+  Log a purchase by the given user and deduct the price from the user's
+  account.  A description of the item should be provided to go in the
+  transaction log.  Users are permitted to purchase items even if that would
+  cause a negative balance.  Responds with either BOBDB-SUCCESS or BOBDB-FAIL.
+
+Command: BOBDB-DEPOSIT<tab>tag<tab>username<tab>amount
+  Deposit the given amount into the specified user's Bank of Bob account.
+  Responds with either BOBDB-SUCCESS or BOBDB-FAIL.

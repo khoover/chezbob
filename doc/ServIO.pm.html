@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>ServIO.pm</title>
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body style="background-color: white">
+
+<p><a name="__index__"></a></p>
+<!-- INDEX BEGIN -->
+
+<ul>
+
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#example">EXAMPLE</a></li>
+	<ul>
+
+		<li><a href="#sioopen">sioOpen</a></li>
+		<li><a href="#sioconf">sioConf</a></li>
+	</ul>
+
+</ul>
+<!-- INDEX END -->
+
+<hr />
+<p>
+</p>
+<hr />
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>ServIO  - intervace to soda machine controller</p>
+<p>
+</p>
+<hr />
+<h1><a name="example">EXAMPLE</a></h1>
+<pre>
+     sioOpen(&quot;+SERVIO-TESTER&quot;, &quot;1.00&quot;);
+     sioHookExit(); # hook warn, die, signals</pre>
+<pre>
+     sioWrite('DATA', &quot;SYS-ACCEPT&quot;, &quot;MYAPP-&quot;);</pre>
+<pre>
+     sioOnMessage(&quot;MYAPP-FOO&quot;, &amp;foo_handler);
+     sub foo_handler {
+        my ($msginfo, $message, @args) = {};
+         };</pre>
+<pre>
+     sioWrite('DATA', &quot;MYAPP-RESET&quot;, &quot;arg1&quot;, &quot;arg2&quot;);
+         sioWrite('LOG', &quot;this goes to syslog&quot;);
+     sioWrite(50, &quot;debug level 50&quot;);</pre>
+<pre>
+         while (1) {
+           $msg = sioRead(10); # 10 seconds timeout
+           next unless ($msg); # undef = timeout occurs
+     };</pre>
+<p>
+</p>
+<h2><a name="sioopen">sioOpen</a></h2>
+<pre>
+     Argument: appname
+         open in exclusive mode unless + is first character
+     Argument: appversion</pre>
+<p>
+</p>
+<h2><a name="sioconf">sioConf</a></h2>
+<pre>
+         Argument: option name
+     Output: value if single, 
+             hashref if multiple
+             undef if not found</pre>
+
+</body>
+
+</html>

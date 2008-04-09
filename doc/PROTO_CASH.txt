@@ -1,0 +1,149 @@
+*** MDB interface ***
+
+MDB is the bus that connects the computer to coin changer and bill acceptor.
+Both CC and BA could be enabled and disabled, and support escrow (or escrow emulation)
+By 'devices', I mean bill acceptor and coin changer.
+
+There are three possible states for the acceptors:
+   OFFLINE       - changer or acceptor are offline or initalizing; could be that the board is disconnected
+   READY         - the devices are online and ready, but money acceptance is disabled
+   ENABLED       - the money is reay to be accepted
+
+
+
+*** STATE OPS ***
+
+Command:  CASH-RESET
+ Rejects money in the escrow, resets and disables the devices. 
+
+Callback: CASH-READY
+ Notifies that devices are ready (enabled was just set to 1)
+
+Variable: enabled               w, int def 0
+  Disables or enables the bill acceptor and coin changer.
+  Values (use one or more):
+      1 - enable both cash and bill acceptor
+      2 - enable cash acceptor only
+      4 - enable bill acceptor only
+      7 - same as 1
+
+Variable: ready                 r, bool
+  Indicates if system is operational.
+  CASH-READY is sent when this variable is set to 1.
+  If 'enabled' was set, enables the devices
+
+Variable: cc_ready              r, int
+Variable: bb_ready              r, int
+  Indicates the state of coin changer and bill acceptor:
+    0  - unoperational
+    1  - ready but disabled
+    2  - enabled
+    3  - coin payout in progress (cc only)
+
+Variable: coins%                r, array[int]
+  Indicates the status of the coin changer.
+  Array key: int    - the column number [0..15]
+  Value 1: int      - the column value, cents
+  Value 2: bool     - whether the column is full
+  Value 3: int      - the number of coins in the column
+  Value 4: bool     - whether manual dispense (button iside the
+                      machine) is enabled
+  Value 5: int      - limit to the manual dispense
+
+
+Variable: bb_full               r, bool 
+  True when bill acceptor is full. (and thus can't accept more bills)
+
+Variable: bb_count              r, int
+  The number of bills in bill acceptor
+
+
+*** ESCROW OPS ***
+
+Variable: escrow_total          r, int
+ Amount of money in the escrow. 
+ If this variable changes, CASH-ESCROW is sent with more explanations.
+ _before_ this variable is changed, other explaning variables would be
+ set.
+
+Variable: escrow_last_type     r, int
+ The payment media for last escrow change. It could be:
+   200+(coin number)
+   100+(bill type)
+   299    for deposit of all coins at once
+
+Variable: escrow_last_amt      r, int
+ The amount of last escrow change. Could be both negative and positive.
+
+Variable: escrow_last_trans    r, std
+  The type of last escrow transaction: 
+      'none'     if there were no escrow ops since reset
+      'deposit'  coins/bill was inserted
+      'return'   money was rejected due to CASH-REJECT
+      'accept'   money was accepted
+
+Callback: CASH-ESCROW | total | last_trans | escrow_last_type | last_amt
+ Notifies that escrow amount changed, and gives all relevant
+ escrow_... parameters in one message.
+ for the messages of type 'accept', this will be followed by CASH-DEPOSIT
+
+Command:  CASH-ACCEPT 
+Command:  CASH-ACCEPT | amount
+ Accepts the money in the escrow, drops into permanent deposit box.
+ If amount is present, tries to accept this much money. If it is
+ absent OR ZERO, will accept all money into escrow
+ Can emit multiple CASH-DEPOSIT and CASH-ESCROW messages
+ Followed by CASH-OK or CASH-FAIL 
+
+note: amount !=0 is NON-IMPLEMENTED
+
+Callback: CASH-DEPOSIT | amount | type
+ Called when the money was transferred.
+ amount     how much money was accepted (bill value or total coins
+                  amount), in cents
+ type       change type (see escrow_last_type above)
+
+Command:  CASH-REJECT 
+ Returns money to user. 
+ Can emit multiple CASH-ESCROW messages.
+ Ended by CASH-OK or CASH-FAIL
+
+Callback: CASH-OK
+ Last operation (reject or change) was successfully completed
+ For ACCEPT with "amount" parameter, this means that the remaning
+ amount coild be returned to user.
+
+Callback: CASH-FAIL<tab>amount
+ Last operation (reject or change) failed - perhaps because of mechanism jam. amt is amount 
+ that was sucessfully returned to user.
+ NOTE: if CASH-ACCEPT called with value that could not be returned to
+ user, the function will fail immedeately with amount=0
+
+Command:  CASH-CHANGE-MAN<tab>denom<tab>count
+ Gives 'count' coins of denomination 'denom' (could be only 5,10,25)
+ The money are taken out of the escrow amount (and correspoding CASH-ESCROW messages are sent
+   as coins are given out). If the total goes below escrow amount, the escrow stays at 0,
+   but the coins are still given out
+ returns CASH-OK or CASH-FAIL message.
+
+Command:  CASH-CHANGE<tab>amount
+ Gives coins to the total given amount
+ Calls CASH-CHANGE-MAN with correct denominations, subject to tube fullness status
+ returns CASH-OK or CASH-FAIL message.
+
+Callback: CASH-RETURN
+ Sent when the 'coin return' button is pressed. 
+
+
+Command: CASH-MANUAL-DISP<tab>denom<tab>mode
+ Controls manual dispense buttons (the ones inside machine on the coin changer)
+ 'denom' is denomincation of coin to change, or 0 to change all possible coins
+ Values of 'mode' are:
+    -1   disable button
+    0    enable button
+    x    enable button if tube contains>x coins
+ note: the mode is disabled (-1) when CASH-RESET is given 
+
+Callback: CASH-TUBE-MANUAL<tab>d1<tab>...
+ Notifies which columns could be dispensed manually
+ gives tab-separated list of denominations enabled for manual dispense

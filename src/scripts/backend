@@ -1,0 +1,4 @@
+cd /home/kiosk/sodafw/backend
+exec java -cp ~kiosk/sodafw/lib/ServIO.jar:. \
+     "-Dsodactrl.PORT=$SODACTRL_PORT"  "-Dsodactrl.DEBUG=$SODACTRL_DEBUG" \
+      backend >/dev/null

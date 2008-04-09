@@ -1,0 +1,332 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use IO::Socket::INET;
+use Time::HiRes qw[time];
+use Sys::Hostname;
+use Data::Dumper; $Data::Dumper::Useqq=1;  $Data::Dumper::Terse=1; $Data::Dumper::Sortkeys=1; $Data::Dumper::Indent=1;
+use FindBin qw[$Bin];
+use POSIX qw[setsid];
+my $lib;
+BEGIN {
+  # unsecue - but the whole system is insecure anyway
+  # untaint $BIN
+  ("$Bin" =~ m/^(.*)$/) && ($Bin = $1);
+};
+use lib "$Bin/../lib";
+use ServIO;
+
+chdir($Bin) || die "cannot chdir to $Bin: $!\n";
+# normal records: name=>value
+# [] record: name=>{ n1=>value, etc.. }
+my $CONF = sioConf();
+
+my ($cmd, @args) = @ARGV; $cmd ||='';
+my $all = (@args==0);
+#print Dumper($CONF);
+
+# check port number
+my $rport = $$CONF{'SODACTRL_PORT'};
+if (($ENV{'SODACTRL_PORT'}||$rport) ne $rport) {
+	warn "SODACTRL_PORT overriden: $rport in config, $ENV{'SODACTRL_PORT'} in environment\n";
+	$rport = $ENV{'SODACTRL_PORT'};
+};
+$ENV{'SODACTRL_PORT'} = $rport;
+
+unless ($cmd =~ m/^(start|stop|restart|status|webreset)$/) {
+	print STDERR "Usage: cprocman start|stop|restart|webreset|status [appname] [appname]\n";
+	print STDERR " start|stop|restart: If no appnames given, acts on the controller and all apps\n";
+	print STDERR " webreset|status: appnames are ignored\n";
+	#print "\n";
+	#print "Server: ".getCmdLine($$CONF{'CONTROLLER'})."\n";
+	print "Selected server port: export SODACTRL_PORT=$rport\n";
+	exit 3;
+};
+
+# foreget about read user id's
+if ($< != $>) {
+  $< = $>;
+  $( = $);
+};
+
+$SIG{'PIPE'} = sub { #print "cprocman: ignoring SIGPIPE\n"; 
+				   };
+
+# check userID
+if ($cmd =~ m/^(start|restart|stop|webreset)$/) {
+	my $uname = getpwuid($<);
+	die "Invalid username: you are running this as '$uname', but need to run as '$$CONF{'USER'}'. Tru sudo -u\n"
+		unless ($uname eq ($$CONF{'USER'}||$uname));
+};
+
+# set other env
+foreach my $k (keys %{$$CONF{'ENV'}}) {
+  $$CONF{'ENV'}{$k} =~ m/^(.*)$/; # untaint
+  $ENV{$k} = $1;
+};
+
+# key: origin=>{rec}
+my $applist = {};
+# applist entry for server, undef if server down, empty hash if server up but broken
+#   and contains field 'pid' otherwise
+my $servinfo = undef;
+
+my $rv = 0;
+
+if ($cmd eq 'status') {
+	fillAppList();
+	my $fmt = "  %1s  %-3s %-14s %-30s %-5s %s\n";
+	printf($fmt, "#", "FD", "-AppId-", "-CmdLine-", "-Pid-", ""); 
+	#printf($fmt, "---", "---", "---"); 
+	foreach my $key (sort keys %$applist) {
+		my $e = $$applist{$key};
+		$rv = 1 if ($$e{'idx'} && (!$$e{'fd'}));
+		printf $fmt, ($$e{'idx'}||'-'), ($$e{'fd'}?"#$$e{'fd'}":'-'), $$e{'appid'}, 
+		  ($$e{'cmd'}||''), ($$e{'pid'}||'down'), ($$e{'comm'}||'');
+	};
+};
+
+if (($cmd eq 'stop') || ($cmd eq 'restart') || ($cmd eq 'webreset')) {
+	# pass 1 - send TERM, pass 2-5 - wait to exit, pass 6 - send KILL, pass 7 - fail
+	my @args_start = @args;
+	my $stopped = 0;
+	foreach my $pass (1..7) {
+		fillAppList();
+		my @tostop = ();
+		if ($cmd eq 'webreset') {
+		  # kill all aps in RS_KILL 
+		  $$CONF{'RS_KILL'} ||= {};
+		  foreach my $e (sort { $$b{'key'} cmp $$a{'key'} } values %$applist) {
+			push(@tostop, $e)
+			  if ($$e{'fd'} && ( grep { uc($_) eq uc($$e{'appid'}) } values %{$$CONF{'RS_KILL'}} ));
+		  };
+		} else {
+		  # look in $args_start or $all
+		  foreach my $e (sort { $$b{'key'} cmp $$a{'key'} } values %$applist) {
+			push(@tostop, $e) if 
+			  ($$e{'fd'} && ($all || 
+							 ( grep { (uc($_) eq uc($$e{'appid'})) || ($_ eq ("#".$$e{'fd'})) } @args))); 
+			# change #xx to APPID for the further 'restart' operation
+			@args_start = map { ($$e{'fd'} && ("#$$e{'fd'}" eq $_)) ? $$e{'appid'} : $_ } @args_start;  
+		  };
+		};
+		last unless @tostop;
+		$stopped++;
+		if ($pass =~ m/^(1|6)$/) {
+			foreach my $e (@tostop) {
+				my $sig = ($pass==1)?'TERM':'KILL';
+				print "Killing $$e{'appid'} (pid $$e{'pid'}) with $sig... ";
+				if (kill($sig, $$e{'pid'})<=0) {
+					print "failed - $!\n";
+				} else {
+					print "OK\n";
+				};
+			};
+			sleep(1);
+		} elsif ($pass == 7) {
+			print "Error! $$_{'appid'} (pid $$_{'pid'}) won't die!\n"
+				foreach @tostop;
+			$rv = 3;
+		} else {
+			sleep(1);
+		};
+	};
+	if ($rv == 3) {
+		print "Stop failed\n";
+	} elsif ($stopped) {
+		print "Stop successful\n";
+	} else {
+	  print "Nothing to stop\n";
+	};
+	@args = @args_start;
+};
+
+if ($cmd eq 'restart') {
+  if ($ServIO::FH) {
+	eval { sioWrite('DEBUG', "Restarting apps"); 1; }
+	  || eval { print "Closed server connection\n"; sioClose(); 1; } 
+		|| print "Cound not close: $@\n";
+  };
+
+  #eval { sioClose() if ($servinfo && (!@args)); };
+  sleep(1);
+};
+
+if (($cmd eq 'start') || ($cmd eq 'restart') || ($cmd eq 'webreset')) {
+	fillAppList();
+	my @tostart = ();
+	my %scheck = ( map { uc($_) => 1 } @args );
+	unless ($servinfo) {
+		print "Starting controller ... ";
+		my $pid = execBg(getCmdLine($$CONF{'CONTROLLER'}), 'CONTROLLER');
+		print " $pid ";
+		eval { # 10 second start-up time...
+			for my $n (1..10) {
+				fillAppList();
+				last if $servinfo;
+				sleep(1);
+			};
+		}; 
+		die "controller won't start!\n" unless ($servinfo); 
+		print "OK\n";
+	};
+	my $started = 0;
+	if ($scheck{'CONTROLLER'}) {
+	  delete $scheck{'CONTROLLER'};
+	  $started = 1;
+	};
+	$all = 1 if ($cmd eq 'webreset');
+	foreach my $e (sort { $$a{'key'} cmp $$b{'key'} } values %$applist) {
+		next unless ((!$$e{'fd'}) && 
+					 (($all && $$e{'idx'}) || ( grep { uc($_) eq uc($$e{'appid'}) } @args)));
+		next if (($$e{'idx'}||0)==1); # skip controller
+		$started++;
+		print "Starting $$e{'appid'} ($$e{'cmd'}) - ";
+		my $pid = execBg($$e{'cmd'}, $$e{'key'});
+		delete $scheck{uc($$e{'appid'})};
+		print " $pid - OK\n";
+	};
+
+	foreach my $ns (sort keys %scheck) {
+		warn "can't start '$ns': unknown name\n";
+		$rv = 4;
+	};
+
+	if ($rv == 4) {
+	  print "Start failed\n";
+	} elsif ($started) {
+	  print "Start successful\n";
+	} else {
+	  print "Nothing to start\n";
+	};
+};
+
+sioClose() if $servinfo;
+
+exit($rv);
+
+sub execBg {
+	my ($cmd, $logname) = @_;
+	if ($$CONF{'EXEPREFIX'}) {
+	  $cmd = $$CONF{'EXEPREFIX'} . " ". $cmd;
+	};
+	my $pid = fork();
+	if ($pid == 0) {
+	    setsid() || die "Could not detach from terminal\n";
+	    open(STDIN, "+>/dev/null");
+	    open(STDOUT, "| logger -t 'OUT-$logname' -p local3.info");
+	    open(STDERR, "> &STDOUT");
+	    exec($cmd) || die "exec (@_) failed: $!\n";
+	    exit;
+	};
+	return $pid;
+};
+
+sub getCmdLine {
+	my ($short) = @_;
+	$short = 'UNDEF-COMMAND' unless defined($short);
+	$short = 'EMPTY-COMMAND'  unless length($short);
+	my ($cmd, $args) = split(/\s+/, $short, 2); 
+	foreach my $k (sort keys(%{$$CONF{'CPATH'}})) {
+		my $pe = $$CONF{'CPATH'}{$k};
+		$pe =~ s|/$||;
+		if (-x "$pe/$cmd") {
+			return "$pe/$short";
+		};
+	};
+	return "NOT-IN-PATH/$short";
+};
+
+sub fillAppList {
+	$applist = {};
+	# applist: fill from the CLI_REQ
+	foreach my $idx ( keys %{$$CONF{'CLI_REQ'}} ) {
+		my $id = $$CONF{'CLI_REQ'}{$idx};
+		my $cbin = getCmdLine($$CONF{'CBIN'}{$id});
+		$$applist{"1_$idx"} = { appid => $id,  cmd=>$cbin, idx=> ($idx+1)};
+	};
+	# applist: fill from CBIN
+	foreach my $id (sort keys %{$$CONF{'CBIN'}}) {
+		next if (grep { $$_{'appid'} eq $id } values %$applist);
+		my $cbin = getCmdLine($$CONF{'CBIN'}{$id});
+		$$applist{"2_$id"} =  { appid => $id, cmd => $cbin};
+	};
+	# applist: fill from server
+	eval {
+		sioOpen("CPROCMAN*", "1.20") unless $servinfo;
+		$servinfo = {};
+		sioWrite('DATA', 'SYS-APP-LIST');
+		while (1) {
+			my $r = sioRead(2) || last;
+			last if $r eq 'SYS-APP-ENTRY';
+			my ($type, $fd, $ipconn, $res1, $res2, $ver, $appid, $appver, $pid, $client) 
+				= split(/\t/, $r);
+			if ($type ne 'SYS-APP-ENTRY') { warn "bad sys-app-entry: $r\n" unless $r =~ m/^SYS-SET\t/;
+											next; };
+			next if ($pid == $$);
+			# find applist entry
+			my $ae = undef;
+			if  (($appid eq 'CONTROLLER') && (!$$servinfo{'fd'})) {
+				$ae = $servinfo;
+				$$applist{'0'} = $ae;
+				$$ae{'idx'} = 1;
+				$$ae{'cmd'} = getCmdLine($$CONF{'CONTROLLER'});
+			} else {
+				foreach my $k (sort keys %$applist) {
+					if ( ($$applist{$k}{'appid'} eq $appid) &&
+						 (!$$applist{$k}{'pid'} )) {
+						$ae = $$applist{$k};
+						last;
+					};
+				};
+				$$applist{'3_'.(100+$fd)} = $ae = {} unless ($ae);
+				$$ae{'cmd'} ||= '';
+			};
+			# fill it
+			$$ae{'appid'} = $appid;
+			$$ae{'fd'} = $fd;
+			$$ae{'pid'} = $pid;
+			my $exe = readlink("/proc/$pid/exe");
+			my @cmdline;
+			if ($exe) {
+				my $FH;
+				if (open($FH, "< /proc/$pid/cmdline")) {
+					local $/;
+					@cmdline = split(/\0/, <$FH>);
+					close($FH);
+				};
+			};
+			if (($exe)&&($exe=~m|/perl$|)) {
+				shift(@cmdline);
+				$exe = $cmdline[0];
+				if ($exe =~ m|^[^/]|) {
+					my $pwd = `cd /proc/$pid/cwd; /bin/pwd`;
+					chomp $pwd;
+					$exe = "$pwd/$exe";
+				};
+			};
+			if (!$exe) {
+			  $$ae{'comm'} = "cannot get exec: $!";
+			} elsif ($$ae{'cmd'}) {
+			  my $di1 = join(":", (stat($exe))[0,1]);
+			  my $di2 = join(":", (stat($$ae{'cmd'}))[0,1]);
+			  if ($di1 eq $di2) {
+				#$$ae{'comm'} = 'this';
+			  } else {
+				$$ae{'comm'} = "path different"
+				#$$ae{'comm'} = "$exe ".join(" ", @cmdline[1..$#cmdline]);
+			  };
+			} else {
+			  $$ae{'comm'} = 'manual';
+			};
+			$$ae{'cmd'} ||= $cmdline[0];
+		};
+		1;
+	} || do {
+		$servinfo = undef;
+		warn "cprocman: $@" unless $@=~ m/(: Connection refused|sioRead: READ-DONE)/;
+	};
+	# fill reverse-key
+	$$applist{$_}{'key'} = $_ foreach keys %$applist;
+};
+

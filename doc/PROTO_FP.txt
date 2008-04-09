@@ -1,0 +1,202 @@
+*** FINGERPRINT interface ***
+
+Interface for FP-SERV, the fingerprint obtaining server.
+This server uses X-Windows, so it will crash any time x-windows exits.
+the .xinitrc should take care of that.
+
+Callback: FP-READY
+ Notifies that the fingerprint system is ready or just reset.
+ The main window is hidden, fingerprint search is stopped,
+   any training in effect is cancelled.
+
+Callback: FP-OFFLINE
+ Notifies that fingerprint system is down for some reason.
+ CURRENTLY NOT IMPLEMETED
+
+Command:  FP-RESET
+ Resets the fingerprint system, sends FP-READY when reset is done.
+ Currently works by re-starting the process executable
+ NOTE: NOT IMPLEMENTED
+
+Callback: FP-GOODREAD | fpid | userid | finger-name | rel
+  Notifies that fingerprint was read and recognized. 
+     fpid      fingerprint ID  (a single integer)
+     userid    userid set by LEARN-ACCEPT
+     rel       recognition reliability 
+  This also automatically stops the acqusition and hides the window if
+  the autohide mode is on.
+
+Callback: FP-BADREAD | fpid
+  Notifies that the unknown fingerprint was read. The fingerprint is
+  stored in the database for 2 hours
+  This message is also send when matching is disabled
+
+Command:  FP-LEARN | fpid1 | fpid2 | fpid3...
+ Generalize and store the fingerprints (from 1 to 10 could be given)
+ Callback FP-LEARN-DONE notifies of the result
+ 
+Callback: FP-LEARN-DONE | fpid-r | result | exinfo | message
+  Notifies of the result of 'learn'
+    fpid-r  - fpid of resulting fingerprint. This is temporary fpid
+              for 2 hours only. If learning failed, this will be 0.
+    result  - string with status
+         'ok' - learning was successful
+         'mismatch' - collected fingerprints were too different
+         'notfound' - one of the fpid's was invalid
+         'other'    - some other error occured
+	exinfo  - extra information (such as precies error msg)
+    message - additional explanation (could be shown directly to user
+              together with exinfo)
+    
+Command: FP-PERSIST | fpid | userid | finger-name
+  Makes a temporary fingerprint permanent by associating it with
+  userid. This also turns on 'can-match' flag.
+  NOTE: finger name is a finger name, such as "left-index" or
+  "right-thumb". Please DO NOT name users' fingers "bob", "john" or any
+  other personal name.
+  
+
+Command: FP-UNPERSIST | fpid
+  Makes a permanent fingerprint temporary, and gives it  8 hours
+  timeout. After that time, the fingerprint is deleted from the
+  system. The 'can-match' flag is turned off immedeately.
+
+
+Command: FP-LIST | query-id | query-type | arg1 [ | arg2... ]
+  Makes a query to the fingerprints database.
+  query-id is opaque user data.
+  query-type is one of:
+       persist     - return list of all persistne records in the DB
+       user        - return persistent info for given user. arg1 is
+                     username. 
+       fpid        - return info for given fpid. Arg1 is fpid.
+                     If fpid is not found, will return empty list.
+       temp        - return list of non-persistent records in the DB
+  The response is FP-LIST-DATA commands.
+NOTE: this is not implemented yet
+
+Callback: FP-LIST-DATA | query-id | fp-id | uid | res1 | res2 | flags
+                       | fp-g | fp-ds | rec-added | m-count 
+                       | m-last-time | m-last-sim 
+  Returns the database entry for a fingerprint
+    query-id    - the value given to FP-LIST
+    fp-id       - fingerprint id
+    uid         - user id
+    res1        - reserved for future
+    res2        - reserved for future
+    flags       - zero or more characters:
+       p  - the record is persisent
+       m  - the 'can-match' flag is set
+    fp-g        - G-value of the record
+    fp-ds       - size of the fingerprint data
+    rec-added   - time (unixtime, an integer) when the record was
+                  added to database
+    m-count     - how many times was the fingerprint matched
+    m-last-time - when was the last time this matched (unixtime)
+    m-last-sim  - the similarity of last match
+
+Callback: FP-LIST-DATA | query-id 
+  Signifies the end of the record list.
+
+Variable: auto_hide        w, int def 0
+  Set to time in milliseconds between fingerprint data disappearing
+  and window being hidden. Set to 0 to disable this feature.
+
+Variable: auto_show        w, bool def 0
+  If nonzero, will show window if fingerprint is detected
+
+Variable: capture_delay    w, int def 0
+  Time in milliseconds between first touch and fingerprint being
+  captured. Set to 0 to disable fingerprint capture/comparation.
+
+Variable: capture_match    w, bool def 0
+  When non-zero, trys to match fingerprint against database, and send
+  FP-GOODREAD.
+  If no fingerprint matched or this variable was 0, stores fingerprint
+  into database (temporarily) and sends FP-BADMATCH.
+
+Variable: thresh_match     w, int def 50
+  Specifies threshold for matching fingerprints against database.
+  The value has range from 1 (loose match) to 2000 (tight match).
+  The value 20 gives 2% FAR(False Acceptance Ratio), while 90 gives
+  0.001%. For more details, see thr2far program.
+
+Variable: thresh_learn     w, int def 60
+  Specifies threshold for learning new fingerprints.
+  Samples to FP-LEARN must be this close together, or learn will fail
+  
+Variable: descale          w, double def 1.0
+  Floating-point variable for window size. The window size is divided
+  by this variable (thus 2 is half-size, and 0.5 is double size)
+
+Variable: win_invert	   w, bool def 0
+ If set, draws the image in reverse color: black background, white
+ fingerprint
+
+Variable: win_colors       w*, str*
+ The color scheme for the window. Aray of colors, where the color
+ could be decimal or in format "0xRRGGBB" or #RRGGBB
+ The colors are
+     0   bg      window background
+     1   fp      fingerint color
+     2   brd1    border color (idle)
+     3   brd2    border color (capturing)
+     4   feat1   feature 1 color (end)
+     5   feat2   feature 2 color (bifurcation)
+     6   feat3   feature 3 color (unknown/invalid)
+
+Variable: win_msgsmall      w/w/w, int/str/int
+  The fontindex, color and size of the font for small status lines.
+
+Variable: win_msglarge     w/w, int/str
+  The  fontindex and color of the font for s
+
+Variable: win_fpcontr	  w, int dev 1
+TODO
+
+Variable: fpr_dcr          w, int def 6
+ Discharge Current Register for fingerprint scanner. 
+ Tweak if fingerprints are not recognized. See fltkcap sample for
+ example.
+
+Variable: fpr_dtr          w, int def 20
+ Discharge Time Register for fingerprint scanner. 
+ Tweak if fingerprints are not recognized. See fltkcap sample for
+ example.
+
+Variable: fpr_pgc          w, int def 7
+ Programmable Gain Control for fingerprint scanner. 
+ Tweak if fingerprints are not recognized. See fltkcap sample for
+ example.
+
+Variable: fpr_driver       -, str def "fps200"
+ The driver used for fingerprints. Not implemented.
+
+Variable: fpr_threshold    w, int def 10
+ The smallest "dev" value that gives useful fingerprint.
+
+Variable: message1         w, str def ""
+ Message shown on the top of the window
+
+Variable: message2         w, str def ""
+ Message shown on the bottom of the window
+
+Variable: msg_mode         w, int def 0
+ The message mode, the values are
+   0 - debug information (fpid, mathches)
+   1 - less info (brighness at the bottom-left, 
+          the possible matches on mismatch)
+
+Variable: visible          r/w, bool def 0
+ Whether window is visible or hidden now. Changes if window is shown
+ or hidden automatically.
+
+Variable: winx             w, int dev 0
+Variable: winy             w, int dev 0
+ Window's top-left corner coordinates
+
+Variable: done_msgs (ok-msg fail-msg nomatch-msgs)      w/w/w, str/str/str, def "OK"/"FAILED"/"ACCEPTED"
+ The messages that appear on the screen to notify the user of FP
+ recognition result. The third one appears if capture matching was
+ disabled.
+ Thi is muliple-value variable.

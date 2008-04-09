@@ -1,0 +1,5 @@
+BDIR=$(readlink -f $(dirname $0))
+if [[ "$BDIR" != "" ]]; then cd $BDIR; fi;
+pwd
+find . -name "*.orig" | perl -lpe 's/^(.*)(\.orig)$/diff -u $1$2 $1/' | sh > xkbd-patch
+cat xkbd-patch

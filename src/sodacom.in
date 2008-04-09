@@ -1,0 +1,8 @@
+
+VLIBDIR=../lib
+CPPFLAGS=-I${VLIBDIR} -g
+VLIBS=${VLIBDIR}/sercom.o ${VLIBDIR}/servio.o
+CPP=g++
+LINK.o=g++
+BIN=/home/kiosk/sodafw/bin
+DOC_PATH=../../doc

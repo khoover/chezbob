@@ -1,0 +1,2 @@
+(sleep 1; xrefresh; sleep 5; xrefresh) &
+exec xkbd -k en_US.noctrl.kbd -geometry "800x150+0+430"
