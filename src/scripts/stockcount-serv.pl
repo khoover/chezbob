@@ -62,7 +62,7 @@ while (1) {
 	};
   };
   if ($rel) {
-	sioWrite('DATA', 'UI-RELOAD');
+      #sioWrite('DATA', 'UI-RELOAD');
   };
 };
 

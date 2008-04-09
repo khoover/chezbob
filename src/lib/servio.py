@@ -155,7 +155,7 @@ class ServIOVarList:
         name = data[2]
         key = data[3]
 
-        print str(data)
+        #print str(data)
 
         # refreshAll Get
         if data[0] == "SYS-VALUE" and name == "" and key == "":
