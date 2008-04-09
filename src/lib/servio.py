@@ -4,6 +4,8 @@ import os
 import sys
 import threading
 
+# XXX We don't check env vars for addr/port
+
 
 def echo_handler(data):
     print "E~" + " | ".join(data)

@@ -331,17 +331,14 @@ class SodaApp(wxApp):
         bus.watchMessage("MOZ-OPEN", frame.handleUiOpen)
         bus.watchMessage("SYS-SET", frame.handleSysSet)
 
-        #frame.handleUiOpen(["UI-OPEN", "http://localhost/~tduerig/index.php?msg=LOGGEDIN&login=jcm&balance=830&TTL=30"])
-        #frame.handleMozOpen(["MOZ-OPEN", "http://localhost/~tduerig/index.php?message=LOGGEDIN&login=jcm&balance=900&TTL=30"])
-        #frame.handleMozOpen(["MOZ-OPEN", "http://localhost/~tduerig/index.php?message=AUTOLOGGEDOUT&balance=0"])
-        #bus._process_message("MOZ-OPEN\thttp://localhost/~tduerig/index.php?message=LOGGEDIN&login=jcm&balance=900&TTL=30")
-        #bus._process_message("UI-OPEN\thttp://localhost/~tduerig/index.php?msg=LOGGEDIN&login=russell&balance=1815&TTL=30\n")
-        #bus._process_message("SYS-SET	MOZ-KIOSK	real_location		http://localhost/~tduerig/index.php?msg=BOUGHT&login=will&balance=1835&TTL=29&item=Junior+Mints")
-
-        bus_thread = threading.Thread(target=bus.receive)
-        bus_thread.start()
+        self.bus_thread = threading.Thread(target=bus.receive)
+        self.bus_thread.start()
 
         return true
 
+    def Exit(self):
+        self.bus_thread.exit()
+
 app = SodaApp(0)
 app.MainLoop()
+app.Exit()
