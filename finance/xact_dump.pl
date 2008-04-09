@@ -22,11 +22,11 @@ sub encode_user {
     return $users{$id};
 }
 
-my $dbh = DBI->connect("dbi:Pg:dbname=bob", "bob")
+my $dbh = DBI->connect("dbi:Pg:dbname=bob")
     or die "Unable to connect to ChezBob database";
 
 my $sth = $dbh->prepare(
-    "SELECT xacttime, xactvalue, xacttype, userid FROM transactions
+    "SELECT xacttime, xactvalue, xacttype, source FROM transactions
      ORDER BY xacttime"
 );
 $sth->execute();
@@ -35,7 +35,7 @@ my @row;
 while ((@row = $sth->fetchrow_array)) {
     $row[0] = encode_string($row[0]);
     $row[2] = encode_string($row[2]);
-    $row[3] = encode_user($row[3]);
+    pop @row unless $row[3];
     print join(", ", @row), "\n";
 }
 
