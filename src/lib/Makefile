@@ -19,8 +19,8 @@ docs:
 	${JAVADOC} -d ${DOC_PATH}/ServIO-java -noqualifier "java.*" -link http://java.sun.com/j2se/1.5.0/docs/api com.theamk.ambus
 
 install:
-	cp ServIO.jar ${BIN}/../lib
-	cp *.py *.pm ${BIN}/../lib
+	install -okiosk -gdevel -m0644 ServIO.jar ${BIN}/../lib
+	install -okiosk -gdevel *.py *.pm ${BIN}/../lib
 
 ServIO.jar:  ${JFILES}
 	javac  -source 1.4 ${JFILES}
