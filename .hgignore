@@ -1,13 +1,4 @@
 \.o$
 \.pyc$
-.DS_Store$
-\~$
-^barcodes/barcodes\.html$
-^barcodes/[^/]*\.png$
-^bobmenu/dialog-0\.9a/config\.(cache|h|log|status)$
-^bobmenu/dialog-0\.9a/dialog$
-^bobmenu/dialog-0\.9a/libdialog\.a$
-^bobmenu/dialog-0\.9a/makefile$
-^bobmenu/dialog-0\.9a/samples/install/makefile$
-^django/chezbob/settings\.py$
-^www/wall_of_shame\.html$
+\.jar$
+\.class$
