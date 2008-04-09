@@ -226,7 +226,7 @@ def check_cash():
     print
 
     source_totals = {}
-    for cashout in CashOut.objects.order_by('datetime'):
+    for cashout in CashOut.objects.filter(datetime__gte=last_date).order_by('datetime'):
         print cashout
         cursor.execute("""SELECT source, sum(xactvalue)
                           FROM transactions
