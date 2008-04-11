@@ -155,7 +155,7 @@ class ServIOVarList:
         name = data[2]
         key = data[3]
 
-        #print str(data)
+        #print self.appname + ":" + str(data) + "..." + name + "?" + str(key)
 
         # refreshAll Get
         if data[0] == "SYS-VALUE" and name == "" and key == "":
@@ -181,6 +181,7 @@ class ServIOVarList:
 
         # Simple
         else:
+            #print name + "<--" + str(data[4:])
             self.vars[name] = data[4:]
 
         if name not in self.vars_available:
@@ -227,10 +228,15 @@ class ServIOVarList:
         if key is not None and name[-1:] != "%":
             name = name + "%"
 
-        if key is not None:
-            orig = self.vars[name][key]
-        else:
-            orig = self.vars[name]
+        try:
+            if key is not None:
+                orig = self.vars[name][key]
+            else:
+                orig = self.vars[name]
+        except:
+            print "Couldn't find " + name + " in dict"
+            print str(self.vars)
+            orig = None
 
         if value == orig:
             return

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 # IN PROGRESS
+# export PYTHONPATH=`pwd`/../lib
 
 from wxPython.wx import *
 import servio

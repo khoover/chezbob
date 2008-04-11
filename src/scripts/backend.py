@@ -574,7 +574,7 @@ class SodaBackend:
 
     def handleFpBadRead(self, data):
         if self.current_user is None:
-            print "BAD FP REAED"
+            print "BAD FP READ"
         else:
             self.current_user.gotBadFpRead(data[1])
 
@@ -667,6 +667,7 @@ class SodaBackend:
         running = True
 
         self.bus.send(["VEND-SSTART", "0"])
+        self.MdbVL.set("enabled", None, "7")
 
         #self.handleVendRequest(["VEND-REQUEST", "1"])
 
