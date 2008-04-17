@@ -22,7 +22,7 @@ class MozUI:
         balance = sodauser.getBalance()
 
         if not sodauser.isAnon():
-            balancestr = self._getJSTopElem("BALANCE")
+            balancestr = self._getJSMainElem("BALANCE")
 
             color = "#00FF00"
             if balance < 0:
@@ -37,7 +37,7 @@ class MozUI:
         else:
             self.servio.send(["UI-OPEN",
                               self.prefix + "index.php?balance="\
-                              + str(sodauser.getBalance())])
+                              + str(balance)])
 
 
 
