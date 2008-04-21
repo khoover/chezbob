@@ -41,7 +41,7 @@ class MozUI:
 
 
 
-    def logOut(self, sodauser):
+    def logOut(self, sodauser=None):
         self.servio.send(["UI-OPEN",\
                   self.prefix + 'index.php?msg=LOGGEDOUT&balance=0'])
 

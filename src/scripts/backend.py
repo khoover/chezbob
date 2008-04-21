@@ -671,6 +671,9 @@ class SodaBackend:
 
         #self.handleVendRequest(["VEND-REQUEST", "1"])
 
+        # Show the login screen when we start.
+        self.ui.logOut(None)
+
         while running:
             try:
                 time.sleep(self.ttl_tick)
