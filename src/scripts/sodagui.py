@@ -13,6 +13,7 @@ ID_LOGOUT  = 102
 ID_LOGIN   = 103
 ID_DOLOGIN = 104
 ID_DOPASSWORD = 105
+ID_KEYBOARD   = 106
 
 STATE_LOGIN_IDLE = 1
 STATE_LOGIN      = 2
@@ -40,6 +41,165 @@ def urldecode(url):
 
     return values
 
+K_BS = 0
+K_CAPS = 1
+K_NUM = 2
+K_SPACE = 3
+
+class KeyBoardButton(wxButton):
+    def __init__(self, parent, modes):
+        wxButton.__init__(self, 
+                          parent, 
+                          ID_KEYBOARD, 
+                          modes[0],
+                          size=wxSize(60,60))
+
+        self.modes = modes
+
+        self.SetBackgroundColour('#0000FF')
+        self.SetForegroundColour('WHITE')
+
+    def isSpecial(self):
+        return False
+
+    def setMode(self, mode):
+        self.SetLabel(self.modes[mode])
+
+
+class KeyBoardSpecialButton(wxButton):
+    def __init__(self, parent, special, text):
+        wxButton.__init__(self, 
+                          parent, 
+                          ID_KEYBOARD, 
+                          text,
+                          size=wxSize(60,60))
+
+        self.special = special
+
+        self.SetBackgroundColour('#0000AA')
+        self.SetForegroundColour('WHITE')
+
+    def isSpecial(self):
+        return True
+
+    def getSpecial(self):
+        return self.special
+
+    def setMode(self, mode):
+        pass
+
+
+class SodaKeyBoard(wxPanel):
+    def __init__(self, parent, ID, pos, size, target):
+        wxPanel.__init__(self, parent, ID, pos, size)
+
+        font = self.GetFont()
+        font.SetPointSize(30)
+        self.SetFont(font)
+
+        self.SetBackgroundColour(parent.GetBackgroundColour())
+        self.SetForegroundColour(parent.GetForegroundColour())
+
+
+        self.buttons = []
+        self.mode = 0
+        # 0x1 = Caps
+        # 0x2 = Num
+        # 0x3 = both
+
+        # qwertyuiop
+        # asdfghjkl <-
+        # caps 123 zxcvbvm space
+
+        # 1234567890
+        # `   -=[]\
+        #    ,./;'
+        # !@#$%^&*[]
+        # ~   _+{}|
+        #    <>?:"
+
+        alphaKeys = [['q','w','e','r','t','y','u','i','o','p'],
+                     ['a','s','d','f','g','h','j','k','l', K_BS],
+                     [K_CAPS, K_NUM, 'z','x','c','v','b','n','m', K_SPACE]]
+        AlphaKeys = [['Q','W','E','R','T','Y','U','I','O','P'],
+                     ['A','S','D','F','G','H','J','K','L', K_BS],
+                     [K_CAPS, K_NUM, 'Z','X','C','V','B','N','M', K_SPACE]]
+        numKeys   = [['1','2','3','4','5','6','7','8','9','0'],
+                     ['`', '', '', '','-','=','[',']','\\', K_BS],
+                     [K_CAPS, K_NUM,  '',',','.','/',';','\'','', K_SPACE]]
+        NumKeys   = [['!','@','#','$','%','^','&&','*','[',']'],
+                     ['~', '', '', '','_','+','{','}','|', K_BS],
+                     [K_CAPS, K_NUM,  '','<','>','?',':','"','', K_SPACE]]
+
+        sizer = wxGridSizer(len(alphaKeys), len(alphaKeys[0]), 3, 3)
+
+        self.SetSizer(sizer)
+
+        for row in range(0, len(alphaKeys)):
+            for col in range(0, len(alphaKeys[row])):
+
+                code = alphaKeys[row][col]
+
+                button = None
+
+                if code == K_BS:
+                    button = KeyBoardSpecialButton(self, K_BS, "<-")
+                elif code == K_CAPS:
+                    button = KeyBoardSpecialButton(self, K_CAPS, "cap")
+                elif code == K_NUM:
+                    button = KeyBoardSpecialButton(self, K_NUM, "num")
+                elif code == K_SPACE:
+                    button = KeyBoardSpecialButton(self, K_SPACE, "SPCE")
+                else:
+                    values = [ alphaKeys[row][col],
+                               AlphaKeys[row][col],
+                               numKeys[row][col],
+                               NumKeys[row][col] ]
+
+                    button = KeyBoardButton(self, values)
+
+                sizer.Add(button)
+                self.buttons.append(button)
+                button.Bind(EVT_LEFT_DOWN, self.on_keypress)
+                button.Bind(EVT_LEFT_DCLICK, self.on_double_keypress)
+
+        self.target = target
+
+    def updateMode(self, mode):
+        self.mode = mode
+        for b in self.buttons:
+            b.setMode(self.mode)
+
+    def on_double_keypress(self, event):
+        # Do it twice, pesky double click detection
+        self.on_keypress(event)
+        self.on_keypress(event)
+
+    def on_keypress(self, event):
+        button = event.GetEventObject()
+        if button.isSpecial():
+            code = button.getSpecial()
+            if code == K_BS:
+                self.target.Remove(
+                                   self.target.GetLineLength(0) - 1, 
+                                   self.target.GetLineLength(0)
+                                  )
+            elif code == K_CAPS:
+                self.updateMode(self.mode ^ 0x1)
+
+            elif code == K_NUM:
+                self.updateMode(self.mode ^ 0x2)
+
+            elif code == K_SPACE:
+                self.target.WriteText(" ")
+
+            else:
+                print "Unrecognized Code"
+
+        else:
+            self.target.WriteText(button.GetLabel())
+
+
 class SodaButton(wxButton):
     def __init__(self, parent, ID, Text):
         wxButton.__init__(self, parent, ID, Text)
@@ -47,6 +207,10 @@ class SodaButton(wxButton):
         # Hackomatic
         self.SetBackgroundColour(parent.GetBackgroundColour())
         self.SetForegroundColour(parent.GetForegroundColour())
+
+        font = self.GetFont()
+        font.SetPointSize(50)
+        self.SetFont(font)
 
 class SodaPanel(wxPanel):
     def __init__(self, parent, ID, pos, size):
@@ -57,15 +221,41 @@ class SodaPanel(wxPanel):
         self.SetForegroundColour(parent.GetForegroundColour())
 
         # Build Generic Setup
+        self.VertSizer = wxBoxSizer(wxVERTICAL)
+
+        # Top Padding
+        self.VertSizer.AddSpacer(wxSize(-1,50))
+
         self.MainSizer = wxBoxSizer(wxHORIZONTAL)
 
         self.LeftBarSizer = wxBoxSizer(wxVERTICAL)
+
+        leftBarTopSpacer = wxStaticText(self, 
+                                  -1, 
+                                  "", 
+                                  wxDefaultPosition, 
+                                  wxSize(150,25))
+
+        self.LeftBarSizer.Add(leftBarTopSpacer)
+
         self.ContentSizer = wxBoxSizer(wxVERTICAL)
 
         self.MainSizer.Add(self.LeftBarSizer)
         self.MainSizer.Add(self.ContentSizer)
 
-        self.SetSizer(self.MainSizer)
+        self.VertSizer.Add(self.MainSizer)
+
+        self.SetSizer(self.VertSizer)
+
+    def AddLeftButton(self, Widget):
+        """
+        Wraps all the parameters for adding a button to the left bar.
+        """
+        self.LeftBarSizer.Add(
+                    Widget,
+                    1, # re-proportion
+                    wxALIGN_CENTER_HORIZONTAL
+                    )
 
 
 class SodaFrame(wxFrame):
@@ -111,6 +301,7 @@ class SodaFrame(wxFrame):
 
     passwordLimit = 3
 
+
     def __init__(self, parent, ID, title, bus):
         '''
         Initializes the Frame with the title, builds the panels, and
@@ -121,6 +312,16 @@ class SodaFrame(wxFrame):
 
         self.SetBackgroundColour(self.backgroundColour)
         self.SetForegroundColour(self.foregroundColour)
+
+        self.font = wxFont(30, 
+                      wxFONTFAMILY_DEFAULT,
+                      wxFONTSTYLE_NORMAL,
+                      wxFONTWEIGHT_NORMAL,
+                      False,
+                      "lcars"
+                      )
+
+        self.SetFont(self.font)
 
         self.makeLoginIdlePanel()
         self.makeLoginPanel()
@@ -175,7 +376,11 @@ class SodaFrame(wxFrame):
         self.idlePanel = SodaPanel(self, -1, wxPoint(0,0), self.GetSize())
 
         self.idlePanelSizer = wxBoxSizer(wxVERTICAL)
-        self.idlePanel.LeftBarSizer.Add(SodaButton(self.idlePanel, ID_LOGIN, 'Login'), 0)
+
+        loginButton = SodaButton(self.idlePanel, ID_LOGIN, 'Login')
+
+        self.idlePanel.AddLeftButton(loginButton)
+
         self.Bind(EVT_BUTTON, self.onLogin, id=ID_LOGIN)
 
         self.idlePanel.Layout()
@@ -199,9 +404,9 @@ class SodaFrame(wxFrame):
         self.loginPanel = SodaPanel(self, -1, wxPoint(0,0), self.GetSize())
 
 
-        self.loginPanel.LeftBarSizer.Add(SodaButton(self.loginPanel, 
+        self.loginPanel.AddLeftButton(SodaButton(self.loginPanel, 
                                                   ID_DOLOGIN, 
-                                                  'Login'), 0)
+                                                  'Login'))
 
         self.Bind(EVT_BUTTON, self.onDoLogin, id=ID_DOLOGIN)
 
@@ -210,10 +415,11 @@ class SodaFrame(wxFrame):
         loginLabel = wxStaticText(
                 self.loginPanel,
                 -1,
-                "Login:"
+                "Login: ",
+                style = wxALIGN_RIGHT
                 )
 
-        loginInfoSizer.Add(loginLabel)
+        loginInfoSizer.Add(loginLabel, 1, wxALIGN_CENTER)
 
         self.loginInput = wxTextCtrl(
                 self.loginPanel, 
@@ -223,9 +429,13 @@ class SodaFrame(wxFrame):
                 wxSize(200, -1) # XXX
                 )
 
-        loginInfoSizer.Add(self.loginInput)
+        loginInfoSizer.Add(self.loginInput, 1, wxALIGN_CENTER)
 
         self.loginPanel.ContentSizer.Add(loginInfoSizer)
+
+        self.loginPanel.ContentSizer.AddSpacer(wxSize(50,50))
+        self.loginPanel.ContentSizer.Add(SodaKeyBoard(self.loginPanel,
+            -1, wxDefaultPosition, wxSize(400, 400), self.loginInput))
 
         self.loginPanel.Layout()
         self.loginPanel.Show(false)
@@ -240,6 +450,7 @@ class SodaFrame(wxFrame):
 
     def onDoLogin(self, event):
         login = self.loginInput.GetLineText(0)
+        self.loginInput.Clear()
 
         if len(login) > 0:
             self.querytag = servio.genTag()
@@ -268,9 +479,9 @@ class SodaFrame(wxFrame):
     def makePasswordPanel(self):
         self.passwordPanel = SodaPanel(self, -1, wxPoint(0,0), self.GetSize())
 
-        self.passwordPanel.LeftBarSizer.Add(SodaButton(self.passwordPanel, 
+        self.passwordPanel.AddLeftButton(SodaButton(self.passwordPanel, 
                                                   ID_DOPASSWORD, 
-                                                  'Login'), 0)
+                                                  'Login'))
 
         self.Bind(EVT_BUTTON, self.onDoPassword, id=ID_DOPASSWORD)
 
@@ -279,10 +490,11 @@ class SodaFrame(wxFrame):
         self.passwordLabel = wxStaticText(
                 self.passwordPanel,
                 -1,
-                "Password for :"
+                "Password for :",
+                style=wxALIGN_RIGHT
                 )
 
-        passwordInfoSizer.Add(self.passwordLabel)
+        passwordInfoSizer.Add(self.passwordLabel, 1, wxALIGN_CENTER)
 
         self.passwordInput = wxTextCtrl(
                 self.passwordPanel, 
@@ -293,9 +505,12 @@ class SodaFrame(wxFrame):
                 wxPASSWORD
                 )
 
-        passwordInfoSizer.Add(self.passwordInput)
+        passwordInfoSizer.Add(self.passwordInput, 1, wxALIGN_CENTER)
 
         self.passwordPanel.ContentSizer.Add(passwordInfoSizer)
+        self.passwordPanel.ContentSizer.AddSpacer(wxSize(50,50))
+        self.passwordPanel.ContentSizer.Add(SodaKeyBoard(self.passwordPanel,
+            -1, wxDefaultPosition, wxSize(400, 400), self.passwordInput))
 
         self.passwordPanel.Layout()
         self.passwordPanel.Show(false)
@@ -337,13 +552,12 @@ class SodaFrame(wxFrame):
     def makePurchasePanel(self):
         self.purchasePanel = SodaPanel(self, -1, wxPoint(0,0), self.GetSize())
 
-        self.purchasePanel.LeftBarSizer.Add(
+        self.purchasePanel.AddLeftButton(
                                     SodaButton(
                                              self.purchasePanel, 
                                              ID_LOGOUT, 
                                              'Logout'
-                                            ), 
-                                            0
+                                            )
                                    )
 
         self.purchasePanelUserLabel = wxStaticText(
@@ -503,8 +717,6 @@ class SodaApp(wxApp):
         frame = SodaFrame(NULL, -1, "Hello World", self.bus)
         frame.Show(true)
         self.SetTopWindow(frame)
-
-
 
         self.bus.watchMessage("UI-OPEN", frame.handleUiOpen)
         self.bus.watchMessage("MOZ-OPEN", frame.handleUiOpen)
