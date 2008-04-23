@@ -7,18 +7,24 @@ from wxPython.wx import *
 import servio
 import threading
 import wx.lib.newevent
+import crypt
 
-ID_LOGOUT = 102
-ID_LOGIN = 103
+ID_LOGOUT  = 102
+ID_LOGIN   = 103
 ID_DOLOGIN = 104
+ID_DOPASSWORD = 105
 
 STATE_LOGIN_IDLE = 1
 STATE_LOGIN      = 2
-STATE_PURCHASE   = 3
+STATE_PASSWORD   = 3
+STATE_PURCHASE   = 4
 
 LogoutEvent, EVT_LOGOUT_EVENT = wx.lib.newevent.NewEvent()
 LoginEvent, EVT_LOGIN_EVENT = wx.lib.newevent.NewEvent()
+PasswordEvent, EVT_PASSWORD_EVENT = wx.lib.newevent.NewEvent()
 BoughtEvent, EVT_BOUGHT_EVENT = wx.lib.newevent.NewEvent()
+
+bus = None
 
 def urldecode(url):
     "Return a dict of the variables encoded in a GET request"
@@ -33,6 +39,33 @@ def urldecode(url):
     print values
 
     return values
+
+class SodaButton(wxButton):
+    def __init__(self, parent, ID, Text):
+        wxButton.__init__(self, parent, ID, Text)
+
+        # Hackomatic
+        self.SetBackgroundColour(parent.GetBackgroundColour())
+        self.SetForegroundColour(parent.GetForegroundColour())
+
+class SodaPanel(wxPanel):
+    def __init__(self, parent, ID, pos, size):
+        wxPanel.__init__(self, parent, ID, pos, size)
+
+        # Hackomatic
+        self.SetBackgroundColour(parent.GetBackgroundColour())
+        self.SetForegroundColour(parent.GetForegroundColour())
+
+        # Build Generic Setup
+        self.MainSizer = wxBoxSizer(wxHORIZONTAL)
+
+        self.LeftBarSizer = wxBoxSizer(wxVERTICAL)
+        self.ContentSizer = wxBoxSizer(wxVERTICAL)
+
+        self.MainSizer.Add(self.LeftBarSizer)
+        self.MainSizer.Add(self.ContentSizer)
+
+        self.SetSizer(self.MainSizer)
 
 
 class SodaFrame(wxFrame):
@@ -73,23 +106,35 @@ class SodaFrame(wxFrame):
 
     state = STATE_LOGIN_IDLE
 
-    def __init__(self, parent, ID, title):
+    backgroundColour = 'BLACK'
+    foregroundColour = 'WHITE'
+
+    passwordLimit = 3
+
+    def __init__(self, parent, ID, title, bus):
         '''
         Initializes the Frame with the title, builds the panels, and
         starts the system in the LoginIdle State
         '''
         wxFrame.__init__(self, parent, ID, title,
-                         wxDefaultPosition, wxSize(320, 240))
+                         wxDefaultPosition, wxSize(800, 600))
+
+        self.SetBackgroundColour(self.backgroundColour)
+        self.SetForegroundColour(self.foregroundColour)
 
         self.makeLoginIdlePanel()
         self.makeLoginPanel()
+        self.makePasswordPanel()
         self.makePurchasePanel()
 
         self.Bind(EVT_LOGIN_EVENT, self.onLoginEvent)
+        self.Bind(EVT_PASSWORD_EVENT, self.onPasswordEvent)
         self.Bind(EVT_LOGOUT_EVENT, self.onLogoutEvent)
         self.Bind(EVT_BOUGHT_EVENT, self.onBoughtEvent)
 
         self.beginLoginIdle()
+
+        self.bus = bus
 
     def changeState(self, new_state):
         '''
@@ -103,6 +148,8 @@ class SodaFrame(wxFrame):
             self.endLoginIdle()
         elif self.state == STATE_LOGIN:
             self.endLogin()
+        elif self.state == STATE_PASSWORD:
+            self.endPassword()
         elif self.state == STATE_PURCHASE:
             self.endPurchase()
         else:
@@ -112,6 +159,8 @@ class SodaFrame(wxFrame):
             self.beginLoginIdle()
         elif new_state == STATE_LOGIN:
             self.beginLogin()
+        elif new_state == STATE_PASSWORD:
+            self.beginPassword()
         elif new_state == STATE_PURCHASE:
             self.beginPurchase()
         else:
@@ -123,11 +172,12 @@ class SodaFrame(wxFrame):
     # Functions associated with the LoginIdle State
     #
     def makeLoginIdlePanel(self):
-        self.idlePanel = wxPanel(self, -1, wxPoint(0,0), self.GetSize())
+        self.idlePanel = SodaPanel(self, -1, wxPoint(0,0), self.GetSize())
+
         self.idlePanelSizer = wxBoxSizer(wxVERTICAL)
-        self.idlePanelSizer.Add(wxButton(self.idlePanel, ID_LOGIN, 'Login'), 0)
+        self.idlePanel.LeftBarSizer.Add(SodaButton(self.idlePanel, ID_LOGIN, 'Login'), 0)
         self.Bind(EVT_BUTTON, self.onLogin, id=ID_LOGIN)
-        self.idlePanel.SetSizer(self.idlePanelSizer)
+
         self.idlePanel.Layout()
         self.idlePanel.Show(false)
 
@@ -146,11 +196,37 @@ class SodaFrame(wxFrame):
     # Functions associated with the Login State
     #
     def makeLoginPanel(self):
-        self.loginPanel = wxPanel(self, -1, wxPoint(0,0), self.GetSize())
-        self.loginPanelSizer = wxBoxSizer(wxVERTICAL)
-        self.loginPanelSizer.Add(wxButton(self.loginPanel, ID_DOLOGIN, 'Login'), 0)
+        self.loginPanel = SodaPanel(self, -1, wxPoint(0,0), self.GetSize())
+
+
+        self.loginPanel.LeftBarSizer.Add(SodaButton(self.loginPanel, 
+                                                  ID_DOLOGIN, 
+                                                  'Login'), 0)
+
         self.Bind(EVT_BUTTON, self.onDoLogin, id=ID_DOLOGIN)
-        self.loginPanel.SetSizer(self.loginPanelSizer)
+
+        loginInfoSizer = wxBoxSizer(wxHORIZONTAL)
+
+        loginLabel = wxStaticText(
+                self.loginPanel,
+                -1,
+                "Login:"
+                )
+
+        loginInfoSizer.Add(loginLabel)
+
+        self.loginInput = wxTextCtrl(
+                self.loginPanel, 
+                -1,
+                "",
+                wxDefaultPosition,
+                wxSize(200, -1) # XXX
+                )
+
+        loginInfoSizer.Add(self.loginInput)
+
+        self.loginPanel.ContentSizer.Add(loginInfoSizer)
+
         self.loginPanel.Layout()
         self.loginPanel.Show(false)
 
@@ -163,7 +239,12 @@ class SodaFrame(wxFrame):
         print "endLogin"
 
     def onDoLogin(self, event):
-        self.changeState(STATE_PURCHASE)
+        login = self.loginInput.GetLineText(0)
+
+        if len(login) > 0:
+            self.querytag = servio.genTag()
+            self.bus.send(["LOGIN",
+                           login])
 
     def onLoginEvent(self, event):
         print "Login Event"
@@ -173,14 +254,91 @@ class SodaFrame(wxFrame):
         self.timeout = int(event.timeout)
         self.changeState(STATE_PURCHASE)
 
+    def onPasswordEvent(self, event):
+        print "Password Event"
+        self.user = event.user
+        self.balance = event.balance
+        self.timeout = int(event.ttl)
+        self.hash = event.hash
+        self.changeState(STATE_PASSWORD)
+
+    # 
+    # Functions associated with the Password State
+    #
+    def makePasswordPanel(self):
+        self.passwordPanel = SodaPanel(self, -1, wxPoint(0,0), self.GetSize())
+
+        self.passwordPanel.LeftBarSizer.Add(SodaButton(self.passwordPanel, 
+                                                  ID_DOPASSWORD, 
+                                                  'Login'), 0)
+
+        self.Bind(EVT_BUTTON, self.onDoPassword, id=ID_DOPASSWORD)
+
+        passwordInfoSizer = wxBoxSizer(wxHORIZONTAL)
+
+        self.passwordLabel = wxStaticText(
+                self.passwordPanel,
+                -1,
+                "Password for :"
+                )
+
+        passwordInfoSizer.Add(self.passwordLabel)
+
+        self.passwordInput = wxTextCtrl(
+                self.passwordPanel, 
+                -1,
+                "",
+                wxDefaultPosition,
+                wxSize(200, -1), # XXX
+                wxPASSWORD
+                )
+
+        passwordInfoSizer.Add(self.passwordInput)
+
+        self.passwordPanel.ContentSizer.Add(passwordInfoSizer)
+
+        self.passwordPanel.Layout()
+        self.passwordPanel.Show(false)
+
+    def beginPassword(self):
+        labelstr = ' '.join(["Password for", self.user, ": "])
+        print "Label: " + labelstr
+
+        self.passwordLabel.SetLabel(labelstr)
+        self.passwordPanel.Layout()
+        self.passwordPanel.Show(true)
+
+        self.passwordCount = self.passwordLimit
+        print "beginPassword"
+
+    def endPassword(self):
+        self.passwordLabel.SetLabel("Password: ")
+        self.passwordPanel.Show(false)
+        print "endPassword"
+
+    def onDoPassword(self, event):
+        password = self.passwordInput.GetLineText(0)
+        self.passwordInput.Clear()
+
+        if self.hash is not None:
+            if crypt.crypt(password, self.hash) == self.hash:
+                self.bus.send(["LOGIN", self.user, self.balance])
+                return
+    
+        self.passwordCount = self.passwordCount - 1
+
+        if self.passwordCount == 0:
+            self.bus.send(["LOGIN-DENIED", self.user])
+            self.changeState(STATE_LOGIN_IDLE)
+
     #
     # Functions associated with the Purchase State
     #
     def makePurchasePanel(self):
-        self.purchasePanel = wxPanel(self, -1, wxPoint(0,0), self.GetSize())
-        self.purchasePanelSizer = wxBoxSizer(wxVERTICAL)
-        self.purchasePanelSizer.Add(
-                                    wxButton(
+        self.purchasePanel = SodaPanel(self, -1, wxPoint(0,0), self.GetSize())
+
+        self.purchasePanel.LeftBarSizer.Add(
+                                    SodaButton(
                                              self.purchasePanel, 
                                              ID_LOGOUT, 
                                              'Logout'
@@ -203,18 +361,29 @@ class SodaFrame(wxFrame):
                                                    -1,
                                                    "TimerLabel"
                                                    )
-        self.purchasePanelSizer.Add(self.purchasePanelUserLabel)
-        self.purchasePanelSizer.Add(self.purchasePanelBalanceLabel)
-        self.purchasePanelSizer.Add(self.purchasePanelTimerLabel)
+
+        self.purchasePanel.ContentSizer.Add(self.purchasePanelUserLabel)
+        self.purchasePanel.ContentSizer.Add(self.purchasePanelBalanceLabel)
+        self.purchasePanel.ContentSizer.Add(self.purchasePanelTimerLabel)
+
+        self.purchaseLog = wxStaticText(
+                                        self.purchasePanel,
+                                        -1,
+                                        "",
+                                        wxDefaultPosition,
+                                        wxSize(400, -1)
+                                        )
+
+        self.purchasePanel.ContentSizer.Add(self.purchaseLog)
 
         self.Bind(EVT_BUTTON, self.onLogout, id=ID_LOGOUT)
-        self.purchasePanel.SetSizer(self.purchasePanelSizer)
+
         self.purchasePanel.Layout()
         self.purchasePanel.Show(false)
 
         self.purchaseTimer = wxTimer(self, 0)
         self.Bind(EVT_TIMER, self.onPurchaseTimerFire)
-     
+
         self.purchaseTimer.Stop()
 
     def beginPurchase(self):
@@ -239,12 +408,16 @@ class SodaFrame(wxFrame):
         wx.PostEvent(self, evt)
 
     def onLogoutEvent(self, event):
-        # Do other stuff ? (Write to ServIO?)
+        self.bus.send(["LOGOUT"])
         self.changeState(STATE_LOGIN_IDLE)
 
     def onBoughtEvent(self, event):
         self.balance = event.balance
         self.timeout = int(event.timeout)
+
+        self.purchaseLog.SetLabel(
+                self.purchaseLog.GetLabel() + "\n" + event.item 
+                                 )
 
         print "Bought Event: " + event.item
 
@@ -254,15 +427,12 @@ class SodaFrame(wxFrame):
                 str(self.timeout))
 
     def onPurchaseTimerFire(self, event):
-        self.timeout = self.timeout - 1
-        if self.timeout <=  0:
-            evt = LogoutEvent()
-            wx.PostEvent(self, evt)
+        self.timeout = max(self.timeout - 1, 0)
+        #if self.timeout <=  0:
+        #    evt = LogoutEvent()
+        #    wx.PostEvent(self, evt)
 
         self.updatePurchaseTimerLabel()
-
-
-
 
     #
     # ServIO callback handlers.
@@ -295,6 +465,13 @@ class SodaFrame(wxFrame):
                               item=values["item"])
             wx.PostEvent(self, evt)
 
+        elif msg == "PASSWORD":
+            evt = PasswordEvent(user=values["login"],
+                                balance=values["balance"],
+                                hash=values["hash"],
+                                ttl=values["TTL"])
+            wx.PostEvent(self, evt)
+
         else:
             print "unknown msg: " + msg
 
@@ -320,25 +497,26 @@ class SodaFrame(wxFrame):
 
 class SodaApp(wxApp):
     def OnInit(self):
-        frame = SodaFrame(NULL, -1, "Hello World")
+        self.bus = servio.ServIO("PySodaGui", "0.0")
+        self.bus.defaultHandler(servio.noop_handler)
+
+        frame = SodaFrame(NULL, -1, "Hello World", self.bus)
         frame.Show(true)
         self.SetTopWindow(frame)
 
-        bus = servio.ServIO("PySodaGui", "0.0")
 
-        bus.defaultHandler(servio.noop_handler)
 
-        bus.watchMessage("UI-OPEN", frame.handleUiOpen)
-        bus.watchMessage("MOZ-OPEN", frame.handleUiOpen)
-        bus.watchMessage("SYS-SET", frame.handleSysSet)
+        self.bus.watchMessage("UI-OPEN", frame.handleUiOpen)
+        self.bus.watchMessage("MOZ-OPEN", frame.handleUiOpen)
+        self.bus.watchMessage("SYS-SET", frame.handleSysSet)
 
-        self.bus_thread = threading.Thread(target=bus.receive)
+        self.bus_thread = threading.Thread(target=self.bus.receive)
         self.bus_thread.start()
 
         return true
 
     def Exit(self):
-        self.bus_thread.exit()
+        self.bus.exit()
 
 app = SodaApp(0)
 app.MainLoop()

@@ -3,9 +3,12 @@ import select
 import os
 import sys
 import threading
+import random
 
 # XXX We don't check env vars for addr/port
 
+def genTag():
+    return str(random.randint(0,1<<32))
 
 def echo_handler(data):
     print "E~" + " | ".join(data)

@@ -7,6 +7,8 @@ import sys
 import random
 import mozui
 
+from servio import genTag
+
 # Verified FP Learn
 # Verified FP Login
 # Verified Barcode Vend
@@ -15,9 +17,6 @@ import mozui
 
 
 # Escrow is broken in MDB
-
-def genTag():
-    return str(random.randint(0,1<<32))
 
 class SodaUser:
     fp_learn_count = 3
@@ -34,9 +33,10 @@ class SodaUser:
         self.anon = anon        # User is anonymous.  Escrow mode.
         self.login = login
         self.timeout = timeout
-        self.ttl = timeout
         self.balance = int(balance)
         self.servio = servio
+
+        self.resetTTL()
 
         self.vend_in_progress = False
         self.barcode_vend_in_progress = False
@@ -111,14 +111,13 @@ class SodaUser:
         '''
         Return true if the time has expired
         '''
-        self.ttl = self.ttl - 1
         self.ui.showTick(self)
         self.ui.updateBalance(self)
-        return self.ttl <= 0
+        return self.getTTL() <= 0
 
     def resetTTL(self):
         # Kick UI
-        self.ttl = self.timeout
+        self.time = int(time.time())
 
     def isAnon(self):
         return self.anon
@@ -137,7 +136,7 @@ class SodaUser:
         return self.login
 
     def getTTL(self):
-        return self.ttl
+        return self.time + self.timeout - int(time.time())
 
     def setUserPref(self, pref, value):
         print "User Pref " + pref + " " + value
@@ -199,7 +198,6 @@ class SodaUser:
             else:
                 print "Purchase request for " + self.item['name'] + " approved"
                 self.servio.send(["VEND-APPROVED"])
-                self.ui.vendComplete(self, self.item['name'])
                 self.resetTTL()
 
             return False
@@ -207,7 +205,6 @@ class SodaUser:
         elif self.barcode_vend_in_progress and item['tag'] == self.barcodequerytag:
             self.item = item
 
-            self.ui.vendComplete(self, self.item['name'])
             self.resetTTL()
 
             return self.endBarCodeSuccess()
@@ -236,8 +233,12 @@ class SodaUser:
                          self.item['barcode']])
         print "Charged " + self.login + ": " + str(self.item['price']) + "c"
 
+        print "Pre-Balance: " + str(self.getBalance())
         # Strictly to update the GUI
         self.setBalance(self.balance - self.item['price'])
+        print "Post-Balance: " + str(self.getBalance())
+
+        self.ui.vendComplete(self, self.item['name'])
 
         if self.anon:
             self.servio.send(["BOBDB-DEPOSIT",
@@ -377,7 +378,7 @@ class SodaBackend:
     vmcTTL = vmcTimeout
 
     def __init__(self):
-        self.bus = servio.ServIO(self.appname, "0.0")
+        self.bus = servio.ServIO(self.appname, "1.0")
 
         self.bus.defaultHandler(servio.noop_handler)
 
