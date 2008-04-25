@@ -3,6 +3,22 @@
 # IN PROGRESS
 # export PYTHONPATH=`pwd`/../lib
 
+# Messages:
+# UI-LOGGEDIN | user | balance | ttl | anonymous [01]
+# - Go to the login screen
+# UI-PASSWORD | user | balance | hash | tries | ttl
+# - Go to the password query screen
+# UI-BOUGHT   | item | price | balance | ttl
+# - Notify the user of a purchase
+# UI-TTL      | ttl
+# - Reset the TTL
+# UI-BALANCE balance
+# - Set the balance
+# UI-LOGGEDOUT
+# - Return to Login-Idle Screen
+# UI-NOTICE | notice | color
+# - Issue a notice to a logged in user
+
 from wxPython.wx import *
 import servio
 import threading
@@ -14,6 +30,7 @@ ID_LOGIN   = 103
 ID_DOLOGIN = 104
 ID_DOPASSWORD = 105
 ID_KEYBOARD   = 106
+ID_CANCEL     = 107
 
 STATE_LOGIN_IDLE = 1
 STATE_LOGIN      = 2
@@ -24,6 +41,8 @@ LogoutEvent, EVT_LOGOUT_EVENT = wx.lib.newevent.NewEvent()
 LoginEvent, EVT_LOGIN_EVENT = wx.lib.newevent.NewEvent()
 PasswordEvent, EVT_PASSWORD_EVENT = wx.lib.newevent.NewEvent()
 BoughtEvent, EVT_BOUGHT_EVENT = wx.lib.newevent.NewEvent()
+TtlEvent, EVT_TTL_EVENT = wx.lib.newevent.NewEvent()
+BalanceEvent, EVT_BALANCE_EVENT = wx.lib.newevent.NewEvent()
 
 bus = None
 
@@ -202,7 +221,8 @@ class SodaKeyBoard(wxPanel):
 
 class SodaButton(wxButton):
     def __init__(self, parent, ID, Text):
-        wxButton.__init__(self, parent, ID, Text)
+        wxButton.__init__(self, parent, ID, Text,
+                size=wxSize(SodaPanel.leftBarWidth, -1))
 
         # Hackomatic
         self.SetBackgroundColour(parent.GetBackgroundColour())
@@ -213,6 +233,10 @@ class SodaButton(wxButton):
         self.SetFont(font)
 
 class SodaPanel(wxPanel):
+    leftBarWidth = 150
+    topBarHeight = 50
+    leftBarColour = 'ORANGE'
+
     def __init__(self, parent, ID, pos, size):
         wxPanel.__init__(self, parent, ID, pos, size)
 
@@ -224,7 +248,24 @@ class SodaPanel(wxPanel):
         self.VertSizer = wxBoxSizer(wxVERTICAL)
 
         # Top Padding
-        self.VertSizer.AddSpacer(wxSize(-1,50))
+        self.TopSpaceSizer = wxBoxSizer(wxHORIZONTAL)
+
+        self.TopSpaceSizer.AddSpacer(wxSize(self.leftBarWidth,
+                                            self.topBarHeight))
+
+        self.StatusLabel = wxStaticText(self, -1, "Status: ",
+                                        size = wxSize(-1, self.topBarHeight),
+                                        style = wxALIGN_LEFT)
+
+        self.TopSpaceSizer.Add(self.StatusLabel, 0)
+
+        self.StatusTextLabel = wxStaticText(self, -1, "Idle")
+
+        self.TopSpaceSizer.Add(self.StatusTextLabel, 1)
+
+
+
+        self.VertSizer.Add(self.TopSpaceSizer)
 
         self.MainSizer = wxBoxSizer(wxHORIZONTAL)
 
@@ -232,10 +273,9 @@ class SodaPanel(wxPanel):
 
         leftBarTopSpacer = wxStaticText(self, 
                                   -1, 
-                                  "", 
+                                  "",
                                   wxDefaultPosition, 
-                                  wxSize(150,25))
-
+                                  wxSize(self.leftBarWidth,25))
         self.LeftBarSizer.Add(leftBarTopSpacer)
 
         self.ContentSizer = wxBoxSizer(wxVERTICAL)
@@ -251,11 +291,85 @@ class SodaPanel(wxPanel):
         """
         Wraps all the parameters for adding a button to the left bar.
         """
+
         self.LeftBarSizer.Add(
                     Widget,
                     1, # re-proportion
                     wxALIGN_CENTER_HORIZONTAL
                     )
+
+        # leftBarSpacer = wxPanel(self, 
+        #                           -1, 
+        #                           wxDefaultPosition, 
+        #                           wxSize(self.leftBarWidth,25))
+
+        # leftBarSpacer.SetOwnBackgroundColour(self.leftBarColour)
+        # self.LeftBarSizer.Add(leftBarSpacer, 1, wxALIGN_CENTER)
+
+    def SetStatusText(self, text, colour='WHITE'):
+        self.StatusTextLabel.SetLabel(text)
+        self.StatusTextLabel.SetForegroundColour(colour)
+
+
+class SodaPurchasePanel(SodaPanel):
+    def __init__(self, parent, ID, pos, size):
+        SodaPanel.__init__(self, parent, ID, pos, size)
+
+        self.AddLeftButton(
+                SodaButton(
+                    self,
+                    ID_LOGOUT, 
+                    'Logout'
+                    )
+                                   )
+
+        self.UserLabel = wxStaticText(
+                self,
+                -1,
+                "UserLabel"
+                )
+        self.BalanceLabel = wxStaticText(
+                self,
+                -1,
+                "BalanceLabel"
+                )
+        self.TimerLabel = wxStaticText(
+                self,
+                -1,
+                "TimerLabel"
+                )
+
+        self.ContentSizer.Add(self.UserLabel)
+        self.ContentSizer.Add(self.BalanceLabel)
+        self.ContentSizer.Add(self.TimerLabel)
+
+        self.purchaseLog = wxStaticText(
+                                        self,
+                                        -1,
+                                        "",
+                                        wxDefaultPosition,
+                                        wxSize(400, -1)
+                                        )
+
+        self.ContentSizer.Add(self.purchaseLog)
+
+    def SetUser(self, user):
+        self.UserLabel.SetLabel("User: " + user)
+
+    def SetBalance(self, balance):
+        self.BalanceLabel.SetLabel("Balance: " + str(balance))
+
+    def SetTTL(self, ttl):
+        self.TimerLabel.SetLabel("Timeout in " + str(ttl) + " seconds")
+
+    def AddLog(self, message):
+        self.purchaseLog.SetLabel(self.purchaseLog.GetLabel() + "\n" + message)
+
+    def Clear(self):
+        self.UserLabel.SetLabel("")
+        self.BalanceLabel.SetLabel("")
+        self.TimerLabel.SetLabel("")
+        self.purchaseLog.SetLabel("")
 
 
 class SodaFrame(wxFrame):
@@ -332,6 +446,8 @@ class SodaFrame(wxFrame):
         self.Bind(EVT_PASSWORD_EVENT, self.onPasswordEvent)
         self.Bind(EVT_LOGOUT_EVENT, self.onLogoutEvent)
         self.Bind(EVT_BOUGHT_EVENT, self.onBoughtEvent)
+        self.Bind(EVT_TTL_EVENT, self.onTtlEvent)
+        self.Bind(EVT_BALANCE_EVENT, self.onBalanceEvent)
 
         self.beginLoginIdle()
 
@@ -383,6 +499,8 @@ class SodaFrame(wxFrame):
 
         self.Bind(EVT_BUTTON, self.onLogin, id=ID_LOGIN)
 
+        self.idlePanel.SetStatusText("Idle")
+
         self.idlePanel.Layout()
         self.idlePanel.Show(false)
 
@@ -408,7 +526,12 @@ class SodaFrame(wxFrame):
                                                   ID_DOLOGIN, 
                                                   'Login'))
 
+        self.loginPanel.AddLeftButton(SodaButton(self.loginPanel,
+                                                 ID_CANCEL,
+                                                 'Cancel'))
+
         self.Bind(EVT_BUTTON, self.onDoLogin, id=ID_DOLOGIN)
+        self.Bind(EVT_BUTTON, self.onLoginCancel, id=ID_CANCEL)
 
         loginInfoSizer = wxBoxSizer(wxHORIZONTAL)
 
@@ -437,6 +560,8 @@ class SodaFrame(wxFrame):
         self.loginPanel.ContentSizer.Add(SodaKeyBoard(self.loginPanel,
             -1, wxDefaultPosition, wxSize(400, 400), self.loginInput))
 
+        self.loginPanel.SetStatusText('Authenticating', 'YELLOW')
+
         self.loginPanel.Layout()
         self.loginPanel.Show(false)
 
@@ -445,6 +570,7 @@ class SodaFrame(wxFrame):
         print "beginLogin"
 
     def endLogin(self):
+        self.loginInput.Clear()
         self.loginPanel.Show(false)
         print "endLogin"
 
@@ -456,6 +582,10 @@ class SodaFrame(wxFrame):
             self.querytag = servio.genTag()
             self.bus.send(["LOGIN",
                            login])
+
+    def onLoginCancel(self, event):
+        # Inputs are cleared by the end* functions.
+        self.changeState(STATE_LOGIN_IDLE)
 
     def onLoginEvent(self, event):
         print "Login Event"
@@ -483,6 +613,10 @@ class SodaFrame(wxFrame):
                                                   ID_DOPASSWORD, 
                                                   'Login'))
 
+        self.passwordPanel.AddLeftButton(SodaButton(self.passwordPanel,
+                                                 ID_CANCEL,
+                                                 'Cancel'))
+
         self.Bind(EVT_BUTTON, self.onDoPassword, id=ID_DOPASSWORD)
 
         passwordInfoSizer = wxBoxSizer(wxHORIZONTAL)
@@ -490,7 +624,7 @@ class SodaFrame(wxFrame):
         self.passwordLabel = wxStaticText(
                 self.passwordPanel,
                 -1,
-                "Password for :",
+                "Password:",
                 style=wxALIGN_RIGHT
                 )
 
@@ -516,18 +650,13 @@ class SodaFrame(wxFrame):
         self.passwordPanel.Show(false)
 
     def beginPassword(self):
-        labelstr = ' '.join(["Password for", self.user, ": "])
-        print "Label: " + labelstr
-
-        self.passwordLabel.SetLabel(labelstr)
-        self.passwordPanel.Layout()
+        self.passwordPanel.SetStatusText('Authenticating ' + self.user, 'YELLOW')
         self.passwordPanel.Show(true)
-
         self.passwordCount = self.passwordLimit
         print "beginPassword"
 
     def endPassword(self):
-        self.passwordLabel.SetLabel("Password: ")
+        self.passwordInput.Clear()
         self.passwordPanel.Show(false)
         print "endPassword"
 
@@ -550,47 +679,12 @@ class SodaFrame(wxFrame):
     # Functions associated with the Purchase State
     #
     def makePurchasePanel(self):
-        self.purchasePanel = SodaPanel(self, -1, wxPoint(0,0), self.GetSize())
+        self.purchasePanel = SodaPurchasePanel(self, 
+                                               -1, 
+                                               wxPoint(0,0), 
+                                               self.GetSize())
 
-        self.purchasePanel.AddLeftButton(
-                                    SodaButton(
-                                             self.purchasePanel, 
-                                             ID_LOGOUT, 
-                                             'Logout'
-                                            )
-                                   )
-
-        self.purchasePanelUserLabel = wxStaticText(
-                                                   self.purchasePanel,
-                                                   -1,
-                                                   "UserLabel"
-                                                   )
-        self.purchasePanelBalanceLabel = wxStaticText(
-                                                   self.purchasePanel,
-                                                   -1,
-                                                   "BalanceLabel"
-                                                   )
-        self.purchasePanelTimerLabel = wxStaticText(
-                                                   self.purchasePanel,
-                                                   -1,
-                                                   "TimerLabel"
-                                                   )
-
-        self.purchasePanel.ContentSizer.Add(self.purchasePanelUserLabel)
-        self.purchasePanel.ContentSizer.Add(self.purchasePanelBalanceLabel)
-        self.purchasePanel.ContentSizer.Add(self.purchasePanelTimerLabel)
-
-        self.purchaseLog = wxStaticText(
-                                        self.purchasePanel,
-                                        -1,
-                                        "",
-                                        wxDefaultPosition,
-                                        wxSize(400, -1)
-                                        )
-
-        self.purchasePanel.ContentSizer.Add(self.purchaseLog)
-
-        self.Bind(EVT_BUTTON, self.onLogout, id=ID_LOGOUT)
+        self.purchasePanel.Bind(EVT_BUTTON, self.onLogout, id=ID_LOGOUT)
 
         self.purchasePanel.Layout()
         self.purchasePanel.Show(false)
@@ -601,9 +695,10 @@ class SodaFrame(wxFrame):
         self.purchaseTimer.Stop()
 
     def beginPurchase(self):
+        self.purchasePanel.SetStatusText('Ready for ' + self.user, 'GREEN')
+        self.purchasePanel.SetUser(self.user)
+        self.purchasePanel.SetBalance(self.balance)
         # These vars should be setup by the onLoginEvent
-        self.purchasePanelUserLabel.SetLabel("User: " + self.user)
-        self.purchasePanelBalanceLabel.SetLabel("Balance: " + self.balance)
         self.updatePurchaseTimerLabel()
 
         # Kick off the timer.
@@ -613,8 +708,7 @@ class SodaFrame(wxFrame):
         print "beginPurchase"
 
     def endPurchase(self):
-        self.purchaseTimer.Stop()
-        self.purchasePanel.Show(false)
+        self.purchasePanel.Clear()
         print "endPurchase"
 
     def onLogout(self, event):
@@ -627,18 +721,25 @@ class SodaFrame(wxFrame):
 
     def onBoughtEvent(self, event):
         self.balance = event.balance
-        self.timeout = int(event.timeout)
+        self.timeout = int(event.ttl)
 
-        self.purchaseLog.SetLabel(
-                self.purchaseLog.GetLabel() + "\n" + event.item 
-                                 )
+        self.purchasePanel.SetBalance(self.balance)
+        self.purchasePanel.AddLog(event.item + " for " + event.price)
 
         print "Bought Event: " + event.item
 
+    def onTtlEvent(self, event):
+        self.timeout = int(event.timeout)
+        print "Ttl Event"
+
+    def onBalanceEvent(self, event):
+        self.balance = int(event.balance)
+        self.purchasePanel.SetBalance(self.balance)
+        print "Balance Event"
+
     # Gui helper
     def updatePurchaseTimerLabel(self):
-        self.purchasePanelTimerLabel.SetLabel("time left: " +
-                str(self.timeout))
+        self.purchasePanel.SetTTL(str(self.timeout))
 
     def onPurchaseTimerFire(self, event):
         self.timeout = max(self.timeout - 1, 0)
@@ -651,11 +752,6 @@ class SodaFrame(wxFrame):
     #
     # ServIO callback handlers.
     #
-    def handleFpGoodRead(self, data):
-        print "handleFpGoodRead"
-        # Issue via wxPostEvent to avoid thread problems
-        evt = LoginEvent(user="foobar", balance="whee", timeout=60)
-        wx.PostEvent(self, evt)
 
     def handleIndexPhp(self, msg, values):
         '''
@@ -672,7 +768,6 @@ class SodaFrame(wxFrame):
             wx.PostEvent(self, evt)
 
         elif msg == "BOUGHT":
-            # The balance here is not the post-purchase balance
             evt = BoughtEvent(user=values["login"],
                               balance=values["balance"],
                               timeout=values["TTL"],
@@ -707,7 +802,38 @@ class SodaFrame(wxFrame):
             if data[2] == "real_location":
                 self.handleUiOpen(["UI-OPEN",data[4]])
 
+    def handleUiLoggedIn(self, data):
+        evt = LoginEvent(user=data[1],
+                balance=data[2],
+                timeout=data[3],
+                anonymous=data[4])
+        wx.PostEvent(self, evt)
 
+    def handleUiLoggedOut(self, data):
+        evt = LogoutEvent()
+        wx.PostEvent(self, evt)
+
+    def handleUiPassword(self, data):
+        evt = PasswordEvent(user=data[1],
+                            balance=data[2],
+                            hash=data[3],
+                            ttl=data[4])
+        wx.PostEvent(self, evt)
+
+    def handleUiBought(self,data):
+        evt = BoughtEvent(item=data[1],
+                price=data[2],
+                balance=data[3],
+                ttl=data[4])
+        wx.PostEvent(self, evt)
+
+    def handleUiBalance(self,data):
+        evt = BalanceEvent(balance=data[1])
+        wx.PostEvent(self, evt)
+
+    def handleUiTtl(self,data):
+        evt = TtlEvent(ttl=data[1])
+        wx.PostEvent(self, evt)
 
 class SodaApp(wxApp):
     def OnInit(self):
@@ -718,9 +844,16 @@ class SodaApp(wxApp):
         frame.Show(true)
         self.SetTopWindow(frame)
 
-        self.bus.watchMessage("UI-OPEN", frame.handleUiOpen)
-        self.bus.watchMessage("MOZ-OPEN", frame.handleUiOpen)
-        self.bus.watchMessage("SYS-SET", frame.handleSysSet)
+        #self.bus.watchMessage("UI-OPEN", frame.handleUiOpen)
+        #self.bus.watchMessage("MOZ-OPEN", frame.handleUiOpen)
+        #self.bus.watchMessage("SYS-SET", frame.handleSysSet)
+
+        self.bus.watchMessage("UI-LOGGEDIN", frame.handleUiLoggedIn)
+        self.bus.watchMessage("UI-LOGGEDOUT", frame.handleUiLoggedOut)
+        self.bus.watchMessage("UI-PASSWORD", frame.handleUiPassword)
+        self.bus.watchMessage("UI-BOUGHT", frame.handleUiBought)
+        self.bus.watchMessage("UI-BALANCE", frame.handleUiBalance)
+        self.bus.watchMessage("UI-TTL", frame.handleUiTtl)
 
         self.bus_thread = threading.Thread(target=self.bus.receive)
         self.bus_thread.start()
