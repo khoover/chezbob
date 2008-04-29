@@ -19,6 +19,10 @@
 # UI-NOTICE | notice | color
 # - Issue a notice to a logged in user
 
+# Purple #946ee1
+# Orange #ff9e00
+# Red    #c64549
+
 from wxPython.wx import *
 import servio
 import threading
