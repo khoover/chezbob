@@ -5,7 +5,6 @@ import threading
 import time
 import sys
 import random
-import mozui
 
 from servio import genTag
 

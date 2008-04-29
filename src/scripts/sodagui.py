@@ -29,6 +29,9 @@ import threading
 import wx.lib.newevent
 import crypt
 
+sodaBgImage = wxImage("sodagui-bg.png")
+sodaBgImageBitmap = None
+
 ID_LOGOUT  = 102
 ID_LOGIN   = 103
 ID_DOLOGIN = 104
@@ -236,9 +239,12 @@ class SodaButton(wxButton):
         font.SetPointSize(50)
         self.SetFont(font)
 
+
 class SodaPanel(wxPanel):
     leftBarWidth = 150
-    topBarHeight = 50
+    topBarHeight = 40
+    topLineHeight = 20
+    botLineHeight = 40
     leftBarColour = 'ORANGE'
 
     def __init__(self, parent, ID, pos, size):
@@ -247,6 +253,12 @@ class SodaPanel(wxPanel):
         # Hackomatic
         self.SetBackgroundColour(parent.GetBackgroundColour())
         self.SetForegroundColour(parent.GetForegroundColour())
+        
+        global sodaBgImageBitmap
+        if sodaBgImageBitmap is None:
+            sodaBgImageBitmap = sodaBgImage.ConvertToBitmap()
+
+        wxStaticBitmap(self, -1, sodaBgImageBitmap)
 
         # Build Generic Setup
         self.VertSizer = wxBoxSizer(wxVERTICAL)
@@ -257,6 +269,8 @@ class SodaPanel(wxPanel):
         self.TopSpaceSizer.AddSpacer(wxSize(self.leftBarWidth,
                                             self.topBarHeight))
 
+        self.TopSpaceSizer.AddSpacer(wxSize(30, -1)) # Move past the curve
+
         self.StatusLabel = wxStaticText(self, -1, "Status: ",
                                         size = wxSize(-1, self.topBarHeight),
                                         style = wxALIGN_LEFT)
@@ -265,11 +279,12 @@ class SodaPanel(wxPanel):
 
         self.StatusTextLabel = wxStaticText(self, -1, "Idle")
 
+
         self.TopSpaceSizer.Add(self.StatusTextLabel, 1)
 
-
-
         self.VertSizer.Add(self.TopSpaceSizer)
+
+        self.VertSizer.AddSpacer(wxSize(self.topLineHeight))
 
         self.MainSizer = wxBoxSizer(wxHORIZONTAL)
 
@@ -314,6 +329,112 @@ class SodaPanel(wxPanel):
         self.StatusTextLabel.SetLabel(text)
         self.StatusTextLabel.SetForegroundColour(colour)
 
+class SodaLoginIdlePanel(SodaPanel):
+    def __init__(self, parent, ID, pos, size):
+        SodaPanel.__init__(self, parent, ID, pos, size)
+
+        self.idlePanelSizer = wxBoxSizer(wxVERTICAL)
+
+        loginButton = SodaButton(self, ID_LOGIN, 'Login')
+
+        self.AddLeftButton(loginButton)
+
+        self.SetStatusText("Idle")
+
+class SodaLoginPanel(SodaPanel):
+    def __init__(self, parent, ID, pos, size):
+        SodaPanel.__init__(self, parent, ID, pos, size)
+
+        self.AddLeftButton(SodaButton(self,
+            ID_DOLOGIN, 
+            'Login'))
+
+        self.AddLeftButton(SodaButton(self,
+            ID_CANCEL,
+            'Cancel'))
+
+        loginInfoSizer = wxBoxSizer(wxHORIZONTAL)
+
+        loginLabel = wxStaticText(
+                self,
+                -1,
+                "Login: ",
+                style = wxALIGN_RIGHT
+                )
+
+        loginInfoSizer.Add(loginLabel, 1, wxALIGN_CENTER)
+
+        self.loginInput = wxTextCtrl(
+                self, 
+                -1,
+                "",
+                wxDefaultPosition,
+                wxSize(200, -1) # XXX
+                )
+
+        loginInfoSizer.Add(self.loginInput, 1, wxALIGN_CENTER)
+
+        self.ContentSizer.Add(loginInfoSizer)
+
+        self.ContentSizer.AddSpacer(wxSize(50,50))
+        self.ContentSizer.Add(SodaKeyBoard(self,
+            -1, wxDefaultPosition, wxSize(400, 400), self.loginInput))
+
+        self.SetStatusText('Authenticating', 'YELLOW')
+
+    def GetLogin(self):
+        return self.loginInput.GetLineText(0)
+
+    def Clear(self):
+        self.loginInput.Clear()
+
+
+class SodaPasswordPanel(SodaPanel):
+    def __init__(self, parent, ID, pos, size):
+        SodaPanel.__init__(self, parent, ID, pos, size)
+
+
+        self.AddLeftButton(SodaButton(self, 
+            ID_DOPASSWORD, 
+            'Login'))
+
+        self.AddLeftButton(SodaButton(self,
+            ID_CANCEL,
+            'Cancel'))
+
+
+        passwordInfoSizer = wxBoxSizer(wxHORIZONTAL)
+
+        self.passwordLabel = wxStaticText(
+                self,
+                -1,
+                "Password:",
+                style=wxALIGN_RIGHT
+                )
+
+        passwordInfoSizer.Add(self.passwordLabel, 1, wxALIGN_CENTER)
+
+        self.passwordInput = wxTextCtrl(
+                self, 
+                -1,
+                "",
+                wxDefaultPosition,
+                wxSize(200, -1), # XXX
+                wxPASSWORD
+                )
+
+        passwordInfoSizer.Add(self.passwordInput, 1, wxALIGN_CENTER)
+
+        self.ContentSizer.Add(passwordInfoSizer)
+        self.ContentSizer.AddSpacer(wxSize(50,50))
+        self.ContentSizer.Add(SodaKeyBoard(self,
+            -1, wxDefaultPosition, wxSize(400, 400), self.passwordInput))
+
+    def GetPassword(self):
+        return self.passwordInput.GetLineText(0)
+
+    def Clear(self):
+        self.passwordInput.Clear()
 
 class SodaPurchasePanel(SodaPanel):
     def __init__(self, parent, ID, pos, size):
@@ -374,6 +495,7 @@ class SodaPurchasePanel(SodaPanel):
         self.BalanceLabel.SetLabel("")
         self.TimerLabel.SetLabel("")
         self.purchaseLog.SetLabel("")
+
 
 
 class SodaFrame(wxFrame):
@@ -493,17 +615,12 @@ class SodaFrame(wxFrame):
     # Functions associated with the LoginIdle State
     #
     def makeLoginIdlePanel(self):
-        self.idlePanel = SodaPanel(self, -1, wxPoint(0,0), self.GetSize())
-
-        self.idlePanelSizer = wxBoxSizer(wxVERTICAL)
-
-        loginButton = SodaButton(self.idlePanel, ID_LOGIN, 'Login')
-
-        self.idlePanel.AddLeftButton(loginButton)
+        self.idlePanel = SodaLoginIdlePanel(self, 
+                                            -1, 
+                                            wxPoint(0,0), 
+                                            self.GetSize())
 
         self.Bind(EVT_BUTTON, self.onLogin, id=ID_LOGIN)
-
-        self.idlePanel.SetStatusText("Idle")
 
         self.idlePanel.Layout()
         self.idlePanel.Show(false)
@@ -523,48 +640,10 @@ class SodaFrame(wxFrame):
     # Functions associated with the Login State
     #
     def makeLoginPanel(self):
-        self.loginPanel = SodaPanel(self, -1, wxPoint(0,0), self.GetSize())
-
-
-        self.loginPanel.AddLeftButton(SodaButton(self.loginPanel, 
-                                                  ID_DOLOGIN, 
-                                                  'Login'))
-
-        self.loginPanel.AddLeftButton(SodaButton(self.loginPanel,
-                                                 ID_CANCEL,
-                                                 'Cancel'))
+        self.loginPanel = SodaLoginPanel(self, -1, wxPoint(0,0), self.GetSize())
 
         self.Bind(EVT_BUTTON, self.onDoLogin, id=ID_DOLOGIN)
         self.Bind(EVT_BUTTON, self.onLoginCancel, id=ID_CANCEL)
-
-        loginInfoSizer = wxBoxSizer(wxHORIZONTAL)
-
-        loginLabel = wxStaticText(
-                self.loginPanel,
-                -1,
-                "Login: ",
-                style = wxALIGN_RIGHT
-                )
-
-        loginInfoSizer.Add(loginLabel, 1, wxALIGN_CENTER)
-
-        self.loginInput = wxTextCtrl(
-                self.loginPanel, 
-                -1,
-                "",
-                wxDefaultPosition,
-                wxSize(200, -1) # XXX
-                )
-
-        loginInfoSizer.Add(self.loginInput, 1, wxALIGN_CENTER)
-
-        self.loginPanel.ContentSizer.Add(loginInfoSizer)
-
-        self.loginPanel.ContentSizer.AddSpacer(wxSize(50,50))
-        self.loginPanel.ContentSizer.Add(SodaKeyBoard(self.loginPanel,
-            -1, wxDefaultPosition, wxSize(400, 400), self.loginInput))
-
-        self.loginPanel.SetStatusText('Authenticating', 'YELLOW')
 
         self.loginPanel.Layout()
         self.loginPanel.Show(false)
@@ -574,13 +653,15 @@ class SodaFrame(wxFrame):
         print "beginLogin"
 
     def endLogin(self):
-        self.loginInput.Clear()
+        self.loginPanel.Clear()
         self.loginPanel.Show(false)
         print "endLogin"
 
     def onDoLogin(self, event):
-        login = self.loginInput.GetLineText(0)
-        self.loginInput.Clear()
+        login = self.loginPanel.GetLogin()
+
+        # If it fails, we'll stay here
+        self.loginPanel.Clear()
 
         if len(login) > 0:
             self.querytag = servio.genTag()
@@ -611,44 +692,12 @@ class SodaFrame(wxFrame):
     # Functions associated with the Password State
     #
     def makePasswordPanel(self):
-        self.passwordPanel = SodaPanel(self, -1, wxPoint(0,0), self.GetSize())
-
-        self.passwordPanel.AddLeftButton(SodaButton(self.passwordPanel, 
-                                                  ID_DOPASSWORD, 
-                                                  'Login'))
-
-        self.passwordPanel.AddLeftButton(SodaButton(self.passwordPanel,
-                                                 ID_CANCEL,
-                                                 'Cancel'))
+        self.passwordPanel = SodaPasswordPanel(self, 
+                                               -1, 
+                                               wxPoint(0,0), 
+                                               self.GetSize())
 
         self.Bind(EVT_BUTTON, self.onDoPassword, id=ID_DOPASSWORD)
-
-        passwordInfoSizer = wxBoxSizer(wxHORIZONTAL)
-
-        self.passwordLabel = wxStaticText(
-                self.passwordPanel,
-                -1,
-                "Password:",
-                style=wxALIGN_RIGHT
-                )
-
-        passwordInfoSizer.Add(self.passwordLabel, 1, wxALIGN_CENTER)
-
-        self.passwordInput = wxTextCtrl(
-                self.passwordPanel, 
-                -1,
-                "",
-                wxDefaultPosition,
-                wxSize(200, -1), # XXX
-                wxPASSWORD
-                )
-
-        passwordInfoSizer.Add(self.passwordInput, 1, wxALIGN_CENTER)
-
-        self.passwordPanel.ContentSizer.Add(passwordInfoSizer)
-        self.passwordPanel.ContentSizer.AddSpacer(wxSize(50,50))
-        self.passwordPanel.ContentSizer.Add(SodaKeyBoard(self.passwordPanel,
-            -1, wxDefaultPosition, wxSize(400, 400), self.passwordInput))
 
         self.passwordPanel.Layout()
         self.passwordPanel.Show(false)
@@ -660,13 +709,13 @@ class SodaFrame(wxFrame):
         print "beginPassword"
 
     def endPassword(self):
-        self.passwordInput.Clear()
+        self.passwordPanel.Clear()
         self.passwordPanel.Show(false)
         print "endPassword"
 
     def onDoPassword(self, event):
-        password = self.passwordInput.GetLineText(0)
-        self.passwordInput.Clear()
+        password = self.passwordPanel.GetPassword()
+        self.passwordPanel.Clear()
 
         if self.hash is not None:
             if crypt.crypt(password, self.hash) == self.hash:

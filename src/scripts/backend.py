@@ -5,7 +5,7 @@ import threading
 import time
 import sys
 import random
-import mozui
+import unionui
 
 from servio import genTag
 from sodauser import SodaUser
@@ -77,7 +77,7 @@ class SodaBackend:
 
         self.escrow_reject_threshold = 500
 
-        self.ui = mozui.MozUI(self.bus)
+        self.ui = unionui.UnionUI(self.bus)
 
     def handleLogin(self, data):
         # Having User and Balance Defined indicates sucessful pwless
