@@ -46,8 +46,8 @@
      gridspacingy="10px"
      inkscape:window-width="1081"
      inkscape:window-height="875"
-     inkscape:window-x="1284"
-     inkscape:window-y="90"
+     inkscape:window-x="1424"
+     inkscape:window-y="81"
      showborder="true" />
   <metadata
      id="metadata7">
@@ -295,23 +295,5 @@
        d="M 259.4016,40.499996 C 259.4016,46.834016 259.5,53.168036 259.5,59.502066"
        id="path42977"
        sodipodi:nodetypes="cc" />
-  </g>
-  <g
-     inkscape:groupmode="layer"
-     id="layer2"
-     inkscape:label="Guides"
-     style="display:none">
-    <path
-       style="fill:#ffffff;fill-rule:evenodd;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 150,0 L 150,600"
-       id="path2161" />
-    <path
-       style="fill:none;fill-rule:evenodd;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 0,50 L 800,50"
-       id="path2163" />
-    <path
-       style="fill:none;fill-rule:evenodd;stroke:#ffffff;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="M 0,580 L 800,580"
-       id="path2165" />
   </g>
 </svg>
