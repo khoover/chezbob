@@ -20,14 +20,27 @@
 # - Issue a notice to a logged in user
 
 # Purple #946ee1
+SodaPurple = '#946ee1'
 # Orange #ff9e00
+SodaOrange = '#ff9e00'
+SodaDarkOrange = '#ff9e00'
 # Red    #c64549
+SodaRed    = '#c64549'
+
+SodaLightGreen = '#aaffaa'
+
+SodaButtonColor = SodaPurple
+SodaButtonTextColor = '#000000'
+
+SodaKeyBoardFontSize = 30
+SodaStatsFontSize = 30
 
 from wxPython.wx import *
 import servio
 import threading
 import wx.lib.newevent
 import crypt
+import PHPUnserialize
 
 sodaBgImage = wxImage("sodagui-bg.png")
 sodaBgImageBitmap = None
@@ -66,6 +79,9 @@ def urldecode(url):
     print values
 
     return values
+
+def monetize(val):
+    return "$%0.2f" % (int(val) / 100.0)
 
 K_BS = 0
 K_CAPS = 1
@@ -120,12 +136,11 @@ class SodaKeyBoard(wxPanel):
         wxPanel.__init__(self, parent, ID, pos, size)
 
         font = self.GetFont()
-        font.SetPointSize(30)
+        font.SetPointSize(SodaKeyBoardFontSize)
         self.SetFont(font)
 
         self.SetBackgroundColour(parent.GetBackgroundColour())
         self.SetForegroundColour(parent.GetForegroundColour())
-
 
         self.buttons = []
         self.mode = 0
@@ -232,8 +247,8 @@ class SodaButton(wxButton):
                 size=wxSize(SodaPanel.leftBarWidth, -1))
 
         # Hackomatic
-        self.SetBackgroundColour(parent.GetBackgroundColour())
-        self.SetForegroundColour(parent.GetForegroundColour())
+        self.SetBackgroundColour(SodaButtonColor)
+        self.SetForegroundColour(SodaButtonTextColor)
 
         font = self.GetFont()
         font.SetPointSize(50)
@@ -243,8 +258,9 @@ class SodaButton(wxButton):
 class SodaPanel(wxPanel):
     leftBarWidth = 150
     topBarHeight = 40
-    topLineHeight = 20
+    topLineHeight = 40
     botLineHeight = 40
+    buttonSpacing = 2
     leftBarColour = 'ORANGE'
 
     def __init__(self, parent, ID, pos, size):
@@ -284,7 +300,7 @@ class SodaPanel(wxPanel):
 
         self.VertSizer.Add(self.TopSpaceSizer)
 
-        self.VertSizer.AddSpacer(wxSize(self.topLineHeight))
+        self.VertSizer.AddSpacer(wxSize(-1, self.topLineHeight))
 
         self.MainSizer = wxBoxSizer(wxHORIZONTAL)
 
@@ -297,7 +313,15 @@ class SodaPanel(wxPanel):
                                   wxSize(self.leftBarWidth,25))
         self.LeftBarSizer.Add(leftBarTopSpacer)
 
+        buttonTopSpacer = wxPanel(self, -1, 
+                        size=wxSize(self.leftBarWidth,
+                        self.buttonSpacing))
+        buttonTopSpacer.SetBackgroundColour('BLACK')
+        self.LeftBarSizer.Add(buttonTopSpacer)
+
         self.ContentSizer = wxBoxSizer(wxVERTICAL)
+        self.ResetContentSizer()
+
 
         self.MainSizer.Add(self.LeftBarSizer)
         self.MainSizer.Add(self.ContentSizer)
@@ -305,6 +329,17 @@ class SodaPanel(wxPanel):
         self.VertSizer.Add(self.MainSizer)
 
         self.SetSizer(self.VertSizer)
+
+    def ResetContentSizer(self):
+        self.ContentSizer.Clear()
+
+        # Force the content sizer as wide as the area.
+        self.ContentSizer.AddSpacer(
+                wxSize(self.GetContentWidth(), 0))
+
+    def GetContentWidth(self):
+        return self.GetSize().GetWidth() - self.leftBarWidth
+
 
     def AddLeftButton(self, Widget):
         """
@@ -317,29 +352,90 @@ class SodaPanel(wxPanel):
                     wxALIGN_CENTER_HORIZONTAL
                     )
 
-        # leftBarSpacer = wxPanel(self, 
-        #                           -1, 
-        #                           wxDefaultPosition, 
-        #                           wxSize(self.leftBarWidth,25))
+        buttonSpacer = wxPanel(self, -1, 
+                        size=wxSize(self.leftBarWidth,
+                        self.buttonSpacing))
+        buttonSpacer.SetBackgroundColour('BLACK')
 
-        # leftBarSpacer.SetOwnBackgroundColour(self.leftBarColour)
-        # self.LeftBarSizer.Add(leftBarSpacer, 1, wxALIGN_CENTER)
+        self.LeftBarSizer.Add(buttonSpacer)
 
     def SetStatusText(self, text, colour='WHITE'):
         self.StatusTextLabel.SetLabel(text)
         self.StatusTextLabel.SetForegroundColour(colour)
 
 class SodaLoginIdlePanel(SodaPanel):
+    sodaStatsPath = "/var/soda/stockcount.psr"
+
     def __init__(self, parent, ID, pos, size):
         SodaPanel.__init__(self, parent, ID, pos, size)
 
         self.idlePanelSizer = wxBoxSizer(wxVERTICAL)
 
-        loginButton = SodaButton(self, ID_LOGIN, 'Login')
+        loginButton = SodaButton(self, ID_LOGIN, 'LOGIN')
 
         self.AddLeftButton(loginButton)
 
         self.SetStatusText("Idle")
+
+        self.unserializer = PHPUnserialize.PHPUnserialize()
+
+    def MakeSodaStatsPanel(self):
+        file = open(self.sodaStatsPath, "r")
+        stats = self.unserializer.unserialize(file.read())
+        file.close()
+
+        stats_keys = filter(lambda x: x != "r10", stats.keys())
+        stats_list = [(stats[key]["sold"], stats[key]["name"]) for key in stats_keys]
+        stats_list.sort(cmp=lambda x,y:cmp(y,x))
+
+        self.ResetContentSizer()
+    
+        padding = 10
+        cw = self.GetContentWidth() - padding * 2
+
+        font = self.GetFont()
+        font.SetPointSize(SodaStatsFontSize)
+
+        for val in stats_list:
+            sizer = wxBoxSizer(wxHORIZONTAL)
+
+            w = cw * 0.75 * val[0] / stats_list[0][0]
+
+            label = wxStaticText(self,   
+                                       -1, 
+                                       val[1],
+                                       wxDefaultPosition,
+                                       wxSize(cw * 0.25, -1))
+
+            label.SetForegroundColour(SodaOrange)
+            label.SetFont(font)
+
+            numberSizer = wxBoxSizer(wxVERTICAL)
+
+            numberPanel = wxPanel(self, -1)
+            number = wxStaticText(numberPanel,   
+                                       -1, 
+                                       str(val[0]),
+                                       wxDefaultPosition,
+                                       wxSize(w, SodaStatsFontSize*1.5),
+                                       style=wxALIGN_RIGHT)
+            number.SetFont(font)
+    
+            numberPanel.SetBackgroundColour(SodaLightGreen)
+            numberPanel.SetSizer(numberSizer)
+
+            numberSizer.Add(number, proportion=0)
+            #numberSizer.AddSpacer(wxSize(-1,10))
+
+            sizer.AddSpacer(wxSize(padding, -1))
+            sizer.Add(label)
+            sizer.Add(numberPanel)
+
+            self.ContentSizer.Add(sizer)
+            print str(val) + " | " + str(w)
+
+        self.ContentSizer.Layout()
+
 
 class SodaLoginPanel(SodaPanel):
     def __init__(self, parent, ID, pos, size):
@@ -347,11 +443,11 @@ class SodaLoginPanel(SodaPanel):
 
         self.AddLeftButton(SodaButton(self,
             ID_DOLOGIN, 
-            'Login'))
+            'LOGIN'))
 
         self.AddLeftButton(SodaButton(self,
             ID_CANCEL,
-            'Cancel'))
+            'CANCEL'))
 
         loginInfoSizer = wxBoxSizer(wxHORIZONTAL)
 
@@ -378,7 +474,8 @@ class SodaLoginPanel(SodaPanel):
 
         self.ContentSizer.AddSpacer(wxSize(50,50))
         self.ContentSizer.Add(SodaKeyBoard(self,
-            -1, wxDefaultPosition, wxSize(400, 400), self.loginInput))
+            -1, wxDefaultPosition, wxSize(400, 400), self.loginInput),
+            flag=wxALIGN_CENTER, proportion=1)
 
         self.SetStatusText('Authenticating', 'YELLOW')
 
@@ -448,24 +545,57 @@ class SodaPurchasePanel(SodaPanel):
                     )
                                    )
 
+        self.UserSalutations = wxStaticText(
+                self,
+                -1,
+                "Hello "
+                )
         self.UserLabel = wxStaticText(
                 self,
                 -1,
-                "UserLabel"
+                "UserLabel",
+                style=wxALIGN_LEFT
+                )
+        self.UserLabel.SetForegroundColour(SodaDarkOrange)
+
+        self.UserLabelComma = wxStaticText(
+                self,
+                -1,
+                ","
+                )
+
+        self.UserSizer = wxBoxSizer(wxHORIZONTAL)
+
+        self.UserSizer.Add(self.UserSalutations)
+        self.UserSizer.Add(self.UserLabel)
+        self.UserSizer.Add(self.UserLabelComma)
+
+
+        self.BalanceText = wxStaticText(
+                self,
+                -1,
+                "You have a Balance of "
                 )
         self.BalanceLabel = wxStaticText(
                 self,
                 -1,
                 "BalanceLabel"
                 )
+
+        self.BalanceSizer = wxBoxSizer(wxHORIZONTAL)
+        self.BalanceSizer.Add(self.BalanceText)
+        self.BalanceSizer.Add(self.BalanceLabel)
+
         self.TimerLabel = wxStaticText(
                 self,
                 -1,
                 "TimerLabel"
                 )
 
-        self.ContentSizer.Add(self.UserLabel)
-        self.ContentSizer.Add(self.BalanceLabel)
+
+
+        self.ContentSizer.Add(self.UserSizer)
+        self.ContentSizer.Add(self.BalanceSizer)
         self.ContentSizer.Add(self.TimerLabel)
 
         self.purchaseLog = wxStaticText(
@@ -479,10 +609,11 @@ class SodaPurchasePanel(SodaPanel):
         self.ContentSizer.Add(self.purchaseLog)
 
     def SetUser(self, user):
-        self.UserLabel.SetLabel("User: " + user)
+        self.UserLabel.SetLabel(user)
+        self.UserSizer.Layout()
 
     def SetBalance(self, balance):
-        self.BalanceLabel.SetLabel("Balance: " + str(balance))
+        self.BalanceLabel.SetLabel(str(monetize(balance)))
 
     def SetTTL(self, ttl):
         self.TimerLabel.SetLabel("Timeout in " + str(ttl) + " seconds")
@@ -626,6 +757,7 @@ class SodaFrame(wxFrame):
         self.idlePanel.Show(false)
 
     def beginLoginIdle(self):
+        self.idlePanel.MakeSodaStatsPanel()
         self.idlePanel.Show(true);
         print "beginLoginIdle"
 
@@ -777,7 +909,7 @@ class SodaFrame(wxFrame):
         self.timeout = int(event.ttl)
 
         self.purchasePanel.SetBalance(self.balance)
-        self.purchasePanel.AddLog(event.item + " for " + event.price)
+        self.purchasePanel.AddLog(event.item + " for " + monetize(event.price))
 
         print "Bought Event: " + event.item
 

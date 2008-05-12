@@ -228,7 +228,7 @@ class SodaUser:
         self.setBalance(self.balance - self.item['price'])
         print "Post-Balance: " + str(self.getBalance())
 
-        self.ui.vendComplete(self, self.item['name'])
+        self.ui.vendComplete(self, self.item['name'], self.item['price'])
 
         if self.anon:
             self.servio.send(["BOBDB-DEPOSIT",

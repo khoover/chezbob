@@ -29,7 +29,7 @@ class MozUI:
                 color = "#FF0000"
 
             balanceval = '<font color="' + color + '">'\
-                          + str(balance) + '</font>'
+                          + str("$%0.2f" % (balance / 100.0)) + '</font>'
 
             self.servio.send(["MOZ-JAVASCRIPT",
                               balancestr,
