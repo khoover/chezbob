@@ -393,13 +393,17 @@ class SodaLoginIdlePanel(SodaPanel):
         padding = 10
         cw = self.GetContentWidth() - padding * 2
 
+        max = stats_list[0][0]
+        min = stats_list[-1][0]
+
         font = self.GetFont()
         font.SetPointSize(SodaStatsFontSize)
 
         for val in stats_list:
             sizer = wxBoxSizer(wxHORIZONTAL)
 
-            w = cw * 0.75 * val[0] / stats_list[0][0]
+            barpad = 20 * len(str(min)) 
+            w = (cw - barpad) * 0.75 * (val[0] - min) / max + barpad
 
             label = wxStaticText(self,   
                                        -1, 
@@ -425,14 +429,12 @@ class SodaLoginIdlePanel(SodaPanel):
             numberPanel.SetSizer(numberSizer)
 
             numberSizer.Add(number, proportion=0)
-            #numberSizer.AddSpacer(wxSize(-1,10))
 
             sizer.AddSpacer(wxSize(padding, -1))
             sizer.Add(label)
             sizer.Add(numberPanel)
 
             self.ContentSizer.Add(sizer)
-            print str(val) + " | " + str(w)
 
         self.ContentSizer.Layout()
 

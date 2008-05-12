@@ -8,6 +8,7 @@ class UnionUI:
 
     def showTick(self, sodauser):
         self.mozui.showTick(sodauser)
+        self.mozui.updateBalance(sodauser)
 
     def updateBalance(self, sodauser):
         self.mozui.updateBalance(sodauser)

@@ -102,7 +102,6 @@ class SodaUser:
         Return true if the time has expired
         '''
         self.ui.showTick(self)
-        self.ui.updateBalance(self)
         return self.getTTL() <= 0
 
     def resetTTL(self):

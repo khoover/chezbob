@@ -287,6 +287,11 @@ class SodaBackend:
 
             if amount >= self.escrow_reject_threshold:
                 self.bus.send(["CASH_REJECT"])
+                return
+
+            if amount == 0:
+                print "Not logging in without balance..."
+                return
 
             self.current_user = SodaUser(anon=True, servio=self.bus, ui=self.ui)
 
@@ -299,6 +304,7 @@ class SodaBackend:
     def handleDeposit(self, data):
         amount = int(data[1])
 
+        # XXX This may be redundant with handleEscrow above
         # Anonymous Login
         if self.current_user is None:
             self.current_user = SodaUser(anon=True, servio=self.bus, ui=self.ui)
