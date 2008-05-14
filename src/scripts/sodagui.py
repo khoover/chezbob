@@ -377,6 +377,8 @@ class SodaLoginIdlePanel(SodaPanel):
 
         self.SetStatusText("Idle")
 
+        self.statsPanel = None
+
         self.unserializer = PHPUnserialize.PHPUnserialize()
 
     def MakeSodaStatsPanel(self):
@@ -384,11 +386,20 @@ class SodaLoginIdlePanel(SodaPanel):
         stats = self.unserializer.unserialize(file.read())
         file.close()
 
+        if self.statsPanel is not None:
+            self.statsPanel.Destroy()
+
+        self.statsPanel = wxPanel(self,-1)
+        self.statsSizer = wxBoxSizer(wxVERTICAL)
+        self.statsPanel.SetSizer(self.statsSizer)
+        self.statsPanel.SetBackgroundColour(self.GetBackgroundColour())
+
         stats_keys = filter(lambda x: x != "r10", stats.keys())
         stats_list = [(stats[key]["sold"], stats[key]["name"]) for key in stats_keys]
         stats_list.sort(cmp=lambda x,y:cmp(y,x))
 
         self.ResetContentSizer()
+        self.ContentSizer.Add(self.statsPanel)
     
         padding = 10
         cw = self.GetContentWidth() - padding * 2
@@ -405,7 +416,7 @@ class SodaLoginIdlePanel(SodaPanel):
             barpad = 20 * len(str(min)) 
             w = (cw - barpad) * 0.75 * (val[0] - min) / max + barpad
 
-            label = wxStaticText(self,   
+            label = wxStaticText(self.statsPanel,   
                                        -1, 
                                        val[1],
                                        wxDefaultPosition,
@@ -416,7 +427,7 @@ class SodaLoginIdlePanel(SodaPanel):
 
             numberSizer = wxBoxSizer(wxVERTICAL)
 
-            numberPanel = wxPanel(self, -1)
+            numberPanel = wxPanel(self.statsPanel, -1)
             number = wxStaticText(numberPanel,   
                                        -1, 
                                        str(val[0]),
@@ -434,7 +445,7 @@ class SodaLoginIdlePanel(SodaPanel):
             sizer.Add(label)
             sizer.Add(numberPanel)
 
-            self.ContentSizer.Add(sizer)
+            self.statsSizer.Add(sizer)
 
         self.ContentSizer.Layout()
 
