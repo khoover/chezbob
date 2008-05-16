@@ -339,8 +339,9 @@ class SodaUser:
 
         if int(fpidr) == 0:
             print "Error Learning"
-            self.ui.fpLearnFail(self, exinfo + " " + message)
-            self.ui.fpCount(self, self.fp_learn_count)
+            self.ui.fpLearnFail(self, 
+                                self.fp_learn_count, 
+                                exinfo + " " + message)
         else:
             FPServVL.set("capture_match", None, "1")
             self.servio.send(["FP-UNPERSIST", self.login])

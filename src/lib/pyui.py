@@ -41,21 +41,20 @@ class PyUI:
                           sodauser.getBalance(),
                           sodauser.getTTL()])
 
-    def fpCount(self, sodauser, count):
-        pass
-        # TODO
-        self.servio.send(['MOZ-JAVASCRIPT',
-                          self._getJSMainElem("FPCOUNT"),
-                          str(count) + " MORE TIME(S)"])
-
     def fpRead(self, sodauser, count):
-        pass
-        # TODO
+        self.servio.send(["UI-FP-NOTICE",
+                          count,
+                          "Print Read Successfully",
+                          0])
 
-    def fpLearnFail(self, sodauser, msg):
-        pass
-        #TODO
+    def fpLearnFail(self, sodauser, count, msg):
+        self.servio.send(["UI-FP-NOTICE",
+                          count,
+                          "LEARNING FAILED: " + msg,
+                          0])
 
     def fpLearnSuccess(self, sodauser, msg):
-        pass
-        #TODO -- Login?
+        self.servio.send(["UI-FP-NOTICE",
+                          0,
+                          "LEARNING SUCCEEDED: " + msg,
+                          1])

@@ -105,8 +105,9 @@ class MozUI:
                           "LEARNING STATUS: PRINT READ SUCCESSFULLY"])
         self.fpCount(sodauser, count)
 
-    def fpLearnFail(self, sodauser, msg):
+    def fpLearnFail(self, sodauser, count, msg):
         print "Ui trying to send msg " + msg
+        self.fpCount(sodauser, count)
         self.servio.send(['MOZ-JAVASCRIPT',
                           self._getJSTopElem("MSG"),
                           msg])

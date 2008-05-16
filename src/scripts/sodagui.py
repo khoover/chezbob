@@ -18,6 +18,8 @@
 # - Return to Login-Idle Screen
 # UI-NOTICE | notice | color
 # - Issue a notice to a logged in user
+# + I don't think I am using this...
+# UI-FP-NOTICE | count | message | complete [01]
 
 # Purple #946ee1
 SodaPurple = '#946ee1'
@@ -34,6 +36,7 @@ SodaButtonTextColor = '#000000'
 
 SodaKeyBoardFontSize = 30
 SodaStatsFontSize = 30
+SodaLargeSize = 50
 
 from wxPython.wx import *
 import servio
@@ -45,17 +48,20 @@ import PHPUnserialize
 sodaBgImage = wxImage("sodagui-bg.png")
 sodaBgImageBitmap = None
 
+# Button identifiers
 ID_LOGOUT  = 102
 ID_LOGIN   = 103
 ID_DOLOGIN = 104
 ID_DOPASSWORD = 105
 ID_KEYBOARD   = 106
 ID_CANCEL     = 107
+ID_FPLEARN    = 108
 
 STATE_LOGIN_IDLE = 1
 STATE_LOGIN      = 2
 STATE_PASSWORD   = 3
 STATE_PURCHASE   = 4
+STATE_FPLEARN    = 5
 
 LogoutEvent, EVT_LOGOUT_EVENT = wx.lib.newevent.NewEvent()
 LoginEvent, EVT_LOGIN_EVENT = wx.lib.newevent.NewEvent()
@@ -63,6 +69,7 @@ PasswordEvent, EVT_PASSWORD_EVENT = wx.lib.newevent.NewEvent()
 BoughtEvent, EVT_BOUGHT_EVENT = wx.lib.newevent.NewEvent()
 TtlEvent, EVT_TTL_EVENT = wx.lib.newevent.NewEvent()
 BalanceEvent, EVT_BALANCE_EVENT = wx.lib.newevent.NewEvent()
+FpEvent, EVT_FP_EVENT = wx.lib.newevent.NewEvent()
 
 bus = None
 
@@ -251,8 +258,77 @@ class SodaButton(wxButton):
         self.SetForegroundColour(SodaButtonTextColor)
 
         font = self.GetFont()
-        font.SetPointSize(50)
+        font.SetPointSize(45)
         self.SetFont(font)
+
+class SodaIdleStatsPanel(wxPanel):
+    def __init__(self, parent, ID, pos, size):
+        wxPanel.__init__(self, parent, ID, pos, size)
+
+class SodaIdleSodaStatsPanel(SodaIdleStatsPanel):
+    sodaStatsPath = "/var/soda/stockcount.psr"
+    unserializer = PHPUnserialize.PHPUnserialize()
+
+    def __init__(self, parent, ID, pos, size):
+        SodaIdleStatsPanel.__init__(self, parent, ID, pos, size)
+
+        file = open(self.sodaStatsPath, "r")
+        stats = self.unserializer.unserialize(file.read())
+        file.close()
+
+        self.statsSizer = wxBoxSizer(wxVERTICAL)
+        self.SetSizer(self.statsSizer)
+        self.SetBackgroundColour(parent.GetBackgroundColour())
+
+        stats_keys = filter(lambda x: x != "r10", stats.keys())
+        stats_list = [(stats[key]["sold"], stats[key]["name"]) for key in stats_keys]
+        stats_list.sort(cmp=lambda x,y:cmp(y,x))
+
+        padding = 10
+        cw = size.GetWidth() - padding * 2
+
+        max = stats_list[0][0]
+        min = stats_list[-1][0]
+
+        font = self.GetFont()
+        font.SetPointSize(SodaStatsFontSize)
+
+        for val in stats_list:
+            sizer = wxBoxSizer(wxHORIZONTAL)
+
+            barpad = 20 * len(str(min)) 
+            w = (cw - barpad) * 0.75 * (val[0] - min) / max + barpad
+
+            label = wxStaticText(self,   
+                                       -1, 
+                                       val[1],
+                                       wxDefaultPosition,
+                                       wxSize(cw * 0.25, -1))
+
+            label.SetForegroundColour(SodaOrange)
+            label.SetFont(font)
+
+            numberSizer = wxBoxSizer(wxVERTICAL)
+
+            numberPanel = wxPanel(self, -1)
+            number = wxStaticText(numberPanel,   
+                                       -1, 
+                                       str(val[0]),
+                                       wxDefaultPosition,
+                                       wxSize(w, SodaStatsFontSize*1.5),
+                                       style=wxALIGN_RIGHT)
+            number.SetFont(font)
+    
+            numberPanel.SetBackgroundColour(SodaLightGreen)
+            numberPanel.SetSizer(numberSizer)
+
+            numberSizer.Add(number, proportion=0)
+
+            sizer.AddSpacer(wxSize(padding, -1))
+            sizer.Add(label)
+            sizer.Add(numberPanel)
+
+            self.statsSizer.Add(sizer)
 
 
 class SodaPanel(wxPanel):
@@ -269,7 +345,7 @@ class SodaPanel(wxPanel):
         # Hackomatic
         self.SetBackgroundColour(parent.GetBackgroundColour())
         self.SetForegroundColour(parent.GetForegroundColour())
-        
+
         global sodaBgImageBitmap
         if sodaBgImageBitmap is None:
             sodaBgImageBitmap = sodaBgImage.ConvertToBitmap()
@@ -359,12 +435,14 @@ class SodaPanel(wxPanel):
 
         self.LeftBarSizer.Add(buttonSpacer)
 
+    def AddLeftSpacer(self, size):
+        self.LeftBarSizer.AddSpacer(size)
+
     def SetStatusText(self, text, colour='WHITE'):
         self.StatusTextLabel.SetLabel(text)
         self.StatusTextLabel.SetForegroundColour(colour)
 
 class SodaLoginIdlePanel(SodaPanel):
-    sodaStatsPath = "/var/soda/stockcount.psr"
 
     def __init__(self, parent, ID, pos, size):
         SodaPanel.__init__(self, parent, ID, pos, size)
@@ -379,73 +457,17 @@ class SodaLoginIdlePanel(SodaPanel):
 
         self.statsPanel = None
 
-        self.unserializer = PHPUnserialize.PHPUnserialize()
 
     def MakeSodaStatsPanel(self):
-        file = open(self.sodaStatsPath, "r")
-        stats = self.unserializer.unserialize(file.read())
-        file.close()
-
         if self.statsPanel is not None:
             self.statsPanel.Destroy()
 
-        self.statsPanel = wxPanel(self,-1)
-        self.statsSizer = wxBoxSizer(wxVERTICAL)
-        self.statsPanel.SetSizer(self.statsSizer)
-        self.statsPanel.SetBackgroundColour(self.GetBackgroundColour())
-
-        stats_keys = filter(lambda x: x != "r10", stats.keys())
-        stats_list = [(stats[key]["sold"], stats[key]["name"]) for key in stats_keys]
-        stats_list.sort(cmp=lambda x,y:cmp(y,x))
+        self.statsPanel = SodaIdleSodaStatsPanel(self, -1,
+                wxDefaultPosition, wxSize(self.GetContentWidth(), -1))
 
         self.ResetContentSizer()
         self.ContentSizer.Add(self.statsPanel)
-    
-        padding = 10
-        cw = self.GetContentWidth() - padding * 2
 
-        max = stats_list[0][0]
-        min = stats_list[-1][0]
-
-        font = self.GetFont()
-        font.SetPointSize(SodaStatsFontSize)
-
-        for val in stats_list:
-            sizer = wxBoxSizer(wxHORIZONTAL)
-
-            barpad = 20 * len(str(min)) 
-            w = (cw - barpad) * 0.75 * (val[0] - min) / max + barpad
-
-            label = wxStaticText(self.statsPanel,   
-                                       -1, 
-                                       val[1],
-                                       wxDefaultPosition,
-                                       wxSize(cw * 0.25, -1))
-
-            label.SetForegroundColour(SodaOrange)
-            label.SetFont(font)
-
-            numberSizer = wxBoxSizer(wxVERTICAL)
-
-            numberPanel = wxPanel(self.statsPanel, -1)
-            number = wxStaticText(numberPanel,   
-                                       -1, 
-                                       str(val[0]),
-                                       wxDefaultPosition,
-                                       wxSize(w, SodaStatsFontSize*1.5),
-                                       style=wxALIGN_RIGHT)
-            number.SetFont(font)
-    
-            numberPanel.SetBackgroundColour(SodaLightGreen)
-            numberPanel.SetSizer(numberSizer)
-
-            numberSizer.Add(number, proportion=0)
-
-            sizer.AddSpacer(wxSize(padding, -1))
-            sizer.Add(label)
-            sizer.Add(numberPanel)
-
-            self.statsSizer.Add(sizer)
 
         self.ContentSizer.Layout()
 
@@ -556,7 +578,17 @@ class SodaPurchasePanel(SodaPanel):
                     ID_LOGOUT, 
                     'Logout'
                     )
-                                   )
+                   )
+
+        self.AddLeftSpacer(wxSize(-1, 240))
+
+        self.AddLeftButton(
+                SodaButton(
+                    self,
+                    ID_FPLEARN,
+                    'Learn FP'
+                    )
+                   )
 
         self.UserSalutations = wxStaticText(
                 self,
@@ -640,6 +672,94 @@ class SodaPurchasePanel(SodaPanel):
         self.TimerLabel.SetLabel("")
         self.purchaseLog.SetLabel("")
 
+class SodaFPPanel(SodaPanel):
+    def __init__(self, parent, ID, pos, size):
+        SodaPanel.__init__(self, parent, ID, pos, size)
+
+        self.AddLeftButton(
+                SodaButton(
+                    self,
+                    ID_CANCEL, 
+                    'CANCEL'
+                    )
+                         )
+
+        self.StatusLabel = wxStaticText(
+                self,
+                -1,
+                ""
+                )
+        self.Instructions = wxStaticText(
+                self,
+                -1,
+                "PLEASE TRAIN YOUR\nFINGERPRINT ON THE\nREADER BELOW...",
+                style=wxALIGN_CENTER
+                )
+        self.Instructions.SetForegroundColour(SodaOrange)
+
+        instrfont = self.Instructions.GetFont()
+        instrfont.SetPointSize(40)
+        self.Instructions.SetFont(instrfont)
+
+
+        self.UpperSizer = wxBoxSizer(wxHORIZONTAL)
+        self.UpperLeftSizer = wxBoxSizer(wxVERTICAL)
+
+        self.UpperLeftSizer.Add(self.StatusLabel)
+        self.UpperLeftSizer.Add(self.Instructions)
+
+        self.UpperSizer.Add(self.UpperLeftSizer, proportion=1)
+        self.UpperSizer.AddSpacer(wxSize(300,-1))
+
+        self.CountPrompt = wxStaticText(
+                self,
+                -1,
+                "Please enter your fingerprint "
+                )
+        self.CountNumber = wxStaticText(
+                self,
+                -1,
+                "3"
+                )
+        self.CountPostPrompt = wxStaticText(
+                self,
+                -1,
+                " more time(s)"
+                )
+
+        self.CountSizer = wxBoxSizer(wxHORIZONTAL)
+        self.CountSizer.Add(self.CountPrompt)
+        self.CountSizer.Add(self.CountNumber)
+        self.CountSizer.Add(self.CountPostPrompt)
+
+        self.TimerLabel = wxStaticText(
+                self,
+                -1,
+                "TimerLabel"
+                )
+
+        self.ContentSizer.Add(self.UpperSizer)
+        self.ContentSizer.Add(self.CountSizer)
+        self.ContentSizer.Add(self.TimerLabel)
+
+        self.UpperSizer.Layout()
+
+
+    def SetCount(self, count):
+        self.CountNumber.SetLabel(str(count))
+        self.CountSizer.Layout()
+
+    def SetMessage(self, message):
+        self.StatusLabel.SetLabel(message)
+        self.UpperSizer.Layout()
+
+    def SetTTL(self, ttl):
+        self.TimerLabel.SetLabel("Timeout in " + str(ttl) + " seconds")
+
+    def Clear(self):
+        self.StatusLabel.SetLabel("")
+        self.TimerLabel.SetLabel("")
+
 
 
 class SodaFrame(wxFrame):
@@ -711,6 +831,7 @@ class SodaFrame(wxFrame):
         self.makeLoginPanel()
         self.makePasswordPanel()
         self.makePurchasePanel()
+        self.makeFpPanel()
 
         self.Bind(EVT_LOGIN_EVENT, self.onLoginEvent)
         self.Bind(EVT_PASSWORD_EVENT, self.onPasswordEvent)
@@ -718,10 +839,18 @@ class SodaFrame(wxFrame):
         self.Bind(EVT_BOUGHT_EVENT, self.onBoughtEvent)
         self.Bind(EVT_TTL_EVENT, self.onTtlEvent)
         self.Bind(EVT_BALANCE_EVENT, self.onBalanceEvent)
+        self.Bind(EVT_FP_EVENT, self.onFpEvent)
 
         self.beginLoginIdle()
 
+        self.TTLTimer = wxTimer(self, 0)
+        self.Bind(EVT_TIMER, self.onTTLTimerFire)
+
+        self.TTLTimer.Stop()
+
         self.bus = bus
+
+        self.FPServVL = self.bus.getVarList("FPSERV")
 
     def changeState(self, new_state):
         '''
@@ -739,6 +868,8 @@ class SodaFrame(wxFrame):
             self.endPassword()
         elif self.state == STATE_PURCHASE:
             self.endPurchase()
+        elif self.state == STATE_FPLEARN:
+            self.endFpLearn()
         else:
             print "Unknown Old State"
 
@@ -750,6 +881,8 @@ class SodaFrame(wxFrame):
             self.beginPassword()
         elif new_state == STATE_PURCHASE:
             self.beginPurchase()
+        elif new_state == STATE_FPLEARN:
+            self.beginFpLearn()
         else:
             print "Unknown State"
 
@@ -883,31 +1016,35 @@ class SodaFrame(wxFrame):
                                                self.GetSize())
 
         self.purchasePanel.Bind(EVT_BUTTON, self.onLogout, id=ID_LOGOUT)
+        self.purchasePanel.Bind(EVT_BUTTON, self.onFpLearn, id=ID_FPLEARN)
 
         self.purchasePanel.Layout()
         self.purchasePanel.Show(false)
 
-        self.purchaseTimer = wxTimer(self, 0)
-        self.Bind(EVT_TIMER, self.onPurchaseTimerFire)
-
-        self.purchaseTimer.Stop()
 
     def beginPurchase(self):
+        # force the fp thing to go away.
+        self.FPServVL.set("visible", None, "0")
+
         self.purchasePanel.SetStatusText('Ready for ' + self.user, 'GREEN')
         self.purchasePanel.SetUser(self.user)
         self.purchasePanel.SetBalance(self.balance)
         # These vars should be setup by the onLoginEvent
-        self.updatePurchaseTimerLabel()
+        self.updateTTLTimerLabel(STATE_PURCHASE)
 
         # Kick off the timer.
-        self.purchaseTimer.Start(1000)
+        self.TTLTimer.Start(1000)
 
         self.purchasePanel.Show(true)
         print "beginPurchase"
 
     def endPurchase(self):
         self.purchasePanel.Clear()
+        self.TTLTimer.Stop()
         print "endPurchase"
+
+    def onFpLearn(self, event):
+        self.changeState(STATE_FPLEARN)
 
     def onLogout(self, event):
         evt = LogoutEvent()
@@ -935,54 +1072,85 @@ class SodaFrame(wxFrame):
         self.purchasePanel.SetBalance(self.balance)
         print "Balance Event"
 
-    # Gui helper
-    def updatePurchaseTimerLabel(self):
-        self.purchasePanel.SetTTL(str(self.timeout))
+    #
+    # FP Panel
+    #
+    def makeFpPanel(self):
+        self.fpPanel = SodaFPPanel(self,
+                                   -1,
+                                   wxPoint(0,0),
+                                   self.GetSize())
 
-    def onPurchaseTimerFire(self, event):
+        self.fpPanel.Bind(EVT_BUTTON, self.onFpCancel, id=ID_CANCEL)
+
+        self.fpPanel.Layout()
+        self.fpPanel.Show(false)
+
+    def onFpCancel(self, event):
+        self.changeState(STATE_PURCHASE)
+
+    def beginFpLearn(self):
+        print "beginFpLearn"
+        self.fpPanel.SetStatusText('Learning FP for ' + self.user, 'BLUE')
+        self.fpPanel.Show(True)
+        self.TTLTimer.Start(1000)
+        self.updateTTLTimerLabel(STATE_FPLEARN)
+        self.bus.send(["LEARNSTART"])
+
+        self.FPServVL.set("winx", None, "500")
+        self.FPServVL.set("winy", None, "130")
+        self.FPServVL.set("auto_hide", None, "0")
+        self.FPServVL.set("visible", None, "1")
+        # Set up FP Reader stuff
+
+    def endFpLearn(self):
+        print "endFpLearn"
+        self.fpPanel.Show(False)
+        self.fpPanel.Clear()
+        self.TTLTimer.Stop()
+        self.bus.send(["LEARNEND"])
+
+        self.FPServVL.set("visible", None, "0")
+        self.FPServVL.set("winx", None, "5")
+        self.FPServVL.set("winy", None, "246")
+        self.FPServVL.set("auto_hide", None, "1")
+        self.FPServVL.set("auto_show", None, "1")
+
+    def onFpEvent(self, event):
+        # XXX
+        if self.state != STATE_FPLEARN:
+            self.changeState(STATE_FPLEARN)
+
+        self.fpPanel.SetCount(event.count)
+        self.fpPanel.SetMessage(event.msg)
+
+        if event.complete == "1":
+            self.changeState(STATE_PURCHASE)
+
+
+    # Gui helper
+    def updateTTLTimerLabel(self, state):
+        if state == STATE_PURCHASE:
+            self.purchasePanel.SetTTL(str(self.timeout))
+        elif state == STATE_FPLEARN:
+            self.fpPanel.SetTTL(str(self.timeout))
+        else:
+            print "mysterious timer event"
+
+    def onTTLTimerFire(self, event):
         self.timeout = max(self.timeout - 1, 0)
         #if self.timeout <=  0:
         #    evt = LogoutEvent()
         #    wx.PostEvent(self, evt)
 
-        self.updatePurchaseTimerLabel()
+        self.updateTTLTimerLabel(self.state)
+
+
+
 
     #
     # ServIO callback handlers.
     #
-
-    def handleIndexPhp(self, msg, values):
-        '''
-        Reverse engineer the old display style
-        '''
-        if msg == "LOGGEDIN":
-            evt = LoginEvent(user=values["login"],
-                             balance=values["balance"],
-                             timeout=values["TTL"])
-            wx.PostEvent(self, evt)
-
-        elif msg == "LOGGEDOUT" or msg == "AUTOLOGGEDOUT" or msg == "TIMEOUT" or msg == "LOGOUT":
-            evt = LogoutEvent()
-            wx.PostEvent(self, evt)
-
-        elif msg == "BOUGHT":
-            evt = BoughtEvent(user=values["login"],
-                              balance=values["balance"],
-                              timeout=values["TTL"],
-                              item=values["item"])
-            wx.PostEvent(self, evt)
-
-        elif msg == "PASSWORD":
-            evt = PasswordEvent(user=values["login"],
-                                balance=values["balance"],
-                                hash=values["hash"],
-                                ttl=values["TTL"])
-            wx.PostEvent(self, evt)
-
-        else:
-            print "unknown msg: " + msg
-
-
 
     def handleUiOpen(self, data):
         values = urldecode(data[1])
@@ -1033,6 +1201,13 @@ class SodaFrame(wxFrame):
         evt = TtlEvent(ttl=data[1])
         wx.PostEvent(self, evt)
 
+    def handleUiFpNotice(self, data):
+        evt = FpEvent(count=data[1],
+                      msg=data[2],
+                      complete=data[3])
+        wx.PostEvent(self, evt)
+
+
 class SodaApp(wxApp):
     def OnInit(self):
         self.bus = servio.ServIO("PySodaGui", "0.0")
@@ -1052,6 +1227,7 @@ class SodaApp(wxApp):
         self.bus.watchMessage("UI-BOUGHT", frame.handleUiBought)
         self.bus.watchMessage("UI-BALANCE", frame.handleUiBalance)
         self.bus.watchMessage("UI-TTL", frame.handleUiTtl)
+        self.bus.watchMessage("UI-FP-NOTICE", frame.handleUiFpNotice)
 
         self.bus_thread = threading.Thread(target=self.bus.receive)
         self.bus_thread.start()

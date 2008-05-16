@@ -38,19 +38,13 @@ class UnionUI:
         self.mozui.vendComplete(sodauser, itemname)
         self.pyui.vendComplete(sodauser, itemname, itemprice)
 
-    def fpCount(self, sodauser, count):
-        self.mozui.fpCount(sodauser, count)
-        self.pyui.fpCount(sodauser, count)
-
     def fpRead(self, sodauser, count):
         self.mozui.fpRead(sodauser, count)
         self.pyui.fpRead(sodauser, count)
 
-        self.fpCount(sodauser, count)
-
-    def fpLearnFail(self, sodauser, msg):
-        self.mozui.fpLearnFail(sodauser, msg)
-        self.pyui.fpLearnFail(sodauser, msg)
+    def fpLearnFail(self, sodauser, count, msg):
+        self.mozui.fpLearnFail(sodauser, count, msg)
+        self.pyui.fpLearnFail(sodauser, count, msg)
 
     def fpLearnSuccess(self, sodauser, msg):
         self.logIn(sodauser) 

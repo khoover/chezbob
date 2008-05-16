@@ -51,7 +51,6 @@ class ServIO:
         self.send(["SYS-ACCEPT", "*"])
 
 
-
     def _abort_handler(self, data):
         print " | ".join(data)
         sys.exit(1)
@@ -82,7 +81,7 @@ class ServIO:
         chunk = ""
 
         while(self.running):
-            rdy_read, rdy_write, err = select.select([self.s], [], [], 1)
+            rdy_read, rdy_write, err = select.select([self.s], [], [], 5)
 
             if self.s in rdy_read:
                 chunk += self.s.recv(8096)
