@@ -347,6 +347,7 @@ class SodaBackend:
                 else:
                     # Make sure we didn't wedge in learning
                     self.FPServVL.set("capture_match", None, "1")
+                    self.MdbVL.set("enabled", None, "7")
             except KeyboardInterrupt:
                 print "kb interrupt"
                 self.Exit()

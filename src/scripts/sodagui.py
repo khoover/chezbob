@@ -1210,10 +1210,10 @@ class SodaFrame(wxFrame):
 
 class SodaApp(wxApp):
     def OnInit(self):
-        self.bus = servio.ServIO("PySodaGui", "0.0")
+        self.bus = servio.ServIO("PYUI", "1.0")
         self.bus.defaultHandler(servio.noop_handler)
 
-        frame = SodaFrame(NULL, -1, "Hello World", self.bus)
+        frame = SodaFrame(NULL, -1, "Python Soda UI", self.bus)
         frame.Show(true)
         self.SetTopWindow(frame)
 
