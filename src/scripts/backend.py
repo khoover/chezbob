@@ -6,6 +6,7 @@ import time
 import sys
 import random
 import unionui
+import FPCtrl
 
 from servio import genTag
 from sodauser import SodaUser
@@ -75,6 +76,8 @@ class SodaBackend:
         self.FPServVL  = self.bus.getVarList("FPSERV")
         self.MdbVL     = self.bus.getVarList("MDBSERV")
 
+        self.FPCtrl = FPCtrl.FPCtrl(self.bus)
+
         self.escrow_reject_threshold = 500
 
         self.ui = unionui.UnionUI(self.bus)
@@ -92,11 +95,15 @@ class SodaBackend:
             print "Login Empty, Ignoring"
             return
 
+        if self.current_user is not None:
+            print "Someone already logged in"
+
         if len(data) == 3:
                 self.current_user = SodaUser(login=data[1],
                                              balance=data[2],
                                              servio=self.bus,
-                                             ui=self.ui)
+                                             ui=self.ui,
+                                             fpctrl=self.FPCtrl)
                 self.bus.send(["LOGIN-SUCCEEDED"])
         else:
             print "DB Request for " + data[1]
@@ -130,7 +137,7 @@ class SodaBackend:
 
     def handleVendSuccess(self, data):
         # Log the user out if necessary
-        if self.current_user.endVendSuccess():
+        if self.current_user is not None and self.current_user.endVendSuccess():
             # Logout happens in the destructor
             self.current_user = None
 
@@ -183,7 +190,8 @@ class SodaBackend:
             self.current_user = SodaUser(servio=self.bus,
                                          login=login,
                                          balance=balance,
-                                         ui=self.ui)
+                                         ui=self.ui,
+                                         fpctrl=self.FPCtrl)
             self.bus.send(["LOGIN-SUCCEEDED"])
             print "Login OK"
         else:
@@ -293,7 +301,10 @@ class SodaBackend:
                 print "Not logging in without balance..."
                 return
 
-            self.current_user = SodaUser(anon=True, servio=self.bus, ui=self.ui)
+            self.current_user = SodaUser(anon=True, 
+                                         servio=self.bus, 
+                                         ui=self.ui,
+                                         fpctrl=self.FPCtrl)
 
         self.current_user.beginEscrow()
 
@@ -307,7 +318,10 @@ class SodaBackend:
         # XXX This may be redundant with handleEscrow above
         # Anonymous Login
         if self.current_user is None:
-            self.current_user = SodaUser(anon=True, servio=self.bus, ui=self.ui)
+            self.current_user = SodaUser(anon=True, 
+                                         servio=self.bus, 
+                                         ui=self.ui,
+                                         fpctrl=self.FPCtrl)
 
         self.current_user.deposit(amount)
 
@@ -332,6 +346,7 @@ class SodaBackend:
 
         # Show the login screen when we start.
         self.ui.logOut(None)
+        self.FPCtrl.doLoginMode()
 
         while running:
             try:

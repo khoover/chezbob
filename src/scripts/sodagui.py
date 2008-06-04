@@ -580,7 +580,7 @@ class SodaPurchasePanel(SodaPanel):
                     )
                    )
 
-        self.AddLeftSpacer(wxSize(-1, 240))
+        self.AddLeftSpacer(wxSize(-1, 200))
 
         self.AddLeftButton(
                 SodaButton(
@@ -841,8 +841,6 @@ class SodaFrame(wxFrame):
         self.Bind(EVT_BALANCE_EVENT, self.onBalanceEvent)
         self.Bind(EVT_FP_EVENT, self.onFpEvent)
 
-        self.beginLoginIdle()
-
         self.TTLTimer = wxTimer(self, 0)
         self.Bind(EVT_TIMER, self.onTTLTimerFire)
 
@@ -851,6 +849,8 @@ class SodaFrame(wxFrame):
         self.bus = bus
 
         self.FPServVL = self.bus.getVarList("FPSERV")
+
+        self.beginLoginIdle()
 
     def changeState(self, new_state):
         '''
@@ -904,7 +904,7 @@ class SodaFrame(wxFrame):
 
     def beginLoginIdle(self):
         self.idlePanel.MakeSodaStatsPanel()
-        self.idlePanel.Show(true);
+        self.idlePanel.Show(true)
         print "beginLoginIdle"
 
     def endLoginIdle(self):
@@ -1023,9 +1023,6 @@ class SodaFrame(wxFrame):
 
 
     def beginPurchase(self):
-        # force the fp thing to go away.
-        self.FPServVL.set("visible", None, "0")
-
         self.purchasePanel.SetStatusText('Ready for ' + self.user, 'GREEN')
         self.purchasePanel.SetUser(self.user)
         self.purchasePanel.SetBalance(self.balance)
@@ -1097,12 +1094,6 @@ class SodaFrame(wxFrame):
         self.updateTTLTimerLabel(STATE_FPLEARN)
         self.bus.send(["LEARNSTART"])
 
-        self.FPServVL.set("winx", None, "500")
-        self.FPServVL.set("winy", None, "130")
-        self.FPServVL.set("auto_hide", None, "0")
-        self.FPServVL.set("visible", None, "1")
-        # Set up FP Reader stuff
-
     def endFpLearn(self):
         print "endFpLearn"
         self.fpPanel.Show(False)
@@ -1110,16 +1101,11 @@ class SodaFrame(wxFrame):
         self.TTLTimer.Stop()
         self.bus.send(["LEARNEND"])
 
-        self.FPServVL.set("visible", None, "0")
-        self.FPServVL.set("winx", None, "5")
-        self.FPServVL.set("winy", None, "246")
-        self.FPServVL.set("auto_hide", None, "1")
-        self.FPServVL.set("auto_show", None, "1")
 
     def onFpEvent(self, event):
         # XXX
-        if self.state != STATE_FPLEARN:
-            self.changeState(STATE_FPLEARN)
+        #if self.state != STATE_FPLEARN:
+        #    self.changeState(STATE_FPLEARN)
 
         self.fpPanel.SetCount(event.count)
         self.fpPanel.SetMessage(event.msg)

@@ -5,6 +5,7 @@ import threading
 import time
 import sys
 import random
+import FPCtrl
 
 from servio import genTag
 
@@ -17,7 +18,8 @@ class SodaUser:
                  timeout=30, 
                  balance=0,
                  servio=None,
-                 ui=None):
+                 ui=None,
+                 fpctrl=None):
 
         print "User " + login + " Logged In"
         self.anon = anon        # User is anonymous.  Escrow mode.
@@ -44,6 +46,11 @@ class SodaUser:
         self.ui = ui
         self.ui.logIn(self)
 
+        self.FPCtrl = fpctrl
+
+        # Turn off the finger print reader during login
+        self.FPCtrl.doDisable()
+
         if not self.anon:
             self.alquerytag = "A" + genTag()
             self.servio.send(["BOBDB-QUERYUSERPREF",
@@ -69,6 +76,8 @@ class SodaUser:
         if self.fp_learn_in_progress:
             # TODO Tidy
             pass
+
+        self.FPCtrl.doLoginMode()
 
         self.ui.logOut(self)
 
@@ -300,19 +309,20 @@ class SodaUser:
         if self.anon:
             return
 
-        FPServVL.set("capture_match", None, "0")
+        self.FPCtrl.doLearnMode()
+
         self.fp_learn_in_progress = True
         self.fp_list = []
 
         self.resetTTL()
+
 
     def endFpLearn(self, FPServVL):
         if self.anon:
             return
 
         self.fp_learn_in_progress = False
-        FPServVL.set("capture_match", None, "1")
-        FPServVL.set("visible", None, "0")
+        self.FPCtrl.doDisable()
 
     def gotBadFpRead(self, id):
         if self.fp_learn_in_progress:
@@ -343,7 +353,8 @@ class SodaUser:
                                 self.fp_learn_count, 
                                 exinfo + " " + message)
         else:
-            FPServVL.set("capture_match", None, "1")
+            self.FPCtrl.doDisable()
+
             self.servio.send(["FP-UNPERSIST", self.login])
             # XXX Silly name for a finger
             self.servio.send(["FP-PERSIST", fpidr, self.login, "bob"])
