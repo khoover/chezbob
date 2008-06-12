@@ -19,7 +19,7 @@ def noop_handler(data):
 
 class ServIO:
     '''ServIO Python Class.  Currently overly lightweight'''
-    def __init__(self, appname="PyServIO", appversion="0.0"):
+    def __init__(self, appname="PyServIO", appversion="0.0",proto="0:u"):
         self.port = 2732 #SODACTRL_PORT=2732
         self.s = socket.socket(
                                socket.AF_INET,
@@ -36,9 +36,17 @@ class ServIO:
         self.watchMessage("SYS-WELCOME", self._connected_handler)
         self.watchMessage("SYS-CPING", self._ping_handler)
 
+        print str([
+                  "SYS-INIT",
+                  proto,
+                  appname,
+                  appversion,
+                  str(os.getpid()),
+                  os.getcwd()
+                  ])
         self.send([
                   "SYS-INIT",
-                  str(103),
+                  proto,
                   appname,
                   appversion,
                   str(os.getpid()),
@@ -48,12 +56,14 @@ class ServIO:
         self.appname = appname
         self.running = True
 
+        # XXX -- the sys-accept later in the watch message function
+        # isn't doing what I'd like.
         self.send(["SYS-ACCEPT", "*"])
 
 
     def _abort_handler(self, data):
         print " | ".join(data)
-        sys.exit(1)
+        self.exit()
 
     def _connected_handler(self, data):
         print "connected",
@@ -115,6 +125,10 @@ class ServIO:
         self.send(["SYS-LOG", self.appname] + data)
 
     def watchMessage(self, type, handler):
+        # Register that we care about this message
+        #print "Accepting " + str(type)
+        #self.send(["SYS-ACCEPT", "+",type])
+
         if type not in self.handler_table:
             self.handler_table[type] = [handler]
         else:

@@ -39,6 +39,7 @@ SodaStatsFontSize = 30
 SodaLargeSize = 50
 
 from wxPython.wx import *
+import sys
 import servio
 import threading
 import wx.lib.newevent
@@ -956,6 +957,7 @@ class SodaFrame(wxFrame):
         self.user = event.user
         self.balance = event.balance
         self.timeout = int(event.timeout)
+        self.anonymous = int(event.anonymous)
         self.changeState(STATE_PURCHASE)
 
     def onPasswordEvent(self, event):
@@ -1041,6 +1043,12 @@ class SodaFrame(wxFrame):
         print "endPurchase"
 
     def onFpLearn(self, event):
+        # Refuse fp learning to anonymous users.
+        if self.anonymous:
+            self.purchasePanel.SetStatusText('Refusing FPLearn to '
+                                                + self.user, 'RED')
+            return
+
         self.changeState(STATE_FPLEARN)
 
     def onLogout(self, event):
@@ -1196,7 +1204,7 @@ class SodaFrame(wxFrame):
 
 class SodaApp(wxApp):
     def OnInit(self):
-        self.bus = servio.ServIO("PYUI", "1.0")
+        self.bus = servio.ServIO("PYUI", "1.0", "0:s")
         self.bus.defaultHandler(servio.noop_handler)
 
         frame = SodaFrame(NULL, -1, "Python Soda UI", self.bus)
@@ -1218,7 +1226,18 @@ class SodaApp(wxApp):
         self.bus_thread = threading.Thread(target=self.bus.receive)
         self.bus_thread.start()
 
+        # This is the only way I could think to do this.
+        self.bus_check_timer = wxTimer(self, 0)
+        self.Bind(EVT_TIMER, self.onBusCheckTimerFire)
+        # Run once a second.
+        self.bus_check_timer.Start(1000)
+
         return true
+
+    def onBusCheckTimerFire(self, event):
+        if not self.bus_thread.isAlive():
+            print "Servio Thread Disappeared... Exiting."
+            sys.exit(1)
 
     def Exit(self):
         self.bus.exit()

@@ -5,6 +5,7 @@ import threading
 import time
 import sys
 import random
+import pyui
 import unionui
 import FPCtrl
 
@@ -31,7 +32,7 @@ class SodaBackend:
     vmcTTL = vmcTimeout
 
     def __init__(self):
-        self.bus = servio.ServIO(self.appname, "1.0")
+        self.bus = servio.ServIO(self.appname, "1.0", "0:u")
 
         self.bus.defaultHandler(servio.noop_handler)
 
@@ -80,7 +81,12 @@ class SodaBackend:
 
         self.escrow_reject_threshold = 500
 
+        # Switch back to get both old mozilla and new pyui
+        # simultaneously
         self.ui = unionui.UnionUI(self.bus)
+        # PyUI is missing something in the interface and inducing
+        # crashes.
+        #self.ui = pyui.PyUI(self.bus)
 
     def handleLogin(self, data):
         # Having User and Balance Defined indicates sucessful pwless
@@ -97,6 +103,9 @@ class SodaBackend:
 
         if self.current_user is not None:
             print "Someone already logged in"
+            # Fixed to avoid race issue.
+            self.bus.send(["LOGIN-FAILED"])
+            return
 
         if len(data) == 3:
                 self.current_user = SodaUser(login=data[1],
@@ -363,14 +372,22 @@ class SodaBackend:
                     # Make sure we didn't wedge in learning
                     self.FPServVL.set("capture_match", None, "1")
                     self.MdbVL.set("enabled", None, "7")
+
+                if not self.bus_thread.isAlive():
+                    print "Bus Disappeared... Exiting"
+                    self.Exit()
+                    sys.exit(1)
+
             except KeyboardInterrupt:
                 print "kb interrupt"
                 self.Exit()
                 sys.exit(1)
             except:
                 # Try to resume?
+                print "Exception, exiting"
                 self.Exit()
                 sys.exit(1)
+                raise
 
     def Exit(self):
         self.bus.exit()
