@@ -83,10 +83,10 @@ class SodaBackend:
 
         # Switch back to get both old mozilla and new pyui
         # simultaneously
-        self.ui = unionui.UnionUI(self.bus)
+        #self.ui = unionui.UnionUI(self.bus)
         # PyUI is missing something in the interface and inducing
         # crashes.
-        #self.ui = pyui.PyUI(self.bus)
+        self.ui = pyui.PyUI(self.bus)
 
     def handleLogin(self, data):
         # Having User and Balance Defined indicates sucessful pwless

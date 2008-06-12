@@ -1,4 +1,6 @@
-class PyUI:
+import baseui
+
+class PyUI(baseui.BaseUI):
     def __init__(self, servio):
         self.servio = servio
 

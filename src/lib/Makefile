@@ -20,7 +20,10 @@ docs:
 
 install:
 	install -okiosk -gdevel -m0644 ServIO.jar ${BIN}/../lib
-	install -okiosk -gdevel *.py *.pm ${BIN}/../lib
+	install -okiosk -gdevel *.py *.pm -t ${BIN}/../lib
+	# Make the directory
+	install -okiosk -gdevel -d ${BIN}/../lib/pyui
+	install -okiosk -gdevel pyui/*.py -t ${BIN}/../lib/pyui
 
 ServIO.jar:  ${JFILES}
 	javac  -source 1.4 ${JFILES}
