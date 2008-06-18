@@ -202,7 +202,7 @@ class SodaBackend:
                                          ui=self.ui,
                                          fpctrl=self.FPCtrl)
             self.bus.send(["LOGIN-SUCCEEDED"])
-            print "Login OK"
+            #print "Login OK"
         else:
             print "Setting last_login to " + str(data[2])
             self.last_login = data[2]
@@ -343,7 +343,8 @@ class SodaBackend:
             print "Random Coin Return Press"
 
     def handleUnimplemented(self, data):
-        print "Unimplemented " + str(data)
+        #print "Unimplemented " + str(data)
+        pass
 
     def MainLoop(self):
         running = True

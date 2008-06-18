@@ -43,7 +43,8 @@ class SodaPasswordPanel(SodaPanel):
         self.ContentSizer.Add(passwordInfoSizer)
         self.ContentSizer.AddSpacer(wxSize(50,50))
         self.ContentSizer.Add(SodaKeyBoard(self,
-            -1, wxDefaultPosition, wxSize(400, 400), self.passwordInput))
+            -1, wxDefaultPosition, wxSize(400, 400), self.passwordInput), 
+            flag=wxALIGN_CENTER, proportion=1)
 
     def GetPassword(self):
         return self.passwordInput.GetLineText(0)

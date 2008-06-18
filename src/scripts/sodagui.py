@@ -220,11 +220,11 @@ class SodaFrame(wxFrame):
     def beginLoginIdle(self):
         self.idlePanel.MakeSodaStatsPanel()
         self.idlePanel.Show(true)
-        print "beginLoginIdle"
+        self.bus.sendDebug("beginLoginIdle")
 
     def endLoginIdle(self):
         self.idlePanel.Show(false);
-        print "endLoginIdle"
+        self.bus.sendDebug("endLoginIdle")
 
     def onLogin(self, event):
         self.changeState(STATE_LOGIN)
@@ -243,12 +243,12 @@ class SodaFrame(wxFrame):
 
     def beginLogin(self):
         self.loginPanel.Show(true)
-        print "beginLogin"
+        self.bus.sendDebug("beginLogin")
 
     def endLogin(self):
         self.loginPanel.Clear()
         self.loginPanel.Show(false)
-        print "endLogin"
+        self.bus.sendDebug("endLogin")
 
     def onDoLogin(self, event):
         login = self.loginPanel.GetLogin()
@@ -266,7 +266,7 @@ class SodaFrame(wxFrame):
         self.changeState(STATE_LOGIN_IDLE)
 
     def onLoginEvent(self, event):
-        print "Login Event"
+        self.bus.sendDebug("Login Event")
 
         self.user = event.user
         self.balance = event.balance
@@ -275,7 +275,7 @@ class SodaFrame(wxFrame):
         self.changeState(STATE_PURCHASE)
 
     def onPasswordEvent(self, event):
-        print "Password Event"
+        self.bus.sendDebug("Password Event")
         self.user = event.user
         self.balance = event.balance
         self.timeout = int(event.ttl)
@@ -300,12 +300,12 @@ class SodaFrame(wxFrame):
         self.passwordPanel.SetStatusText('Authenticating ' + self.user, 'YELLOW')
         self.passwordPanel.Show(true)
         self.passwordCount = self.passwordLimit
-        print "beginPassword"
+        self.bus.sendDebug("beginPassword")
 
     def endPassword(self):
         self.passwordPanel.Clear()
         self.passwordPanel.Show(false)
-        print "endPassword"
+        self.bus.sendDebug("endPassword")
 
     def onDoPassword(self, event):
         password = self.passwordPanel.GetPassword()
@@ -349,12 +349,12 @@ class SodaFrame(wxFrame):
         self.TTLTimer.Start(1000)
 
         self.purchasePanel.Show(true)
-        print "beginPurchase"
+        self.bus.sendDebug("beginPurchase")
 
     def endPurchase(self):
         self.purchasePanel.Clear()
         self.TTLTimer.Stop()
-        print "endPurchase"
+        self.bus.sendDebug("endPurchase")
 
     def onFpLearn(self, event):
         # Refuse fp learning to anonymous users.
@@ -380,16 +380,16 @@ class SodaFrame(wxFrame):
         self.purchasePanel.SetBalance(self.balance)
         self.purchasePanel.AddLog(event.item + " for " + monetize(event.price))
 
-        print "Bought Event: " + event.item
+        self.bus.sendDebug("Bought Event: " + event.item)
 
     def onTtlEvent(self, event):
         self.timeout = int(event.timeout)
-        print "Ttl Event"
+        self.bus.sendDebug("Ttl Event")
 
     def onBalanceEvent(self, event):
         self.balance = int(event.balance)
         self.purchasePanel.SetBalance(self.balance)
-        print "Balance Event"
+        self.bus.sendDebug("Balance Event")
 
     #
     # FP Panel
@@ -409,7 +409,7 @@ class SodaFrame(wxFrame):
         self.changeState(STATE_PURCHASE)
 
     def beginFpLearn(self):
-        print "beginFpLearn"
+        self.bus.sendDebug("beginFpLearn")
         self.fpPanel.SetStatusText('Learning FP for ' + self.user, 'BLUE')
         self.fpPanel.Show(True)
         self.TTLTimer.Start(1000)
@@ -417,7 +417,7 @@ class SodaFrame(wxFrame):
         self.bus.send(["LEARNSTART"])
 
     def endFpLearn(self):
-        print "endFpLearn"
+        self.bus.sendDebug("endFpLearn")
         self.fpPanel.Show(False)
         self.fpPanel.Clear()
         self.TTLTimer.Stop()
@@ -443,7 +443,7 @@ class SodaFrame(wxFrame):
         elif state == STATE_FPLEARN:
             self.fpPanel.SetTTL(str(self.timeout))
         else:
-            print "mysterious timer event"
+            self.bus.sendDebug("mysterious timer event")
 
     def onTTLTimerFire(self, event):
         self.timeout = max(self.timeout - 1, 0)
@@ -468,7 +468,7 @@ class SodaFrame(wxFrame):
         elif 'message' in values:
             self.handleIndexPhp(values['message'], values)
         else:
-            print "msg not present in UI-OPEN"
+            self.bus.sendDebug("msg not present in UI-OPEN")
             return
 
     def handleSysSet(self, data):
@@ -518,7 +518,7 @@ class SodaFrame(wxFrame):
 
 class SodaApp(wxApp):
     def OnInit(self):
-        self.bus = servio.ServIO("PYUI", "1.0", "0:s")
+        self.bus = servio.ServIO("PYUI", "1.0", "0:u")
         self.bus.defaultHandler(servio.noop_handler)
 
         frame = SodaFrame(NULL, -1, "Python Soda UI", self.bus)

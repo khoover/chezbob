@@ -44,7 +44,7 @@ class BarGraphPanel(SodaIdleStatsPanel):
                                        -1,
                                        str(val[0]),
                                        wxDefaultPosition,
-                                       wxSize(w, SodaStatsFontSize*1.75),
+                                       wxSize(w, SodaStatsFontSize*1.5),
                                        style=wxALIGN_RIGHT)
             # This spacing/padding comes out different on different
             # machines.
@@ -60,7 +60,7 @@ class BarGraphPanel(SodaIdleStatsPanel):
             sizer.Add(numberPanel)
 
             self.statsSizer.Add(sizer)
-            #self.statsSizer.AddSpacer(wxSize(1, 1))
+            self.statsSizer.AddSpacer(wxSize(1, 1))
 
 # This could probably be generalized a little better
 class SodaIdleSodaStatsPanel(BarGraphPanel):

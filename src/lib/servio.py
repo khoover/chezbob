@@ -26,7 +26,7 @@ class ServIO:
                                socket.SOCK_STREAM,
                               )
         self.s.connect(("127.0.0.1", self.port))
-        print self.s.getsockname()
+        #print self.s.getsockname()
 
         self.s.setblocking(0)
         self.default_handler = echo_handler
@@ -87,7 +87,7 @@ class ServIO:
 
 
     def receive(self):
-        print "receive start"
+        #print "receive start"
         chunk = ""
 
         while(self.running):
@@ -119,10 +119,16 @@ class ServIO:
         self.s.send("\t".join(map(self._conv,data)) + "\n")
 
     def sendDebug(self, data):
-        self.send(["SYS-DEBUG", self.appname] + data)
+        if type(data) != type([]):
+            self.send(["SYS-DEBUG", self.appname, data])
+        else:
+            self.send(["SYS-DEBUG", self.appname] + data)
 
     def sendLog(self, data):
-        self.send(["SYS-LOG", self.appname] + data)
+        if type(data) != type([]):
+            self.send(["SYS-LOG", self.appname, data])
+        else:
+            self.send(["SYS-LOG", self.appname] + data)
 
     def watchMessage(self, type, handler):
         # Register that we care about this message
@@ -250,8 +256,7 @@ class ServIOVarList:
             else:
                 orig = self.vars[name]
         except:
-            print "Couldn't find " + name + " in dict"
-            print str(self.vars)
+            print "Couldn't find " + name + " in dict: "  + str(self.vars)
             orig = None
 
         if value == orig:

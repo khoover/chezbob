@@ -28,6 +28,8 @@ class SodaUser:
         self.balance = int(balance)
         self.servio = servio
 
+        self.servio.sendLog("User " + login + " Logged In")
+
         self.resetTTL()
 
         self.vend_in_progress = False
@@ -60,6 +62,7 @@ class SodaUser:
 
     def __del__(self):
         print "Logging " + self.login + " out"
+        self.servio.sendLog("User " + self.login + " Logged Out")
 
         if self.anon and self.balance > 0:
             print "Returning change for anonymous user"
@@ -89,10 +92,9 @@ class SodaUser:
     def doLogout(self):
         if not self.canLogout():
             self.should_logout = True
-            print "Not Logging Out"
-            print "vip: " + str(self.vend_in_progress)
-            print "bvip: " + str(self.barcode_vend_in_progress)
-            print "eip: " + str(self.escrow_in_progress)
+            print "Not Logging Out vip: " + str(self.vend_in_progress) + \
+                  " bvip: " + str(self.barcode_vend_in_progress) + \
+                  " eip: " + str(self.escrow_in_progress)
             return False
 
         else:
@@ -137,9 +139,9 @@ class SodaUser:
         return self.time + self.timeout - int(time.time())
 
     def setUserPref(self, pref, value):
-        print "User Pref " + pref + " " + value
+        #print "User Pref " + pref + " " + value
         if pref == "Auto Logout" and int(value) == 1:
-            print "Setting Autologout"
+            #print "Setting Autologout"
             self.should_logout = True
 
     def beginEscrow(self):
@@ -231,10 +233,10 @@ class SodaUser:
                          self.item['barcode']])
         print "Charged " + self.login + ": " + str(self.item['price']) + "c"
 
-        print "Pre-Balance: " + str(self.getBalance())
+        #print "Pre-Balance: " + str(self.getBalance())
         # Strictly to update the GUI
         self.setBalance(self.balance - self.item['price'])
-        print "Post-Balance: " + str(self.getBalance())
+        #print "Post-Balance: " + str(self.getBalance())
 
         self.ui.vendComplete(self, self.item['name'], self.item['price'])
 
