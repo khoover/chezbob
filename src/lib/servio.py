@@ -57,8 +57,12 @@ class ServIO:
         self.running = True
 
         # XXX -- the sys-accept later in the watch message function
-        # isn't doing what I'd like.
+        # isn't doing what I'd like. (Not seeing anything)
         self.send(["SYS-ACCEPT", "*"])
+
+    def __del__(self):
+        # XXX Should set error code.
+        self.send(["SYS-DONE", self.appname,0])
 
 
     def _abort_handler(self, data):
