@@ -165,7 +165,13 @@ class SodaFrame(wxFrame):
 
         self.FPServVL = self.bus.getVarList("FPSERV")
 
+        self.debugging = True
+
         self.beginLoginIdle()
+
+    def debug(self, string):
+        if self.debugging:
+            print string
 
     def changeState(self, new_state):
         '''
@@ -189,14 +195,19 @@ class SodaFrame(wxFrame):
             print "Unknown Old State"
 
         if new_state == STATE_LOGIN_IDLE:
+            self.debug("State: Idle Screen")
             self.beginLoginIdle()
         elif new_state == STATE_LOGIN:
+            self.debug("State: Login")
             self.beginLogin()
         elif new_state == STATE_PASSWORD:
+            self.debug("State: Password")
             self.beginPassword()
         elif new_state == STATE_PURCHASE:
+            self.debug("State: Purchase Screen")
             self.beginPurchase()
         elif new_state == STATE_FPLEARN:
+            self.debug("State: FPLearn")
             self.beginFpLearn()
         else:
             print "Unknown State"

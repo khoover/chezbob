@@ -122,11 +122,11 @@ class ServIO:
     def send(self, data):
         self.s.send("\t".join(map(self._conv,data)) + "\n")
 
-    def sendDebug(self, data):
+    def sendDebug(self, data, level=50):
         if type(data) != type([]):
-            self.send(["SYS-DEBUG", self.appname, data])
+            self.send(["SYS-DEBUG", self.appname, level, data])
         else:
-            self.send(["SYS-DEBUG", self.appname] + data)
+            self.send(["SYS-DEBUG", self.appname, level] + data)
 
     def sendLog(self, data):
         if type(data) != type([]):
