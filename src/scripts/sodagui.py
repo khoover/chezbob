@@ -464,7 +464,7 @@ class SodaFrame(wxFrame):
         #    evt = LogoutEvent()
         #    wx.PostEvent(self, evt)
 
-        self.updateTTLTimerLabel(self.timeout)
+        self.updateTTLTimerLabel(self.state)
 
 
 
