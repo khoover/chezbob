@@ -9,7 +9,33 @@ import FPCtrl
 
 from servio import genTag
 
-class SodaUser:
+class SodaUserBase:
+    def __init__(self,
+                 anon,
+                 login,
+                 timeout,
+                 balance):
+        self.anon = anon
+        self.login = login
+        self.timeout = timeout
+        self.balance = balance
+
+    def isAnon(self):
+        return self.anon
+
+    def getBalance(self):
+        return self.balance
+
+    def setBalance(self, amount):
+        self.balance = amount
+
+    def getLogin(self):
+        return self.login
+
+
+
+
+class SodaUser(SodaUserBase):
     fp_learn_count = 3
 
     def __init__(self, 
@@ -22,10 +48,9 @@ class SodaUser:
                  fpctrl=None):
 
         print "User " + login + " Logged In"
-        self.anon = anon        # User is anonymous.  Escrow mode.
-        self.login = login
-        self.timeout = timeout
-        self.balance = int(balance)
+
+        base.__init__(anon, login, timeout, balance)
+
         self.servio = servio
 
         self.servio.sendLog("User " + login + " Logged In")
@@ -119,21 +144,12 @@ class SodaUser:
         # Kick UI
         self.time = int(time.time())
 
-    def isAnon(self):
-        return self.anon
-
     def isLearningFp(self):
         return self.fp_learn_in_progress
 
-    def getBalance(self):
-        return self.balance
-
     def setBalance(self, amount):
-        self.balance = amount
+        base.setBalance(amount)
         self.ui.updateBalance(self)
-
-    def getLogin(self):
-        return self.login
 
     def getTTL(self):
         return self.time + self.timeout - int(time.time())
