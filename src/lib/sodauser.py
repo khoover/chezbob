@@ -49,7 +49,7 @@ class SodaUser(SodaUserBase):
 
         print "User " + login + " Logged In"
 
-        base.__init__(anon, login, timeout, balance)
+        SodaUserBase.__init__(self, anon, login, timeout, balance)
 
         self.servio = servio
 
@@ -148,7 +148,7 @@ class SodaUser(SodaUserBase):
         return self.fp_learn_in_progress
 
     def setBalance(self, amount):
-        base.setBalance(amount)
+        SodaUserBase.setBalance(amount)
         self.ui.updateBalance(self)
 
     def getTTL(self):
