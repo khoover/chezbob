@@ -24,11 +24,14 @@ class SodaLoginIdlePanel(SodaPanel):
         if self.statsPanel is not None:
             self.statsPanel.Destroy()
 
-        self.statsPanel = SodaIdleSodaStatsPanel(self, -1,
-                wxDefaultPosition, wxSize(self.GetContentWidth(), -1))
+        try:
+            self.statsPanel = SodaIdleSodaStatsPanel(self, -1,
+                    wxDefaultPosition, wxSize(self.GetContentWidth(), -1))
+            self.ResetContentSizer()
+            self.ContentSizer.Add(self.statsPanel)
+        except:
+            print "Failed to make stats panel"
 
-        self.ResetContentSizer()
-        self.ContentSizer.Add(self.statsPanel)
 
 
         self.ContentSizer.Layout()
