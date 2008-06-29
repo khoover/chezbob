@@ -178,7 +178,9 @@ class SodaFrame(wxFrame):
         Close down the old state and enter new_state, if it
         differs.
         '''
+
         if self.state == new_state:
+            self.debug("Not transitioning -- same state" + str(self.state))
             return
 
         if self.state == STATE_LOGIN_IDLE:
@@ -210,7 +212,7 @@ class SodaFrame(wxFrame):
             self.debug("State: FPLearn")
             self.beginFpLearn()
         else:
-            print "Unknown State"
+            self.debug("Unknown State")
 
         self.state = new_state
 
@@ -229,6 +231,7 @@ class SodaFrame(wxFrame):
         self.idlePanel.Show(false)
 
     def beginLoginIdle(self):
+        self.debug("Begin Login Idle")
         self.idlePanel.MakeSodaStatsPanel()
         self.idlePanel.Show(true)
         self.bus.sendDebug("beginLoginIdle")
@@ -326,7 +329,7 @@ class SodaFrame(wxFrame):
             if crypt.crypt(password, self.hash) == self.hash:
                 self.bus.send(["LOGIN", self.user, self.balance])
                 return
-    
+
         self.passwordCount = self.passwordCount - 1
 
         if self.passwordCount == 0:
@@ -365,6 +368,7 @@ class SodaFrame(wxFrame):
     def endPurchase(self):
         self.purchasePanel.Clear()
         self.TTLTimer.Stop()
+        self.purchasePanel.Show(false)
         self.bus.sendDebug("endPurchase")
 
     def onFpLearn(self, event):
@@ -377,11 +381,9 @@ class SodaFrame(wxFrame):
         self.changeState(STATE_FPLEARN)
 
     def onLogout(self, event):
-        evt = LogoutEvent()
-        wx.PostEvent(self, evt)
+        self.bus.send(["LOGOUT"])
 
     def onLogoutEvent(self, event):
-        self.bus.send(["LOGOUT"])
         self.changeState(STATE_LOGIN_IDLE)
 
     def onBoughtEvent(self, event):
@@ -462,7 +464,7 @@ class SodaFrame(wxFrame):
         #    evt = LogoutEvent()
         #    wx.PostEvent(self, evt)
 
-        self.updateTTLTimerLabel(self.state)
+        self.updateTTLTimerLabel(self.timeout)
 
 
 
@@ -488,6 +490,7 @@ class SodaFrame(wxFrame):
                 self.handleUiOpen(["UI-OPEN",data[4]])
 
     def handleUiLoggedIn(self, data):
+        self.debug("UI-Logged in message received")
         evt = LoginEvent(user=data[1],
                 balance=data[2],
                 timeout=data[3],
@@ -495,6 +498,7 @@ class SodaFrame(wxFrame):
         wx.PostEvent(self, evt)
 
     def handleUiLoggedOut(self, data):
+        self.debug("UI-Logged out message received")
         evt = LogoutEvent()
         wx.PostEvent(self, evt)
 
