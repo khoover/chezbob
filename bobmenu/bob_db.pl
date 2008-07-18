@@ -35,7 +35,7 @@ sub bob_db_set_source {
 sub
 bob_db_connect
 {
-  $conn = Pg::connectdb("dbname=bob");
+  $conn = Pg::connectdb("host=soda.ucsd.edu dbname=bob");
   if ($conn->status == PGRES_CONNECTION_BAD) {
     my $mesg = "Error connecting to database.\n";
     $mesg .= $conn->errorMessage;
