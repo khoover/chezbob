@@ -25,7 +25,7 @@ sub format_table_rows {
     }
 }
 
-my $dbh = DBI->connect("dbi:Pg:dbname=bob", "bob")
+my $dbh = DBI->connect("dbi:Pg:dbname=bob;host=soda.ucsd.edu", "bob")
     or die "Unable to connect to ChezBob database";
 
 my $sth = $dbh->prepare(
