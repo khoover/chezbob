@@ -138,9 +138,13 @@ close TEMPLATE;
 while (<STDIN>) {
     if (m/^(\w+) +\| +(\S+) +\| +(\S+) *$/) {
         my ($user, $email, $balance) = ($1, $2, $3);
+        my $absbalance = $balance;
+        $absbalance =~ s/^-//;
+
         print "$user <$email>: $balance\n";
         my $msg = build_message($template,
-                                USERNAME => $user, BALANCE => $balance);
+                                USERNAME => $user, BALANCE => $balance,
+                                ABSBALANCE => $absbalance);
         $msg = fixup_headers($msg, To => $email);
         mail($msg, 'mvrable@localhost', $email);
     } else {

@@ -1,0 +1,20 @@
+From: Chez Bob <chezbob@cs.ucsd.edu>
+Subject: Your Chez Bob Account: %USERNAME%
+
+| Chez Bob, the UCSD CSE grad student food co-op, has been sorting through
+| old accounts.  Our records indicate that you had an account with Chez Bob
+| and that this account (%USERNAME%) has a balance of %BALANCE%.
+
+| If you are still at UCSD, you can make a payment as usual through the
+| Chez Bob computer.  If you are not at UCSD, see the page
+    http://chezbob.ucsd.edu/payment/?user=%USERNAME%&amt=%ABSBALANCE%
+| for payment instructions.  Payments can be mailed or Google Checkout can
+| be used to pay electronically.  Details are on the page listed above.
+| Paying off your balance will help keep Chez Bob running smoothly.
+
+| If you believe our records are incorrect, please contact us so that we
+| may correct them.  You may either reply directly to this message, or
+| contact Michael Vrable (mvrable@cs.ucsd.edu), the current finance
+| manager.
+
+--Chez Bob
