@@ -37,6 +37,7 @@ auto_transactions = {
                    (+1, acct_social_restricted), (-1, acct_bank)],
     'writeoff':   ["Debt Written Off",
                    (+1, acct_writeoff), (-1, acct_deposits)],
+    'refund':     ["Refunds", (+1, acct_deposits), (-1, acct_cash)],
 }
 
 def insert_transaction(date, type, amount):
@@ -162,8 +163,8 @@ def sync_day(date):
     cursor.execute("""SELECT xactvalue, xacttype FROM transactions
                       WHERE xacttime::date = '%s'""", (date,))
 
-    (sum_deposit, sum_donate, sum_purchase, sum_socialhour, sum_writeoff) \
-        = (0, 0, 0, 0, 0)
+    (sum_deposit, sum_donate, sum_purchase, sum_socialhour, sum_writeoff, sum_refund) \
+        = (0, 0, 0, 0, 0, 0)
 
     for (amt, desc) in cursor.fetchall():
         amt = int(round(amt * 100))
@@ -181,6 +182,8 @@ def sync_day(date):
             sum_socialhour -= amt
         elif category == "WRITEOFF":
             sum_writeoff += amt
+        elif category == "REFUND":
+            sum_refund -= amt
         else:
             raise ValueError("Unknown transaction: " + desc)
 
@@ -188,7 +191,8 @@ def sync_day(date):
                       'donate': sum_donate,
                       'purchase': sum_purchase,
                       'socialhour': sum_socialhour,
-                      'writeoff': sum_writeoff})
+                      'writeoff': sum_writeoff,
+                      'refund': sum_refund})
 
 def sync():
     global bob_liabilities
