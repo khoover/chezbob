@@ -234,14 +234,15 @@ def check_cash():
         print cashout
         cursor.execute("""SELECT source, sum(xactvalue)
                           FROM transactions
-                          WHERE xacttype = 'ADD'
+                          WHERE (xacttype = 'ADD' OR xacttype = 'REFUND')
                             AND xacttime >= '%s' AND xacttime < '%s'
                           GROUP BY source""",
                        [last_date, cashout.datetime])
         for (source, amt) in cursor.fetchall():
             print "    Deposit: %.02f (%s)" % (amt, source)
             balance += amt
-            source_totals[source] = source_totals.get(source, 0.0) + amt
+            if source is not None:
+                source_totals[source] = source_totals.get(source, 0.0) + amt
 
         cursor.execute("""SELECT sum(amount)
                           FROM finance_splits s JOIN finance_transactions t
