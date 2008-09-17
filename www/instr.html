@@ -1,203 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Chez Bob: Instructions</title>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
 <html>
 
-<head>
-<title>
-Chez Bob 2001
-</title>
+<body>
+<html>
 
-<body bgcolor=#FFFFFF>
+<h1>Chez Bob</h1>
 
-<h1>Chez Bob 2001</h1>
+<p>Chez Bob is a department food co-op run by grad students, located in
+the grad student lounge (CSE 3154).  Chez Bob buys food and drinks in
+bulk from Costco, and sells them to grad students (and faculty and staff
+and visitors…) at just slightly above cost.</p>
 
-<center>
-<table width=80%>
-<tr>
-<td>
-<h2>I. Introduction</h2>
+<p>Chez Bob runs on an honor system: food and drinks made available in
+the grad lounge, and people pay for them by leaving money in a box in
+the grad lounge.</p>
 
-Welcome to Chez Bob 2001!  The famed CSE lounge self-checkout system is now
-even better.  Just check out some of the new features:
+<p>To make things even easier, we've created the Bank of Bob (BoB) and a
+computer system for tracking purchases.  Users can create an account,
+deposit money into their account, purchase items with a barcode scanner,
+and have the purchase price automatically deducted from their account.
+The BoB computer will automatically track how much each user has left to
+purchase food (or how much Bob is owed).</p>
+
+<h2>Getting Started</h2>
+
+<p>To get started with Chez Bob, you'll want to use the Chez Bob
+computer, sitting on the table between the refrigerator and soda
+machine.</p>
+
+<ol>
+  <li>If you're an existing user go ahead and log into the system using
+  your login name (e.g., “chezbob”).
+  <img src="images/login.png" class="imgblock" />
+  If you're a new user, choose a new name and type it in—it can be
+  anything you choose.  If you don't yet have an account, you'll be
+  prompted to create one:
+  <img src="images/newuser.png" class="imgblock" />
+  </li>
+
+  <li>Once logged in, you'll be presented with a main menu that allows
+  you to purchase items, deposit money, edit account settings, and take
+  other actions.
+  <img src="images/mainmenu.png" class="imgblock" />
+  To purchase an item, scan it with the barcode scanner.  You'll be
+  asked to confirm the purchase:
+  <img src="images/confirm.png" class="imgblock" />
+  </li>
+
+  <li>To buy an item without a barcode, use the “Extra Items” menu item.
+  You'll be presented with a list of items available for purchase:
+  <img src="images/extras.png" class="imgblock" />
+  </li>
+
+  <li>To add money to your account, select the “Add Money” menu item.
+  Deposit money in the lockbox next to the computer, then record the
+  amount of money you deposited.  You may also make deposits at the soda
+  machine (see below)—when doing so, the soda machine will automatically
+  count the deposit, so there is no need to manually enter the
+  amount.</li>
+</ol>
+
+<h2>Customizing Your Account</h2>
+
+<p>Log into your account and select the “My Chez Bob” option from the
+main menu (you'll need to scroll down below the first screenful of menu
+items).  This option allows you to change various settings, such as
+increasing privacy (do not record the exact items you purchased) or
+disabling the confirmation before buying an item:</p>
+<img src="images/mychezbob.png" class="imgblock" />
+<img src="images/profile.png" class="imgblock" />
+
+<p>You may create a password for your account by selecting the
+“Password” menu item.  The password will then be required when logging
+in to your account.</p>
+
+<p>You may associate a barcode (such as the barcode from your ID card)
+with your account.  This will allow you to log in without typing your
+username—simply scan your barcode at the login screen.  To do so, select
+the “Barcode ID” menu item.  Logging in with a barcode does not require
+entering a password, even if you have set one up.</p>
+
+<h2>Using the Soda Machine</h2>
+
+<p>One of Chez Bob's newer additions is a biometric soda machine
+integrated with the Bank of Bob.  In addition to dispensing soda, the
+soda machine can function as a replacement for the classic Chez Bob
+computer for many transactions.</p>
+
+<h3>Logging In</h3>
+
+<p>The soda machine offers several options for logging in:</p>
 <ul>
-<li><i>Barcode Scanning</i>: That's right, there's a barcode scanner right
-next to the terminal.  You can log into the system and purchase products
-using the barcode scanner.  This guide will show you how!
-</li>
-<br> <br>
-<li><i>Speech Synthesis</i>: You can configure Bob to verbally greet you 
-and confirm your purchases!
-</li>
-<br> <br>
-<li><i>Inventory Tracking</i>: No more wasted trips to the lounge for your
-favorite snacks.  Just go 
-<a href="http://chezbob.ucsd.edu/listInventory.php">here</a> and 
-check out the current inventory of every Chez Bob product!
-</li>
+  <li><b>“Soda Login”: </b> The “Soda Login” menu item on the classic
+  Chez Bob computer can be used to transfer a login from the Chez Bob
+  computer to the soda machine (assuming no one else is using the soda
+  machine at the time).</li>
+  <li><b>On-screen keyboard:</b> The soda machine features an on-screen
+  keyboard on its touchscreen.</li>
+  <li><b>Barcode:</b> If you have registered a barcode for your account
+  (using the Chez Bob computer), scanning this barcode at the soda
+  machine will log you in.</li>
+  <li><b>Fingerprint:</b> After logging in to the soda machine, you have
+  the option to “Learn Fingerprint”.  Follow the instructions to train
+  the soda machine to recognize your fingerprint.  After doing so, log
+  in simply by pressing your fingerprint to the fingerprint
+  scanner.</li>
 </ul>
 
-Read on to discover how you can take advantage of these new features.  
-It's easy!
+<p>Your login at the soda machine will automatically time out.  You may
+also log out by pressing the coin return button on the soda machine.</p>
 
-<h2>II. Getting Started</h2>
+<h3>Depositing Cash</h3>
 
-<ol>
-<li>If you're an existing user go ahead and log into the system using your
-login name (e.g., "chezbob").  If you're a new user, type in a new user name.
-</li>
-<center>
-<img src="images/login.png" vspace=15>
-</center>
+<p>While logged in to the soda machine, you may deposit bills or coins
+in the soda machine.  This money will be automatically credited to your
+Bank of Bob account.</p>
 
-<li>The main screen hasn't changed much.  You can still purchase products
-using the old "Candy/Can of Soda", "Snapple", and "Popcorn" options.  In 
-fact, the new system can be used <i>exactly</i> like the old system, so
-if you're reluctant to change, we're not going to force you to use the 
-new features.
-</li>
-<center>
-<img src="images/mainmenu.png" vspace=15>
-</center>
+<h3>Making Purchases</h3>
 
-<li>Let's be a little more adventurous and purchase something using the 
-barcode scanner.  Just follow these three simple steps after logging in:
-<center>
-<table >
-<tr>
-<td> <img src="images/dave_1.png" vspace=15>
-<td> <img src="images/dave_2.png" vspace=15>
-<td> <img src="images/dave_3.png" vspace=15>
-</tr>
-</table>
-</center>
+<p>While logged in to the soda machine, press a button for a soda or
+scan a barcode with the barcode scanner on the soda machine.  The item
+will purchased, and the price deducted from your account.</p>
 
-<ul>
-<li>Grab your favorite drink or salted snack. </li>
-<br> <br>
-<li>Find the barcode on the product.  If it's a can of soda, you *must* 
-wipe any perspiration from the barcode before scanning it; the scanner
-can sometimes have trouble reading the barcode if you don't. Dave 
-Sacerdoti (above) finds the fabric from a lounge chair most appropriate 
-for this task.  Way to go, Dave.
-<br> <br>
-<li>Place the barcode beneath the barcode scanner.  The scanner will 
-emit a red beam once the item is close enough.  When you hear the scanner 
-beep once, remove the item from under the scanner.
-</ul> 
-</li>
+<p>You may also make cash-only purchases at the soda machine.  Without
+logging in, deposit cash.  Then select an item for purchase.  Your
+change will be returned to you.</p>
 
-<br>
-<li>
-After scanning an item, Bob will display a confirmation screen with the
-product's name at the top.  Hit OK if you want to purchase the item.
-<br>
-</li>
-</ol>
- 
-Congratulations, you just purchased your first item using the barcode
-scanner!  Wasn't that easy?  Let's now look at how Bob can talk to us.
-
-<h2>III. Talk to me, Bob!</h2>
-<ol>
-<li>
-Log into your account and select the "My Chez Bob" option from the main
-menu.  This option allows us to change our personal settings.
-</li>
-<center>
-<img src="images/mychezbob.png" vspace=15>
-</center>
-
-<li>On the "My Chez Bob" window select "Speech" by pressing the space
-bar.  Hit OK to leave the "My Chez Bob" menu and return to the main menu.
-</li>
-<center>
-<img src="images/profile.png" vspace=15>
-</center>
-
-<li>From the main menu, select "Nickname."  You'll have to scroll past 
-"Quit" to get to it.  Bob will then prompt you to enter your nickname.  
-Hit OK when you're done.
-</li>
-<center>
-<img src="images/nickname.png" vspace=15>
-</center>
-</ol>
-
-That's it!  From now on, Bob will greet you when you log in and verbally 
-confirm your purchases!  If Bob's voice ever gets on your nerves, simply
-unselect the "Speech" option from "My Chez Bob."  
-<br><br>
-The next section talks about some features for completing your 
-transactions in a minimal amount of time.  
-
-<h2>IV. I'm in a Hurry!</h2>
-Keyboards?  We don't need no stinking keyboards!  Read on to see how you
-can set up a keyboardless session with Bob.  
-<ol>
-<li>From the main menu, choose the "Barcode ID" option.  Then use the 
-barcode scanner to scan a personal barcode of your choice.  Products
-from Chez Bob won't work, so don't bother trying.  A good choice might
-be the barcode on the back of your UCSD ID card. Once you're done, you
-can log into AND out of the system by scanning your personal barcode.
-</li>
-<br> <br>
-<li>Select "My Chez Bob" from the main menu.  Enable the "No confirmation"
-option.  This means that you won't see the following screen after 
-purchasing a product:
-<center>
-<img src="images/confirm.png" vspace=15>
-</center>
-Instead, Bob will automatically deduct the appropriate amount from your 
-account.
-</li>
-
-<br> <br>
-<li> For maximum efficiency you might want to select the "Auto Logout" option
-from the "My Chez Bob" menu.  This will log you out of the system after you
-purchase EXACTLY ONE ITEM. 
-</li>
-
-<br> <br>
-<li>Some users do not even log into the system and instead pay for their 
-item with cash.  This can potentially throw off the inventory tracking
-feature of the new system.  To prevent this, please scan the "Pay with 
-Cash" barcode at the login screen.  You can then scan your item and leave.
-Bob then updates the inventory of that particular product.
-</li>
-</ol>
-
-<h2>V. Do Not's</h2>
-The barcode scanner is not a toy.  Even though it uses a relatively harmless
-Class I laser, you should never stare directly into the beam.  In addition,
-you should never attempt to handle the scanner or try to remove it from its
-stand.  Nice try, Mr. Seng.
-<center>
-<table >
-<tr>
-<td> <img src="images/john_1.png" vspace=15>
-<td> <img src="images/john_2.png" vspace=15>
-<td> <img src="images/john_3.png" vspace=15>
-</tr>
-</table>
-</center>
-
-
-<h2>VI. Experimental</h2>
-We thought it might be useful if Chez Bob could also be used to check 
-out books from the lounge library.  This feature is not fully implemented.
-We entered just a small number of books into the system; check out 
-<a href="http://chezbob.ucsd.edu/books.html">this page</a> for a listing.  
-There's an option at the very bottom of the main menu labeled 
-"Checkout a book." Although it doesn't do very much right now, it could 
-easily be setup to record the date and time a particular book was checked out.
-<br><br>
-In a sense, everything about the new system is an experiment.  We would 
-love to hear feedback about any of the new features.  Please send
-comments to us at <A HREF="mailto:chezbob@cs.ucsd.edu">chezbob@cs.ucsd.edu</A>.
-
-</tr>
-</table>
-</center>
-
-<br>
-<i><small>chezbob@cs.ucsd.edu</i></small>
 </body>
 </html>
