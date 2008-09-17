@@ -196,6 +196,9 @@ class SodaFrame(wxFrame):
         else:
             print "Unknown Old State"
 
+        # LoginIdle may remain broken, but the rest should work after.
+        self.state = new_state
+
         if new_state == STATE_LOGIN_IDLE:
             self.debug("State: Idle Screen")
             self.beginLoginIdle()
@@ -214,7 +217,6 @@ class SodaFrame(wxFrame):
         else:
             self.debug("Unknown State")
 
-        self.state = new_state
 
     #
     # Functions associated with the LoginIdle State
