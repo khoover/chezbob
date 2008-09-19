@@ -48,7 +48,7 @@ sub build_message {
     # %KEY% with the value in $replace{KEY}.  Any token in the original message
     # that does not have a designated replacement text is replaced with
     # %!!KEY!!% to make it obvious that replacement text was left out.
-    $msg =~ s/%([A-Z]+)%/exists $replace{$1} ? $replace{$1} : "%!!$1!!%"/ge;
+    $msg =~ s/%([A-Z_]+)%/exists $replace{$1} ? $replace{$1} : "%!!$1!!%"/ge;
 
     # Re-flow the message.  All lines that begin with $REFLOW are reflowed;
     # other lines are left alone.  We fork to avoid deadlocks if we block when
@@ -132,22 +132,35 @@ sub mail {
 }
 
 open TEMPLATE, $ARGV[0] or die "Cannot open template $ARGV[0]: $!";
-my $template = join '', <TEMPLATE>;
+my $template = "";
+my %meta = ();
+while (($_ = <TEMPLATE>)) {
+    if ($template eq "" && m/^# ([-\w]+): (.*)$/) {
+        $meta{$1} = $2;
+    } else {
+        $template .= $_;
+    }
+}
 close TEMPLATE;
 
-while (<STDIN>) {
-    if (m/^(\w+) +\| +(\S+) +\| +(\S+) *$/) {
-        my ($user, $email, $balance) = ($1, $2, $3);
-        my $absbalance = $balance;
-        $absbalance =~ s/^-//;
+my @fields = split /\s+/, $meta{Fields};
 
-        print "$user <$email>: $balance\n";
-        my $msg = build_message($template,
-                                USERNAME => $user, BALANCE => $balance,
-                                ABSBALANCE => $absbalance);
-        $msg = fixup_headers($msg, To => $email);
-        mail($msg, 'mvrable@localhost', $email);
-    } else {
-        print STDERR "Bad line: $_\n";
+while (<STDIN>) {
+    s/^\s+//;
+    s/\s+$//;
+    my %items = ();
+    my @values = split /\s*\|\s*/, $_;
+    foreach (@fields) {
+        $items{$_} = shift @values;
     }
+
+    foreach (sort keys %items) {
+        print "$_: $items{$_}\n";
+    }
+    print "\n";
+
+    my $email = $items{EMAIL};
+    my $msg = build_message($template, %items);
+    $msg = fixup_headers($msg, To => $email);
+    mail($msg, 'mvrable@localhost', $email);
 }
