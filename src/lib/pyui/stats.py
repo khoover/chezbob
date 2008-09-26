@@ -1,6 +1,7 @@
 from wxPython.wx import *
 from pyui.config import *
 import PHPUnserialize
+import fcntl # for flock
 
 
 class SodaIdleStatsPanel(wxPanel):
@@ -69,7 +70,9 @@ class SodaIdleSodaStatsPanel(BarGraphPanel):
 
     def __init__(self, parent, ID, pos, size):
         file = open(self.sodaStatsPath, "r")
+        fcntl.flock(file, fcntl.LOCK_SH);
         stats = self.unserializer.unserialize(file.read())
+        fcntl.flock(file, fcntl.LOCK_UN);
         file.close()
 
         stats_keys = filter(lambda x: x != "r10", stats.keys())

@@ -4,6 +4,7 @@ use strict;
 use FindBin qw[$Bin];
 use lib "$Bin/../lib";
 use ServIO;
+use Fcntl ':flock';
 
 use PHP::Serialization qw(serialize unserialize);
 use Data::Dumper; $Data::Dumper::Useqq=1;  $Data::Dumper::Terse=1; $Data::Dumper::Sortkeys=1; $Data::Dumper::Indent=1;
@@ -75,7 +76,9 @@ sub writeData {
   unlink("$DATAFILE.old");
   rename("$DATAFILE", "$DATAFILE.old");
   open($FH, "> $DATAFILE")||die "Cannot open $DATAFILE: $!\n";
+  flock($FH, LOCK_EX) or die "Failed to lock $DATAFILE: $!\n";
   print $FH serialize($PSR);
+  flock($FH, LOCK_UN);
   close $FH;
 };
 
