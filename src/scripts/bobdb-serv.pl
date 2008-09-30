@@ -25,7 +25,7 @@ use DBI;
 # Set to true to enable debugging output.
 my $DEBUG = 0;
 
-my $dbh = DBI->connect("dbi:Pg:dbname=bob;host=chezbob.ucsd.edu", "bob", "",
+my $dbh = DBI->connect("dbi:Pg:dbname=bob;host=soda.ucsd.edu", "bob", "",
                        { AutoCommit => 0, RaiseError => 1 })
     or die "Unable to connect to ChezBob database";
 
