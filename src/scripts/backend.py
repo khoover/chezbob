@@ -303,7 +303,7 @@ class SodaBackend:
         if self.current_user is None:
 
             if amount >= self.escrow_reject_threshold:
-                self.bus.send(["CASH_REJECT"])
+                self.bus.send(["CASH-REJECT"])
                 return
 
             if amount == 0:
