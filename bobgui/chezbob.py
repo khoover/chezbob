@@ -10,6 +10,8 @@ from user_dialog import *
 from login_panel import *
 from password_panel import *
 
+import validate
+
 
 STATE_LOGIN = 1
 STATE_PASSWORD = 2
@@ -99,7 +101,12 @@ class MainFrame(wxFrame):
     def onTextEnter(self, event):
         if self.state == STATE_LOGIN:
             login = self.loginPanel.GetLogin()
-            # XXX VALIDATE LOGIN
+
+            if not validate.validateUserName(login):
+                validate.warnUserName(self, login)
+                self.changeState(STATE_LOGIN)
+                return
+
             self.user = self.bob_db.getUserByUserName(login)
 
             if self.user is None:
@@ -129,6 +136,7 @@ class MainFrame(wxFrame):
                 self.changeState(STATE_PASSWORD)
             else:
                 self.changeState(STATE_PURCHASE)
+
         elif self.state == STATE_PASSWORD:
             password = self.passwordPanel.GetPassword()
             res = self.user.checkPassword(password)

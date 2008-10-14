@@ -1,5 +1,6 @@
 from wxPython.wx import *
 import re
+import validate
 
 class UserDialog(wxDialog):
     """
@@ -7,7 +8,6 @@ class UserDialog(wxDialog):
     creation.
     """
 
-    email_re = re.compile("^[A-Za-z0-9._%+-]+@[a-zA-Z0-9.-]+$")
 
     def __init__(self, parent, ID, title, username):
         wxDialog.__init__(self, parent, ID, title)
@@ -81,24 +81,24 @@ class UserDialog(wxDialog):
 
         EVT_BUTTON(self, wxID_OK, self.OnOk)
 
+    def GetUserName(self):
+        return self.userNameInput.GetLineText(0)
+
     def GetEmail(self):
         return self.emailInput.GetLineText(0)
 
     def Validate(self):
         # XXX Validate UserName
-        email_ok = self.email_re.match(self.GetEmail())
+        user_ok = validate.validateUserName(self.GetUserName())
+        email_ok = validate.validateEmail(self.GetEmail())
 
-        msg = ""
+        if not user_ok:
+            validate.warnUserName(self, self.GetUserName())
+
         if not email_ok:
-            msg = msg + "Invalid Email"
+            validate.warnEmail(self, self.GetEmail())
 
-        if not email_ok:
-            warning = wxMessageDialog(self, 
-                                      msg, msg,
-                                      wxOK | wxICON_EXCLAMATION)
-            warning.ShowModal()
-
-        return email_ok
+        return email_ok and user_ok
 
     def OnOk(self, event):
         if self.Validate():
