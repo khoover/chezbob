@@ -103,16 +103,26 @@ class MainFrame(wxFrame):
             self.user = self.bob_db.getUserByUserName(login)
 
             if self.user is None:
-                userDialog = UserDialog(self, 
-                                        -1,
-                                        "Enter your user information",
-                                        login)
-                userRet = userDialog.ShowModal()
+                newUserPrompt = wxMessageDialog(self,
+        "User %s not found, would you like to create a new account?" % login,
+                                                "User not found.",
+                                                wxYES | wxNO | wxNO_DEFAULT)
+                res = newUserPrompt.ShowModal()
 
-                if userRet == wxID_OK:
-                    # XXX Add the user
-                    self.changeState(STATE_PURCHASE)
-                else:
+                if res == wxID_YES:
+                    userDialog = UserDialog(self, 
+                                            -1,
+                                            "Enter your user information",
+                                            login)
+                    userRet = userDialog.ShowModal()
+
+                    if userRet == wxID_OK:
+                        # XXX Add the user
+                        # XXX Load the user
+                        self.changeState(STATE_PURCHASE)
+                    else:
+                        self.changeState(STATE_LOGIN)
+                else: # No new user
                     self.changeState(STATE_LOGIN)
 
             elif self.user.hasPassword():
