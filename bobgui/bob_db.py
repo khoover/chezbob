@@ -46,24 +46,33 @@ class BobDB:
         self.connect()
         st = self.db.cursor()
 
+        # Grab Userdata
         st.execute("select * from users where username=%s", username)
-
-        if st.rowcount == 0:
-            return None
-        elif st.rowcount > 1:
-            raise Error("Got more than one user for %s" % username)
 
         userdata = st.fetchone()
 
+        if userdata is None:
+            return None
+
         # Grab the PW
         st.execute("select p from pwd where userid=%s", userdata["userid"])
-    
+
         password = None
         res = st.fetchone()
         if res is not None:
             password = res["p"]
 
         user = User(userdata, password)
+
+        # Grab preferences
+        st.execute("select property, setting from profiles where userid=%s",
+                   userdata["userid"])
+
+        res = st.fetchone()
+        while res:
+            user._setProfileVariable(res["property"], res["setting"])
+            res = st.fetchone()
+
 
         self.db.commit()
 
