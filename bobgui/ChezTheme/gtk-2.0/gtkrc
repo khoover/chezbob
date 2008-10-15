@@ -1,0 +1,26 @@
+gtk-color-scheme = "bg_color: #000000\n"
+
+style "base"
+{
+
+# color definitions
+bg[NORMAL]                  = "#000"
+bg[PRELIGHT]                = "#000"
+bg[ACTIVE]                  = "#000"
+bg[SELECTED]                = "#000"
+bg[INSENSITIVE]             = "#000"
+
+fg[NORMAL]                  = "#fff"
+fg[PRELIGHT]                = "#fff"
+fg[ACTIVE]                  = "#fff"
+fg[SELECTED]                = "#fff"
+fg[INSENSITIVE]             = "#fff"
+
+font_name = "Terminal 20"
+}
+class "*" style "base"
+
+style "button"
+{
+}
+class "GtkButton" style "button"

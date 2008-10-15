@@ -2,6 +2,7 @@ from wxPython.wx import *
 import sys
 import threading
 import time
+import os
 import wx.lib.newevent
 
 from bob_db import *
@@ -23,16 +24,6 @@ class MainFrame(wxFrame):
     def __init__(self, parent, ID, title):
         wxFrame.__init__(self, parent, ID, title,
                 wxDefaultPosition, wxSize(1024, 768), style=0)
-
-        font = wxFont(30,
-                       wxFONTFAMILY_DEFAULT,
-                       wxFONTSTYLE_NORMAL,
-                       wxFONTWEIGHT_NORMAL,
-                       False,
-                       "times"
-                       )
-
-        self.SetFont(font)
 
         self.bob_db = BobDB()
 
@@ -145,6 +136,10 @@ class MainFrame(wxFrame):
         "User %s not found, would you like to create a new account?" % login,
                                                 "User not found.",
                                                 wxYES | wxNO | wxNO_DEFAULT)
+
+                newUserPrompt.SetBackgroundColour(self.GetBackgroundColour())
+                newUserPrompt.SetForegroundColour(self.GetForegroundColour())
+
                 res = newUserPrompt.ShowModal()
 
                 if res == wxID_YES:
@@ -191,7 +186,6 @@ class ChezApp(wxApp):
         self.SetTopWindow(self.frame)
         self.frame.Show(true)
 
-
         self.fun_thread = threading.Thread(target=self.fun_thread_func)
         self.fun_thread.start()
 
@@ -206,6 +200,8 @@ class ChezApp(wxApp):
     def fun_thread_func(self):
         time.sleep(3)
         #self.forceLogin("test")
+
+os.environ['GTK2_RC_FILES'] = 'ChezTheme/gtk-2.0/gtkrc'
 
 app = ChezApp(0)
 app.MainLoop()

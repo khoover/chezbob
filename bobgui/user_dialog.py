@@ -12,6 +12,13 @@ class UserDialog(wxDialog):
     def __init__(self, parent, ID, title, username):
         wxDialog.__init__(self, parent, ID, title)
 
+        self.SetBackgroundColour(parent.GetBackgroundColour())
+        self.SetForegroundColour(parent.GetForegroundColour())
+
+        font = self.GetFont();
+        font.SetPointSize(20)
+        self.SetFont(font)
+
         windowSize = self.GetVirtualSize()
 
         topSizer = wxBoxSizer(wxVERTICAL)
