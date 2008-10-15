@@ -73,6 +73,13 @@ class BobDB:
             user._setProfileVariable(res["property"], res["setting"])
             res = st.fetchone()
 
+        # Grab balance
+        st.execute("select balance from balances where userid=%s",
+                   userdata["userid"])
+        
+        res = st.fetchone()
+        if res:
+            user._setBalance(res["balance"])
 
         self.db.commit()
 

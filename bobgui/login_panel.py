@@ -4,13 +4,13 @@ class LoginPanel(ChezPanel):
     def __init__(self, parent, ID, pos, size):
         ChezPanel.__init__(self, parent, ID, pos, size)
 
-        marginWidth = self.GetSize().GetWidth() / 3
         marginHeight = self.GetSize().GetHeight() / 3
 
         loginPrompt = wxStaticText(
                                     self,
                                     -1,
-                                    "Enter your username: "
+                                    "Enter your username: ",
+                                    style=wxALIGN_LEFT
                                     )
 
         self.loginInput = wxTextCtrl(
@@ -26,16 +26,11 @@ class LoginPanel(ChezPanel):
 
         loginSizer = wxBoxSizer(wxHORIZONTAL)
 
-        loginSizer.Add(wxPanel(self, -1, size=wxSize(marginWidth, -1)))
-        loginSizer.Add(loginPrompt, wxALIGN_LEFT)
-        loginSizer.Add(self.loginInput, wxALIGN_RIGHT)
-        loginSizer.Add(wxPanel(self, -1, size=wxSize(marginWidth, -1)))
+        loginSizer.Add(loginPrompt, 0, wxALIGN_RIGHT)
+        loginSizer.Add(self.loginInput, 1, wxALIGN_LEFT)
 
-        vSizer.Add(wxPanel(self, -1, size=wxSize(-1,marginHeight)))
-
-        vSizer.Add(loginSizer, wxALIGN_CENTER)
-
-        vSizer.Add(wxPanel(self, -1, size=wxSize(-1,marginHeight)))
+        vSizer.AddSpacer((-1, marginHeight))
+        vSizer.Add(loginSizer, 0, wxALIGN_CENTER | wxEXPAND | wxALL, 20)
 
         self.SetSizer(vSizer)
 

@@ -24,10 +24,10 @@ class User:
         self.password = password
         self.profile_variables = {}
 
+        self.balance = 0
+
         for var in user_profile_variables:
             self.profile_variables[var["name"]] = var["default"]
-
-        print self.profile_variables
 
     def hasPassword(self):
         return self.check_password and self.password is not None
@@ -50,4 +50,12 @@ class User:
 
     def _setProfileVariable(self, name, value):
         self.profile_variables[name] = value
-        print self.profile_variables
+
+    def _setBalance(self, balance):
+        self.balance = balance
+
+    def GetUserName(self):
+        return self.username
+
+    def GetBalance(self):
+        return self.balance

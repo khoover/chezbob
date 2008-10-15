@@ -9,6 +9,7 @@ from user import *
 from user_dialog import *
 from login_panel import *
 from password_panel import *
+from purchase_panel import *
 
 import validate
 
@@ -21,7 +22,17 @@ class MainFrame(wxFrame):
 
     def __init__(self, parent, ID, title):
         wxFrame.__init__(self, parent, ID, title,
-                wxDefaultPosition, wxSize(1024, 768))
+                wxDefaultPosition, wxSize(1024, 768), style=0)
+
+        font = wxFont(30,
+                       wxFONTFAMILY_DEFAULT,
+                       wxFONTSTYLE_NORMAL,
+                       wxFONTWEIGHT_NORMAL,
+                       False,
+                       "times"
+                       )
+
+        self.SetFont(font)
 
         self.bob_db = BobDB()
 
@@ -34,8 +45,7 @@ class MainFrame(wxFrame):
 
         self.makeLoginPanel()
         self.makePasswordPanel()
-
-
+        self.makePurchasePanel()
 
     def changeState(self, new_state):
         print "change state %d" % new_state
@@ -97,6 +107,27 @@ class MainFrame(wxFrame):
         print "endPassword"
         self.passwordPanel.Clear()
         self.passwordPanel.Show(false)
+
+    def makePurchasePanel(self):
+        self.purchasePanel = PurchasePanel(self, -1, wxPoint(0,0),
+                self.GetSize())
+        self.purchasePanel.Layout()
+        self.passwordPanel.Show(false)
+
+        self.beginFuncTable[STATE_PURCHASE] = self.beginPurchase
+        self.endFuncTable[STATE_PURCHASE] = self.endPurchase
+
+    def beginPurchase(self):
+        self.purchasePanel.Clear()
+        # XXX Fill in the nibbly bits
+        self.purchasePanel.SetUserName(self.user.GetUserName())
+        self.purchasePanel.SetBalance(self.user.GetBalance())
+        self.purchasePanel.Show()
+
+    def endPurchase(self):
+        self.purchasePanel.Show(false)
+        self.purchasePanel.Clear()
+
 
     def onTextEnter(self, event):
         if self.state == STATE_LOGIN:

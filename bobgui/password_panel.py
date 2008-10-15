@@ -5,13 +5,13 @@ class PasswordPanel(ChezPanel):
     def __init__(self, parent, ID, pos, size):
         ChezPanel.__init__(self, parent, ID, pos, size)
 
-        marginWidth = self.GetSize().GetWidth() / 3
         marginHeight = self.GetSize().GetHeight() / 3
 
         passwordPrompt = wxStaticText(
                                     self,
                                     -1,
-                                    "Enter your password: "
+                                    "Enter your password: ",
+                                    style=wxALIGN_RIGHT
                                     )
 
         self.passwordInput = wxTextCtrl(
@@ -26,17 +26,11 @@ class PasswordPanel(ChezPanel):
         vSizer = wxBoxSizer(wxVERTICAL)
 
         passwordSizer = wxBoxSizer(wxHORIZONTAL)
+        passwordSizer.Add(passwordPrompt, 0, wxALIGN_RIGHT)
+        passwordSizer.Add(self.passwordInput, 1, wxALIGN_LEFT)
 
-        passwordSizer.Add(wxPanel(self, -1, size=wxSize(marginWidth, -1)))
-        passwordSizer.Add(passwordPrompt, wxALIGN_LEFT)
-        passwordSizer.Add(self.passwordInput, wxALIGN_RIGHT)
-        passwordSizer.Add(wxPanel(self, -1, size=wxSize(marginWidth, -1)))
-
-        vSizer.Add(wxPanel(self, -1, size=wxSize(-1,marginHeight)))
-
-        vSizer.Add(passwordSizer, wxALIGN_CENTER)
-
-        vSizer.Add(wxPanel(self, -1, size=wxSize(-1,marginHeight)))
+        vSizer.AddSpacer((-1, marginHeight))
+        vSizer.Add(passwordSizer, 0, wxALIGN_CENTER | wxALL | wxEXPAND, 20)
 
         self.SetSizer(vSizer)
 
