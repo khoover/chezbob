@@ -1,10 +1,6 @@
-from wxPython.wx import *
+import wx
 
-class ChezPanel(wxPanel):
+class ChezPanel(wx.Panel):
 
     def __init__(self, parent, ID, pos, size):
-        wxPanel.__init__(self, parent, ID, pos, size)
-
-        # Force the inheritance of colors.
-        self.SetBackgroundColour(parent.GetBackgroundColour())
-        self.SetForegroundColour(parent.GetForegroundColour())
+        wx.Panel.__init__(self, parent, ID, pos, size)

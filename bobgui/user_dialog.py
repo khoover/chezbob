@@ -1,6 +1,4 @@
 import wx
-#from wx.Python.wx import *
-import re
 import validate
 
 class EmailValidator(wx.PyValidator):

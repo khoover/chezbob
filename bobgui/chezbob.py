@@ -31,7 +31,7 @@ class MainFrame(wx.Frame):
 
         self.bob_db = BobDB()
 
-        self.Bind(EVT_TEXT_ENTER, self.onTextEnter)
+        self.Bind(wx.EVT_TEXT_ENTER, self.onTextEnter)
 
         self.state = STATE_LOGIN
 
@@ -41,6 +41,10 @@ class MainFrame(wx.Frame):
         self.makeLoginPanel()
         self.makePasswordPanel()
         self.makePurchasePanel()
+
+        #from wx import py
+        #shell = py.shell.ShellFrame(None)
+        #shell.Show()
 
     def changeState(self, new_state):
         print "change state %d" % new_state
@@ -63,7 +67,7 @@ class MainFrame(wx.Frame):
     def makeLoginPanel(self):
         self.loginPanel = LoginPanel(self, -1, wx.Point(0,0), self.GetSize())
         self.loginPanel.Layout()
-        self.loginPanel.Show(false)
+        self.loginPanel.Show(False)
 
         self.beginFuncTable[STATE_LOGIN] = self.beginLogin
         self.endFuncTable[STATE_LOGIN] = self.endLogin
@@ -77,12 +81,12 @@ class MainFrame(wx.Frame):
     def endLogin(self):
         print "endLogin"
         self.loginPanel.Clear()
-        self.loginPanel.Show(false)
+        self.loginPanel.Show(False)
 
     def makePasswordPanel(self):
         self.passwordPanel = PasswordPanel(self, -1, wx.Point(0,0), self.GetSize())
         self.passwordPanel.Layout()
-        self.passwordPanel.Show(false)
+        self.passwordPanel.Show(False)
 
         self.beginFuncTable[STATE_PASSWORD] = self.beginPassword
         self.endFuncTable[STATE_PASSWORD] = self.endPassword
@@ -101,13 +105,13 @@ class MainFrame(wx.Frame):
     def endPassword(self):
         print "endPassword"
         self.passwordPanel.Clear()
-        self.passwordPanel.Show(false)
+        self.passwordPanel.Show(False)
 
     def makePurchasePanel(self):
         self.purchasePanel = PurchasePanel(self, -1, wx.Point(0,0),
                 self.GetSize())
         self.purchasePanel.Layout()
-        self.passwordPanel.Show(false)
+        self.passwordPanel.Show(False)
 
         self.beginFuncTable[STATE_PURCHASE] = self.beginPurchase
         self.endFuncTable[STATE_PURCHASE] = self.endPurchase
@@ -120,7 +124,7 @@ class MainFrame(wx.Frame):
         self.purchasePanel.Show()
 
     def endPurchase(self):
-        self.purchasePanel.Show(false)
+        self.purchasePanel.Show(False)
         self.purchasePanel.Clear()
 
 
@@ -183,16 +187,16 @@ class MainFrame(wx.Frame):
 
 class ChezApp(wx.App):
     def OnInit(self):
-        self.frame = MainFrame(NULL, -1, "Welcome to ChezBob")
+        self.frame = MainFrame(None, -1, "Welcome to ChezBob")
         self.SetTopWindow(self.frame)
-        self.frame.Show(true)
+        self.frame.Show(True)
 
         self.fun_thread = threading.Thread(target=self.fun_thread_func)
         self.fun_thread.start()
 
         self.frame.changeState(STATE_LOGIN)
 
-        return true;
+        return True;
 
     def forceLogin(self, login):
         self.frame.forceLogin(login)

@@ -1,4 +1,4 @@
-
+import wx
 from chez_panel import *
 
 class PasswordPanel(ChezPanel):
@@ -7,34 +7,34 @@ class PasswordPanel(ChezPanel):
 
         marginHeight = self.GetSize().GetHeight() / 3
 
-        passwordPrompt = wxStaticText(
+        passwordPrompt = wx.StaticText(
                                     self,
                                     -1,
                                     "Enter your password: ",
-                                    style=wxALIGN_RIGHT
+                                    style=wx.ALIGN_RIGHT
                                     )
 
-        self.passwordInput = wxTextCtrl(
+        self.passwordInput = wx.TextCtrl(
                                     self,
                                     -1,
                                     "",
-                                    wxDefaultPosition,
-                                    wxSize(200, -1),
-                                    wxTE_PROCESS_ENTER | wxTE_PASSWORD
+                                    wx.DefaultPosition,
+                                    wx.Size(200, -1),
+                                    wx.TE_PROCESS_ENTER | wx.TE_PASSWORD
                                     )
 
-        vSizer = wxBoxSizer(wxVERTICAL)
+        vSizer = wx.BoxSizer(wx.VERTICAL)
 
-        passwordSizer = wxBoxSizer(wxHORIZONTAL)
-        passwordSizer.Add(passwordPrompt, 0, wxALIGN_RIGHT)
-        passwordSizer.Add(self.passwordInput, 1, wxALIGN_LEFT)
+        passwordSizer = wx.BoxSizer(wx.HORIZONTAL)
+        passwordSizer.Add(passwordPrompt, 0, wx.ALIGN_RIGHT)
+        passwordSizer.Add(self.passwordInput, 1, wx.ALIGN_LEFT)
 
         vSizer.AddSpacer((-1, marginHeight))
-        vSizer.Add(passwordSizer, 0, wxALIGN_CENTER | wxALL | wxEXPAND, 20)
+        vSizer.Add(passwordSizer, 0, wx.ALIGN_CENTER | wx.ALL | wx.EXPAND, 20)
 
         self.SetSizer(vSizer)
 
-    def Show(self, show=true):
+    def Show(self, show=True):
         if show:
             self.passwordInput.SetFocus()
 

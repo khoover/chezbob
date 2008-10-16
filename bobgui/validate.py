@@ -1,4 +1,4 @@
-from wxPython.wx import *
+import wx
 import re
 
 user_re = re.compile("^[a-zA-Z]+$")
@@ -9,9 +9,9 @@ def validateEmail(email):
 
 def warnEmail(parent, email):
     msg = "%s is not a valid email ([A-Za-z0-9._%%+-]+@[a-zA-Z0-9.-]+)" % email
-    warning = wxMessageDialog(parent, 
+    warning = wx.MessageDialog(parent, 
                               msg, msg,
-                              wxOK | wxICON_EXCLAMATION)
+                              wx.OK | wx.ICON_EXCLAMATION)
     warning.ShowModal()
 
 def validateUserName(user):
@@ -19,7 +19,7 @@ def validateUserName(user):
 
 def warnUserName(parent, username):
     msg = "%s is not a valid username ([A-Za-z]+)" % username
-    warning = wxMessageDialog(parent, 
+    warning = wx.MessageDialog(parent, 
                               msg, msg,
-                              wxOK | wxICON_EXCLAMATION)
+                              wx.OK | wx.ICON_EXCLAMATION)
     warning.ShowModal()
