@@ -40,7 +40,7 @@ class BobDB:
             self.db = PgSQL.connect(host="soda.ucsd.edu", 
                                     database="bob")
             # XXX
-            self.db.debug="text"
+            #self.db.debug="text"
 
     def getUserByUserName(self, username):
         self.connect()

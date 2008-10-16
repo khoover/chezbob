@@ -10,7 +10,9 @@ class UserDialog(wxDialog):
 
 
     def __init__(self, parent, ID, title, username):
-        wxDialog.__init__(self, parent, ID, title)
+        wxDialog.__init__(self, 
+                          parent=parent, 
+                          title=title)
 
         self.SetBackgroundColour(parent.GetBackgroundColour())
         self.SetForegroundColour(parent.GetForegroundColour())

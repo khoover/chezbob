@@ -22,8 +22,12 @@ STATE_PURCHASE = 3
 class MainFrame(wxFrame):
 
     def __init__(self, parent, ID, title):
-        wxFrame.__init__(self, parent, ID, title,
-                wxDefaultPosition, wxSize(1024, 768), style=0)
+        wxFrame.__init__(self, 
+                         parent=parent, 
+                         title=title,
+                         size=wxSize(1024, 768), 
+                         style=0,
+                         name="chezFrame")
 
         self.bob_db = BobDB()
 
@@ -137,9 +141,6 @@ class MainFrame(wxFrame):
                                                 "User not found.",
                                                 wxYES | wxNO | wxNO_DEFAULT)
 
-                newUserPrompt.SetBackgroundColour(self.GetBackgroundColour())
-                newUserPrompt.SetForegroundColour(self.GetForegroundColour())
-
                 res = newUserPrompt.ShowModal()
 
                 if res == wxID_YES:
@@ -189,7 +190,6 @@ class ChezApp(wxApp):
         self.fun_thread = threading.Thread(target=self.fun_thread_func)
         self.fun_thread.start()
 
-        #self.frame.beginLogin()
         self.frame.changeState(STATE_LOGIN)
 
         return true;
@@ -201,6 +201,11 @@ class ChezApp(wxApp):
         time.sleep(3)
         #self.forceLogin("test")
 
+    def OnRun():
+        return wxApp.OnRun()
+
+
+# Set the theme
 os.environ['GTK2_RC_FILES'] = 'ChezTheme/gtk-2.0/gtkrc'
 
 app = ChezApp(0)
