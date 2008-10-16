@@ -19,15 +19,7 @@ font_name = "Terminal 20"
 }
 class "*" style "default"
 
-style "big_white"
-{
-bg[NORMAL]                  = "#fff"
-fg[NORMAL]                  = "#000"
-text[NORMAL]                = "#000"
-
-font_name = "Terminal 40"
-}
 
 # I can't figure out how to get the UserDialog to take another style.
 #widget_class "*GtkMessageDialog*" style "big_white"
-widget_class "*Object*" style "big_white"
+#widget_class "*Dialog*" style "big_white"
