@@ -1,3 +1,4 @@
 # m h  dom mon dow   command
-14 */6 * * *      psql -q -f $HOME/aggregate_maintenance.sql bob
+14 */6 * * *      psql -q -f $HOME/chezbob.hg/admin/aggregate_maintenance.sql bob
+19 */6 * * *      $HOME/chezbob.hg/django/chezbob/launch finance_sync
 */10 * * * *      $HOME/chezbob.hg/reports/wall_of_shame.pl >$HOME/www/wall_of_shame.html
