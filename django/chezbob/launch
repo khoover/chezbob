@@ -27,6 +27,9 @@ action = sys.argv[1]
 if action == 'finance_sync':
     import chezbob.util.sync_db
     chezbob.util.sync_db.sync()
+elif action == 'cash_check':
+    import chezbob.util.sync_db
+    chezbob.util.sync_db.check_cash()
 else:
     sys.stderr.write("Unknown action: %s\n", action)
     sys.exit(1)
