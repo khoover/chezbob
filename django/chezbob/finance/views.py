@@ -288,15 +288,20 @@ def transaction_dump(request):
     response.write('<?xml-stylesheet type="text/xsl" href="finance.xsl"?>\n\n')
 
     response.write('<finances>\n  <accounts>\n')
+    TYPE_MAP = {'A': 'asset', 'L': 'liability', 'I': 'income', 'E': 'expense',
+                'Q': 'equity'}
     for a in Account.objects.order_by('name'):
         response.write('    <account id="acct%d" type="%s">%s</account>\n'
-                       % (a.id, a.type, xml_escape(a.name)))
+                       % (a.id, TYPE_MAP[a.type], xml_escape(a.name)))
 
     response.write('  </accounts>\n\n  <transactions>')
 
     for (t, splits) in Transaction.fetch_all(include_auto=True):
-        response.write('\n    <transaction auto="%s">\n      <date>%s</date>\n'
-                       % (t.auto_generated, t.date))
+        auto = ''
+        if t.auto_generated:
+            auto = ' auto="true"'
+        response.write('\n    <transaction id="t%d"%s>\n      <date>%s</date>\n'
+                       % (t.id, auto, t.date))
         response.write('      <description>%s</description>\n      <splits>\n'
                        % (xml_escape(t.description),))
         for s in splits:
