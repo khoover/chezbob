@@ -26,6 +26,7 @@ to: <input type="text" name="to" value="{{ date_to }}" />
     <th>Reserve</th>
     <th>Order</th>
     <th>Cost</th>
+    <th>Current Supply</th>
 </tr>
 </thead>
 
@@ -41,6 +42,7 @@ to: <input type="text" name="to" value="{{ date_to }}" />
     <td>{{ item.type.reserve }}</td>
     <td><input type="text" size="4" name="order.{{ forloop.counter }}" value="{{ item.order }}" /> &times; {{ item.type.quantity }} </td>
     <td>${{ item.cost|stringformat:".2f" }}</td>
+    <td><span{% if item.exhausted_soon %} style="font-weight: bold"{% endif %}>{{ item.exhausted }}</span></td>
 </tr>
 {% endfor %}
 </tbody>
@@ -48,6 +50,7 @@ to: <input type="text" name="to" value="{{ date_to }}" />
 
 <hr />
 <p>Total Cost: ${{ cost|stringformat:".2f" }}</p>
+<p>Products Run Out: {{ out_of_stock }}</p>
 <div class="submit-row">
 <input type="submit" value="Print" class="default" />
 </div>
