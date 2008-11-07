@@ -35,7 +35,6 @@ def xml_escape(s):
         return "&" + XML_ESCAPES.get(c, "#%d" % (ord(c),)) + ";"
     return re.sub("['\"<>&]", e, s)
 
-||||||| /tmp/views.py~base.Q5Z_YP
 
 """
 Redirect is used to redirect "/finance/" to "/finance/accounts/"
