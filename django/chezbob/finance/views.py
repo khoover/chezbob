@@ -26,6 +26,14 @@ def parse_date(datestr):
 
     return datetime.date(*strptime(datestr, "%Y-%m-%d")[0:3])
 
+"""
+Redirect is used to redirect "/finance/" to "/finance/accounts/"
+nbales 11/7/2008
+"""
+@view_perm_required
+def redirect(request):
+    return HttpResponseRedirect('/finance/accounts/')
+
 @view_perm_required
 def account_list(request):
     accounts = {}
