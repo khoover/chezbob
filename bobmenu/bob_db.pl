@@ -754,10 +754,12 @@ sub
 esc_apos
 #
 # escape any apostrophes using an extra apostrophe
+# also doubles any backslashes, since those can also be used for escaping
 #
 {
   my ($str) = @_;
   $str =~ s/\'/\'\'/g;
+  $str =~ s/\\/\\\\/g;
   return $str;
 }
 

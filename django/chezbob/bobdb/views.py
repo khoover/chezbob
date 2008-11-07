@@ -424,13 +424,16 @@ def estimate_order(request):
     date_from = parse_date(request.GET.get("from", date_to - datetime.timedelta(days=14)))
     sales = Inventory.get_sales(date_from, date_to)
 
+    out_of_stock = None
+
     cost = 0.0
     items = []
     for p in products:
         if p.source.id != source: continue
         info = {'type': p,
                 'inventory': inventory[p.bulkid],
-                'sales': sales.get(p.bulkid, 0)}
+                'sales': sales.get(p.bulkid, 0),
+                'exhausted': ""}
 
         needed = info['sales'] - max(info['inventory']['estimate'], 0)
         needed += p.reserve
@@ -442,7 +445,23 @@ def estimate_order(request):
         info['cost'] = needed * p.total_price()
         cost += info['cost']
 
+        if info['inventory']['estimate'] > 0 and info['sales'] > 0:
+            sales_rate = float(info['sales']) / (date_to - date_from).days
+            days_remain = int(info['inventory']['estimate'] / sales_rate)
+            info['exhausted'] = datetime.date.today() + datetime.timedelta(days=days_remain)
+            if out_of_stock is None or info['exhausted'] < out_of_stock:
+                out_of_stock = info['exhausted']
+        elif info['inventory']['estimate'] == 0 and info['sales'] > 0:
+            info['exhausted'] = "out of stock"
+
         items.append(info)
+
+    for info in items:
+        try:
+            if (info['exhausted'] - out_of_stock).days <= 2:
+                info['exhausted_soon'] = True
+        except:
+            pass
 
     return render_to_response('bobdb/estimate_order.html',
                               {'user': request.user,
@@ -452,7 +471,8 @@ def estimate_order(request):
                                'date_from': date_from,
                                'date_to': date_to,
                                'items': items,
-                               'cost': cost})
+                               'cost': cost,
+                               'out_of_stock': out_of_stock})
 
 @inventory_perm_required
 def display_order(request):

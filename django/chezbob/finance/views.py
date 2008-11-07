@@ -1,4 +1,4 @@
-import datetime
+import datetime, re
 from time import strptime
 
 from django.shortcuts import render_to_response, get_object_or_404
@@ -25,6 +25,17 @@ def parse_date(datestr):
     """
 
     return datetime.date(*strptime(datestr, "%Y-%m-%d")[0:3])
+
+XML_ESCAPES = {'"': "quot", "'": "apos", '<': "lt", '>': "gt", "&": "amp"}
+def xml_escape(s):
+    """Escape a string so it can be written to an XML document."""
+
+    def e(c):
+        c = c.group()
+        return "&" + XML_ESCAPES.get(c, "#%d" % (ord(c),)) + ";"
+    return re.sub("['\"<>&]", e, s)
+
+||||||| /tmp/views.py~base.Q5Z_YP
 
 """
 Redirect is used to redirect "/finance/" to "/finance/accounts/"
@@ -283,17 +294,30 @@ def gnuplot_dump(request):
 def transaction_dump(request):
     response = HttpResponse(mimetype="text/plain")
 
+    response.write('<?xml version="1.0" encoding="utf-8"?>\n')
+    response.write('<?xml-stylesheet type="text/xsl" href="finance.xsl"?>\n\n')
+
+    response.write('<finances>\n  <accounts>\n')
+    TYPE_MAP = {'A': 'asset', 'L': 'liability', 'I': 'income', 'E': 'expense',
+                'Q': 'equity'}
+    for a in Account.objects.order_by('name'):
+        response.write('    <account id="acct%d" type="%s">%s</account>\n'
+                       % (a.id, TYPE_MAP[a.type], xml_escape(a.name)))
+
+    response.write('  </accounts>\n\n  <transactions>')
+
     for (t, splits) in Transaction.fetch_all(include_auto=True):
+        auto = ''
         if t.auto_generated:
-            auto_str = "<auto> "
-        else:
-            auto_str = ""
-        response.write("%s  %s%s\n" % (t.date, auto_str, t.description))
+            auto = ' auto="true"'
+        response.write('\n    <transaction id="t%d"%s>\n      <date>%s</date>\n'
+                       % (t.id, auto, t.date))
+        response.write('      <description>%s</description>\n      <splits>\n'
+                       % (xml_escape(t.description),))
         for s in splits:
-            response.write("    %10.2f [%s]" % (s.amount, s.account.name))
-            if s.memo:
-                response.write("  %s" % (s.memo,))
-            response.write("\n")
-        response.write("\n")
+            response.write('        <split account="acct%d" value="%.02f">%s</split>\n' % (s.account.id, s.amount, xml_escape(s.memo)))
+        response.write('      </splits>\n    </transaction>\n')
+
+    response.write('  </transactions>\n</finances>\n')
 
     return response

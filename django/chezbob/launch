@@ -1,0 +1,35 @@
+#!/usr/bin/python
+#
+# Execute bits of the Chez Bob Django code, initializing Django appropriately.
+# Some of this code is copied from the django.core.management module, since it
+# doesn't seem that the code there is easily extensible.
+
+import os, sys
+
+# Read in the settings module and initialize Django.
+project_directory = os.path.dirname(sys.argv[0])
+sys.path.append(project_directory)
+sys.path.append(os.path.join(project_directory, '..'))
+
+try:
+    import settings
+except ImportError:
+    sys.stderr.write("Unable to load Django settings file from directory %s.\n"
+                     % project_directory)
+    sys.exit(1)
+
+import chezbob
+os.environ['DJANGO_SETTINGS_MODULE'] = 'chezbob.settings'
+
+# Examine the command-line to determine what action has been requested.
+action = sys.argv[1]
+
+if action == 'finance_sync':
+    import chezbob.util.sync_db
+    chezbob.util.sync_db.sync()
+elif action == 'cash_check':
+    import chezbob.util.sync_db
+    chezbob.util.sync_db.check_cash()
+else:
+    sys.stderr.write("Unknown action: %s\n", action)
+    sys.exit(1)
