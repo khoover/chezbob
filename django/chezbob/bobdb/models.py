@@ -213,76 +213,76 @@ class Inventory(models.Model):
 
         transaction.commit_unless_managed()
 
+#    @classmethod
+#    def last_inventory(cls, date):
+#        """Find the most recent inventory on or before the given date.
+#
+#        This will return, for each product, the date inventory for that product
+#        was last taken (on or before the specified date), and the count from
+#        that inventory.  The returned value is a dictionary mapping bulkids to
+#        (date, units, exact) tuples.
+#        """
+#
+#        from django.db import connection
+#        cursor = connection.cursor()
+#        cursor.execute("""SELECT bulkid, date, units, exact FROM
+#                          (SELECT bulkid, max(date) AS date FROM inventory2
+#                              WHERE date <= '%s' GROUP BY bulkid) as d
+#                          NATURAL JOIN inventory2""", [date])
+#
+#        inventory = {}
+#        for (bulkid, date, units, exact) in cursor.fetchall():
+#            inventory[bulkid] = (date, units, exact)
+#        return inventory
+
+#    @classmethod
+#    def estimate_change(cls, bulkid, start_date=None, end_date=None):
+#        """Return the expected change in inventory for an item.
+#
+#        This looks up, in the given date range, all sales (in the
+#        aggregate_purchases table) and bulk purchases (in the orders and
+#        order_items tables) of the given item.
+#        """
+#
+#        from django.db import connection
+#        cursor = connection.cursor()
+#
+#        # Construct an appropriate query for selecting only rows in the given
+#        # date range.  If a date is specified as None, then do not restrict
+#        # that endpoint.
+#        where_values = []
+#        if start_date is not None:
+#            where_query = "date >= '%s'"
+#            where_values.append(start_date)
+#        else:
+#            where_query = "true"
+#
+#        if end_date is not None:
+#            where_query += " and date <= '%s'"
+#            where_values.append(end_date)
+#
+#        # Look up sales in aggregate_purchases
+#        cursor.execute("""SELECT sum(quantity)
+#                          FROM aggregate_purchases JOIN products USING (barcode)
+#                          WHERE bulkid = %s AND """ + where_query,
+#                       [bulkid] + where_values)
+#        sales = cursor.fetchone()[0]
+#        if sales is None: sales = 0
+#
+#        # Look up bulk purchases
+#        cursor.execute("""SELECT sum(quantity * number)
+#                          FROM orders JOIN order_items
+#                              ON orders.id = order_items.order_id
+#                          WHERE bulk_type_id = %s AND """ + where_query,
+#                       [bulkid] + where_values)
+#        purchases = cursor.fetchone()[0]
+#        if purchases is None: purchases = 0
+#
+#        return (sales, purchases)
+
     @classmethod
-    def last_inventory(cls, date):
-        """Find the most recent inventory on or before the given date.
-
-        This will return, for each product, the date inventory for that product
-        was last taken (on or before the specified date), and the count from
-        that inventory.  The returned value is a dictionary mapping bulkids to
-        (date, units, exact) tuples.
-        """
-
-        from django.db import connection
-        cursor = connection.cursor()
-        cursor.execute("""SELECT bulkid, date, units, exact FROM
-                          (SELECT bulkid, max(date) AS date FROM inventory2
-                              WHERE date <= '%s' GROUP BY bulkid) as d
-                          NATURAL JOIN inventory2""", [date])
-
-        inventory = {}
-        for (bulkid, date, units, exact) in cursor.fetchall():
-            inventory[bulkid] = (date, units, exact)
-        return inventory
-
-    @classmethod
-    def estimate_change(cls, bulkid, start_date=None, end_date=None):
-        """Return the expected change in inventory for an item.
-
-        This looks up, in the given date range, all sales (in the
-        aggregate_purchases table) and bulk purchases (in the orders and
-        order_items tables) of the given item.
-        """
-
-        from django.db import connection
-        cursor = connection.cursor()
-
-        # Construct an appropriate query for selecting only rows in the given
-        # date range.  If a date is specified as None, then do not restrict
-        # that endpoint.
-        where_values = []
-        if start_date is not None:
-            where_query = "date >= '%s'"
-            where_values.append(start_date)
-        else:
-            where_query = "true"
-
-        if end_date is not None:
-            where_query += " and date <= '%s'"
-            where_values.append(end_date)
-
-        # Look up sales in aggregate_purchases
-        cursor.execute("""SELECT sum(quantity)
-                          FROM aggregate_purchases JOIN products USING (barcode)
-                          WHERE bulkid = %s AND """ + where_query,
-                       [bulkid] + where_values)
-        sales = cursor.fetchone()[0]
-        if sales is None: sales = 0
-
-        # Look up bulk purchases
-        cursor.execute("""SELECT sum(quantity * number)
-                          FROM orders JOIN order_items
-                              ON orders.id = order_items.order_id
-                          WHERE bulk_type_id = %s AND """ + where_query,
-                       [bulkid] + where_values)
-        purchases = cursor.fetchone()[0]
-        if purchases is None: purchases = 0
-
-        return (sales, purchases)
-
-    @classmethod
-    def get_inventory_estimate(cls, date, include_latest=False):
-        """Returns inventory estimates for all items on the given date.
+    def get_inventory_summary(cls, date, include_latest=False):
+        """Returns a summary of estimated inventory of all items on the given date.\
 
         The returned value is a dictionary mapping a bulkid to a second
         per-item dictionary with the following keys:
@@ -290,34 +290,103 @@ class Inventory(models.Model):
             date: date last inventory was taken for this item
             old_count: count at last inventory
             exact: whether the last inventory was exact
+            activity: has this product inventory changed
             sales: number of this item sold since last inventory
             purchases: number of this item received since last inventory
         """
-
+        
         inventory_date = date
+
+        #DOCME [nbales] Michael, can you please explain include_latest?
         if not include_latest:
             inventory_date -= datetime.timedelta(days=1)
-        previous = Inventory.last_inventory(inventory_date)
 
-        estimates = {}
-        for i in BulkItem.objects.all():
-            bulkid = i.bulkid
-            d = {}
+        #Get most recent handcount and sales and purchase numbers since last handcount
+        sql = """SELECT b.bulkid, i.date, i.units, i.exact,
+                    -- correlated subquery, sum total sale unit sales
+                    (SELECT sum(a.quantity)
+                     FROM aggregate_purchases a JOIN products p USING (barcode)
+                     WHERE p.bulkid = b.bulkid 
+                         AND (a.date > i.date OR i.date IS NULL) 
+                         AND (a.date <= '%s')) as sales,
+                    -- correlated subquery, sum total sale unit purchases
+                    (SELECT sum(oi.quantity * oi.number)
+                     FROM orders o JOIN order_items oi ON o.id = oi.order_id
+                     WHERE oi.bulk_type_id = b.bulkid 
+                         AND (o.date > i.date OR i.date IS NULL) 
+                         AND (o.date <= '%s')) as purchases
+                 FROM bulk_items b
+                    LEFT JOIN
+                        -- get the most recent hand count or null for each item
+                        (SELECT i.bulkid, i.date, i.units, i.exact
+                         FROM inventory2 d
+                              JOIN inventory2 i ON d.bulkid = i.bulkid
+                         WHERE d.date <= '%s'
+                         GROUP BY i.bulkid, i.date, i.units, i.exact
+                         HAVING i.date = max(d.date)) 
+                      AS i ON i.bulkid = b.bulkid;;"""
 
-            if bulkid in previous:
-                (d['date'], d['old_count'], d['exact']) = previous[bulkid]
-                start_date = d['date'] + datetime.timedelta(days=1)
-            else:
-                d['old_count'] = 0
-                start_date = None
+        from django.db import connection
+        cursor = connection.cursor()
+        
+        cursor.execute(sql,[date,date,date])
 
-            (sales, purchases) = Inventory.estimate_change(bulkid,
-                                                           start_date, date)
-            (d['sales'], d['purchases']) = (sales, purchases)
-            d['estimate'] = d['old_count'] + purchases - sales
-            estimates[bulkid] = d
+        summary = {}
+        for (bulkid, date, units, exact, sales, purchases) in cursor.fetchall():
 
-        return estimates
+            if sales is None: sales = 0
+            if purchases is None: purchases = 0
+            if units is None: units = 0
+
+            summary[bulkid] = {'estimate': units + purchases - sales,
+                                 'date': date,
+                                 'old_count': units,                     
+                                 'exact': exact,
+                                 'activity': sales > 0 or purchases > 0,
+                                 'sales': sales,
+                                 'purchases': purchases
+                               }
+
+        return summary
+
+#    @classmethod
+#    def get_inventory_estimate(cls, date, include_latest=False):
+#        """Returns inventory estimates for all items on the given date.\
+#
+#        The returned value is a dictionary mapping a bulkid to a second
+#        per-item dictionary with the following keys:
+#            estimate: estimate for the inventory
+#            date: date last inventory was taken for this item
+#            old_count: count at last inventory
+#            exact: whether the last inventory was exact
+#            sales: number of this item sold since last inventory
+#            purchases: number of this item received since last inventory
+#        """
+#
+#        inventory_date = date
+#        if not include_latest:
+#            inventory_date -= datetime.timedelta(days=1)
+#        previous = Inventory.last_inventory(inventory_date)
+#
+#        estimates = {}
+#        for i in BulkItem.objects.all():
+#            bulkid = i.bulkid
+#            d = {}
+#
+#            if bulkid in previous:
+#                (d['date'], d['old_count'], d['exact']) = previous[bulkid]
+#                start_date = d['date'] + datetime.timedelta(days=1)
+#            else:
+#                d['old_count'] = 0
+#                start_date = None
+#
+#            (sales, purchases) = Inventory.estimate_change(bulkid,
+#                                                           start_date, date)
+#            (d['sales'], d['purchases']) = (sales, purchases)
+#            d['estimate'] = d['old_count'] + purchases - sales
+#            estimates[bulkid] = d
+#
+#        return estimates
 
     @classmethod
     def get_sales(cls, date_from, date_to):

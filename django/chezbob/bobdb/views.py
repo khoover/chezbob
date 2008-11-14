@@ -326,6 +326,8 @@ def list_inventories(request):
 def take_inventory(request, date):
     date = parse_date(date)
 
+    show_all= request.GET.has_key('all')
+
     # If a POST request was submitted, apply any updates to the inventory data
     # in the database before rendering the response.
     if request.method == 'POST':
@@ -375,37 +377,47 @@ def take_inventory(request, date):
         pass
 
     counts = Inventory.get_inventory(date)
-    previous = Inventory.last_inventory(date - datetime.timedelta(days=1))
+    inventory_summary = Inventory.get_inventory_summary(date-datetime.timedelta(days=1))
 
     items = []
-    for i in BulkItem.objects.order_by('description'):
-        # active is set to True if the count for this item is non-zero, or if
-        # there have been any purchases or sales since the last inventory.
-        active = False
 
-        d = {'type': i, 'count_unit': "", 'count_item': "", 'exact': True}
-        if i.bulkid in counts:
-            inv = counts[i.bulkid]
-            d.update({'count': inv[0],
-                      'count_unit': inv[0] // i.quantity,
-                      'count_item': inv[0] % i.quantity,
-                      'exact': inv[1]})
-            if inv[0]: active = True
-        if i.bulkid in previous:
-            d.update({'prev_date': previous[i.bulkid][0],
-                      'prev_count': previous[i.bulkid][1]})
-            start_date = previous[i.bulkid][0] + datetime.timedelta(days=1)
+    for item in BulkItem.objects.order_by('description'):
+        #summary should contain an entry for every bulkid
+        inventory = inventory_summary[item.bulkid]  
+
+        if item.bulkid in counts:
+            (count, exact) = counts[item.bulkid]
+            #FIXME Cases and units should be stored seperatly so that inputs
+            #can be round tripped. It will be easier to find input errors.
+            count_unit = count // item.quantity
+            count_item = count % item.quantity
         else:
-            d['prev_count'] = 0
-            start_date = None
-        if d['prev_count']: active = True
-        (sales, purchases) = Inventory.estimate_change(i.bulkid,
-                                                       start_date, date)
-        d.update({'est_add': purchases, 'est_sub': sales})
-        d['estimate'] = d['prev_count'] + purchases - sales
-        if sales or purchases: active = True
-        d['active'] = active
-        items.append(d)
+            (count, exact, count_unit, count_item) = ("", True, "", "")
+
+        # active is set to True if the count for this item is non-zero,
+        # if the bulkidem is anntated 'active' in the database, or if
+        # there have been any purchases or sales since the last inventory.
+        active = inventory['activity'] or item.active or (count > 0 and count != "")
+
+        if not active and not show_all: continue #no reason to inventory item
+
+        estimate = inventory['old_count'] + inventory['purchases'] - inventory['sales']
+
+        info = {'type': item, 
+                'exact': True,
+                'prev_date': inventory['date'],
+                'prev_count': inventory['old_count'],
+                'est_add': inventory['purchases'],
+                'est_sub': inventory['sales'],
+                'estimate': estimate,
+                'active': active,
+                'count': count,
+                'exact': exact,
+                'count_unit': count_unit,
+                'count_item': count_item
+               }
+        
+        items.append(info)
 
     return render_to_response('bobdb/take_inventory.html',
                               {'user': request.user,
@@ -416,49 +428,64 @@ def take_inventory(request, date):
 
 @inventory_perm_required
 def estimate_order(request):
-    products = BulkItem.objects.order_by('description')
-    inventory = Inventory.get_inventory_estimate(datetime.date.today(), True)
-
+    #query string
     source = int(request.GET.get("source", 1))
     date_to = parse_date(request.GET.get("to", datetime.date.today()))
     date_from = parse_date(request.GET.get("from", date_to - datetime.timedelta(days=14)))
+    show_all= request.GET.has_key('all')
+
+    #database
+    products = BulkItem.objects.order_by('description')
+    inventory = Inventory.get_inventory_summary(datetime.date.today(), True)
     sales = Inventory.get_sales(date_from, date_to)
 
+    #aggregators
     out_of_stock = None
-
     cost = 0.0
     items = []
+
     for p in products:
         if p.source.id != source: continue
+
+        if not p.active and not show_all: continue
+
         info = {'type': p,
                 'inventory': inventory[p.bulkid],
                 'sales': sales.get(p.bulkid, 0),
-                'exhausted': ""}
-
+                'exhausted': False,
+                'exhausted_soon': False,
+                'exhausted_date': ""
+                }
+        
+        # Calculate how many units of new product are needed
         needed = info['sales'] - max(info['inventory']['estimate'], 0)
         needed += p.reserve
         needed = float(needed) / p.quantity
+        # This product went out of stock, tweak in case we didn't order enough
         if info['inventory']['estimate'] <= 0 and info['sales'] > 0:
             needed += 0.5
         needed = max(int(math.ceil(needed)), 0)
         info['order'] = needed
+        # Calculate cost of these units, add to aggregate order cost
         info['cost'] = needed * p.total_price()
         cost += info['cost']
 
+        # Estimate how many days of product remain in inventory 
+        # TODO: [nbales] This should really be in another view
         if info['inventory']['estimate'] > 0 and info['sales'] > 0:
             sales_rate = float(info['sales']) / (date_to - date_from).days
             days_remain = int(info['inventory']['estimate'] / sales_rate)
-            info['exhausted'] = datetime.date.today() + datetime.timedelta(days=days_remain)
-            if out_of_stock is None or info['exhausted'] < out_of_stock:
-                out_of_stock = info['exhausted']
+            info['exhausted_date'] = datetime.date.today() + datetime.timedelta(days=days_remain)
+            if out_of_stock is None or info['exhausted_date'] < out_of_stock:
+                out_of_stock = info['exhausted_date']
         elif info['inventory']['estimate'] == 0 and info['sales'] > 0:
-            info['exhausted'] = "out of stock"
+            info['exhausted'] = True
 
         items.append(info)
 
     for info in items:
-        try:
-            if (info['exhausted'] - out_of_stock).days <= 2:
+        try: #FIXME [nbales] Why is there a try here?
+            if not info['exhausted'] and (info['exhausted_date'] - out_of_stock).days <= 2:
                 info['exhausted_soon'] = True
         except:
             pass

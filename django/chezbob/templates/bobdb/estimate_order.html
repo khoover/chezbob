@@ -1,3 +1,4 @@
+
 {% extends "chezbob/base.html" %}
 {% block title %}Order Estimation{% endblock %}
 
@@ -42,7 +43,9 @@ to: <input type="text" name="to" value="{{ date_to }}" />
     <td>{{ item.type.reserve }}</td>
     <td><input type="text" size="4" name="order.{{ forloop.counter }}" value="{{ item.order }}" /> &times; {{ item.type.quantity }} </td>
     <td>${{ item.cost|stringformat:".2f" }}</td>
-    <td><span{% if item.exhausted_soon %} style="font-weight: bold"{% endif %}>{{ item.exhausted }}</span></td>
+    <td>{% if item.exhausted %}<span style="font-weight:bold;color:red">Out of Stock</span>
+        {% else %}<span {% if item.exhausted_soon %}style="font-weight:bold;color:red"{% endif %}>{{ item.exhausted_date }}</span>
+        {% endif %}
 </tr>
 {% endfor %}
 </tbody>

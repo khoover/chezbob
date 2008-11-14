@@ -14,7 +14,7 @@
     <th>Description</th>
     <th>Cases</th>
     <th>Items</th>
-    <th>Exact?</th>
+    <!--<th>Exact?</th>-->
     <th>Estimate</th>
     <th>Last Inventory</th>
 </tr>
@@ -28,20 +28,20 @@
     <td>
         <span style="font-weight: bold">{{ item.type.description|escape }}</span>
     </td>
-    <td>
-        <input type="text" size="6" name="cases.{{ forloop.counter }}" value="{{ item.count_unit }}" />
+    <td style="white-space:nowrap;">
+        <input type="text" size="4" style="text-align:right;" name="cases.{{ forloop.counter }}" value="{{ item.count_unit }}" />
         &times; {{ item.type.quantity }}
         <input type="hidden" name="multiplier.{{ forloop.counter }}" value="{{ item.type.quantity }}" />
     </td>
-    <td>
-        + <input type="text" size="6" name="items.{{ forloop.counter }}" value="{{ item.count_item }}" />
+    <td style="white-space:nowrap;">
+        + <input type="text" size="4" style="text-align:right;" name="items.{{ forloop.counter }}" value="{{ item.count_item }}" />
     </td>
-    <td>
+    <!--<td>
         <input type="checkbox" name="exact.{{ forloop.counter }}" {% if item.exact %}checked="true" {% endif %}/>
         {% if item.exact %}<input type="hidden" name="old_exact.{{ forloop.counter }}" value="true" />{% endif %}
-    </td>
-    <td>{% if item.active %}<abbr title="{{ item.prev_count }} + {{ item.est_add }} - {{ item.est_sub }}">{{ item.estimate }}</abbr>{% else %}{{ item.estimate }}{% endif %}</td>
-    <td>{{ item.prev_date }}</td>
+    </td>-->
+    <td style="text-align:center">{% if item.active %}<abbr title="{{ item.prev_count }} + {{ item.est_add }} - {{ item.est_sub }}">{{ item.estimate }}</abbr>{% else %}{{ item.estimate }}{% endif %}</td>
+    <td style="text-align:center">{{ item.prev_date }}</td>
 </tr>
 {% endfor %}
 </tbody>
