@@ -4,7 +4,7 @@
 # Some of this code is copied from the django.core.management module, since it
 # doesn't seem that the code there is easily extensible.
 
-import os, sys
+import datetime, os, sys
 
 # Read in the settings module and initialize Django.
 project_directory = os.path.dirname(sys.argv[0])
@@ -30,6 +30,9 @@ if action == 'finance_sync':
 elif action == 'cash_check':
     import chezbob.util.sync_db
     chezbob.util.sync_db.check_cash()
+elif action == 'inventory_sync':
+    import chezbob.util.inventory
+    chezbob.util.inventory.summary(datetime.date(2008, 3, 1))
 else:
     sys.stderr.write("Unknown action: %s\n", action)
     sys.exit(1)

@@ -9,6 +9,7 @@ import datetime, time, re, sys
 
 from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, ProductSource, TAX_RATE
 from django.db import connection
+import django.db.transaction
 cursor = connection.cursor()
 
 ONE_DAY = datetime.timedelta(days=1)
@@ -27,6 +28,7 @@ def check_item(inv, bulkid):
 def item_name(bulkid):
     return BulkItem.objects.get(bulkid=bulkid).description
 
+@django.db.transaction.commit_manually
 def summary(start, end=None, fp=None):
     if end is None:
         end = datetime.date.today()
@@ -49,8 +51,8 @@ def summary(start, end=None, fp=None):
         if bulkid not in price_estimates: price_estimates[bulkid] = price
 
     purchases = cursor.fetchall()
-    for (k, v) in Inventory.get_inventory_estimate(start - ONE_DAY,
-                                                   True).items():
+    for (k, v) in Inventory.get_inventory_summary(start - ONE_DAY,
+                                                  True).items():
         check_item(inventory, k)
         inventory[k]['count'] = v['estimate']
         inventory[k]['cost'] = v['estimate'] * inventory[k]['price']
@@ -82,7 +84,7 @@ def summary(start, end=None, fp=None):
 
     date = start
     while date <= end:
-        print "Date: %s" % (date,)
+        print str(date) + ":",
         sales_total = 0.0
         sales_cost = 0.0
         new_inventory = 0.0
@@ -143,17 +145,28 @@ def summary(start, end=None, fp=None):
 
         inventory_value = sum(inv['cost'] for inv in inventory.values())
 
-        print "  Value %.2f (sales %.2f @ %.2f, new %.2f, losses %.2f)" \
-            % (inventory_value, sales_cost, sales_total, new_inventory, losses)
+        #print "  Value %.2f (sales %.2f @ %.2f, new %.2f, losses %.2f)" \
+        #    % (inventory_value, sales_cost, sales_total, new_inventory, losses)
 
         if fp is not None:
             fp.write("%s\t%.2f\t%.2f\n" % (date, inventory_value, losses))
 
+        print "inventory=%.2f, shrinkage=%.2f" % (inventory_value, losses)
+
+        cursor.execute("DELETE FROM finance_inventory_summary WHERE date='%s'",
+                       (date,))
+        cursor.execute("""INSERT INTO
+                            finance_inventory_summary(date, value, shrinkage)
+                          VALUES ('%s', %s, %s)""",
+                       (date, inventory_value, losses))
+
         date += ONE_DAY
 
-    print
-    print "Final Inventory:"
-    for (bulkid, inv) in inventory.items():
-        if inv['count'] == 0: continue
-        print "%6d %s (average cost: %.2f)" \
-            % (inv['count'], item_name(bulkid), inv['price'])
+    django.db.transaction.commit()
+
+    #print
+    #print "Final Inventory:"
+    #for (bulkid, inv) in inventory.items():
+    #    if inv['count'] == 0: continue
+    #    print "%6d %s (average cost: %.2f)" \
+    #        % (inv['count'], item_name(bulkid), inv['price'])

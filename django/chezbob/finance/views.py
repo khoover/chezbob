@@ -5,7 +5,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseRedirect
-from chezbob.finance.models import Account, Transaction, Split, DepositBalances
+from chezbob.finance.models import Account, Transaction, Split, DepositBalances, InventorySummary
 
 view_perm_required = \
     user_passes_test(lambda u: u.has_perm('finance.view_transactions'))
@@ -243,6 +243,8 @@ def gnuplot_dump(request):
         i += 1
     response.write("# %d: %s\n" % (i + 2, "Bank of Bob Accounts: Positive"))
     response.write("# %d: %s\n" % (i + 3, "Bank of Bob Accounts: Negative"))
+    response.write("# %d: %s\n" % (i + 4, "Inventory: Value at Cost"))
+    response.write("# %d: %s\n" % (i + 5, "Inventory: Shrinkage"))
 
     balances = [0.0] * len(columns)
     date = None
@@ -274,6 +276,14 @@ def gnuplot_dump(request):
             response.write("\t%.2f\t%.2f" % (d.positive, d.negative))
         except DepositBalances.DoesNotExist:
             pass
+
+        # Inventory value and shrinkage
+        try:
+            d = InventorySummary.objects.get(date=date)
+            response.write("\t%.2f\t%.2f" % (d.value, d.shrinkage))
+        except InventorySummary.DoesNotExist:
+            pass
+
         response.write("\n")
 
     for t in Transaction.objects.order_by('date'):

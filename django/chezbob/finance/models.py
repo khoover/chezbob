@@ -185,3 +185,21 @@ class DepositBalances(models.Model):
 
     def __str__(self):
         return "%s +%.2f -%.2f" % (self.date, self.positive, self.negative)
+
+# Estimated value of Chez Bob inventory is not tracked as a core part of the
+# finance system.  We can compute it (approximately) from inventory data and
+# sales, but this is expensive.  Allow these inventory value calculations to be
+# cached, so that they can be reported in some of the financial reports.
+# Warning: Inventory values are just estimates, and are not as precise as most
+# values in the finance system--they might vary based on adjustments to
+# algorithms, starting point for measurements, etc.
+class InventorySummary(models.Model):
+    class Meta:
+        db_table = 'finance_inventory_summary'
+
+    date = models.DateField(primary_key=True)
+    value = models.FloatField(max_digits=12, decimal_places=2)
+    shrinkage = models.FloatField(max_digits=12, decimal_places=2)
+
+    def __str__(self):
+        return "%s value=%.2f shrinkage=%.2f" % (self.date, self.value, self.shrinkage)
