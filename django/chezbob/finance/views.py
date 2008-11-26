@@ -50,11 +50,23 @@ def account_list(request):
     for t in Account.TYPES:
         accounts[t] = []
     totals = {}
+
     try:
         date = parse_date(request.GET['date'])
     except:
         date = None
+
+    try:
+        since = parse_date(request.GET['since'])
+        start_balances = {}
+        for (a, b) in Account.get_balances(date=since):
+            start_balances[a.id] = b
+    except:
+        start_balances = None
+
     for (a, b) in Account.get_balances(date=date):
+        if start_balances is not None:
+            b -= start_balances[a.id]
         if a.is_reversed():
             b = -b
         a.balance = round2(b)
