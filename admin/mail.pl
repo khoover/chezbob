@@ -24,8 +24,8 @@ my %std_headers = (
     'Content-Type' => "text/plain; charset=us-ascii",
     'Content-Disposition' => "inline",
 );
-my @header_order = ('Date', 'From', 'To', 'Subject', 'MIME-Version',
-                    'Content-Type', 'Content-Disposition');
+my @header_order = ('Date', 'From', 'To', 'Subject', 'Reply-To',
+                    'MIME-Version', 'Content-Type', 'Content-Disposition');
 
 # Clean up children which have become zombies.  Does not actually wait if
 # children are still running; as such, if a child has not quite exited, but is
