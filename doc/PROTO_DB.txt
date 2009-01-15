@@ -86,7 +86,3 @@ Command: BOBDB-PURCHASE<tab>tag<tab>username<tab>barcode
 Command: BOBDB-DEPOSIT<tab>tag<tab>username<tab>amount
   Deposit the given amount into the specified user's Bank of Bob account.
   Responds with either BOBDB-SUCCESS or BOBDB-FAIL.
-
-Command: BOBDB-ROUNDING<tab>tag<tab>username<tab>amount
-  Donate the given amount to Chez Bob, as a result of rounding prices when
-  giving change.

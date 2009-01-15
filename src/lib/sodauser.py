@@ -64,19 +64,17 @@ class SodaUser:
         print "Logging " + self.login + " out"
         self.servio.sendLog("User " + self.login + " Logged Out")
 
-        # There may be a few cents left in the anonymous account after
-        # returning change; if so, give that to a special "rounding credits"
-        # account.
-        if self.anon:
-            self.returnAnonChange()
+        if self.anon and self.balance > 0:
+            print "Returning change for anonymous user"
+            self.servio.sendLog(["RETURNING " \
+                                 + str(self.balance)\
+                                 + " TO ANONYMOUS USER ON LOGOUT"])
+            # This is nominally what should be used, but it is somewhat
+            # broken
+            self.servio.send(["CASH-REJECT"])
 
-            if self.balance > 0:
-                self.servio.sendLog(["DONATING REMAINING ANONYMOUS BALANCE: "
-                                     + str(self.balance)])
-                self.servio.send(["BOBDB-ROUNDING",
-                                  genTag(),
-                                  self.login,
-                                  self.balance])
+            self.servio.send(["CASH-CHANGE", self.balance])
+
 
         if self.fp_learn_in_progress:
             # TODO Tidy
@@ -149,30 +147,6 @@ class SodaUser:
     def beginEscrow(self):
         self.escrow_in_progress = True
         self.resetTTL()
-
-    def returnAnonChange(self):
-        """Return change to the anonymous user.
-
-        Return change to a user to adjust the balance to be as close to zero as
-        possible.  There will be from 0 to 4 cents left in the remaining
-        balance after calling this function.
-        """
-
-        if not self.anon or self.balance <= 0:
-            return
-
-        print "Returning change for anonymous user"
-        change = (self.balance // 5) * 5
-        self.servio.sendLog(["RETURNING " \
-                             + str(change)\
-                             + " TO ANONYMOUS USER"])
-        # This is nominally what should be used, but it is somewhat
-        # broken
-        # (What does this comment mean?  --mvrable)
-        self.servio.send(["CASH-REJECT"])
-
-        self.servio.send(["CASH-CHANGE", change])
-        self.balance -= change
 
     def deposit(self, amount):
         self.escrow_in_progress = False
