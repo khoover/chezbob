@@ -332,6 +332,38 @@ while (1) {
         }
     }
 
+    # Give remaining cents (not multiple of 5) to Chez Bob.
+    if ($cmd eq 'BOBDB-ROUNDING') {
+        eval {
+            my ($tag, $username, $amt) = @a;
+            $amt += 0.0;
+            my $userid = get_userid($username);
+            if (defined $userid) {
+                my $sth = $dbh->prepare(
+                    "INSERT INTO transactions
+                        (xacttime, userid, xactvalue, xacttype, source)
+                     VALUES (now(), ?, ?, 'ROUNDING', 'soda')");
+                $sth->execute($userid, -$amt/100.0);
+                $sth = $dbh->prepare(
+                    "UPDATE BALANCES SET balance = balance - ?
+                     WHERE userid = ?");
+                $sth->execute($amt/100.0, $userid);
+                sendResponse('BOBDB-SUCCESS', $tag);
+                sioWrite('LOG', "rounding-donation: $username: $amt");
+            } else {
+                sendResponse('BOBDB-FAIL', $tag, "NO-USER");
+                sioWrite('LOG', "rounding-donation: user $username not found");
+            }
+            $dbh->commit;
+        };
+        if ($@) {
+            sendResponse('BOBDB-FATAL');
+            sioWrite('ERROR', $@);
+            eval { $dbh->rollback };
+            exit 1;
+        }
+    }
+
     # For testing purposes, to make a clean shutdown easy.
     if ($cmd eq 'BOBDB-QUIT') {
         last;
