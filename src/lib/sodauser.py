@@ -207,6 +207,17 @@ class SodaUser:
 
             self.resetTTL()
 
+            if self.anon and self.balance < self.item['price']:
+                print "Purchase request for " + self.item['name'] + " denied"
+                print "Insufficient Funds"
+
+                self.ui.vendDeny(self, "INSUFFICIENT FUNDS")
+                self.barcode_vend_in_progress = False
+                self.item = None
+                self.itemid = 0
+
+                return False
+
             return self.endBarCodeSuccess()
 
         else:
