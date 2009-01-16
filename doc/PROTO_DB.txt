@@ -83,6 +83,10 @@ Command: BOBDB-PURCHASE<tab>tag<tab>username<tab>barcode
   transaction log.  Users are permitted to purchase items even if that would
   cause a negative balance.  Responds with either BOBDB-SUCCESS or BOBDB-FAIL.
 
+  Optionally, a price can be appended after the barcode to force an item to be
+  purchased at a specific price; otherwise, the price is fetched from the
+  product database.
+
 Command: BOBDB-DEPOSIT<tab>tag<tab>username<tab>amount
   Deposit the given amount into the specified user's Bank of Bob account.
   Responds with either BOBDB-SUCCESS or BOBDB-FAIL.

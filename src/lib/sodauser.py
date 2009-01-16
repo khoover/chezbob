@@ -227,25 +227,33 @@ class SodaUser:
         You need to have guards in place that item exists
         '''
         self.querytag = genTag()
-        self.servio.send(["BOBDB-PURCHASE",
-                         self.querytag,
-                         self.login,
-                         self.item['barcode']])
-        print "Charged " + self.login + ": " + str(self.item['price']) + "c"
 
-        #print "Pre-Balance: " + str(self.getBalance())
-        # Strictly to update the GUI
-        self.setBalance(self.balance - self.item['price'])
-        #print "Post-Balance: " + str(self.getBalance())
-
-        self.ui.vendComplete(self, self.item['name'], self.item['price'])
-
+        price = self.item['price']
         if self.anon:
+            # For anonymous purchases, round the item price up to the next
+            # multiple of five cents, since we are unable to return change
+            # except in five cent increments.
+            price += 4
+            price = (price // 5) * 5
+
             self.servio.send(["BOBDB-DEPOSIT",
+                              genTag(),
+                              self.login,
+                              price])
+            self.servio.send(["BOBDB-PURCHASE",
                               self.querytag,
                               self.login,
-                              self.item['price']])
+                              self.item['barcode'],
+                              price])
+        else:
+            self.servio.send(["BOBDB-PURCHASE",
+                             self.querytag,
+                             self.login,
+                             self.item['barcode']])
 
+        print "Charged " + self.login + ": " + str(price) + "c"
+        self.setBalance(self.balance - price)
+        self.ui.vendComplete(self, self.item['name'], price)
 
     def endVendSuccess(self):
         '''

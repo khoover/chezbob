@@ -272,9 +272,12 @@ while (1) {
     # Log a purchase of an item by a user, give the product barcode.
     if ($cmd eq 'BOBDB-PURCHASE') {
         eval {
-            my ($tag, $username, $barcode_in) = @a;
+            my ($tag, $username, $barcode_in, $forced_price) = @a;
             my $userid = get_userid($username);
             my ($barcode, $name, $price, $stock) = get_product($barcode_in);
+            if (defined $forced_price) {
+                $price = $forced_price + 0;
+            }
             if (!defined $userid) {
                 sendResponse('BOBDB-FAIL', $tag, 'NO-USER');
                 sioWrite('LOG', "purchase: user $username not found");
