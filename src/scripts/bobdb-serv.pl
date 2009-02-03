@@ -143,9 +143,10 @@ sub make_purchase {
 
     if ($barcode) {
         $sth = $dbh->prepare(
-            "INSERT INTO aggregate_purchases(date, barcode, quantity, price)
-             VALUES (now(), ?, 1, ?)");
-        $sth->execute($barcode, $price);
+            "INSERT INTO aggregate_purchases
+             SELECT now() AS date, barcode, 1 AS quantity, ? AS price, bulkid
+               FROM products WHERE barcode = ?");
+        $sth->execute($price, $barcode);
     }
 }
 
