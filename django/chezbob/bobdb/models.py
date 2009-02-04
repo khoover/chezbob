@@ -29,6 +29,7 @@ class BulkItem(models.Model):
     source = models.ForeignKey(ProductSource, db_column='source')
     reserve = models.IntegerField()
     active = models.BooleanField(default=True)
+    floor_location = models.IntegerField(default=0)
 
     def __str__(self):
         return self.description

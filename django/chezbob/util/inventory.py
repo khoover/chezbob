@@ -73,12 +73,11 @@ def generate_inventory_report(start, end=None):
                'count': inventory[k]['count'],
                'value': inventory[k]['cost']}
 
-    cursor.execute("""SELECT a.date, p.bulkid, SUM(a.quantity), SUM(a.price)
-                      FROM aggregate_purchases a JOIN products p
-                          USING (barcode)
-                      WHERE a.date >= '%s' AND a.date <= '%s'
-                      GROUP BY a.date, p.bulkid
-                      ORDER BY a.date""", (start, end))
+    cursor.execute("""SELECT date, bulkid, SUM(quantity), SUM(price)
+                      FROM aggregate_purchases
+                      WHERE date >= '%s' AND date <= '%s'
+                      GROUP BY date, bulkid
+                      ORDER BY date""", (start, end))
     sales = cursor.fetchall()
 
     cursor.execute("""SELECT o.date, i.bulk_type_id, i.quantity * i.number,
@@ -177,12 +176,11 @@ def summary(start, end=None, fp=None):
         inventory[k]['count'] = v['estimate']
         inventory[k]['cost'] = v['estimate'] * inventory[k]['price']
 
-    cursor.execute("""SELECT a.date, p.bulkid, SUM(a.quantity), SUM(a.price)
-                      FROM aggregate_purchases a JOIN products p
-                          USING (barcode)
-                      WHERE a.date >= '%s' AND a.date <= '%s'
-                      GROUP BY a.date, p.bulkid
-                      ORDER BY a.date""", (start, end))
+    cursor.execute("""SELECT date, bulkid, SUM(quantity), SUM(price)
+                      FROM aggregate_purchases
+                      WHERE date >= '%s' AND date <= '%s'
+                      GROUP BY date, bulkid
+                      ORDER BY date""", (start, end))
     sales = cursor.fetchall()
 
     cursor.execute("""SELECT o.date, i.bulk_type_id, i.quantity * i.number,
@@ -291,7 +289,7 @@ def summary(start, end=None, fp=None):
     #    print "%6d %s (average cost: %.2f)" \
     #        % (inv['count'], item_name(bulkid), inv['price'])
 
-def report_inventory(start):
+def report_inventory(start, end=None):
     """Compute a summary of inventory values and shrinkage."""
 
     value = 0.0
@@ -299,7 +297,7 @@ def report_inventory(start):
     profit = 0.0
     last_date = None
 
-    for inv in generate_inventory_report(start):
+    for inv in generate_inventory_report(start, end):
         if inv['date'] != last_date:
             print "%s: value=%.2f, shrinkage=%.2f profit=%.2f" % \
                 (last_date, value, shrinkage, profit)
@@ -337,9 +335,15 @@ def item_report(start, end=None):
         elif inv['t'] == 'shrinkage':
             items[id]['shrinkage'] += -inv['value']
 
+    (sales, shrinkage, cost) = (0.0, 0.0, 0.0)
+    print "Item\tLocation\tSales\tCost\tShrinkage"
     for id in items:
         if not sum(abs(items[id][k]) for k in ('sales', 'shrinkage', 'cost')):
             continue
-        print "%s: sales=%.2f (cost=%.2f), shrinkage=%.2f" % \
-            (item_name(id), items[id]['sales'],
+        bulk = BulkItem.objects.get(bulkid=id)
+        print "%s\t%d\t%.2f\t%.2f\t%.2f" % \
+            (bulk.description, bulk.floor_location, items[id]['sales'],
              items[id]['cost'], items[id]['shrinkage'])
+        sales += items[id]['sales']
+        shrinkage += items[id]['shrinkage']
+        cost += items[id]['cost']
