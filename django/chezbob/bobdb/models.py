@@ -306,8 +306,8 @@ class Inventory(models.Model):
         sql = """SELECT b.bulkid, i.date, i.units,
                     -- correlated subquery, sum total sale unit sales
                     (SELECT sum(a.quantity)
-                     FROM aggregate_purchases a JOIN products p USING (barcode)
-                     WHERE p.bulkid = b.bulkid 
+                     FROM aggregate_purchases a
+                     WHERE a.bulkid = b.bulkid 
                          AND (a.date > i.date OR i.date IS NULL) 
                          AND (a.date <= '%s')) as sales,
                     -- correlated subquery, sum total sale unit purchases
@@ -396,7 +396,7 @@ class Inventory(models.Model):
         cursor = connection.cursor()
 
         cursor.execute("""SELECT bulkid, sum(aggregate_purchases.quantity)
-                          FROM aggregate_purchases JOIN products USING (barcode)
+                          FROM aggregate_purchases
                           WHERE date >= '%s' AND date <= '%s'
                                 AND bulkid is not NULL
                           GROUP BY bulkid""", [date_from, date_to])
