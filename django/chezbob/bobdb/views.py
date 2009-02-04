@@ -334,65 +334,86 @@ def take_inventory(request, date):
         if request.POST.get('session_key') != get_session_key(request):
             raise PermissionDenied
 
-    try:
-        n = 0
-        while True:
-            n = str(int(n) + 1)
+        try:
+            n = 0
+            while True:
+                n = str(int(n) + 1)
 
-            bulkid = int(request.POST['id.' + n])
+                bulkid = int(request.POST['id.' + n])
 
-            count = 0
-            count_valid = False
-            try:
-                count = float(request.POST['cases.' + n]) \
-                        * int(request.POST['multiplier.' + n])
-                count = int(round(count))
-                count_valid = True
-            except:
-                pass
+                cases = None;
+                loose = None;
+                count = 0;
 
-            try:
-                count += int(request.POST['items.' + n])
-                count_valid = True
-            except:
-                pass
+                try:
+                    cases = float(request.POST['cases.' + n])
+                    multiplier = int(request.POST['multiplier.' + n])
+                    count += int(round(cases * multiplier))
+                except:
+                    pass
 
-            if not count_valid: count = None
+                try:
+                    loose = int(request.POST['items.' + n])
+                    count += loose
+                except:
+                    pass
 
-            exact = request.POST.has_key('exact.' + n)
+                if cases != None or loose != None:
+                    Inventory.set_inventory(date, bulkid, count, cases, loose)
 
-            # Compare with previous values, and only update database if there
-            # was a change.
-            old_exact = request.POST.has_key('old_exact.' + n)
-            try:
-                old_count = int(request.POST['old_count.' + n])
-            except:
-                old_count = None
-
-            if old_exact != exact or old_count != count:
-                Inventory.set_inventory(date, bulkid, count, exact)
-
-    except KeyError:
-        # Assume we hit the end of the POST inputs
-        pass
+        except KeyError:
+            # Assume we hit the end of the POST inputs
+            pass
 
     counts = Inventory.get_inventory(date)
     inventory_summary = Inventory.get_inventory_summary(date-datetime.timedelta(days=1))
 
-    items = []
+    locations = []
+    location = { 'name': 'Unknown',
+                 'items': []
+               }
+    locations.append(location);
+    location = { 'name': 'Shelves',
+                 'items': []
+               }
+    locations.append(location);
+    location = { 'name': 'Refrigerator',
+                 'items': []
+               }
+    locations.append(location);
+    location = { 'name': 'Freezer',
+                 'items': []
+               }
+    locations.append(location);
+    location = { 'name': 'Soda Machine',
+                 'items': []
+               }
+    locations.append(location);
+    location = { 'name': 'Terminal',
+                 'items': []
+               }
+    locations.append(location);
+
+    counter = 0
 
     for item in BulkItem.objects.order_by('description'):
         #summary should contain an entry for every bulkid
         inventory = inventory_summary[item.bulkid]  
 
         if item.bulkid in counts:
-            (count, exact) = counts[item.bulkid]
-            #FIXME Cases and units should be stored seperatly so that inputs
-            #can be round tripped. It will be easier to find input errors.
-            count_unit = count // item.quantity
-            count_item = count % item.quantity
+            (count, cases, loose) = counts[item.bulkid]
+            if cases == None and loose == None: #if this is the old style database entry then compute the values
+                cases = count // item.quantity
+                loose = count % item.quantity
+            elif not cases and not loose:
+                loose = 0
+                cases = ""
+            elif not cases:
+                cases = ""
+            elif not loose:
+                loose = ""
         else:
-            (count, exact, count_unit, count_item) = ("", True, "", "")
+            (count, cases, loose) = ("", "", "")
 
         # active is set to True if the count for this item is non-zero,
         # if the bulkidem is anntated 'active' in the database, or if
@@ -404,7 +425,6 @@ def take_inventory(request, date):
         estimate = inventory['old_count'] + inventory['purchases'] - inventory['sales']
 
         info = {'type': item, 
-                'exact': True,
                 'prev_date': inventory['date'],
                 'prev_count': inventory['old_count'],
                 'est_add': inventory['purchases'],
@@ -412,18 +432,20 @@ def take_inventory(request, date):
                 'estimate': estimate,
                 'active': active,
                 'count': count,
-                'exact': exact,
-                'count_unit': count_unit,
-                'count_item': count_item
+                'count_unit': cases,
+                'count_item': loose,
+                'counter': counter
                }
+
+        counter += 1
         
-        items.append(info)
+        locations[item.floor_location]['items'].append(info)
 
     return render_to_response('bobdb/take_inventory.html',
                               {'user': request.user,
                                'title': "Take Inventory",
                                'date': date,
-                               'items': items,
+                               'locations': locations,
                                'session_key': get_session_key(request)})
 
 @inventory_perm_required

@@ -14,35 +14,41 @@
     <th>Description</th>
     <th>Cases</th>
     <th>Items</th>
-    <!--<th>Exact?</th>-->
     <th>Estimate</th>
     <th>Last Inventory</th>
 </tr>
 </thead>
 
 <tbody>
-{% for item in items %}
+
+{% for location in locations %}
+
+{% if location.items %}
+<tr><td colspan="5">
+<h3>{{ location.name }}</h3>
+</td></tr>
+{% endif %}
+
+{% for item in location.items %}
 <tr class="{% cycle row1,row2 %}">
-    <input type="hidden" name="id.{{ forloop.counter }}" value="{{ item.type.bulkid }}" />
-    <input type="hidden" name="old_count.{{ forloop.counter }}" value="{{ item.count }}" />
+    <input type="hidden" name="id.{{ item.counter }}" value="{{ item.type.bulkid }}" />
+    <input type="hidden" name="old_count.{{ item.counter }}" value="{{ item.count }}" />
     <td>
         <span style="font-weight: bold">{{ item.type.description|escape }}</span>
     </td>
     <td style="white-space:nowrap;">
-        <input type="text" size="4" style="text-align:right;" name="cases.{{ forloop.counter }}" value="{{ item.count_unit }}" />
+        <input type="text" size="4" style="text-align:right;" name="cases.{{ item.counter }}" value="{{ item.count_unit }}" />
         &times; {{ item.type.quantity }}
-        <input type="hidden" name="multiplier.{{ forloop.counter }}" value="{{ item.type.quantity }}" />
+        <input type="hidden" name="multiplier.{{ item.counter }}" value="{{ item.type.quantity }}" />
     </td>
     <td style="white-space:nowrap;">
-        + <input type="text" size="4" style="text-align:right;" name="items.{{ forloop.counter }}" value="{{ item.count_item }}" />
+        + <input type="text" size="4" style="text-align:right;" name="items.{{ item.counter }}" value="{{ item.count_item }}" />
     </td>
-    <!--<td>
-        <input type="checkbox" name="exact.{{ forloop.counter }}" {% if item.exact %}checked="true" {% endif %}/>
-        {% if item.exact %}<input type="hidden" name="old_exact.{{ forloop.counter }}" value="true" />{% endif %}
-    </td>-->
     <td style="text-align:center">{% if item.active %}<abbr title="{{ item.prev_count }} + {{ item.est_add }} - {{ item.est_sub }}">{{ item.estimate }}</abbr>{% else %}{{ item.estimate }}{% endif %}</td>
     <td style="text-align:center">{{ item.prev_date }}</td>
 </tr>
+{% endfor %}
+
 {% endfor %}
 </tbody>
 </table>

@@ -29,6 +29,7 @@ class BulkItem(models.Model):
     source = models.ForeignKey(ProductSource, db_column='source')
     reserve = models.IntegerField()
     active = models.BooleanField(default=True)
+    floor_location = models.IntegerField(default=0)
 
     def __str__(self):
         return self.description
@@ -175,23 +176,24 @@ class Inventory(models.Model):
         """Returns counts for all items with inventory taken on the given day.
 
         The returned value is a dictionary mapping a bulkid to a tuple (count,
-        exact).  count is the number of the item at the time of inventory, and
-        exact is a boolean indicating whether this is an estimate or an exact
-        value.
+        casese, loose).  count is the number of the item at the time of inventory, and
+        cases is the number of full cases, and loose is the number of loose units
+        of the item.
         """
 
         from django.db import connection
         cursor = connection.cursor()
-        cursor.execute("""SELECT bulkid, units, exact FROM inventory2
+        cursor.execute("""SELECT bulkid, units, cases, loose_units 
+                          FROM inventory2
                           WHERE date = '%s'""", [date])
 
         inventory = {}
-        for (bulkid, units, exact) in cursor.fetchall():
-            inventory[bulkid] = (units, exact)
+        for (bulkid, units, cases, loose) in cursor.fetchall():
+            inventory[bulkid] = (units, cases, loose)
         return inventory
 
     @classmethod
-    def set_inventory(cls, date, bulkid, count, exact=True):
+    def set_inventory(cls, date, bulkid, count, cases, loose):
         """Insert a record with an inventory estimate for a product.
 
         Create a record of the inventory count for the given product on the
@@ -207,9 +209,9 @@ class Inventory(models.Model):
                        (date, bulkid))
 
         if count is not None:
-            cursor.execute("""INSERT INTO inventory2(date, bulkid, units, exact)
-                              VALUES ('%s', %s, %s, %s)""",
-                           (date, bulkid, count, exact))
+            cursor.execute("""INSERT INTO inventory2(date, bulkid, units, cases, loose_units)
+                              VALUES ('%s', %s, %s, %s, %s)""",
+                           (date, bulkid, count, cases, loose))
 
         transaction.commit_unless_managed()
 
@@ -289,7 +291,6 @@ class Inventory(models.Model):
             estimate: estimate for the inventory
             date: date last inventory was taken for this item
             old_count: count at last inventory
-            exact: whether the last inventory was exact
             activity: has this product inventory changed
             sales: number of this item sold since last inventory
             purchases: number of this item received since last inventory
@@ -302,7 +303,7 @@ class Inventory(models.Model):
             inventory_date -= datetime.timedelta(days=1)
 
         #Get most recent handcount and sales and purchase numbers since last handcount
-        sql = """SELECT b.bulkid, i.date, i.units, i.exact,
+        sql = """SELECT b.bulkid, i.date, i.units,
                     -- correlated subquery, sum total sale unit sales
                     (SELECT sum(a.quantity)
                      FROM aggregate_purchases a JOIN products p USING (barcode)
@@ -318,11 +319,11 @@ class Inventory(models.Model):
                  FROM bulk_items b
                     LEFT JOIN
                         -- get the most recent hand count or null for each item
-                        (SELECT i.bulkid, i.date, i.units, i.exact
+                        (SELECT i.bulkid, i.date, i.units
                          FROM inventory2 d
                               JOIN inventory2 i ON d.bulkid = i.bulkid
                          WHERE d.date <= '%s'
-                         GROUP BY i.bulkid, i.date, i.units, i.exact
+                         GROUP BY i.bulkid, i.date, i.units
                          HAVING i.date = max(d.date)) 
                       AS i ON i.bulkid = b.bulkid;;"""
 
@@ -332,7 +333,7 @@ class Inventory(models.Model):
         cursor.execute(sql,[date,date,date])
 
         summary = {}
-        for (bulkid, date, units, exact, sales, purchases) in cursor.fetchall():
+        for (bulkid, date, units, sales, purchases) in cursor.fetchall():
 
             if sales is None: sales = 0
             if purchases is None: purchases = 0
@@ -340,8 +341,7 @@ class Inventory(models.Model):
 
             summary[bulkid] = {'estimate': units + purchases - sales,
                                  'date': date,
-                                 'old_count': units,                     
-                                 'exact': exact,
+                                 'old_count': units, 
                                  'activity': sales > 0 or purchases > 0,
                                  'sales': sales,
                                  'purchases': purchases
