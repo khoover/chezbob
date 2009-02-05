@@ -13,13 +13,13 @@
 begin;
 set transaction isolation level serializable;
 create temp table aggregated(date date, barcode text, quantity integer,
-                             price numeric(12,2))
+                             price numeric(12,2), bulkid integer)
     on commit drop;
 insert into aggregated
-    select date, barcode, sum(quantity) as quantity, sum(price) as price
+    select date, barcode, sum(quantity) as quantity, sum(price) as price, bulkid
         from aggregate_purchases
         where date > now() - interval '2 day'
-        group by date, barcode;
+        group by date, barcode, bulkid;
 delete from aggregate_purchases where date > now() - interval '2 day';
 insert into aggregate_purchases
     select * from aggregated where quantity <> 0;
