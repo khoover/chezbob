@@ -14,6 +14,16 @@ class ProductSource(models.Model):
     def __str__(self):
         return self.description
 
+class FloorLocations(models.Model):
+    class Meta:
+        db_table = 'floor_locations'
+
+    id = models.AutoField(db_column='id', primary_key=True)
+    name = models.CharField(db_column='name', maxlength=255)
+
+    def __str__(self):
+        return self.name
+
 class BulkItem(models.Model):
     class Meta:
         db_table = 'bulk_items'
@@ -29,7 +39,8 @@ class BulkItem(models.Model):
     source = models.ForeignKey(ProductSource, db_column='source')
     reserve = models.IntegerField()
     active = models.BooleanField(default=True)
-    floor_location = models.IntegerField(default=0)
+    floor_location = models.ForeignKey(FloorLocations,
+                                       db_column='floor_location')
 
     def __str__(self):
         return self.description
@@ -62,14 +73,16 @@ class BulkItem(models.Model):
         search_fields = ['description']
         fields = [
             ("Details", {'fields': ('description', 'quantity', 'updated',
-                                    'source', 'reserve', 'active')}),
+                                    'source', 'reserve', 'active',
+                                    'floor_location')}),
             ("Pricing", {'fields': (('price', 'taxable'),
                                     ('crv', 'crv_taxable'))}),
         ]
         ordering = ['description']
-        list_filter = ['updated', 'active', 'source']
+        list_filter = ['updated', 'active', 'source', 'floor_location']
         list_display = ['description', 'quantity', 'price', 'taxable',
-                        'crv', 'crv_taxable', 'updated', 'active', 'source']
+                        'crv', 'crv_taxable', 'updated', 'active', 'source',
+                        'floor_location']
 
 class Product(models.Model):
     class Meta:
