@@ -3,12 +3,7 @@
 093624835028    # Latte, Single
 042491500010    # Latte, Double
 436710464281    # Lipton Tea Bag
-485158466975    # Beef Tamales
 438334145539    # Herbal Tea Bag
 431016311314    # Decaffeinated Lipton Tea Bag
-465818229843    # Klondike Bar
-464121094254    # Orange
-418686540282    # Banana
 476989929852    # Apple
-074570036127    # Haagen-Dazs Bar
-456628750566    # Applesauce
+418686540282    # Banana
