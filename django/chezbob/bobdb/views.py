@@ -439,7 +439,7 @@ def take_inventory(request, date):
 
         counter += 1
         
-        locations[item.floor_location]['items'].append(info)
+        locations[item.floor_location.id]['items'].append(info)
 
     return render_to_response('bobdb/take_inventory.html',
                               {'user': request.user,
