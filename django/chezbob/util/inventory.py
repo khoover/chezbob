@@ -147,129 +147,15 @@ def generate_inventory_report(start, end=None):
 
 @django.db.transaction.commit_manually
 def summary(start, end=None, fp=None):
-    if end is None:
-        end = datetime.date.today()
+    print "Generating Inventory Summary..."
 
-    price_estimates = {}
+    date = None
+    losses = 0.0
+    inventory_value = 0.0
 
-    # For each item, a dictionary:
-    #   count: number of that item currently in the inventory
-    #   cost: total cost basis for all the items
-    #   price: cost/count, the average cost per item
-    inventory = {}
-
-    print "Report range: %s - %s" % (start, end)
-
-    cursor.execute("""SELECT i.bulk_type_id,
-                             (cost_taxable * %s + cost_nontaxable) / quantity
-                      FROM orders o JOIN order_items i ON (o.id = i.order_id)
-                      WHERE o.date < '%s'
-                      ORDER BY o.date DESC""",
-                   (1 + TAX_RATE, start))
-    for (bulkid, price) in cursor.fetchall():
-        if bulkid not in price_estimates: price_estimates[bulkid] = price
-
-    purchases = cursor.fetchall()
-    for (k, v) in Inventory.get_inventory_summary(start - ONE_DAY,
-                                                  True).items():
-        check_item(inventory, k, price_estimates)
-        inventory[k]['count'] = v['estimate']
-        inventory[k]['cost'] = v['estimate'] * inventory[k]['price']
-
-    cursor.execute("""SELECT date, bulkid, SUM(quantity), SUM(price)
-                      FROM aggregate_purchases
-                      WHERE date >= '%s' AND date <= '%s'
-                      GROUP BY date, bulkid
-                      ORDER BY date""", (start, end))
-    sales = cursor.fetchall()
-
-    cursor.execute("""SELECT o.date, i.bulk_type_id, i.quantity * i.number,
-                             i.number * (cost_taxable * %s + cost_nontaxable)
-                      FROM orders o JOIN order_items i ON (o.id = i.order_id)
-                      WHERE o.date >= '%s' AND o.date <= '%s'
-                      ORDER BY o.date""",
-                   (1 + TAX_RATE, start, end))
-    purchases = cursor.fetchall()
-
-    cursor.execute("""SELECT date, bulkid, units
-                      FROM inventory2
-                      WHERE date >= '%s' AND date <= '%s'
-                      ORDER BY date""", (start, end))
-    inventories = cursor.fetchall()
-
-    if fp is not None:
-        fp.write("# Date\tInventory\tLosses\n")
-
-    date = start
-    while date <= end:
-        print str(date) + ":",
-        sales_total = 0.0
-        sales_cost = 0.0
-        new_inventory = 0.0
-        losses = 0.0
-
-        updated = set()
-
-        for p in extract(purchases, date):
-            #print "Purchase:", p
-            (_, bulkid, count, cost) = p
-            if bulkid is None: continue
-            check_item(inventory, bulkid, price_estimates)
-            inv = inventory[bulkid]
-            inv['count'] += count
-            inv['cost'] += cost
-            new_inventory += cost
-            updated.add(p[1])
-
-        for s in extract(sales, date):
-            #print "Sale:", s
-            (_, bulkid, count, cost) = s
-            if bulkid is None: continue
-            check_item(inventory, bulkid, price_estimates)
-            inv = inventory[bulkid]
-            if inv['count'] == 0:
-                cogs = 0.0
-            else:
-                cogs = count * (inv['cost'] / inv['count'])
-            inv['cost'] -= cogs
-            inv['count'] -= count
-            #print "Profit: %.2f = %.2f - %.2f" % (cost - cogs, cost, cogs)
-            if cost is not None:
-                sales_total += cost
-            sales_cost += cogs
-            updated.add(s[1])
-
-        for bulkid in updated:
-            inv = inventory[bulkid]
-            if inv['count'] < 0:
-                print "WARNING: %s has negative count %d" \
-                    % (item_name(bulkid), inv['count'])
-            elif inv['count'] > 0:
-                inv['price'] = inv['cost'] / inv['count']
-
-        for i in extract(inventories, date):
-            #print "Inventory:", i
-            (_, bulkid, count) = i
-            check_item(inventory, bulkid, price_estimates)
-            inv = inventory[bulkid]
-            if count != inv['count']:
-                qty = inv['count'] - count
-                print "    LOSS: $%.2f %s (expected %d, had %d)" \
-                    % (qty * inv['price'], item_name(bulkid),
-                       inv['count'], count)
-                inv['count'] = count
-                inv['cost'] -= qty * inv['price']
-                losses += qty * inv['price']
-
-        inventory_value = sum(inv['cost'] for inv in inventory.values())
-
-        #print "  Value %.2f (sales %.2f @ %.2f, new %.2f, losses %.2f)" \
-        #    % (inventory_value, sales_cost, sales_total, new_inventory, losses)
-
-        if fp is not None:
-            fp.write("%s\t%.2f\t%.2f\n" % (date, inventory_value, losses))
-
-        print "inventory=%.2f, shrinkage=%.2f" % (inventory_value, losses)
+    def commit_day():
+        print "%s: inventory=%.2f, shrinkage=%.2f" \
+            % (date, inventory_value, losses)
 
         cursor.execute("DELETE FROM finance_inventory_summary WHERE date='%s'",
                        (date,))
@@ -278,16 +164,18 @@ def summary(start, end=None, fp=None):
                           VALUES ('%s', %s, %s)""",
                        (date, inventory_value, losses))
 
-        date += ONE_DAY
+    for inv in generate_inventory_report(start, end):
+        if inv['date'] != date:
+            if date is not None: commit_day()
+            date = inv['date']
+            losses = 0.0
 
+        inventory_value += inv['value']
+        if inv['t'] == 'shrinkage':
+            losses -= inv['value']
+
+    commit_day()
     django.db.transaction.commit()
-
-    #print
-    #print "Final Inventory:"
-    #for (bulkid, inv) in inventory.items():
-    #    if inv['count'] == 0: continue
-    #    print "%6d %s (average cost: %.2f)" \
-    #        % (inv['count'], item_name(bulkid), inv['price'])
 
 def report_inventory(start, end=None):
     """Compute a summary of inventory values and shrinkage."""
