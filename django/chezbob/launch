@@ -33,6 +33,10 @@ elif action == 'cash_check':
 elif action == 'inventory_sync':
     import chezbob.util.inventory
     chezbob.util.inventory.summary(datetime.date(2008, 3, 1))
+elif action == 'loss_report':
+    import chezbob.util.inventory
+    chezbob.util.inventory.category_report(datetime.date(2009, 1, 10),
+                                           datetime.date(2009, 2, 27))
 else:
     sys.stderr.write("Unknown action: %s\n", action)
     sys.exit(1)

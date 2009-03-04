@@ -235,3 +235,40 @@ def item_report(start, end=None):
         sales += items[id]['sales']
         shrinkage += items[id]['shrinkage']
         cost += items[id]['cost']
+
+def category_report(start, end=None):
+    """Compute a per-category summary of shrinkage and sales.
+       
+    This should be used to compute necessary per-category markups to cover
+    losses."""
+
+    groups = {}
+
+    def category(id, category_cache={}):
+        if id not in category_cache:
+            bulk = BulkItem.objects.get(bulkid=id)
+            category_cache[id] = bulk.floor_location.name
+        return category_cache[id]
+
+    for inv in generate_inventory_report(start, end):
+        g = category(inv['item'])
+        if g not in groups:
+            groups[g] = {'sales': 0.0, 'shrinkage': 0.0, 'cost': 0.0}
+
+        if inv['t'] == 'sell':
+            groups[g]['sales'] += inv['income']
+            groups[g]['cost'] += -inv['value']
+        elif inv['t'] == 'shrinkage':
+            groups[g]['shrinkage'] += -inv['value']
+
+    for g in sorted(groups.keys()):
+        print "%s:" % (g,)
+        i = groups[g]
+        for k in ('sales', 'cost', 'shrinkage'):
+            print "    %s = %.2f" % (k, i[k])
+        print "    profit = %.2f" % (i['sales'] - i['cost'] - i['shrinkage'],)
+        try:
+            print "    loss_pct = %.2f%%" % \
+                (i['shrinkage'] / (i['shrinkage'] + i['cost']) * 100.0,)
+        except ZeroDivisionError:
+            pass
