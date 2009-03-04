@@ -2,8 +2,10 @@
 075678356124    # Espresso, Double
 093624835028    # Latte, Single
 042491500010    # Latte, Double
+410014682282    # Milk for Tea
 436710464281    # Lipton Tea Bag
 438334145539    # Herbal Tea Bag
 431016311314    # Decaffeinated Lipton Tea Bag
 476989929852    # Apple
 418686540282    # Banana
+464121094254    # Orange

@@ -55,7 +55,7 @@ paying for it. Tsk, tsk... for shame.
 <table width="75%" border="1" cellspacing="0">
 <tr>
   <th>User Name</th>
-  <th>Owes Bob</th>
+  <th>Owes Bob (USD)</th>
 </tr>
 END
 
