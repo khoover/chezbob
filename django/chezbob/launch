@@ -37,6 +37,9 @@ elif action == 'loss_report':
     import chezbob.util.inventory
     chezbob.util.inventory.category_report(datetime.date(2009, 1, 10),
                                            datetime.date(2009, 2, 27))
+elif action == 'reprice':
+    import chezbob.util.pricing
+    chezbob.util.pricing.reprice()
 else:
     sys.stderr.write("Unknown action: %s\n", action)
     sys.exit(1)
