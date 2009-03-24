@@ -172,6 +172,9 @@ def summary(start, end=None, fp=None):
 
         inventory_value += inv['value']
         if inv['t'] == 'shrinkage':
+            print "  LOSS: $%.02f (%d) %s" \
+                % (-inv['value'], -inv['count'],
+                   BulkItem.objects.get(bulkid=inv['item']).description)
             losses -= inv['value']
 
     commit_day()

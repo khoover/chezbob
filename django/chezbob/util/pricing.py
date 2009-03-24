@@ -8,15 +8,15 @@ import django.db.transaction
 cursor = connection.cursor()
 
 markups = {
-    1: 0.19,                    # Shelves
-    2: 0.16,                    # Refrigerator
-    3: 0.12,                    # Freezer
+    1: 0.16,                    # Shelves
+    2: 0.15,                    # Refrigerator
+    3: 0.06,                    # Freezer
     4: 0.05,                    # Soda machine
-    5: 0.24,                    # Terminal
+    5: 0.16,                    # Terminal
     0: 0.15,                    # Unknown
 }
 
-def reprice():
+def reprice(dry_run=False):
     def format_price_list(l):
         if len(l) == 0:
             return "??"
@@ -29,9 +29,11 @@ def reprice():
             price = round(b.unit_price() * (1 + markup), 2)
             old_prices = [p.price for p in b.product_set.all()]
             print "%s\t%s\t%.2f\t%.3f" % (b.description, format_price_list(old_prices), price, b.unit_price())
-            for p in b.product_set.all():
-                p.price = price
-                p.save()
+            if not dry_run:
+                for p in b.product_set.all():
+                    assert False
+                    p.price = price
+                    p.save()
 
     print "Product\tOld Price\tNew Price\tCost"
     price_set(BulkItem.objects.filter(active=True).order_by('description'))
