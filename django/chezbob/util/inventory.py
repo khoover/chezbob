@@ -7,7 +7,7 @@ goods sold, profits, and shrinkage.
 
 import datetime, time, re, sys
 
-from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, ProductSource, TAX_RATE
+from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, ProductSource
 from django.db import connection
 import django.db.transaction
 cursor = connection.cursor()
@@ -55,11 +55,11 @@ def generate_inventory_report(start, end=None):
     # Look for an item price from near the start of the period, for computing
     # the initial inventory value.
     cursor.execute("""SELECT i.bulk_type_id,
-                             (cost_taxable * %s + cost_nontaxable) / quantity
+                             (cost_taxable * (1 + o.tax_rate)
+                               + cost_nontaxable) / quantity
                       FROM orders o JOIN order_items i ON (o.id = i.order_id)
                       WHERE o.date < '%s'
-                      ORDER BY o.date DESC""",
-                   (1 + TAX_RATE, start))
+                      ORDER BY o.date DESC""", (start,))
     price_estimates = {}
     for (bulkid, price) in cursor.fetchall():
         if bulkid not in price_estimates: price_estimates[bulkid] = price
@@ -81,11 +81,11 @@ def generate_inventory_report(start, end=None):
     sales = cursor.fetchall()
 
     cursor.execute("""SELECT o.date, i.bulk_type_id, i.quantity * i.number,
-                             i.number * (cost_taxable * %s + cost_nontaxable)
+                             i.number * (cost_taxable * (1 + o.tax_rate)
+                                          + cost_nontaxable)
                       FROM orders o JOIN order_items i ON (o.id = i.order_id)
                       WHERE o.date >= '%s' AND o.date <= '%s'
-                      ORDER BY o.date""",
-                   (1 + TAX_RATE, start, end))
+                      ORDER BY o.date""", (start, end))
     purchases = cursor.fetchall()
 
     cursor.execute("""SELECT date, bulkid, units

@@ -2,7 +2,7 @@
 
 import datetime, time, re, sys
 
-from chezbob.bobdb.models import BulkItem, Product, ProductSource, TAX_RATE
+from chezbob.bobdb.models import BulkItem, Product, ProductSource
 from django.db import connection
 import django.db.transaction
 cursor = connection.cursor()

@@ -5,7 +5,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseRedirect
-from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, ProductSource, TAX_RATE
+from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, ProductSource
 
 def parse_date(datestr):
     """Parse a string representation of a date into a datetime.Date object.
@@ -223,7 +223,7 @@ def update_order(request, order):
         total_notax += i.cost_nontaxable * i.number
         total_tax += i.cost_taxable * i.number
 
-    total = round(total_notax + total_tax * (1 + TAX_RATE), 2)
+    total = round(total_notax + total_tax * (1 + order.tax_rate), 2)
 
     for i in range(5):
         new_items.append({'blank': True})

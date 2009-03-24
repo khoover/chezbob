@@ -1,6 +1,9 @@
 import datetime
 from django.db import models
 
+# Current tax rate.  This is only used to compute current item prices.  For any
+# historical analysis, the per-order tax rate stored with each order is used
+# instead.
 TAX_RATE = 0.0775
 
 class ProductSource(models.Model):
