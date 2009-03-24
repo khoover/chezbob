@@ -124,6 +124,7 @@ class Order(models.Model):
     date = models.DateField()
     description = models.CharField(maxlength=256)
     amount = models.FloatField(max_digits=12, decimal_places=2)
+    tax_rate = models.FloatField(max_digits=6, decimal_places=4)
 
     def __str__(self):
         return "%s %s" % (self.date, self.description)
@@ -131,7 +132,7 @@ class Order(models.Model):
     class Admin:
         ordering = ['date', 'description']
         search_fields = ['date', 'description']
-        list_display = ['date', 'amount', 'description']
+        list_display = ['date', 'amount', 'tax_rate', 'description']
 
 class OrderItem(models.Model):
     class Meta:
