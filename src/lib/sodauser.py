@@ -235,7 +235,7 @@ class SodaUser:
 
         self.querytag = genTag()
 
-        price = self.item['price']
+        price = item['price']
         if self.anon:
             # For anonymous purchases, round the item price up to the next
             # multiple of five cents, since we are unable to return change
@@ -260,7 +260,7 @@ class SodaUser:
 
         print "Charged " + self.login + ": " + str(price) + "c"
         self.setBalance(self.balance - price)
-        self.ui.vendComplete(self, self.item['name'], price)
+        self.ui.vendComplete(self, item['name'], price)
 
     def endVendSuccess(self):
         '''
