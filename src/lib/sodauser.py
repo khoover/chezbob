@@ -39,7 +39,6 @@ class SodaUser:
         # Less critical
         self.fp_learn_in_progress = False
 
-        self.itemid = 0
         self.item = None
 
         self.should_logout = False # Whether to logout on transaction
@@ -203,11 +202,9 @@ class SodaUser:
             return False
 
         elif self.barcode_vend_in_progress and item['tag'] == self.barcodequerytag:
-            self.item = item
-
             self.resetTTL()
 
-            return self.endBarCodeSuccess()
+            return self.endBarCodeSuccess(item)
 
         else:
             print "Got Unexpected Product Info " + str(item)
@@ -222,29 +219,32 @@ class SodaUser:
         # TODO Kick UI
 
 
-    def makePurchase(self):
+    def makePurchase(self, item = None):
         '''
         You need to have guards in place that item exists
         '''
+        if item is None:
+            item = self.item
+
         self.querytag = genTag()
         self.servio.send(["BOBDB-PURCHASE",
                          self.querytag,
                          self.login,
-                         self.item['barcode']])
-        print "Charged " + self.login + ": " + str(self.item['price']) + "c"
+                         item['barcode']])
+        print "Charged " + self.login + ": " + str(item['price']) + "c"
 
         #print "Pre-Balance: " + str(self.getBalance())
         # Strictly to update the GUI
-        self.setBalance(self.balance - self.item['price'])
+        self.setBalance(self.balance - item['price'])
         #print "Post-Balance: " + str(self.getBalance())
 
-        self.ui.vendComplete(self, self.item['name'], self.item['price'])
+        self.ui.vendComplete(self, item['name'], item['price'])
 
         if self.anon:
             self.servio.send(["BOBDB-DEPOSIT",
                               self.querytag,
                               self.login,
-                              self.item['price']])
+                              item['price']])
 
 
     def endVendSuccess(self):
@@ -265,7 +265,6 @@ class SodaUser:
 
         self.vend_in_progress = False
         self.item = None
-        self.itemid = None
 
         return (self.anon or self.shouldLogout()) and self.canLogout()
 
@@ -284,26 +283,23 @@ class SodaUser:
         return self.anon and self.canLogout()
 
     def beginBarCode(self, itemid):
-        self.itemid = itemid
         self.barcode_vend_in_progress = True
 
         self.barcodequerytag = "B" + genTag()
 
         self.servio.send(["BOBDB-QUERYPRODUCT",
                           self.barcodequerytag,
-                          self.itemid]);
+                          itemid]);
 
-        print "Barcode scan " + self.itemid + " sent to DB"
+        print "Barcode scan " + itemid + " sent to DB"
 
-    def endBarCodeSuccess(self):
+    def endBarCodeSuccess(self, item = None):
         '''
         Return True if the user should be logged out.
         '''
-        self.makePurchase()
+        self.makePurchase(item)
 
         self.barcode_vend_in_progress = False
-        self.item = None
-        self.itemid = 0
 
         return (self.anon or self.shouldLogout()) and self.canLogout()
 
