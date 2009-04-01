@@ -219,12 +219,10 @@ class SodaUser:
         # TODO Kick UI
 
 
-    def makePurchase(self, item = None):
+    def makePurchase(self, item):
         '''
         You need to have guards in place that item exists
         '''
-        if item is None:
-            item = self.item
 
         self.querytag = genTag()
         self.servio.send(["BOBDB-PURCHASE",
@@ -261,7 +259,7 @@ class SodaUser:
             self.servio.sendDebug(["Got VEND-SUCCESS w/o item data!!!"])
             return True
 
-        self.makePurchase()
+        self.makePurchase(self.item)
 
         self.vend_in_progress = False
         self.item = None
