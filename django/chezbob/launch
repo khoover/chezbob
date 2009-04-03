@@ -39,7 +39,7 @@ elif action == 'loss_report':
                                            datetime.date(2009, 3, 18))
 elif action == 'reprice':
     import chezbob.util.pricing
-    chezbob.util.pricing.reprice(dry_run=True)
+    chezbob.util.pricing.reprice(dry_run=False)
 else:
     sys.stderr.write("Unknown action: %s\n", action)
     sys.exit(1)

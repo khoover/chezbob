@@ -8,12 +8,12 @@ import django.db.transaction
 cursor = connection.cursor()
 
 markups = {
-    1: 0.16,                    # Shelves
-    2: 0.15,                    # Refrigerator
-    3: 0.06,                    # Freezer
-    4: 0.05,                    # Soda machine
-    5: 0.16,                    # Terminal
-    0: 0.15,                    # Unknown
+    1: 0.17,                    # Shelves
+    2: 0.16,                    # Refrigerator
+    3: 0.07,                    # Freezer
+    4: 0.06,                    # Soda machine
+    5: 0.17,                    # Terminal
+    0: 0.16,                    # Unknown
 }
 
 def reprice(dry_run=False):
@@ -31,7 +31,6 @@ def reprice(dry_run=False):
             print "%s\t%s\t%.2f\t%.3f" % (b.description, format_price_list(old_prices), price, b.unit_price())
             if not dry_run:
                 for p in b.product_set.all():
-                    assert False
                     p.price = price
                     p.save()
 
