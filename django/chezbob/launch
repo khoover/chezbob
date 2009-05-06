@@ -35,11 +35,11 @@ elif action == 'inventory_sync':
     chezbob.util.inventory.summary(datetime.date(2008, 3, 1))
 elif action == 'loss_report':
     import chezbob.util.inventory
-    chezbob.util.inventory.category_report(datetime.date(2009, 2, 5),
-                                           datetime.date(2009, 3, 18))
+    chezbob.util.inventory.category_report(datetime.date(2009, 2, 28),
+                                           datetime.date(2009, 4, 23))
 elif action == 'reprice':
     import chezbob.util.pricing
-    chezbob.util.pricing.reprice(dry_run=True)
+    chezbob.util.pricing.reprice(dry_run=False)
 else:
     sys.stderr.write("Unknown action: %s\n", action)
     sys.exit(1)
