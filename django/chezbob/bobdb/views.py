@@ -394,7 +394,7 @@ def take_inventory(request, date):
                }
     locations.append(location);
 
-    counter = 0
+    counter = 1
 
     for item in BulkItem.objects.order_by('description'):
         #summary should contain an entry for every bulkid
