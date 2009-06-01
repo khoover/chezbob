@@ -8,12 +8,12 @@ import django.db.transaction
 cursor = connection.cursor()
 
 markups = {
-    1: 0.14,                    # Shelves
+    1: 0.12,                    # Shelves
     2: 0.12,                    # Refrigerator
     3: 0.12,                    # Freezer
-    4: 0.06,                    # Soda machine
-    5: 0.16,                    # Terminal
-    0: 0.16,                    # Unknown
+    4: 0.04,                    # Soda machine
+    5: 0.20,                    # Terminal
+    0: 0.12,                    # Unknown
 }
 
 def reprice(dry_run=False):
