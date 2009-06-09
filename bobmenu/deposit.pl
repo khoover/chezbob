@@ -7,6 +7,26 @@ require "$BOBPATH/dlg.pl";
 
 my $MAX_DEPOSIT = 100;
 
+sub
+encourage_soda_deposit
+# Encourage the user to make a deposit at the soda machine, and offer to
+# transfer the login.  Returns true if the user accepted and the login was
+# transferred, otherwise returns false (the old deposit procedure should be
+# used).
+{
+  my ($username, $balance) = @_;
+
+  if (! &confirm_win("Deposit at Soda Machine?",
+      "\nChez Bob encourages the use of the soda machine for all deposits, as it is both more accurate and makes collecting deposits easier.  Would you like to transfer your login to the soda machine to make a deposit there?  (In the future, you can do this directly with the 'Soda Login' menu item or by logging into the soda machine directly.)", 70, 12)) {
+    return 0;
+  }
+
+  if (&soda_rlogin($username, $balance) == 0) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
 
 sub
 add_win

@@ -80,7 +80,11 @@ MAINLOOP:
       };
 
       /^Add Money$/ && do {
-        &add_win($userid);
+        if (&encourage_soda_deposit($username, $balance)) {
+          $action = "Quit";
+        } else {
+          &add_win($userid);
+        }
         last SWITCH;
       };
 
