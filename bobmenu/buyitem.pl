@@ -81,42 +81,7 @@ buy_single_item_with_scanner
   my $dup_purchase = 0;
   my $ent;
 
-  # Check for the magic 'shell access' barcode
-  if ($prodbarcode eq '898972437' || $prodbarcode eq '31415926535')
-  {
-    # Alan Su  -- 1001
-    # Mike C.  -- 1174
-    # John Bellardo -- 1181
-    # Marvin McNett -- 1191
-    # Vic Gidofalvi -- 1261
-    # Wenjing Rao -- 1349
-    # Mike McCracken -- 1347
-    # Kirill Levchenko -- 1436
-    # Michael Vrable -- 1743
-    # Justin Ma -- 1721
-    if ($userid != 1001 && $userid != 1174 &&
-        $userid != 1181 && $userid != 1191 &&
-        $userid != 1261 && $userid != 1349 &&
-        $userid != 1347 && $userid != 1436 &&
-        $userid != 1743 && $userid != 1721)
-    {
-      return "";
-    }
-
-    if ($main::drop_to_shell == 0)
-    {
-        $main::drop_to_shell = $userid;
-        if ($PROFILE{"Speech"}) { &sayit("Thank you for taking such good care of chay bob"); }
-    }
-    else
-    {
-        $main::drop_to_shell = 0;
-        if ($PROFILE{"Speech"}) { &sayit("i regret your decision not to take care of me"); }
-    }
-    return "";
-  }
-
-  $barcode = &preprocess_barcode($prodbarcode);      
+  $barcode = &preprocess_barcode($prodbarcode);
   $prodname = &bob_db_get_productname_from_barcode($barcode);
   if (!defined $prodname) {
     &invalid_product_barcode_win;

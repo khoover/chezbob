@@ -27,8 +27,6 @@ require "$BOBPATH/dlg.pl";      # locn of dialog exe
 
 $CASH_BARCODE = "888888";
 
-$main::drop_to_shell = 0;
-
 # Attempt to determine the Mercurial revision number of the current code.  We
 # expect at least 12 hex digits.
 my $hg_id = `cd $BOBPATH; hg id`;
@@ -85,10 +83,3 @@ if ($direct_login) {
 &speech_shutdown;
 
 &bob_db_disconnect;
-
-if ($main::drop_to_shell != 0)
-{
-    system('/usr/bin/clear');
-    print "Welcome to ChezBob!!  Please login for maintenance.\n";
-    exec('/bin/login');
-}
