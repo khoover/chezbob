@@ -50,6 +50,11 @@ def generate_inventory_report(start, end=None):
     #   count: number of that item currently in the inventory
     #   cost: total cost basis for all the items
     #   price: cost/count, the average cost per item
+    #
+    # Invariants:
+    #   cost >= 0.00
+    #   cost == 0.00 if count <= 0
+    #   price >= 0.00
     inventory = {}
 
     # Look for an item price from near the start of the period, for computing
@@ -117,8 +122,10 @@ def generate_inventory_report(start, end=None):
             inv = inventory[bulkid]
             if inv['count'] == 0:
                 cogs = 0.0
+            elif count == inv['count']:
+                cogs = inv['cost']
             else:
-                cogs = count * (inv['cost'] / inv['count'])
+                cogs = min(inv['cost'], count * (inv['cost'] / inv['count']))
             inv['cost'] -= cogs
             inv['count'] -= count
             updated.add(bulkid)
@@ -130,32 +137,50 @@ def generate_inventory_report(start, end=None):
             inv = inventory[bulkid]
             if inv['count'] > 0:
                 inv['price'] = inv['cost'] / inv['count']
+            assert inv['cost'] >= 0.0
+            assert inv['price'] >= 0.0
+            if inv['count'] <= 0: assert inv['cost'] == 0.0
 
         for i in extract(inventories, date):
             (_, bulkid, count) = i
             check_item(inventory, bulkid, price_estimates)
             inv = inventory[bulkid]
             if count != inv['count']:
+                assert count >= 0
                 qty = inv['count'] - count
+                newcost = inv['price'] * count
+                costchange = newcost - inv['cost']
                 inv['count'] = count
-                inv['cost'] -= qty * inv['price']
+                inv['cost'] = newcost
 
                 yield {'t': 'shrinkage', 'date': date, 'item': bulkid,
-                       'count': -qty, 'value': -qty * inv['price']}
+                       'count': -qty, 'value': costchange}
 
         date += ONE_DAY
 
 @django.db.transaction.commit_manually
-def summary(start, end=None, fp=None):
-    print "Generating Inventory Summary..."
-
+def summary(start, end=None, commit_start=None):
     date = None
     losses = 0.0
     inventory_value = 0.0
 
     def commit_day():
-        print "%s: inventory=%.2f, shrinkage=%.2f" \
-            % (date, inventory_value, losses)
+        cursor.execute("""SELECT value FROM finance_inventory_summary
+                          WHERE date='%s'""",
+                       (date,))
+        old_value = 0.0
+        for r in cursor.fetchall():
+            old_value = r[0]
+
+        if date == commit_start:
+            print "--- COMMITTING ---"
+
+        print "%s: inventory=%.2f shrinkage=%.2f [old_value=%.2f delta=%.2f]" \
+            % (date, inventory_value, losses,
+               old_value, inventory_value - old_value)
+
+        if commit_day is not None and date < commit_start:
+            return
 
         cursor.execute("DELETE FROM finance_inventory_summary WHERE date='%s'",
                        (date,))
@@ -164,7 +189,13 @@ def summary(start, end=None, fp=None):
                           VALUES ('%s', %s, %s)""",
                        (date, inventory_value, losses))
 
+    print "Gathering price data..."
+    first_result_seen = False
     for inv in generate_inventory_report(start, end):
+        if not first_result_seen:
+            print "Summarizing inventory data..."
+            first_result_seen = True
+
         if inv['date'] != date:
             if date is not None: commit_day()
             date = inv['date']
