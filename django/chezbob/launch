@@ -32,7 +32,8 @@ elif action == 'cash_check':
     chezbob.util.sync_db.check_cash()
 elif action == 'inventory_sync':
     import chezbob.util.inventory
-    chezbob.util.inventory.summary(datetime.date(2008, 3, 1))
+    chezbob.util.inventory.summary(datetime.date(2008, 7, 1),
+                                   commit_start=datetime.date(2009, 1, 1))
 elif action == 'loss_report':
     import chezbob.util.inventory
     chezbob.util.inventory.category_report(datetime.date(2009, 3, 19),
