@@ -33,6 +33,7 @@ $sth->execute();
 
 my @row;
 while ((@row = $sth->fetchrow_array)) {
+    $row[2] =~ s/^TRANSFER.*/TRANSFER/;
     $row[0] = encode_string($row[0]);
     $row[2] = encode_string($row[2]);
     pop @row unless $row[3];
