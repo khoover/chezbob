@@ -342,23 +342,47 @@ def take_inventory(request, date):
                 bulkid = int(request.POST['id.' + n])
                 multiplier = int(request.POST['multiplier.' + n])
 
-                cases = None;
-                loose = None;
-                count = 0;
+                cases = None
+                loose = None
+                count = 0
+                modified = False
 
                 try:
                     cases = float(request.POST['cases.' + n])
                     count += int(round(cases * multiplier))
+                    if request.POST['cases.' + n] != request.POST['old_cases.' + n]: modified = True
                 except:
                     pass
 
                 try:
                     loose = int(request.POST['items.' + n])
                     count += loose
+                    if request.POST['items.' + n] != request.POST['old_items.' + n]: modified = True
                 except:
                     pass
 
-                if cases != None or loose != None:
+                # If both inventory fields are clear, then we want to delete
+                # the inventory record entirely.
+                if cases is None and loose is None:
+                    count = None
+
+                # Only write the inventory record to the database if it
+                # appeared to have been changed.  This should provide limited
+                # protection against concurrent inventory updates as long as
+                # the same item is edited concurrently.
+                try:
+                    old_count = request.POST['old_count.' + n]
+                    if old_count == "":
+                        old_count = None
+                    else:
+                        old_count = int(old_count)
+
+                    if count != old_count:
+                        modified = True
+                except:
+                    pass
+
+                if modified:
                     Inventory.set_inventory(date, bulkid, count,
                                             cases, loose, multiplier)
 
@@ -433,8 +457,8 @@ def take_inventory(request, date):
                 'estimate': estimate,
                 'active': active,
                 'count': count,
-                'count_unit': cases,
-                'count_item': loose,
+                'count_cases': cases,
+                'count_items': loose,
                 'multiplier': case_size,
                 'counter': counter
                }
