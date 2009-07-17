@@ -12,6 +12,12 @@
         <div id="branding">
             {% block branding %}<h1 id="site-name">Chez Bob</h1>{% endblock %}
         </div>
+        <b>Menu:</b>
+        <a href="/finance/accounts/">Finance</a> |
+        <a href="/cashout/">Cashouts</a> |
+        <a href="/inventory/">Inventory</a> |
+        <a href="/orders/">Orders</a> |
+        <a href="/admin/logout/">Logout</a>
         {% if user.is_authenticated %}
         <div id="user-tools">Welcome, <strong>{% if user.first_name %}{{ user.first_name|escape }}{% else %}{{ user.username }}{% endif %}</strong>.</div>
         {% endif %}
