@@ -340,6 +340,7 @@ def take_inventory(request, date):
                 n = str(int(n) + 1)
 
                 bulkid = int(request.POST['id.' + n])
+                multiplier = int(request.POST['multiplier.' + n])
 
                 cases = None;
                 loose = None;
@@ -347,7 +348,6 @@ def take_inventory(request, date):
 
                 try:
                     cases = float(request.POST['cases.' + n])
-                    multiplier = int(request.POST['multiplier.' + n])
                     count += int(round(cases * multiplier))
                 except:
                     pass
@@ -359,7 +359,8 @@ def take_inventory(request, date):
                     pass
 
                 if cases != None or loose != None:
-                    Inventory.set_inventory(date, bulkid, count, cases, loose)
+                    Inventory.set_inventory(date, bulkid, count,
+                                            cases, loose, multiplier)
 
         except KeyError:
             # Assume we hit the end of the POST inputs
@@ -401,10 +402,10 @@ def take_inventory(request, date):
         inventory = inventory_summary[item.bulkid]  
 
         if item.bulkid in counts:
-            (count, cases, loose) = counts[item.bulkid]
+            (count, cases, loose, case_size) = counts[item.bulkid]
             if cases == None and loose == None: #if this is the old style database entry then compute the values
-                cases = count // item.quantity
-                loose = count % item.quantity
+                cases = count // case_size
+                loose = count % case_size
             elif not cases and not loose:
                 loose = 0
                 cases = ""
@@ -413,7 +414,7 @@ def take_inventory(request, date):
             elif not loose:
                 loose = ""
         else:
-            (count, cases, loose) = ("", "", "")
+            (count, cases, loose, case_size) = ("", "", "", item.quantity)
 
         # active is set to True if the count for this item is non-zero,
         # if the bulkidem is anntated 'active' in the database, or if
@@ -424,7 +425,7 @@ def take_inventory(request, date):
 
         estimate = inventory['old_count'] + inventory['purchases'] - inventory['sales']
 
-        info = {'type': item, 
+        info = {'type': item,
                 'prev_date': inventory['date'],
                 'prev_count': inventory['old_count'],
                 'est_add': inventory['purchases'],
@@ -434,11 +435,12 @@ def take_inventory(request, date):
                 'count': count,
                 'count_unit': cases,
                 'count_item': loose,
+                'multiplier': case_size,
                 'counter': counter
                }
 
         counter += 1
-        
+
         locations[item.floor_location.id]['items'].append(info)
 
     return render_to_response('bobdb/take_inventory.html',
@@ -478,7 +480,7 @@ def estimate_order(request):
                 'exhausted_soon': False,
                 'exhausted_date': ""
                 }
-        
+
         # Calculate how many units of new product are needed
         needed = info['sales'] - max(info['inventory']['estimate'], 0)
         needed += p.reserve

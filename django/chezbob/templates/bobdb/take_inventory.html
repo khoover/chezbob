@@ -38,8 +38,8 @@
     </td>
     <td style="white-space:nowrap;">
         <input type="text" size="4" style="text-align:right;" name="cases.{{ item.counter }}" value="{{ item.count_unit }}" />
-        &times; {{ item.type.quantity }}
-        <input type="hidden" name="multiplier.{{ item.counter }}" value="{{ item.type.quantity }}" />
+        &times; {{ item.multiplier }}
+        <input type="hidden" name="multiplier.{{ item.counter }}" value="{{ item.multiplier }}" />
     </td>
     <td style="white-space:nowrap;">
         + <input type="text" size="4" style="text-align:right;" name="items.{{ item.counter }}" value="{{ item.count_item }}" />

@@ -195,24 +195,25 @@ class Inventory(models.Model):
         """Returns counts for all items with inventory taken on the given day.
 
         The returned value is a dictionary mapping a bulkid to a tuple (count,
-        casese, loose).  count is the number of the item at the time of inventory, and
-        cases is the number of full cases, and loose is the number of loose units
-        of the item.
+        cases, loose, case_size).  count is the number of the item at the time
+        of inventory, and cases is the number of full cases, and loose is the
+        number of loose units of the item.  case_size is the number of units in
+        a case (at the time the inventory was taken).
         """
 
         from django.db import connection
         cursor = connection.cursor()
-        cursor.execute("""SELECT bulkid, units, cases, loose_units 
+        cursor.execute("""SELECT bulkid, units, cases, loose_units, case_size
                           FROM inventory2
                           WHERE date = '%s'""", [date])
 
         inventory = {}
-        for (bulkid, units, cases, loose) in cursor.fetchall():
-            inventory[bulkid] = (units, cases, loose)
+        for (bulkid, units, cases, loose, case_size) in cursor.fetchall():
+            inventory[bulkid] = (units, cases, loose, case_size)
         return inventory
 
     @classmethod
-    def set_inventory(cls, date, bulkid, count, cases, loose):
+    def set_inventory(cls, date, bulkid, count, cases, loose, case_size):
         """Insert a record with an inventory estimate for a product.
 
         Create a record of the inventory count for the given product on the
@@ -228,9 +229,9 @@ class Inventory(models.Model):
                        (date, bulkid))
 
         if count is not None:
-            cursor.execute("""INSERT INTO inventory2(date, bulkid, units, cases, loose_units)
-                              VALUES ('%s', %s, %s, %s, %s)""",
-                           (date, bulkid, count, cases, loose))
+            cursor.execute("""INSERT INTO inventory2(date, bulkid, units, cases, loose_units, case_size)
+                              VALUES ('%s', %s, %s, %s, %s, %s)""",
+                           (date, bulkid, count, cases, loose, case_size))
 
         transaction.commit_unless_managed()
 
