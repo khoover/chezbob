@@ -61,15 +61,27 @@ END
 
 my @rows = ();
 my @row;
+my $owed = 0.0;
 while ((@row = $sth->fetchrow_array)) {
     push @rows, [$row[0], sprintf("%.02f", -$row[1])];
+    $owed += -$row[1];
 }
 format_table_rows @rows;
+
+$sth = $dbh->prepare(
+    "SELECT -sum(balance) FROM balances WHERE balance < 0"
+);
+$sth->execute();
+@row = $sth->fetchrow_array;
+my $total_owed = $row[0];
+$sth->finish();
 
 my $updated = strftime "%Y-%m-%d %H:%M:%S %z", localtime;
 
 print <<END;
 </table>
+<p>Total owed to Chez Bob: \$@{[ sprintf("%.02f", $total_owed) ]}
+(@{[ sprintf("%.01f", 100.0 * $owed / $total_owed) ]}\% by users above)</p>
 <p>Last updated: $updated</p>
 </body>
 </html>
