@@ -25,10 +25,10 @@ class Account(models.Model):
         LIABILITY: "Liability",
     }
 
-    type = models.CharField(maxlength=1, choices=TYPES.items())
-    name = models.CharField(maxlength=256)
+    type = models.CharField(max_length=1, choices=TYPES.items())
+    name = models.CharField(max_length=256)
 
-    def __str__(self):
+    def __unicode__(self):
         return "%s [%s]" % (self.name, self.TYPES[self.type])
 
     def is_reversed(self):
@@ -61,9 +61,6 @@ class Account(models.Model):
 
         return result
 
-    class Admin:
-        ordering = ['name']
-
 class Transaction(models.Model):
     class Meta:
         db_table = 'finance_transactions'
@@ -80,7 +77,7 @@ class Transaction(models.Model):
     # to false will never be touched by the automated systems.
     auto_generated = models.BooleanField()
 
-    def __str__(self):
+    def __unicode__(self):
         return "%s %s" % (self.date, self.description)
 
     @classmethod
@@ -151,23 +148,17 @@ class Transaction(models.Model):
             splits.sort(key=lambda s: -s.amount)
         return result
 
-    class Admin:
-        pass
-
 class Split(models.Model):
     class Meta:
         db_table = 'finance_splits'
 
     transaction = models.ForeignKey(Transaction)
     account = models.ForeignKey(Account)
-    amount = models.FloatField(max_digits=12, decimal_places=2)
-    memo = models.CharField(maxlength=256, blank=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    memo = models.CharField(max_length=256, blank=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return "%.2f %s" % (self.amount, self.account)
-
-    class Admin:
-        pass
 
 # The "Bank of Bob Liabilities" account does not separate out positive-balance
 # accounts from negative- ones, and merely records the total.  But this
@@ -180,10 +171,10 @@ class DepositBalances(models.Model):
         db_table = 'finance_deposit_summary'
 
     date = models.DateField(primary_key=True)
-    positive = models.FloatField(max_digits=12, decimal_places=2)
-    negative = models.FloatField(max_digits=12, decimal_places=2)
+    positive = models.DecimalField(max_digits=12, decimal_places=2)
+    negative = models.DecimalField(max_digits=12, decimal_places=2)
 
-    def __str__(self):
+    def __unicode__(self):
         return "%s +%.2f -%.2f" % (self.date, self.positive, self.negative)
 
 # Estimated value of Chez Bob inventory is not tracked as a core part of the
@@ -198,8 +189,8 @@ class InventorySummary(models.Model):
         db_table = 'finance_inventory_summary'
 
     date = models.DateField(primary_key=True)
-    value = models.FloatField(max_digits=12, decimal_places=2)
-    shrinkage = models.FloatField(max_digits=12, decimal_places=2)
+    value = models.DecimalField(max_digits=12, decimal_places=2)
+    shrinkage = models.DecimalField(max_digits=12, decimal_places=2)
 
-    def __str__(self):
+    def __unicode__(self):
         return "%s value=%.2f shrinkage=%.2f" % (self.date, self.value, self.shrinkage)

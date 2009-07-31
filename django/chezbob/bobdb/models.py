@@ -12,9 +12,9 @@ class ProductSource(models.Model):
 
     id = models.AutoField(db_column='sourceid', primary_key=True)
     description = models.CharField(db_column='source_description',
-                                   maxlength=255)
+                                   max_length=255)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.description
 
 class FloorLocations(models.Model):
@@ -22,9 +22,9 @@ class FloorLocations(models.Model):
         db_table = 'floor_locations'
 
     id = models.AutoField(db_column='id', primary_key=True)
-    name = models.CharField(db_column='name', maxlength=255)
+    name = models.CharField(db_column='name', max_length=255)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
 class BulkItem(models.Model):
@@ -33,9 +33,9 @@ class BulkItem(models.Model):
 
     bulkid = models.AutoField(primary_key=True)
     description = models.TextField()
-    price = models.FloatField(max_digits=12, decimal_places=2)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
     taxable = models.BooleanField()
-    crv = models.FloatField(max_digits=12, decimal_places=2)
+    crv = models.DecimalField(max_digits=12, decimal_places=2)
     crv_taxable = models.BooleanField()
     quantity = models.IntegerField()
     updated = models.DateField()
@@ -45,7 +45,7 @@ class BulkItem(models.Model):
     floor_location = models.ForeignKey(FloorLocations,
                                        db_column='floor_location')
 
-    def __str__(self):
+    def __unicode__(self):
         return self.description
 
     def cost_taxable(self):
@@ -72,33 +72,17 @@ class BulkItem(models.Model):
 
         return round(self.total_price() / self.quantity, 4)
 
-    class Admin:
-        search_fields = ['description']
-        fields = [
-            ("Details", {'fields': ('description', 'quantity', 'updated',
-                                    'source', 'reserve', 'active',
-                                    'floor_location')}),
-            ("Pricing", {'fields': (('price', 'taxable'),
-                                    ('crv', 'crv_taxable'))}),
-        ]
-        ordering = ['description']
-        list_filter = ['updated', 'active', 'source', 'floor_location']
-        list_display = ['description', 'quantity', 'price', 'taxable',
-                        'crv', 'crv_taxable', 'updated', 'active', 'source',
-                        'floor_location']
-
 class Product(models.Model):
     class Meta:
         db_table = 'products'
 
-    barcode = models.CharField(maxlength=32, primary_key=True, core=True)
-    name = models.CharField(maxlength=256, core=True)
-    phonetic_name = models.CharField(maxlength=256)
-    price = models.FloatField(max_digits=12, decimal_places=2, core=True)
-    bulk = models.ForeignKey(BulkItem, db_column='bulkid', blank=True,
-                             edit_inline=models.TABULAR)
+    barcode = models.CharField(max_length=32, primary_key=True)
+    name = models.CharField(max_length=256)
+    phonetic_name = models.CharField(max_length=256)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    bulk = models.ForeignKey(BulkItem, db_column='bulkid', blank=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return "%s [%s]" % (self.name, self.barcode)
 
     def get_absolute_url(self):
@@ -114,28 +98,18 @@ class Product(models.Model):
                        [self.barcode])
         return cursor.fetchall()
 
-    class Admin:
-        ordering = ['name']
-        search_fields = ['barcode', 'name']
-        list_display = ['barcode', 'name', 'price']
-
 class Order(models.Model):
     class Meta:
         db_table = 'orders'
         permissions = [("edit_orders", "Enter Order Information")]
 
     date = models.DateField()
-    description = models.CharField(maxlength=256)
-    amount = models.FloatField(max_digits=12, decimal_places=2)
-    tax_rate = models.FloatField(max_digits=6, decimal_places=4)
+    description = models.CharField(max_length=256)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    tax_rate = models.DecimalField(max_digits=6, decimal_places=4)
 
-    def __str__(self):
+    def __unicode__(self):
         return "%s %s" % (self.date, self.description)
-
-    class Admin:
-        ordering = ['date', 'description']
-        search_fields = ['date', 'description']
-        list_display = ['date', 'amount', 'tax_rate', 'description']
 
 class OrderItem(models.Model):
     class Meta:
@@ -162,14 +136,11 @@ class OrderItem(models.Model):
     # instead of using a "taxable" boolean since both could be present (for
     # example, item is not taxable but the CRV on the item is).  In most cases,
     # one of the costs will be zero.
-    cost_taxable = models.FloatField(max_digits=12, decimal_places=2)
-    cost_nontaxable = models.FloatField(max_digits=12, decimal_places=2)
+    cost_taxable = models.DecimalField(max_digits=12, decimal_places=2)
+    cost_nontaxable = models.DecimalField(max_digits=12, decimal_places=2)
 
-    def __str__(self):
+    def __unicode__(self):
         return "%d %s" % (self.number, self.bulk_type)
-
-    class Admin:
-        list_display = ['bulk_type', 'number', 'order']
 
 # This class doesn't actually connect directly with the underlying database
 # table, but the class methods provided do perform useful queries.
@@ -180,7 +151,7 @@ class Inventory(models.Model):
     inventoryid = models.AutoField(primary_key=True)
     inventory_time = models.DateField()
 
-    def __str__(self):
+    def __unicode__(self):
         return "#%d %s" % (self.inventoryid, self.inventory_time)
 
     @classmethod

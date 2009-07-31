@@ -4,13 +4,10 @@ class Entity(models.Model):
     class Meta:
         db_table = 'cashout_entity'
 
-    name = models.CharField(maxlength=256, blank=True)
+    name = models.CharField(max_length=256, blank=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return "%s" % self.name
-
-    class Admin:
-        ordering = ['name']
 
 
 class CashOut(models.Model):
@@ -18,13 +15,10 @@ class CashOut(models.Model):
         db_table = 'cashout_cashout'
         permissions = [("view_cashouts", "View CashOut Ledger")]
 
-    class Admin:
-        pass
-
     datetime = models.DateTimeField('Collection Time')
     notes = models.TextField()
 
-    def __str__(self):
+    def __unicode__(self):
         return "%s %s" % (self.datetime, self.notes)
 
     @classmethod
@@ -52,12 +46,9 @@ class CashCount(models.Model):
     class Meta:
         db_table = 'cashout_cashcount'
 
-    class Admin:
-        pass
-
     cashout = models.ForeignKey(CashOut)
     entity = models.ForeignKey(Entity)
-    memo = models.CharField(maxlength=256, blank=True)
+    memo = models.CharField(max_length=256, blank=True)
 
     bill100 = models.IntegerField('$100')
     bill50  = models.IntegerField('$50')
@@ -71,8 +62,8 @@ class CashCount(models.Model):
     coin10  = models.IntegerField('&cent;10')
     coin5   = models.IntegerField('&cent;5')
     coin1   = models.IntegerField('&cent;1')
-    other   = models.FloatField(max_digits=12, decimal_places=2)
-    total   = models.FloatField(max_digits=12, decimal_places=2, editable=False)
+    other   = models.DecimalField(max_digits=12, decimal_places=2)
+    total   = models.DecimalField(max_digits=12, decimal_places=2, editable=False)
 
     # Meta-data
     fields = (
