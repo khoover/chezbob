@@ -1,8 +1,8 @@
 {% extends "chezbob/base.html" %}
-{% block title %}Product Detail: {{ product.name|escape }}{% endblock %}
+{% block title %}Product Detail: {{ product.name }}{% endblock %}
 
 {% block content %}
-<h1>{{ product.name|escape }}</h1>
+<h1>{{ product.name }}</h1>
 
 <p>Price: ${{ product.price|stringformat:".2f" }}</p>
 <p>Unit Cost: ${{ product.bulk.unit_price|stringformat:".4f" }}</p>

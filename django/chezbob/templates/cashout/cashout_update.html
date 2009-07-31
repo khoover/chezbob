@@ -44,54 +44,54 @@
 <tr class="{% cycle row1,row2 %}">
     <td>
         {{ count.id }}
-        <input type="text" name="memo.{{ forloop.counter }}" value="{{ count.memo|escape }}" />
+        <input type="text" name="memo.{{ forloop.counter }}" value="{{ count.memo }}" />
     </td>
     <td>
         <select name="entity.{{ forloop.counter }}">
             <option value="">--------</option>
             {% for e in entitys %}
-            <option value="{{ e.id }}" {% ifequal e.id count.entity.id %}selected="selected"{% endifequal %}>{{ e|escape }}</option>
+            <option value="{{ e.id }}" {% ifequal e.id count.entity.id %}selected="selected"{% endifequal %}>{{ e }}</option>
             {% endfor %}
         </select>
     </td>
     <td>
-        <input type="text" name="bill100.{{ forloop.counter }}" value="{{ count.bill100|escape }}" size=4/>
+        <input type="text" name="bill100.{{ forloop.counter }}" value="{{ count.bill100 }}" size=4/>
     </td>
     <td>
-        <input type="text" name="bill50.{{ forloop.counter }}" value="{{ count.bill50|escape }}" size=4/>
+        <input type="text" name="bill50.{{ forloop.counter }}" value="{{ count.bill50 }}" size=4/>
     </td>
     <td>
-        <input type="text" name="bill20.{{ forloop.counter }}" value="{{ count.bill20|escape }}" size=4/>
+        <input type="text" name="bill20.{{ forloop.counter }}" value="{{ count.bill20 }}" size=4/>
     </td>
     <td>
-        <input type="text" name="bill10.{{ forloop.counter }}" value="{{ count.bill10|escape }}" size=4/>
+        <input type="text" name="bill10.{{ forloop.counter }}" value="{{ count.bill10 }}" size=4/>
     </td>
     <td>
-        <input type="text" name="bill5.{{ forloop.counter }}" value="{{ count.bill5|escape }}" size=4/>
+        <input type="text" name="bill5.{{ forloop.counter }}" value="{{ count.bill5 }}" size=4/>
     </td>
     <td>
-        <input type="text" name="bill1.{{ forloop.counter }}" value="{{ count.bill1|escape }}" size=4/>
+        <input type="text" name="bill1.{{ forloop.counter }}" value="{{ count.bill1 }}" size=4/>
     </td>
     <td>
-        <input type="text" name="coin25.{{ forloop.counter }}" value="{{ count.coin25|escape }}" size=4/>
+        <input type="text" name="coin25.{{ forloop.counter }}" value="{{ count.coin25 }}" size=4/>
     </td>
     <td>
-        <input type="text" name="coin10.{{ forloop.counter }}" value="{{ count.coin10|escape }}" size=4/>
+        <input type="text" name="coin10.{{ forloop.counter }}" value="{{ count.coin10 }}" size=4/>
     </td>
     <td>
-        <input type="text" name="coin5.{{ forloop.counter }}" value="{{ count.coin5|escape }}" size=4/>
+        <input type="text" name="coin5.{{ forloop.counter }}" value="{{ count.coin5 }}" size=4/>
     </td>
     <td>
-        <input type="text" name="coin1.{{ forloop.counter }}" value="{{ count.coin1|escape }}" size=4/>
+        <input type="text" name="coin1.{{ forloop.counter }}" value="{{ count.coin1 }}" size=4/>
     </td>
     <td>
-        <input type="text" name="coin100.{{ forloop.counter }}" value="{{ count.coin100|escape }}" size=4/>
+        <input type="text" name="coin100.{{ forloop.counter }}" value="{{ count.coin100 }}" size=4/>
     </td>
     <td>
-        <input type="text" name="coin50.{{ forloop.counter }}" value="{{ count.coin50|escape }}" size=4/>
+        <input type="text" name="coin50.{{ forloop.counter }}" value="{{ count.coin50 }}" size=4/>
     </td>
     <td>
-        <input type="text" name="other.{{ forloop.counter }}" value="{{ count.other|escape }}" size=4/>
+        <input type="text" name="other.{{ forloop.counter }}" value="{{ count.other }}" size=4/>
     </td>
     <td>
         {{ count.total|stringformat:".2f" }}

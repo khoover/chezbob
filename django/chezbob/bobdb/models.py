@@ -1,10 +1,11 @@
 import datetime
+from decimal import Decimal
 from django.db import models
 
 # Current tax rate.  This is only used to compute current item prices.  For any
 # historical analysis, the per-order tax rate stored with each order is used
 # instead.
-TAX_RATE = 0.0875
+TAX_RATE = Decimal("0.0875")
 
 class ProductSource(models.Model):
     class Meta:
@@ -50,14 +51,14 @@ class BulkItem(models.Model):
 
     def cost_taxable(self):
         """Portion of total price which is taxed."""
-        amt = 0.0
+        amt = Decimal("0.00")
         if self.taxable: amt += self.price
         if self.crv_taxable: amt += self.crv
         return amt
 
     def cost_nontaxable(self):
         """Portion of total price which is not taxed."""
-        amt = 0.0
+        amt = Decimal("0.00")
         if not self.taxable: amt += self.price
         if not self.crv_taxable: amt += self.crv
         return amt
@@ -65,12 +66,12 @@ class BulkItem(models.Model):
     def total_price(self):
         """Total price of a product, including all applicable tax and CRV."""
         amt = (1 + TAX_RATE) * self.cost_taxable() + self.cost_nontaxable()
-        return round(amt, 2)
+        return amt.quantize(Decimal("0.01"))
 
     def unit_price(self):
         """Total price (including all taxes) for each individual item."""
 
-        return round(self.total_price() / self.quantity, 4)
+        return (self.total_price() / self.quantity).quantize(Decimal("0.0001"))
 
 class Product(models.Model):
     class Meta:
@@ -176,7 +177,7 @@ class Inventory(models.Model):
         cursor = connection.cursor()
         cursor.execute("""SELECT bulkid, units, cases, loose_units, case_size
                           FROM inventory2
-                          WHERE date = '%s'""", [date])
+                          WHERE date = %s""", [date])
 
         inventory = {}
         for (bulkid, units, cases, loose, case_size) in cursor.fetchall():
@@ -196,12 +197,12 @@ class Inventory(models.Model):
         cursor = connection.cursor()
 
         cursor.execute("""DELETE FROM inventory2
-                          WHERE date = '%s' AND bulkid = %s""",
+                          WHERE date = %s AND bulkid = %s""",
                        (date, bulkid))
 
         if count is not None:
             cursor.execute("""INSERT INTO inventory2(date, bulkid, units, cases, loose_units, case_size)
-                              VALUES ('%s', %s, %s, %s, %s, %s)""",
+                              VALUES (%s, %s, %s, %s, %s, %s)""",
                            (date, bulkid, count, cases, loose, case_size))
 
         transaction.commit_unless_managed()
@@ -233,20 +234,20 @@ class Inventory(models.Model):
                      FROM aggregate_purchases a
                      WHERE a.bulkid = b.bulkid
                          AND (a.date > i.date OR i.date IS NULL)
-                         AND (a.date <= '%s')) as sales,
+                         AND (a.date <= %s)) as sales,
                     -- correlated subquery, sum total sale unit purchases
                     (SELECT sum(oi.quantity * oi.number)
                      FROM orders o JOIN order_items oi ON o.id = oi.order_id
                      WHERE oi.bulk_type_id = b.bulkid
                          AND (o.date > i.date OR i.date IS NULL)
-                         AND (o.date <= '%s')) as purchases
+                         AND (o.date <= %s)) as purchases
                  FROM bulk_items b
                     LEFT JOIN
                         -- get the most recent hand count or null for each item
                         (SELECT i.bulkid, i.date, i.units
                          FROM inventory2 d
                               JOIN inventory2 i ON d.bulkid = i.bulkid
-                         WHERE d.date <= '%s'
+                         WHERE d.date <= %s
                          GROUP BY i.bulkid, i.date, i.units
                          HAVING i.date = max(d.date))
                       AS i ON i.bulkid = b.bulkid;;"""
@@ -265,7 +266,7 @@ class Inventory(models.Model):
 
             summary[bulkid] = {'estimate': units + purchases - sales,
                                  'date': date,
-                                 'old_count': units, 
+                                 'old_count': units,
                                  'activity': sales > 0 or purchases > 0,
                                  'sales': sales,
                                  'purchases': purchases
@@ -282,7 +283,7 @@ class Inventory(models.Model):
 
         cursor.execute("""SELECT bulkid, sum(aggregate_purchases.quantity)
                           FROM aggregate_purchases
-                          WHERE date >= '%s' AND date <= '%s'
+                          WHERE date >= %s AND date <= %s
                                 AND bulkid is not NULL
                           GROUP BY bulkid""", [date_from, date_to])
         return dict(cursor.fetchall())

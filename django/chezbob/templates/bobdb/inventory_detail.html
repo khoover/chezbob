@@ -1,13 +1,13 @@
 {% extends "chezbob/base.html" %}
-{% block title %}Inventory Detail: {{ item.description|escape }}{% endblock %}
+{% block title %}Inventory Detail: {{ item.description }}{% endblock %}
 
 {% block content %}
-<h1>{{ item.description|escape }}</h1>
+<h1>{{ item.description }}</h1>
 
 <h2>Covered Items</h2>
 <ul>
     {% for i in item.product_set.all %}
-    <li>{{ i|escape }}</li>
+    <li>{{ i }}</li>
     {% endfor %}
 </ul>
 

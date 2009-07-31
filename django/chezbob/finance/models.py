@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 
 # The core of the double-entry bookkeeping system is in the three tables
@@ -50,14 +51,14 @@ class Account(models.Model):
                               FROM finance_splits
                               WHERE transaction_id in
                                   (SELECT id FROM finance_transactions
-                                   WHERE date <= '%s')
+                                   WHERE date <= %s)
                               GROUP BY account_id""", (date,))
         for (id, balance) in cursor.fetchall():
             balances[id] = balance
 
         result = []
         for a in Account.objects.order_by('name'):
-            result.append((a, balances.get(a.id, 0.0)))
+            result.append((a, balances.get(a.id, Decimal("0.00"))))
 
         return result
 
@@ -105,7 +106,7 @@ class Transaction(models.Model):
             extra_conditions += "AND finance_transactions.id IN (SELECT transaction_id FROM finance_splits WHERE account_id = %s) "
             extra_arguments.append(account.id)
         if end_date is not None:
-            extra_conditions += "AND finance_transactions.date <= '%s' "
+            extra_conditions += "AND finance_transactions.date <= %s "
             extra_arguments.append(end_date)
         query = """SELECT finance_transactions.id,
                           finance_transactions.date,

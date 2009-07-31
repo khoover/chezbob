@@ -37,13 +37,13 @@
 <tr class="{% cycle row1,row2 %}">
     <td>
         {{ split.id }}
-        <input type="text" name="note.{{ forloop.counter }}" value="{{ split.memo|escape }}" />
+        <input type="text" name="note.{{ forloop.counter }}" value="{{ split.memo }}" />
     </td>
     <td>
         <select name="account.{{ forloop.counter }}">
             <option value="">--------</option>
             {% for a in accounts %}
-            <option value="{{ a.id }}" {% ifequal a.id split.account.id %}selected="selected"{% endifequal %}>{{ a|escape }}</option>
+            <option value="{{ a.id }}" {% ifequal a.id split.account.id %}selected="selected"{% endifequal %}>{{ a }}</option>
             {% endfor %}
         </select>
     </td>

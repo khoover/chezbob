@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 
 class Entity(models.Model):
@@ -107,13 +108,13 @@ class CashCount(models.Model):
             'bill10' : 10,
             'bill5' : 5,
             'bill1' : 1,
-            'coin25' : 0.25,
-            'coin10' : 0.10,
-            'coin5' : 0.05,
-            'coin1' : 0.01,
+            'coin25' : Decimal("0.25"),
+            'coin10' : Decimal("0.10"),
+            'coin5' : Decimal("0.05"),
+            'coin1' : Decimal("0.01"),
             'other' : 1,
-            'coin100' : 1.00,
-            'coin50' : 0.50,
+            'coin100' : 1,
+            'coin50' : Decimal("0.50"),
             'total' : 1
             }
 
