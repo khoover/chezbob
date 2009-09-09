@@ -36,8 +36,8 @@ elif action == 'inventory_sync':
                                    commit_start=datetime.date(2009, 1, 1))
 elif action == 'loss_report':
     import chezbob.util.inventory
-    chezbob.util.inventory.category_report(datetime.date(2009, 5, 21),
-                                           datetime.date(2009, 6, 22))
+    chezbob.util.inventory.category_report(datetime.date(2009, 7, 1),
+                                           datetime.date(2009, 8, 26))
 elif action == 'reprice':
     import chezbob.util.pricing
     chezbob.util.pricing.reprice(dry_run=False)

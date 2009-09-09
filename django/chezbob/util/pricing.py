@@ -10,9 +10,9 @@ cursor = connection.cursor()
 markups = {
     1: 0.11,                    # Shelves
     2: 0.12,                    # Refrigerator
-    3: 0.18,                    # Freezer
+    3: 0.16,                    # Freezer
     4: 0.03,                    # Soda machine
-    5: 0.22,                    # Terminal
+    5: 0.20,                    # Terminal
     0: 0.12,                    # Unknown
 }
 
