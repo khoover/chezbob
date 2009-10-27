@@ -4,9 +4,6 @@
 {% block content %}
 <h1>Update - {{ order.date }}: {{ order.description }}</h1>
 
-<!--
-{% filter escape %}{% debug %}{% endfilter %}
--->
 <form action="" method="post">
 
 <table cellspacing="0">
@@ -38,7 +35,7 @@
         </td>
         <td>
             <input type="hidden" name="type_code.{{ forloop.counter }}" value="{{ item.type.bulkid }}" />
-            <span style="{% if item.id %}font-weight: bold{% endif %}">{{ item.type.description|escape }}</span>
+            <span style="{% if item.id %}font-weight: bold{% endif %}">{{ item.type.description }}</span>
             (<input type="text" size="4" name="quantity.{{ forloop.counter }}" value="{{ item.quantity }}" />)
         </td>
         <td>
@@ -46,7 +43,7 @@
             <input type="text" size="6" name="taxable.{{ forloop.counter }}" value="{{ item.taxable|stringformat:".2f" }}" /> T
         </td>
     {% endif %}
-    <td>{{ item.message|escape }}</td>
+    <td>{{ item.message }}</td>
 </tr>
 {% endfor %}
 </tbody>

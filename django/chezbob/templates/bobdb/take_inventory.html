@@ -36,7 +36,7 @@
     <input type="hidden" name="old_cases.{{ item.counter }}" value="{{ item.count_cases }}" />
     <input type="hidden" name="old_items.{{ item.counter }}" value="{{ item.count_items }}" />
     <td>
-        <span style="font-weight: bold">{{ item.type.description|escape }}</span>
+        <span style="font-weight: bold">{{ item.type.description }}</span>
     </td>
     <td style="white-space:nowrap;">
         <input type="text" size="4" style="text-align:right;" name="cases.{{ item.counter }}" value="{{ item.count_cases }}" />

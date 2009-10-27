@@ -7,7 +7,7 @@
 <form action="" method="get">
 Source: <select name="source">
     {% for s in sources %}
-    <option value="{{ s.id }}"{% ifequal s.id source %} selected="selected"{% endifequal %}>{{ s.description|escape }}</option>
+    <option value="{{ s.id }}"{% ifequal s.id source %} selected="selected"{% endifequal %}>{{ s.description }}</option>
     {% endfor %}
 </select><br />
 
@@ -36,7 +36,7 @@ to: <input type="text" name="to" value="{{ date_to }}" />
 <tr class="{% cycle row1,row2 %}">
     <input type="hidden" name="id.{{ forloop.counter }}" value="{{ item.type.bulkid }}" />
     <td>
-        <span style="font-weight: bold">{{ item.type.description|escape }}</span>
+        <span style="font-weight: bold">{{ item.type.description }}</span>
     </td>
     <td><abbr title="{{ item.inventory.old_count }} + {{ item.inventory.purchases }} - {{ item.inventory.sales }}">{{ item.inventory.estimate }}</abbr></td>
     <td>{{ item.sales }}</td>

@@ -1,4 +1,5 @@
 import base64, datetime, math
+from decimal import Decimal
 from time import strptime
 
 from django.shortcuts import render_to_response, get_object_or_404
@@ -47,7 +48,7 @@ def products(request):
     for p in products:
         try:
             p.markup_amt = p.price - p.bulk.unit_price()
-            p.markup_pct = ((p.price / p.bulk.unit_price()) - 1.0) * 100
+            p.markup_pct = (float(p.price / p.bulk.unit_price()) - 1.0) * 100
         except ObjectDoesNotExist:
             pass
 
@@ -88,7 +89,7 @@ def product_detail(request, barcode):
 
     try:
         product.markup_amt = product.price - product.bulk.unit_price()
-        product.markup_pct = ((product.price / product.bulk.unit_price()) - 1.0) * 100
+        product.markup_pct = (float(product.price / product.bulk.unit_price()) - 1.0) * 100
     except ObjectDoesNotExist:
         pass
 
@@ -148,9 +149,9 @@ def update_order(request, order):
                     order_item.quantity \
                         = int(request.POST['quantity.' + n])
                     order_item.cost_taxable \
-                        = float(request.POST['taxable.' + n])
+                        = Decimal(request.POST['taxable.' + n])
                     order_item.cost_nontaxable \
-                        = float(request.POST['nontaxable.' + n])
+                        = Decimal(request.POST['nontaxable.' + n])
                     order_item.save()
                 continue
 
@@ -163,8 +164,8 @@ def update_order(request, order):
                     bulk_code = int(request.POST['type_code.' + n])
                     bulk_type = BulkItem.objects.get(bulkid=bulk_code)
                     quantity = int(request.POST['quantity.' + n])
-                    nontaxable = float(request.POST['nontaxable.' + n])
-                    taxable = float(request.POST['taxable.' + n])
+                    nontaxable = Decimal(request.POST['nontaxable.' + n])
+                    taxable = Decimal(request.POST['taxable.' + n])
                     order_item = OrderItem(order=order,
                                            bulk_type=bulk_type,
                                            quantity=quantity,
@@ -206,8 +207,8 @@ def update_order(request, order):
         pass
 
     # Include all items listed in the database for this order.
-    total_notax = 0.0
-    total_tax = 0.0
+    total_notax = Decimal("0.00")
+    total_tax = Decimal("0.00")
     for i in order.orderitem_set.order_by('id'):
         item = {'blank': False,
                 'id': i.id,
@@ -216,16 +217,17 @@ def update_order(request, order):
                 'type': i.bulk_type,
                 'nontaxable': i.cost_nontaxable,
                 'taxable': i.cost_taxable}
-        if abs(i.cost_nontaxable - i.bulk_type.cost_nontaxable()) \
-                + abs(i.cost_taxable - i.bulk_type.cost_taxable()) > 0.005:
+        if i.cost_nontaxable != i.bulk_type.cost_nontaxable() \
+                or i.cost_taxable != i.bulk_type.cost_taxable():
             item['message'] = "Price differs from bulk data"
         item_list.append(item)
         total_notax += i.cost_nontaxable * i.number
         total_tax += i.cost_taxable * i.number
 
-    total = round(total_notax + total_tax * (1 + order.tax_rate), 2)
+    total = total_notax + total_tax * (1 + order.tax_rate)
+    total = total.quantize(Decimal("0.01"))
 
-    for i in range(5):
+    for i in range(8):
         new_items.append({'blank': True})
 
     return render_to_response('bobdb/order_update.html',
@@ -489,7 +491,7 @@ def estimate_order(request):
 
     #aggregators
     out_of_stock = None
-    cost = 0.0
+    cost = Decimal("0.00")
     items = []
 
     for p in products:
@@ -553,7 +555,7 @@ def estimate_order(request):
 def display_order(request):
     response = HttpResponse(mimetype="text/plain")
 
-    cost = 0.0
+    cost = Decimal("0.00")
 
     try:
         n = 0

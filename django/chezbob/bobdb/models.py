@@ -1,10 +1,11 @@
 import datetime
+from decimal import Decimal
 from django.db import models
 
 # Current tax rate.  This is only used to compute current item prices.  For any
 # historical analysis, the per-order tax rate stored with each order is used
 # instead.
-TAX_RATE = 0.0875
+TAX_RATE = Decimal("0.0875")
 
 class ProductSource(models.Model):
     class Meta:
@@ -12,9 +13,9 @@ class ProductSource(models.Model):
 
     id = models.AutoField(db_column='sourceid', primary_key=True)
     description = models.CharField(db_column='source_description',
-                                   maxlength=255)
+                                   max_length=255)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.description
 
 class FloorLocations(models.Model):
@@ -22,9 +23,9 @@ class FloorLocations(models.Model):
         db_table = 'floor_locations'
 
     id = models.AutoField(db_column='id', primary_key=True)
-    name = models.CharField(db_column='name', maxlength=255)
+    name = models.CharField(db_column='name', max_length=255)
 
-    def __str__(self):
+    def __unicode__(self):
         return self.name
 
 class BulkItem(models.Model):
@@ -33,9 +34,9 @@ class BulkItem(models.Model):
 
     bulkid = models.AutoField(primary_key=True)
     description = models.TextField()
-    price = models.FloatField(max_digits=12, decimal_places=2)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
     taxable = models.BooleanField()
-    crv = models.FloatField(max_digits=12, decimal_places=2)
+    crv = models.DecimalField(max_digits=12, decimal_places=2)
     crv_taxable = models.BooleanField()
     quantity = models.IntegerField()
     updated = models.DateField()
@@ -45,19 +46,19 @@ class BulkItem(models.Model):
     floor_location = models.ForeignKey(FloorLocations,
                                        db_column='floor_location')
 
-    def __str__(self):
+    def __unicode__(self):
         return self.description
 
     def cost_taxable(self):
         """Portion of total price which is taxed."""
-        amt = 0.0
+        amt = Decimal("0.00")
         if self.taxable: amt += self.price
         if self.crv_taxable: amt += self.crv
         return amt
 
     def cost_nontaxable(self):
         """Portion of total price which is not taxed."""
-        amt = 0.0
+        amt = Decimal("0.00")
         if not self.taxable: amt += self.price
         if not self.crv_taxable: amt += self.crv
         return amt
@@ -65,40 +66,24 @@ class BulkItem(models.Model):
     def total_price(self):
         """Total price of a product, including all applicable tax and CRV."""
         amt = (1 + TAX_RATE) * self.cost_taxable() + self.cost_nontaxable()
-        return round(amt, 2)
+        return amt.quantize(Decimal("0.01"))
 
     def unit_price(self):
         """Total price (including all taxes) for each individual item."""
 
-        return round(self.total_price() / self.quantity, 4)
-
-    class Admin:
-        search_fields = ['description']
-        fields = [
-            ("Details", {'fields': ('description', 'quantity', 'updated',
-                                    'source', 'reserve', 'active',
-                                    'floor_location')}),
-            ("Pricing", {'fields': (('price', 'taxable'),
-                                    ('crv', 'crv_taxable'))}),
-        ]
-        ordering = ['description']
-        list_filter = ['updated', 'active', 'source', 'floor_location']
-        list_display = ['description', 'quantity', 'price', 'taxable',
-                        'crv', 'crv_taxable', 'updated', 'active', 'source',
-                        'floor_location']
+        return (self.total_price() / self.quantity).quantize(Decimal("0.0001"))
 
 class Product(models.Model):
     class Meta:
         db_table = 'products'
 
-    barcode = models.CharField(maxlength=32, primary_key=True, core=True)
-    name = models.CharField(maxlength=256, core=True)
-    phonetic_name = models.CharField(maxlength=256)
-    price = models.FloatField(max_digits=12, decimal_places=2, core=True)
-    bulk = models.ForeignKey(BulkItem, db_column='bulkid', blank=True,
-                             edit_inline=models.TABULAR)
+    barcode = models.CharField(max_length=32, primary_key=True)
+    name = models.CharField(max_length=256)
+    phonetic_name = models.CharField(max_length=256)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    bulk = models.ForeignKey(BulkItem, db_column='bulkid', blank=True)
 
-    def __str__(self):
+    def __unicode__(self):
         return "%s [%s]" % (self.name, self.barcode)
 
     def get_absolute_url(self):
@@ -114,28 +99,18 @@ class Product(models.Model):
                        [self.barcode])
         return cursor.fetchall()
 
-    class Admin:
-        ordering = ['name']
-        search_fields = ['barcode', 'name']
-        list_display = ['barcode', 'name', 'price']
-
 class Order(models.Model):
     class Meta:
         db_table = 'orders'
         permissions = [("edit_orders", "Enter Order Information")]
 
     date = models.DateField()
-    description = models.CharField(maxlength=256)
-    amount = models.FloatField(max_digits=12, decimal_places=2)
-    tax_rate = models.FloatField(max_digits=6, decimal_places=4)
+    description = models.CharField(max_length=256)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    tax_rate = models.DecimalField(max_digits=6, decimal_places=4)
 
-    def __str__(self):
+    def __unicode__(self):
         return "%s %s" % (self.date, self.description)
-
-    class Admin:
-        ordering = ['date', 'description']
-        search_fields = ['date', 'description']
-        list_display = ['date', 'amount', 'tax_rate', 'description']
 
 class OrderItem(models.Model):
     class Meta:
@@ -162,14 +137,11 @@ class OrderItem(models.Model):
     # instead of using a "taxable" boolean since both could be present (for
     # example, item is not taxable but the CRV on the item is).  In most cases,
     # one of the costs will be zero.
-    cost_taxable = models.FloatField(max_digits=12, decimal_places=2)
-    cost_nontaxable = models.FloatField(max_digits=12, decimal_places=2)
+    cost_taxable = models.DecimalField(max_digits=12, decimal_places=2)
+    cost_nontaxable = models.DecimalField(max_digits=12, decimal_places=2)
 
-    def __str__(self):
+    def __unicode__(self):
         return "%d %s" % (self.number, self.bulk_type)
-
-    class Admin:
-        list_display = ['bulk_type', 'number', 'order']
 
 # This class doesn't actually connect directly with the underlying database
 # table, but the class methods provided do perform useful queries.
@@ -180,7 +152,7 @@ class Inventory(models.Model):
     inventoryid = models.AutoField(primary_key=True)
     inventory_time = models.DateField()
 
-    def __str__(self):
+    def __unicode__(self):
         return "#%d %s" % (self.inventoryid, self.inventory_time)
 
     @classmethod
@@ -205,7 +177,7 @@ class Inventory(models.Model):
         cursor = connection.cursor()
         cursor.execute("""SELECT bulkid, units, cases, loose_units, case_size
                           FROM inventory2
-                          WHERE date = '%s'""", [date])
+                          WHERE date = %s""", [date])
 
         inventory = {}
         for (bulkid, units, cases, loose, case_size) in cursor.fetchall():
@@ -225,12 +197,12 @@ class Inventory(models.Model):
         cursor = connection.cursor()
 
         cursor.execute("""DELETE FROM inventory2
-                          WHERE date = '%s' AND bulkid = %s""",
+                          WHERE date = %s AND bulkid = %s""",
                        (date, bulkid))
 
         if count is not None:
             cursor.execute("""INSERT INTO inventory2(date, bulkid, units, cases, loose_units, case_size)
-                              VALUES ('%s', %s, %s, %s, %s, %s)""",
+                              VALUES (%s, %s, %s, %s, %s, %s)""",
                            (date, bulkid, count, cases, loose, case_size))
 
         transaction.commit_unless_managed()
@@ -262,20 +234,20 @@ class Inventory(models.Model):
                      FROM aggregate_purchases a
                      WHERE a.bulkid = b.bulkid
                          AND (a.date > i.date OR i.date IS NULL)
-                         AND (a.date <= '%s')) as sales,
+                         AND (a.date <= %s)) as sales,
                     -- correlated subquery, sum total sale unit purchases
                     (SELECT sum(oi.quantity * oi.number)
                      FROM orders o JOIN order_items oi ON o.id = oi.order_id
                      WHERE oi.bulk_type_id = b.bulkid
                          AND (o.date > i.date OR i.date IS NULL)
-                         AND (o.date <= '%s')) as purchases
+                         AND (o.date <= %s)) as purchases
                  FROM bulk_items b
                     LEFT JOIN
                         -- get the most recent hand count or null for each item
                         (SELECT i.bulkid, i.date, i.units
                          FROM inventory2 d
                               JOIN inventory2 i ON d.bulkid = i.bulkid
-                         WHERE d.date <= '%s'
+                         WHERE d.date <= %s
                          GROUP BY i.bulkid, i.date, i.units
                          HAVING i.date = max(d.date))
                       AS i ON i.bulkid = b.bulkid;;"""
@@ -294,7 +266,7 @@ class Inventory(models.Model):
 
             summary[bulkid] = {'estimate': units + purchases - sales,
                                  'date': date,
-                                 'old_count': units, 
+                                 'old_count': units,
                                  'activity': sales > 0 or purchases > 0,
                                  'sales': sales,
                                  'purchases': purchases
@@ -311,7 +283,7 @@ class Inventory(models.Model):
 
         cursor.execute("""SELECT bulkid, sum(aggregate_purchases.quantity)
                           FROM aggregate_purchases
-                          WHERE date >= '%s' AND date <= '%s'
+                          WHERE date >= %s AND date <= %s
                                 AND bulkid is not NULL
                           GROUP BY bulkid""", [date_from, date_to])
         return dict(cursor.fetchall())

@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal, InvalidOperation
 import time
 #from time import strptime
 from django.shortcuts import render_to_response, get_object_or_404
@@ -157,8 +158,8 @@ def edit_cashout(request, cashout=None):
                     if f != 'other':
                         values[f] = int(request.POST[f + '.' + n])
                     else:
-                        values[f] = float(request.POST[f + '.' + n])
-                except ValueError: values[f] = 0
+                        values[f] = Decimal(request.POST[f + '.' + n])
+                except (ValueError, InvalidOperation): values[f] = 0
 
             total = 0
 

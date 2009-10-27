@@ -1,4 +1,5 @@
 import datetime, re
+from decimal import Decimal
 from time import strptime
 
 from django.shortcuts import render_to_response, get_object_or_404
@@ -11,11 +12,6 @@ view_perm_required = \
     user_passes_test(lambda u: u.has_perm('finance.view_transactions'))
 edit_perm_required = \
     user_passes_test(lambda u: u.has_perm('finance.edit_transactions'))
-
-def round2(amt):
-    """Round an amount to two digits after the decimal place."""
-
-    return round(round(amt, 2), 2)
 
 def parse_date(datestr):
     """Parse a string representation of a date into a datetime.Date object.
@@ -69,9 +65,9 @@ def account_list(request):
             b -= start_balances[a.id]
         if a.is_reversed():
             b = -b
-        a.balance = round2(b)
+        a.balance = b
         accounts[a.type].append(a)
-        totals[a.type] = round2(totals.get(a.type, 0.0) + b)
+        totals[a.type] = totals.get(a.type, Decimal("0.00")) + b
 
     account_groups = []
     for t in ('A', 'L', 'I', 'E', 'Q'):
@@ -91,7 +87,7 @@ def ledger(request, account=None):
         title = "General Ledger"
 
     transactions = []
-    balance = 0
+    balance = Decimal("0.00")
 
     include_auto = True
     if account is None and not request.GET.has_key('all'):
@@ -122,7 +118,6 @@ def ledger(request, account=None):
         for t in transactions:
             if account.is_reversed():
                 t['balance'] *= -1
-            t['balance'] = round2(t['balance'])
 
     return render_to_response('finance/transactions.html', {'title': title, 'transactions': transactions, 'balances': account is not None})
 
@@ -162,12 +157,11 @@ def edit_transaction(request, transaction=None):
             else:
                 account = Account.objects.get(id=int(account))
 
-            amount = 0.0
+            amount = Decimal("0.00")
             if request.POST['debit.' + n] != "":
-                amount += float(request.POST['debit.' + n])
+                amount += Decimal(request.POST['debit.' + n])
             if request.POST['credit.' + n] != "":
-                amount -= float(request.POST['credit.' + n])
-            amount = round2(amount)
+                amount -= Decimal(request.POST['credit.' + n])
 
             load_from_database = False
 
@@ -193,10 +187,9 @@ def edit_transaction(request, transaction=None):
 
     # Check if the transaction is balanced.  If not, add a balancing split to
     # be filled in by the user.
-    total = 0.0
+    total = Decimal("0.00")
     for s in splits: total += s['amount']
-    total = round2(total)
-    if total != 0.0:
+    if total != Decimal("0.00"):
         splits.append({'memo': "", 'account': None, 'amount': -total})
         commit = False
 
@@ -220,12 +213,12 @@ def edit_transaction(request, transaction=None):
     # Include a few blank splits at the end of the transaction for entering
     # additional data.
     for i in range(4):
-        splits.append({'memo': "", 'account': None, 'amount': 0.00})
+        splits.append({'memo': "", 'account': None, 'amount': Decimal("0.00")})
 
     # Convert splits to a separated debit/credit format
     for s in splits:
-        s['debit'] = 0.0
-        s['credit'] = 0.0
+        s['debit'] = Decimal("0.00")
+        s['credit'] = Decimal("0.00")
         if s['amount'] > 0: s['debit'] = s['amount']
         if s['amount'] < 0: s['credit'] = -s['amount']
 
@@ -258,13 +251,13 @@ def gnuplot_dump(request):
     response.write("# %d: %s\n" % (i + 4, "Inventory: Value at Cost"))
     response.write("# %d: %s\n" % (i + 5, "Inventory: Shrinkage"))
 
-    balances = [0.0] * len(columns)
+    balances = [Decimal("0.00")] * len(columns)
     date = None
     multiplier = [1] * len(columns)
 
     totals = {}
     for t in Account.TYPES:
-        totals[t] = 0.0
+        totals[t] = Decimal("0.00")
 
     for (id, i) in columns.items():
         if Account.objects.get(id=id).is_reversed():
@@ -275,7 +268,7 @@ def gnuplot_dump(request):
 
         # Accounts
         for i in range(len(balances)):
-            balances[i] = round2(balances[i])
+            balances[i] = balances[i]
         response.write("\t".join(["%.2f" % (b,) for b in balances]))
 
         # Totals

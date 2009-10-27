@@ -1,10 +1,9 @@
 from django.conf.urls.defaults import *
 
-urlpatterns = patterns('',
-    # Default admin interface for editing database
-    (r'^admin/', include('django.contrib.admin.urls')),
-    #(r'^accounts/login/$', 'django.contrib.auth.views.login'),
+from django.contrib import admin
+admin.autodiscover()
 
+urlpatterns = patterns('',
     # Chez Bob products, pricing, and inventory
     (r'^products/$', 'chezbob.bobdb.views.products'),
     (r'^products/([0-9]+)/$', 'chezbob.bobdb.views.product_detail'),
@@ -30,5 +29,8 @@ urlpatterns = patterns('',
 
     # Cashout
     (r'^cashout/', include('chezbob.cashout.urls')),
+
+    # Default admin interface for editing database
+    (r'^admin/(.*)', admin.site.root),
 )
 
