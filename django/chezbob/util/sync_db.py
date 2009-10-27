@@ -5,6 +5,7 @@ insert daily aggregate amounts into the main finance ledger.
 """
 
 import datetime, time, re, sys
+from decimal import Decimal
 
 from chezbob.finance.models import Account, Split, Transaction, DepositBalances
 from chezbob.cashout.models import Entity, CashOut, CashCount
@@ -43,7 +44,7 @@ auto_transactions = {
 def insert_transaction(date, type, amount):
     info = auto_transactions[type]
 
-    print "Insert %s, %.2f" % (info[0], amount / 100.0)
+    print "Insert %s, %s" % (info[0], amount)
 
     if dry_run:
         return
@@ -51,12 +52,12 @@ def insert_transaction(date, type, amount):
     t = Transaction(date=date, description=info[0], auto_generated=True)
     t.save()
     for i in info[1:]:
-        amt = (i[0] * amount) / 100.0
+        amt = i[0] * amount
         s = Split(transaction=t, account=i[1], amount=amt)
         s.save()
 
-# A running total of Bank of Bob liabilities (in cents)
-bob_liabilities = 0
+# A running total of Bank of Bob liabilities (in dollars)
+bob_liabilities = Decimal("0.00")
 
 def update_day(date, amounts):
     old_transactions = list(Transaction.objects.filter(date=date,
@@ -67,7 +68,7 @@ def update_day(date, amounts):
     update_bob_liabilities = False
     try:
         d = DepositBalances.objects.get(date=date)
-        if int(round(100 * (d.positive - d.negative))) != bob_liabilities:
+        if d.positive - d.negative != bob_liabilities:
             update_bob_liabilities = True
     except DepositBalances.DoesNotExist:
         update_bob_liabilities = True
@@ -90,7 +91,7 @@ def update_day(date, amounts):
             splits = list(old.split_set.all())
             needed_splits = info[1:]
             for s in splits:
-                amt = int(round(s.amount * 100))
+                amt = s.amount
                 if amt == amounts[ty]:
                     factor = +1
                 elif amt == -amounts[ty]:
@@ -128,22 +129,22 @@ def update_day(date, amounts):
         cursor = connection.cursor()
         cursor.execute("""SELECT SUM(balance)
                           FROM (SELECT userid, SUM(xactvalue) AS balance
-                                FROM transactions WHERE xacttime::date <= '%s'
+                                FROM transactions WHERE xacttime::date <= %s
                                 GROUP BY userid) AS balances
                           WHERE balance > 0""", (date,))
         positive = cursor.fetchone()[0]
 
         cursor.execute("""SELECT -SUM(balance)
                           FROM (SELECT userid, SUM(xactvalue) AS balance
-                                FROM transactions WHERE xacttime::date <= '%s'
+                                FROM transactions WHERE xacttime::date <= %s
                                 GROUP BY userid) AS balances
                           WHERE balance < 0""", (date,))
         negative = cursor.fetchone()[0]
 
-        print "Update balances summary: +%.2f -%.2f" % (positive, negative)
+        print "Update balances summary: +%s -%s" % (positive, negative)
         # FIXME: Deletion through the database API didn't seem to work (problem
         # with date as a primary key?)
-        cursor.execute("DELETE FROM finance_deposit_summary WHERE date='%s'",
+        cursor.execute("DELETE FROM finance_deposit_summary WHERE date=%s",
                        (date,))
         d = DepositBalances(date=date, positive=positive, negative=negative)
         d.save()
@@ -161,13 +162,12 @@ def sync_day(date):
 
     print date
     cursor.execute("""SELECT xactvalue, xacttype FROM transactions
-                      WHERE xacttime::date = '%s'""", (date,))
+                      WHERE xacttime::date = %s""", (date,))
 
     (sum_deposit, sum_donate, sum_purchase, sum_socialhour, sum_writeoff, sum_refund) \
-        = (0, 0, 0, 0, 0, 0)
+        = tuple([Decimal("0.00")] * 6)
 
     for (amt, desc) in cursor.fetchall():
-        amt = int(round(amt * 100))
         bob_liabilities += amt
         category = desc.split()[0]
         if category in ("INIT", "TRANSFER"):
@@ -196,7 +196,7 @@ def sync_day(date):
 
 def sync():
     global bob_liabilities
-    bob_liabilities = 0
+    bob_liabilities = Decimal("0.00")
 
     from django.db import connection
     cursor = connection.cursor()
@@ -220,13 +220,13 @@ def check_cash():
     cursor.execute("""SELECT sum(amount)
                       FROM finance_splits s JOIN finance_transactions t
                            ON (s.transaction_id = t.id)
-                      WHERE account_id = %s AND date < '%s'""",
+                      WHERE account_id = %s AND date < %s""",
                    [acct_cash.id, last_date])
     (balance,) = cursor.fetchone()
 
-    cash_deltas = {'soda': 0.0, 'chezbob': 0.0}
+    cash_deltas = {'soda': Decimal("0.00"), 'chezbob': Decimal("0.00")}
 
-    print "Starting cash: %.02f on %s" % (balance, last_date)
+    print "Starting cash: %s on %s" % (balance, last_date)
     print
 
     source_totals = {}
@@ -235,32 +235,32 @@ def check_cash():
         cursor.execute("""SELECT source, sum(xactvalue)
                           FROM transactions
                           WHERE (xacttype = 'ADD' OR xacttype = 'REFUND')
-                            AND xacttime >= '%s' AND xacttime < '%s'
+                            AND xacttime >= %s AND xacttime < %s
                           GROUP BY source""",
                        [last_date, cashout.datetime])
         for (source, amt) in cursor.fetchall():
-            print "    Deposit: %.02f (%s)" % (amt, source)
+            print "    Deposit: %s (%s)" % (amt, source)
             balance += amt
             if source is not None:
-                source_totals[source] = source_totals.get(source, 0.0) + amt
+                source_totals[source] = source_totals.get(source, Decimal("0.00")) + amt
 
         cursor.execute("""SELECT sum(amount)
                           FROM finance_splits s JOIN finance_transactions t
                                ON (s.transaction_id = t.id)
                           WHERE account_id = %s AND NOT auto_generated
-                            AND date::timestamp >= '%s'
-                            AND date::timestamp < '%s'""",
+                            AND date::timestamp >= %s
+                            AND date::timestamp < %s""",
                        [acct_cash.id, last_date, cashout.datetime])
         (other,) = cursor.fetchone()
-        if other is None: other = 0.0
+        if other is None: other = Decimal("0.00")
         balance += other
-        print "    Other: %.02f" % (other,)
+        print "    Other: %s" % (other,)
 
         cashcount = False
         for c in cashout.cashcount_set.all():
             if c.entity in (cashout_entity_soda, cashout_entity_box) \
                 and c.total > 0:
-                print "  Cash Count: %.02f (%s)" % (c.total, c.entity.name)
+                print "  Cash Count: %s (%s)" % (c.total, c.entity.name)
                 cashcount = True
                 if c.entity == cashout_entity_soda:
                     cash_deltas['soda'] += c.total
@@ -269,16 +269,16 @@ def check_cash():
         if cashcount:
             print "  Expected:"
             for (s, t) in source_totals.items():
-                print "    %.02f %s" % (t, s)
+                print "    %s %s" % (t, s)
                 cash_deltas[s] -= t
             source_totals.clear()
 
             print "  Cumulative Errors:"
             for (s, t) in cash_deltas.items():
-                print "    %.02f %s" % (t, s)
+                print "    %s %s" % (t, s)
 
             if abs(balance) >= 20:
                 print "**********"
-            print "  BALANCE: %.02f" % (balance,)
+            print "  BALANCE: %s" % (balance,)
 
         last_date = cashout.datetime
