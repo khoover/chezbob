@@ -6,6 +6,7 @@ goods sold, profits, and shrinkage.
 """
 
 import datetime, time, re, sys
+from decimal import Decimal
 
 from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, ProductSource
 from django.db import connection
@@ -24,6 +25,14 @@ def check_item(inv, bulkid, price_estimates):
         price = price_estimates.get(bulkid, 0.0)
         inv[bulkid] = {'count': 0, 'cost': 0.0, 'price': price}
 
+def to_decimal(f):
+    """Convert a floating-point value to a decimal.
+
+    The result has two digits after the decimal point, suitable for use as a
+    currency value."""
+
+    return Decimal(str(f)).quantize(Decimal("0.00"))
+
 def item_name(bulkid):
     return BulkItem.objects.get(bulkid=bulkid).description
 
@@ -37,7 +46,8 @@ def generate_inventory_report(start, end=None):
       - Sales
       - Shrinkage
     It returns data on a per-item, per-day basis.  Inventory is valued at cost,
-    and sales figures include computed cost-of-goods-sold values.
+    and sales figures include computed cost-of-goods-sold values.  Values are
+    given as floating-point instead of Decimals.
 
     Other functions should be wrapped around this function to actually make use
     of the computed values in some way, such as writing to a summary table in
@@ -63,11 +73,11 @@ def generate_inventory_report(start, end=None):
                              (cost_taxable * (1 + o.tax_rate)
                                + cost_nontaxable) / quantity
                       FROM orders o JOIN order_items i ON (o.id = i.order_id)
-                      WHERE o.date < '%s'
+                      WHERE o.date < %s
                       ORDER BY o.date DESC""", (start,))
     price_estimates = {}
     for (bulkid, price) in cursor.fetchall():
-        if bulkid not in price_estimates: price_estimates[bulkid] = price
+        if bulkid not in price_estimates: price_estimates[bulkid] = float(price)
 
     for (k, v) in Inventory.get_inventory_summary(start - ONE_DAY,
                                                   True).items():
@@ -80,7 +90,7 @@ def generate_inventory_report(start, end=None):
 
     cursor.execute("""SELECT date, bulkid, SUM(quantity), SUM(price)
                       FROM aggregate_purchases
-                      WHERE date >= '%s' AND date <= '%s'
+                      WHERE date >= %s AND date <= %s
                       GROUP BY date, bulkid
                       ORDER BY date""", (start, end))
     sales = cursor.fetchall()
@@ -89,13 +99,13 @@ def generate_inventory_report(start, end=None):
                              i.number * (cost_taxable * (1 + o.tax_rate)
                                           + cost_nontaxable)
                       FROM orders o JOIN order_items i ON (o.id = i.order_id)
-                      WHERE o.date >= '%s' AND o.date <= '%s'
+                      WHERE o.date >= %s AND o.date <= %s
                       ORDER BY o.date""", (start, end))
     purchases = cursor.fetchall()
 
     cursor.execute("""SELECT date, bulkid, units
                       FROM inventory2
-                      WHERE date >= '%s' AND date <= '%s'
+                      WHERE date >= %s AND date <= %s
                       ORDER BY date""", (start, end))
     inventories = cursor.fetchall()
 
@@ -106,6 +116,7 @@ def generate_inventory_report(start, end=None):
         for p in extract(purchases, date):
             (_, bulkid, count, cost) = p
             if bulkid is None: continue
+            cost = float(cost)
             check_item(inventory, bulkid, price_estimates)
             inv = inventory[bulkid]
             inv['count'] += count
@@ -118,6 +129,7 @@ def generate_inventory_report(start, end=None):
         for s in extract(sales, date):
             (_, bulkid, count, cost) = s
             if bulkid is None: continue
+            cost = float(cost)
             check_item(inventory, bulkid, price_estimates)
             inv = inventory[bulkid]
             if inv['count'] == 0:
@@ -166,28 +178,28 @@ def summary(start, end=None, commit_start=None):
 
     def commit_day():
         cursor.execute("""SELECT value FROM finance_inventory_summary
-                          WHERE date='%s'""",
+                          WHERE date=%s""",
                        (date,))
-        old_value = 0.0
+        old_value = Decimal("0.00")
         for r in cursor.fetchall():
             old_value = r[0]
 
         if date == commit_start:
             print "--- COMMITTING ---"
 
-        print "%s: inventory=%.2f shrinkage=%.2f [old_value=%.2f delta=%.2f]" \
+        print "%s: inventory=%.2f shrinkage=%.2f [old_value=%s delta=%s]" \
             % (date, inventory_value, losses,
-               old_value, inventory_value - old_value)
+               old_value, to_decimal(inventory_value) - old_value)
 
         if commit_day is not None and date < commit_start:
             return
 
-        cursor.execute("DELETE FROM finance_inventory_summary WHERE date='%s'",
+        cursor.execute("DELETE FROM finance_inventory_summary WHERE date=%s",
                        (date,))
         cursor.execute("""INSERT INTO
                             finance_inventory_summary(date, value, shrinkage)
-                          VALUES ('%s', %s, %s)""",
-                       (date, inventory_value, losses))
+                          VALUES (%s, %s, %s)""",
+                       (date, to_decimal(inventory_value), to_decimal(losses)))
 
     print "Gathering price data..."
     first_result_seen = False
