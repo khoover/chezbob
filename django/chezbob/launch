@@ -4,12 +4,15 @@
 # Some of this code is copied from the django.core.management module, since it
 # doesn't seem that the code there is easily extensible.
 
-import datetime, os, sys
+import codecs, datetime, locale, os, sys
 
 # Read in the settings module and initialize Django.
 project_directory = os.path.dirname(sys.argv[0])
 sys.path.append(project_directory)
 sys.path.append(os.path.join(project_directory, '..'))
+
+# Allow non-ASCII characters on output even if stdout is redirected.
+sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 
 try:
     import settings
@@ -37,7 +40,7 @@ elif action == 'inventory_sync':
 elif action == 'loss_report':
     import chezbob.util.inventory
     chezbob.util.inventory.category_report(datetime.date(2009, 8, 27),
-                                           datetime.date(2009, 10, 11))
+                                           datetime.date(2009, 10, 27))
 elif action == 'reprice':
     import chezbob.util.pricing
     chezbob.util.pricing.reprice(dry_run=True)
