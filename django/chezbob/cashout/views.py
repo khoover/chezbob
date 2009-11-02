@@ -10,6 +10,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from chezbob.cashout.models import CashOut, Entity, CashCount
 
 import chezbob.finance.models as finance
+from django.core.paginator import Paginator, InvalidPage, EmptyPage
 
 import re
 
@@ -20,6 +21,8 @@ edit_perm_required = \
 
 time_format = "%Y-%m-%d %H:%M"
 time_format2 = "%Y-%m-%d %H:%M:%S"
+
+count_per_page = 25
 
 def parse_datetime(datetimestr):
     try:
@@ -42,14 +45,32 @@ def datetimetodate(datetimestr):
 def ledger(request):
     title = 'Cashouts'
 
+    cashout_count = CashOut.objects.count()
+    all_cashouts = CashOut.objects.all().order_by('datetime')
+    paginator = Paginator(range(0, cashout_count), count_per_page)
+
+    default_pagenum = paginator.num_pages
+    try:
+        pagenum = int(request.GET.get('page', default_pagenum))
+    except:
+        pagenum = default_pagenum
+
+    try:
+        page = paginator.page(pagenum)
+    except (EmptyPage, InvalidPage):
+        page = paginator.page(paginator.num_pages)
+
+    # Slice
+    page_cashouts = all_cashouts[page.object_list[0]:page.object_list[-1]+1]
+
     cashouts = []
+    balance = CashOut.balance_before(page_cashouts[0])
 
-    balance = 0
-    for (c, cashcounts) in CashOut.fetch_all():
-        cashcount_list = [];
+    for c in page_cashouts:
+        total = 0
+        cashcount_list = []
 
-        total = 0;
-        for s in cashcounts:
+        for s in CashCount.objects.filter(cashout=c):
             cashcount = {'memo': s.memo,
                          'entity': s.entity,
                          'total': s.total}
@@ -58,36 +79,59 @@ def ledger(request):
             cashcount_list.append(cashcount)
 
         balance += total
+
         cashouts.append({
-                         'info': c, 
-                         'counts': cashcount_list,
-                         'total':total,
-                         'balance':balance
-                         })
+            'info': c, 
+            'counts': cashcount_list,
+            'total':total,
+            'balance':balance
+            })
+
+
 
     return render_to_response('cashout/cashouts.html',
                               {'title': title,
-                               'cashouts': cashouts
+                               'cashouts': cashouts,
+                               'page': page
                                })
 
 @view_perm_required
 def cashonhand(request):
     title = 'Cashouts'
 
+    cashout_count = CashOut.objects.count()
+    all_cashouts = CashOut.objects.all().order_by('datetime')
+    paginator = Paginator(range(0, cashout_count), count_per_page)
+
+    default_pagenum = paginator.num_pages
+    try:
+        pagenum = int(request.GET.get('page', default_pagenum))
+    except:
+        pagenum = default_pagenum
+
+    try:
+        page = paginator.page(pagenum)
+    except (EmptyPage, InvalidPage):
+        page = paginator.page(paginator.num_pages)
+
+    # Slice
+    page_cashouts = all_cashouts[page.object_list[0]:page.object_list[-1]+1]
+
     fields = CashCount.fields
     field_names = CashCount.field_names
     cashouts = []
 
-    onhand_total = {};
+    onhand_total = CashCount.totals_before(page_cashouts[0])
     for f in fields:
-        onhand_total[f] = 0
+        if not onhand_total.has_key(f) or onhand_total[f] is None:
+            onhand_total[f] = 0
 
     m = re.compile(r'^(?:bill|coin)')
 
-    for (c, cashcounts) in CashOut.fetch_all():
+    for c in page_cashouts:
         cashcount_list = [];
 
-        for s in cashcounts:
+        for s in CashCount.objects.filter(cashout=c):
             cashcount = []
             for f in fields:
                 try:
@@ -108,7 +152,7 @@ def cashonhand(request):
             total.append(onhand_total[f])
 
         cashouts.append({
-                         'info': c, 
+                         'info': c,
                          'counts': cashcount_list,
                          'total':total,
                          })
@@ -117,7 +161,8 @@ def cashonhand(request):
                               {'title': title,
                                'cashouts': cashouts,
                                'fields': fields,
-                               'field_names': field_names
+                               'field_names': field_names,
+                               'page': page
                                })
 
 @edit_perm_required

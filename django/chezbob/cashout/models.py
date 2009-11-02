@@ -1,5 +1,6 @@
 from decimal import Decimal
-from django.db import models
+from django.db import models, connection
+from django.utils.safestring import mark_safe
 
 class Entity(models.Model):
     class Meta:
@@ -24,11 +25,6 @@ class CashOut(models.Model):
 
     @classmethod
     def fetch_all(cls):
-
-        entitys = {}
-        for e in Entity.objects.all():
-            entitys[e.id] = e
-
         result = []
 
         cashouts = CashOut.objects.all().order_by('datetime')
@@ -37,6 +33,31 @@ class CashOut(models.Model):
             result.append([cashout, counts])
 
         return result
+
+    @classmethod
+    def balance_before(cls, cashout):
+        #cursor = connection.cursor()
+        #cursor.execute('SELECT SUM ("cashout_cashcount"."total") FROM "cashout_cashcount" INNER JOIN "cashout_cashout" ON ("cashout_cashcount"."cashout_id" = "cashout_cashout"."id") WHERE "cashout_cashout"."datetime" < %s', [cashout.datetime])
+
+        #try:
+        #    return cursor.fetchone()[0]
+        #except:
+        #    return 0
+
+        #counts = CashCount.objects.filter(cashout__datetime__lt=cashout.datetime)
+        res = CashCount.objects.filter(cashout__datetime__lt=cashout.datetime).aggregate(total_sum=models.Sum('total'))
+
+        try:
+            return res['total_sum']
+        except:
+            return 0
+
+        #balance = 0
+        #print CashCount.objects.filter(cashout__datetime__lt=cashout.datetime).query.as_sql()
+        #for s in counts:
+        #    balance += s.total
+
+        #return balance
 
     def delete(self):
         CashCount.objects.filter(cashout=self).delete()
@@ -84,7 +105,7 @@ class CashCount(models.Model):
             'total'
             )
 
-    field_names = (
+    field_names = map(mark_safe, (
             '$100',
             '$50',
             '$20',
@@ -99,7 +120,7 @@ class CashCount(models.Model):
             '&cent;100',
             '&cent;50',
             'total'
-            )
+            ))
 
     field_values = {
             'bill100' : 100,
@@ -128,3 +149,17 @@ class CashCount(models.Model):
         self.total = total
 
         super(CashCount, self).save() # Call the real save func
+
+    @classmethod
+    def totals_before(cls, cashout):
+        totals_dict = {}
+
+        for f in CashCount.fields:
+            totals_dict[f] = models.Sum(f)
+
+        res = CashCount.objects.filter(cashout__datetime__lt=cashout.datetime).aggregate(**totals_dict)
+
+        try:
+            return res
+        except:
+            return {}
