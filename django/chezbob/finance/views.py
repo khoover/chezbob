@@ -103,7 +103,8 @@ def ledger(request, account=None):
 
     count_per_page = 25
     all_transactions = Transaction.objects.filter(**transaction_filter)\
-                                          .order_by('date', 'id')
+                                          .order_by('date', 'id')\
+                                          .distinct()
 
     transaction_count = all_transactions.count()
     paginator = Paginator(range(0, transaction_count), count_per_page)
@@ -125,8 +126,7 @@ def ledger(request, account=None):
 
     if account is not None:
         balance = Transaction.balance_before(page_transactions[0],
-                                             account,
-                                             transaction_filter)
+                                             account)
     else:
         balance = Decimal("0.00")
 

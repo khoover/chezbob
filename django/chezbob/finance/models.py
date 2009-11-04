@@ -150,18 +150,14 @@ class Transaction(models.Model):
         return result
 
     @classmethod
-    def balance_before(cls, trans, account, transaction_filter):
+    def balance_before(cls, trans, account):
         balance = Decimal("0.00")
-        new_filter = {}
-        for k in transaction_filter.keys():
-            new_filter["transaction__" + k] = transaction_filter[k]
-        new_filter["transaction__date__lt"] = trans.date
-        new_filter["account"] = account
 
-        objects = val = Split.objects.filter(**new_filter)\
+        objects = val = Split.objects.filter(account=account)\
                                  .exclude(transaction__date__gt=trans.date)\
                                  .exclude(transaction__date__exact=trans.date,
                                          transaction__pk__gte=trans.pk)
+
         print objects.query.as_sql()
 
         val = objects.aggregate(amount_total=models.Sum('amount'))
