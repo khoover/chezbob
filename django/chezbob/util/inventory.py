@@ -119,6 +119,13 @@ def generate_inventory_report(start, end=None):
             cost = float(cost)
             check_item(inventory, bulkid, price_estimates)
             inv = inventory[bulkid]
+
+            # Special case when the starting inventory was negative, since we
+            # were accounting for negative items at zero cost.
+            if inv['count'] < 0:
+                cost = cost * (inv['count'] + count) / count
+                cost = max(cost, 0.0)
+
             inv['count'] += count
             inv['cost'] += cost
             updated.add(bulkid)
