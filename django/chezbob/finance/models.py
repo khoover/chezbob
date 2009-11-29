@@ -149,6 +149,26 @@ class Transaction(models.Model):
             splits.sort(key=lambda s: -s.amount)
         return result
 
+    @classmethod
+    def balance_before(cls, trans, account):
+        balance = Decimal("0.00")
+
+        objects = val = Split.objects.filter(account=account)\
+                                 .exclude(transaction__date__gt=trans.date)\
+                                 .exclude(transaction__date__exact=trans.date,
+                                         transaction__pk__gte=trans.pk)
+
+        print objects.query.as_sql()
+
+        val = objects.aggregate(amount_total=models.Sum('amount'))
+        if val['amount_total'] is not None:
+            balance = val['amount_total']
+
+        if account.is_reversed():
+            return -balance
+        else:
+            return balance
+
 class Split(models.Model):
     class Meta:
         db_table = 'finance_splits'

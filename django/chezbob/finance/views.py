@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseRedirect
 from chezbob.finance.models import Account, Transaction, Split, DepositBalances, InventorySummary
+from django.core.paginator import Paginator, InvalidPage, EmptyPage
 
 view_perm_required = \
     user_passes_test(lambda u: u.has_perm('finance.view_transactions'))
@@ -87,16 +88,51 @@ def ledger(request, account=None):
         title = "General Ledger"
 
     transactions = []
-    balance = Decimal("0.00")
+
+    transaction_filter = {}
 
     include_auto = True
     if account is None and not request.GET.has_key('all'):
         include_auto = False
 
-    for (t, splits) in Transaction.fetch_all(account=account,
-                                             include_auto=include_auto):
+    if not include_auto:
+        transaction_filter['auto_generated'] = True
+
+    if account is not None:
+        transaction_filter['split__account'] = account
+
+    count_per_page = 25
+    all_transactions = Transaction.objects.filter(**transaction_filter)\
+                                          .order_by('date', 'id')\
+                                          .distinct()
+
+    transaction_count = all_transactions.count()
+    paginator = Paginator(range(0, transaction_count), count_per_page)
+
+    default_pagenum = paginator.num_pages
+    try:
+        pagenum = int(request.GET.get('page', default_pagenum))
+    except:
+        pagenum = default_pagenum
+
+    try:
+        page = paginator.page(pagenum)
+    except (EmptyPage, InvalidPage):
+        page = paginator.page(paginator.num_pages)
+
+    # Slice
+    page_transactions = \
+            all_transactions[page.object_list[0]:page.object_list[-1]+1]
+
+    if account is not None:
+        balance = Transaction.balance_before(page_transactions[0],
+                                             account)
+    else:
+        balance = Decimal("0.00")
+
+    for t in page_transactions:
         split_list = []
-        for s in splits:
+        for s in Split.objects.filter(transaction=t):
             split = {'memo': s.memo,
                      'account': s.account,
                      'debit': "",
@@ -119,7 +155,11 @@ def ledger(request, account=None):
             if account.is_reversed():
                 t['balance'] *= -1
 
-    return render_to_response('finance/transactions.html', {'title': title, 'transactions': transactions, 'balances': account is not None})
+    return render_to_response('finance/transactions.html', 
+                              {'title': title, 
+                               'transactions': transactions, 
+                               'balances': account is not None,
+                               'page': page})
 
 @edit_perm_required
 def edit_transaction(request, transaction=None):
