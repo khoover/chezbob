@@ -83,7 +83,10 @@ def generate_inventory_report(start, end=None):
                                                   True).items():
         check_item(inventory, k, price_estimates)
         inventory[k]['count'] = v['estimate']
-        inventory[k]['cost'] = v['estimate'] * inventory[k]['price']
+        if v['estimate'] > 0:
+            inventory[k]['cost'] = v['estimate'] * inventory[k]['price']
+        else:
+            inventory[k]['cost'] = 0.0
         yield {'t': 'initial', 'date': start, 'item': k,
                'count': inventory[k]['count'],
                'value': inventory[k]['cost']}
