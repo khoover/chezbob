@@ -211,6 +211,29 @@ while (1) {
         }
     }
 
+    if ($cmd eq 'BOBDB-QUERYWALLOFSHAME') {
+        eval {
+            my $sth = $dbh->prepare("SELECT username, balance FROM users
+                NATURAL JOIN balances WHERE balance <= -5.00 ORDER BY
+                balance");
+            $sth->execute();
+
+            my $array_ref = $sth->fetchall_arrayref();
+
+            my @results;
+
+            push @results, @$_ foreach @$array_ref;
+
+            sendResponse('BOBDB-WALLOFSHAME', @results);
+        };
+        if ($@) {
+            sendResponse('BOBDB-FATAL');
+            sioWrite('ERROR', $@);
+            eval { $dbh->rollback };
+            exit 1;
+        }
+    }
+
     if ($cmd eq 'BOBDB-QUERYUSERPREF') {
         eval {
             my ($tag, $username, $pref) = @a;

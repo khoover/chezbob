@@ -19,6 +19,8 @@ class SodaPanel(wxPanel):
         self.SetBackgroundColour(parent.GetBackgroundColour())
         self.SetForegroundColour(parent.GetForegroundColour())
 
+        self.parent = parent
+
         global sodaBgImageBitmap
         if sodaBgImageBitmap is None:
             sodaBgImageBitmap = sodaBgImage.ConvertToBitmap()

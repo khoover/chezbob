@@ -140,6 +140,8 @@ class SodaFrame(wxFrame):
                       "lcars"
                       )
 
+        self.bus = bus
+
         self.SetFont(self.font)
 
         self.makeLoginIdlePanel()
@@ -161,13 +163,14 @@ class SodaFrame(wxFrame):
 
         self.TTLTimer.Stop()
 
-        self.bus = bus
 
         self.FPServVL = self.bus.getVarList("FPSERV")
 
         self.debugging = True
 
-        self.beginLoginIdle()
+        self.wall_of_shame = []
+        self.wall_of_shame_cv = threading.Condition()
+
 
     def debug(self, string):
         if self.debugging:
@@ -398,7 +401,8 @@ class SodaFrame(wxFrame):
         self.bus.sendDebug("Bought Event: " + event.item)
 
     def onTtlEvent(self, event):
-        self.timeout = int(event.timeout)
+        self.timeout = int(event.ttl)
+        self.updateTTLTimerLabel(self.state)
         self.bus.sendDebug("Ttl Event")
 
     def onBalanceEvent(self, event):
@@ -450,8 +454,17 @@ class SodaFrame(wxFrame):
         if event.complete == "1":
             self.changeState(STATE_PURCHASE)
 
+    def queryWallOfShame(self):
+        self.bus.send(["BOBDB-QUERYWALLOFSHAME"])
 
-    # Gui helper
+    def getWallOfShame(self):
+        self.wall_of_shame_cv.acquire()
+        self.queryWallOfShame()
+        self.wall_of_shame_cv.wait(5)
+        self.wall_of_shame_cv.release()
+        return self.wall_of_shame
+
+    # gUI helper
     def updateTTLTimerLabel(self, state):
         if state == STATE_PURCHASE:
             self.purchasePanel.SetTTL(str(self.timeout))
@@ -532,15 +545,25 @@ class SodaFrame(wxFrame):
                       complete=data[3])
         wx.PostEvent(self, evt)
 
+    def handleWallOfShame(self, data):
+        self.wall_of_shame_cv.acquire()
+
+        wall = []
+        for i in xrange(0,len(data[1:]),2):
+            wall.append({'username':data[i+1], 'balance':float(data[i+2])})
+        self.wall_of_shame = wall
+
+        self.wall_of_shame_cv.notifyAll()
+        self.wall_of_shame_cv.release()
+
 
 class SodaApp(wxApp):
     def OnInit(self):
-        self.bus = servio.ServIO("PYUI", "1.0", "0:u")
+        #self.bus = servio.ServIO("PYUI", "1.0", "0:u")
+        self.bus = servio.ServIO("PYUI", "1.0", 100)#"0:")
         self.bus.defaultHandler(servio.noop_handler)
 
         frame = SodaFrame(NULL, -1, "Python Soda UI", self.bus)
-        frame.Show(true)
-        self.SetTopWindow(frame)
 
         #self.bus.watchMessage("UI-OPEN", frame.handleUiOpen)
         #self.bus.watchMessage("MOZ-OPEN", frame.handleUiOpen)
@@ -553,6 +576,7 @@ class SodaApp(wxApp):
         self.bus.watchMessage("UI-BALANCE", frame.handleUiBalance)
         self.bus.watchMessage("UI-TTL", frame.handleUiTtl)
         self.bus.watchMessage("UI-FP-NOTICE", frame.handleUiFpNotice)
+        self.bus.watchMessage("BOBDB-WALLOFSHAME", frame.handleWallOfShame)
 
         self.bus_thread = threading.Thread(target=self.bus.receive)
         self.bus_thread.start()
@@ -562,6 +586,11 @@ class SodaApp(wxApp):
         self.Bind(EVT_TIMER, self.onBusCheckTimerFire)
         # Run once a second.
         self.bus_check_timer.Start(1000)
+
+        frame.Show(true)
+        self.SetTopWindow(frame)
+
+        frame.beginLoginIdle()
 
         return true
 
