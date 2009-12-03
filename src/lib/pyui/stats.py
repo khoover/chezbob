@@ -117,7 +117,7 @@ class SodaIdleWallOfShamePanel(SodaIdleStatsPanel):
         self.SetSizer(self.sizer)
         self.SetBackgroundColour(parent.GetBackgroundColour())
 
-        entries_per_column = 10
+        entries_per_column = 8
         padding = 10
         # Column width
         cw = size.GetWidth() - padding * 4
