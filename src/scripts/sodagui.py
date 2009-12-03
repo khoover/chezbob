@@ -559,8 +559,8 @@ class SodaFrame(wxFrame):
 
 class SodaApp(wxApp):
     def OnInit(self):
-        #self.bus = servio.ServIO("PYUI", "1.0", "0:u")
-        self.bus = servio.ServIO("PYUI", "1.0", 100)#"0:")
+        self.bus = servio.ServIO("PYUI", "1.0", "0:u")
+        #self.bus = servio.ServIO("PYUI", "1.0", 100)#"0:")
         self.bus.defaultHandler(servio.noop_handler)
 
         frame = SodaFrame(NULL, -1, "Python Soda UI", self.bus)
