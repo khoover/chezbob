@@ -145,16 +145,16 @@ class SodaIdleWallOfShamePanel(SodaIdleStatsPanel):
                                        -1,
                                        e['username'],
                                        wxDefaultPosition,
-                                       wxSize(cw * 0.25, -1))
+                                       wxSize(cw * 0.35, -1))
 
             label.SetForegroundColour(SodaOrange)
             label.SetFont(font)
 
             number = wxStaticText(self,
                                        -1,
-                                       str(e['balance']),
+                                       str('-$%0.2f' % (-e['balance'],)),
                                        wxDefaultPosition,
-                                       wxSize(cw * 0.25, -1),
+                                       wxSize(cw * 0.15, -1),
                                        style=wxALIGN_RIGHT)
 
             number.SetForegroundColour(SodaOrange)
