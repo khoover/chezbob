@@ -3,19 +3,19 @@
 <p class="paginator">
     <span class="step-links">
         {% if page.has_previous %}
-        <a href="?page={{ page.previous_page_number }}">previous</a>
+        <a href="?{{extra_page_params}}page={{ page.previous_page_number }}">previous</a>
         {% endif %}
 
         {% for p in page.paginator.page_range %}
             {% ifnotequal page.number p %}
-            <a href="?page={{ p }}">{{ p }}</a>
+            <a href="?{{extra_page_params}}page={{ p }}">{{ p }}</a>
             {% else %}
             <span class="this-page">{{ p }}</span>
             {% endifnotequal %}
         {% endfor %}
 
         {% if page.has_next %}
-            <a href="?page={{ page.next_page_number }}">next</a>
+            <a href="?{{extra_page_params}}page={{ page.next_page_number }}">next</a>
         {% endif %}
     </span>
 </div>

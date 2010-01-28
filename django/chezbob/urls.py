@@ -32,5 +32,7 @@ urlpatterns = patterns('',
 
     # Default admin interface for editing database
     (r'^admin/(.*)', admin.site.root),
+
+    (r'^accounts/login/$', 'django.contrib.auth.views.login'),
 )
 
