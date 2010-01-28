@@ -158,8 +158,6 @@ class Transaction(models.Model):
                                  .exclude(transaction__date__exact=trans.date,
                                          transaction__pk__gte=trans.pk)
 
-        print objects.query.as_sql()
-
         val = objects.aggregate(amount_total=models.Sum('amount'))
         if val['amount_total'] is not None:
             balance = val['amount_total']

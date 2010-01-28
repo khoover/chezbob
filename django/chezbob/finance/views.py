@@ -96,7 +96,7 @@ def ledger(request, account=None):
         include_auto = False
 
     if not include_auto:
-        transaction_filter['auto_generated'] = True
+        transaction_filter['auto_generated'] = False
 
     if account is not None:
         transaction_filter['split__account'] = account
@@ -121,10 +121,13 @@ def ledger(request, account=None):
         page = paginator.page(paginator.num_pages)
 
     # Slice
-    page_transactions = \
-            all_transactions[page.object_list[0]:page.object_list[-1]+1]
+    if len(page.object_list) > 2:
+        page_transactions = \
+                all_transactions[page.object_list[0]:page.object_list[-1]+1]
+    else:
+        page_transactions = all_transactions
 
-    if account is not None:
+    if account is not None and len(page_transactions) > 0:
         balance = Transaction.balance_before(page_transactions[0],
                                              account)
     else:
@@ -155,11 +158,17 @@ def ledger(request, account=None):
             if account.is_reversed():
                 t['balance'] *= -1
 
+    if include_auto:
+        extra_page_params = "all=1&"
+    else:
+        extra_page_params = ""
+
     return render_to_response('finance/transactions.html', 
                               {'title': title, 
                                'transactions': transactions, 
                                'balances': account is not None,
-                               'page': page})
+                               'page': page,
+                               'extra_page_params': extra_page_params})
 
 @edit_perm_required
 def edit_transaction(request, transaction=None):
