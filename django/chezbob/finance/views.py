@@ -277,28 +277,25 @@ def edit_transaction(request, transaction=None):
                                'transaction': transaction,
                                'splits': splits})
 
-@view_perm_required
-def gnuplot_dump(request):
-    response = HttpResponse(mimetype="text/plain")
-
+def gen_gnuplot_dump():
     columns = {}
 
-    response.write("# Chez Bob Account Balances Dump\n#\n")
-    response.write("# 1: Date\n")
+    yield "# Chez Bob Account Balances Dump\n#\n"
+    yield "# 1: Date\n"
     i = 0
-    response.write("#\n# Accounts:\n")
+    yield "#\n# Accounts:\n"
     for a in Account.objects.order_by('name'):
-        response.write("# %d: %s\n" % (i + 2, a))
+        yield "# %d: %s\n" % (i + 2, a)
         columns[a.id] = i
         i += 1
-    response.write("#\n# Additional Data:\n")
+    yield "#\n# Additional Data:\n"
     for t in sorted(Account.TYPES.keys()):
-        response.write("# %d: %s Total\n" % (i + 2, Account.TYPES[t]))
+        yield "# %d: %s Total\n" % (i + 2, Account.TYPES[t])
         i += 1
-    response.write("# %d: %s\n" % (i + 2, "Bank of Bob Accounts: Positive"))
-    response.write("# %d: %s\n" % (i + 3, "Bank of Bob Accounts: Negative"))
-    response.write("# %d: %s\n" % (i + 4, "Inventory: Value at Cost"))
-    response.write("# %d: %s\n" % (i + 5, "Inventory: Shrinkage"))
+    yield "# %d: %s\n" % (i + 2, "Bank of Bob Accounts: Positive")
+    yield "# %d: %s\n" % (i + 3, "Bank of Bob Accounts: Negative")
+    yield "# %d: %s\n" % (i + 4, "Inventory: Value at Cost")
+    yield "# %d: %s\n" % (i + 5, "Inventory: Shrinkage")
 
     balances = [Decimal("0.00")] * len(columns)
     date = None
@@ -313,43 +310,50 @@ def gnuplot_dump(request):
             multiplier[i] = -1
 
     def dump_row():
-        response.write(str(date) + "\t")
+        line = str(date) + "\t"
 
         # Accounts
         for i in range(len(balances)):
             balances[i] = balances[i]
-        response.write("\t".join(["%.2f" % (b,) for b in balances]))
+        line += "\t".join(["%.2f" % (b,) for b in balances])
 
         # Totals
         for t in sorted(Account.TYPES.keys()):
-            response.write("\t%.2f" % (totals[t],))
+            line += "\t%.2f" % (totals[t],)
 
         # Positive/negative BoB balances
         try:
             d = DepositBalances.objects.get(date=date)
-            response.write("\t%.2f\t%.2f" % (d.positive, d.negative))
+            line += "\t%.2f\t%.2f" % (d.positive, d.negative)
         except DepositBalances.DoesNotExist:
             pass
 
         # Inventory value and shrinkage
         try:
             d = InventorySummary.objects.get(date=date)
-            response.write("\t%.2f\t%.2f" % (d.value, d.shrinkage))
+            line += "\t%.2f\t%.2f" % (d.value, d.shrinkage)
         except InventorySummary.DoesNotExist:
             pass
 
-        response.write("\n")
+        return line + "\n"
 
     for t in Transaction.objects.order_by('date'):
         if t.date != date:
             if date != None:
-                dump_row()
+                yield dump_row()
             date = t.date
         for s in t.split_set.all():
             i = columns[s.account.id]
             balances[i] += s.amount * multiplier[i]
             totals[s.account.type] += s.amount * multiplier[i]
-    dump_row()
+    yield dump_row()
+
+@view_perm_required
+def gnuplot_dump(request):
+    response = HttpResponse(mimetype="text/plain")
+
+    for line in gen_gnuplot_dump():
+        response.write(line)
 
     return response
 

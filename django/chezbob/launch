@@ -44,6 +44,10 @@ elif action == 'loss_report':
 elif action == 'reprice':
     import chezbob.util.pricing
     chezbob.util.pricing.reprice(dry_run=True)
+elif action == 'gnuplot_dump':
+    import chezbob.finance.views
+    for line in chezbob.finance.views.gen_gnuplot_dump():
+        sys.stdout.write(line)
 else:
     sys.stderr.write("Unknown action: %s\n", action)
     sys.exit(1)
