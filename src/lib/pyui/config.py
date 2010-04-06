@@ -1,6 +1,8 @@
 from wxPython.wx import *
 sodaBgImagePath = "sodagui-bg.png"
 
+SodaWhite = '#ffffff'
+
 # Purple #946ee1
 SodaPurple = '#946ee1'
 # Orange #ff9e00

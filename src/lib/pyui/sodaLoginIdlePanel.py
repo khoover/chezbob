@@ -3,6 +3,9 @@ from pyui.config import *
 from pyui.sodapanel import *
 from pyui.sodabutton import *
 from pyui.stats import *
+import random
+import traceback
+import sys
 
 class SodaLoginIdlePanel(SodaPanel):
 
@@ -19,18 +22,29 @@ class SodaLoginIdlePanel(SodaPanel):
 
         self.statsPanel = None
 
+        self.random = random.Random()
 
     def MakeSodaStatsPanel(self):
         if self.statsPanel is not None:
             self.statsPanel.Destroy()
 
         try:
-            self.statsPanel = SodaIdleSodaStatsPanel(self, -1,
-                    wxDefaultPosition, wxSize(self.GetContentWidth(), -1))
+            r = self.random.choice([0,1])
+
+            if r == 0:
+                self.statsPanel = SodaIdleSodaStatsPanel(self, -1,
+                        wxDefaultPosition, wxSize(self.GetContentWidth(), -1))
+            elif r == 1:
+                self.statsPanel = SodaIdleWallOfShamePanel(self, -1,
+                        wxDefaultPosition, wxSize(self.GetContentWidth(), -1))
+            else:
+                raise "Invalid Choice"
+
             self.ResetContentSizer()
             self.ContentSizer.Add(self.statsPanel)
-        except:
-            print "Failed to make stats panel"
+        except Exception, e:
+            print "Failed to make stats panel", e
+            traceback.print_tb(sys.exc_info()[2])
 
 
 
