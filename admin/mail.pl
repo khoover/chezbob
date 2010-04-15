@@ -4,12 +4,57 @@
 # following features:
 #   - capable of text substitutions for customizing each e-mail
 #   - can re-flow e-mail contents to handle varying-length substitutions
+#
+# Two inputs are needed for sending out a set of mailings: a message template
+# and a list of field substitutions (generally a database dump).  See the files
+# in letters/*.txt for some sample templates.  The format is:
+#   - Some number of leading comment lines of the form
+#       # <Field>: <Value>
+#     that define metadata about the template.  One of these must look like
+#       # Fields: USERNAME EMAIL BALANCE
+#     and specifies the variables in the message that will be substituted with
+#     each mailing.
+#   - Some number of e-mail headers.  It is good to define at least From and
+#     Subject, but pretty much anything can be used.
+#   - A blank line, followed by the e-mail body.  If any set of lines are
+#     prefixed with "| ", those lines make up a paragraph which can reflowed if
+#     needed (if any lines become overly long).  The "| " prefix will be
+#     stripped out prior to sending the e-mail.
+# In the e-mail headers or body, variables to substitute are surrounded by
+# percent signs, such as %BALANCE% or %USERNAME%.
+#
+# To actually send a set of e-mails, create a file with one line per e-mail to
+# send, whose contents gives the substitutions to make for each variable.  The
+# variables should be given in the order specified in the Fields: metadata
+# line.  Values should be separated by " | " (any amount of surrounding
+# whitespace is fine); this format is meant to match the output of PostgreSQL
+# when listing database results, so that data can be simply copied and pasted.
+# As an example, the metadata might look something like:
+#       user1   | user1@cs.ucsd.edu | -2.50
+#       userfoo | foo@cs.ucsd.edu   | -3.14
+# (where the fields in order are USERNAME, EMAIL, and BALANCE).
+#
+# As a convention, the templates have a "# Query:" line at the start which
+# gives the database query used to get the list of users, but this is not used
+# automatically for anything yet.
+#
+# Given a template file (say template.txt) and list of substitutions (say
+# subst.data), send the e-mails by running
+#       ./mail.pl template.txt <subst.data
+# (That is, substitutions are read on STDIN and the template file is passed as
+# the first command-line argument).  Mail is sent using the sendmail
+# executable, so the local machine must be configured to deliver mail.
+#
+# Author: Michael Vrable <mvrable@cs.ucsd.edu>
 
 use strict;
 use IPC::Open2;
 use POSIX ":sys_wait_h";
 
 $SIG{PIPE} = sub { die "SIGPIPE" };
+
+# E-mail addresses which should receive a copy (Bcc) of all e-mails sent.
+@EXTRA_ADDRESSES = ('mvrable@localhost');
 
 # Lines in the template that are prefixed with $REFLOW will be processed by fmt
 # to rewrap lines, and then the $REFLOW prefix will be stripped off.  This
@@ -162,5 +207,5 @@ while (<STDIN>) {
     my $email = $items{EMAIL};
     my $msg = build_message($template, %items);
     $msg = fixup_headers($msg, To => $email);
-    mail($msg, 'mvrable@localhost', $email);
+    mail($msg, $email, @EXTRA_ADDRESSES);
 }

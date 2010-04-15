@@ -1,0 +1,22 @@
+# Query: select username, email, balance from account_summary where balance <= -4.00 order by balance
+# Fields: USERNAME EMAIL BALANCE
+From: Chez Bob <chezbob@cs.ucsd.edu>
+Reply-To: Michael Vrable <mvrable@cs.ucsd.edu>
+Subject: Your Chez Bob Account: %USERNAME%
+
+| This is an automated reminder message from Chez Bob, the UCSD CSE grad
+| student food co-op.  Our records indicate that you have an account
+| with Chez Bob and that this account (%USERNAME%) currently has a
+| balance of %BALANCE%.
+
+| While we do allow balances to go negative, we do also appreciate it
+| when you are able to keep a non-negative balance in your account as
+| this helps to keep Chez Bob operating smoothly and is more fair to
+| everyone.
+
+| If you believe this message to have been sent in error, please contact
+| us to help clear up the situation.  You may reply to Michael Vrable
+| (mvrable@cs.ucsd.edu), the current finance/database manager, or send a
+| message to chezbob@cs.ucsd.edu.
+
+--Chez Bob
