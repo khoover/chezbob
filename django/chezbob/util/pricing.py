@@ -9,12 +9,12 @@ import django.db.transaction
 cursor = connection.cursor()
 
 markups = {
-    1: 0.10,                    # Shelves
-    2: 0.10,                    # Refrigerator
-    3: 0.16,                    # Freezer
+    1: 0.09,                    # Shelves
+    2: 0.09,                    # Refrigerator
+    3: 0.09,                    # Freezer
     4: 0.03,                    # Soda machine
     5: 0.20,                    # Terminal
-    0: 0.12,                    # Unknown
+    0: 0.09,                    # Unknown
 }
 
 def to_decimal(f):
