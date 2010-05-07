@@ -43,7 +43,7 @@ print "rev is $REVISION\n";
 # If a username was specified on the command-line, directly log into that
 # account, bypassing password checks.  This is used for administrative access.
 # Otherwise, prompt for the username.
-my $direct_login = $ARGV[0] || "";
+$direct_login = $ARGV[0] || "";
 if ($direct_login) {
   $logintxt = $direct_login;
   my $userid = &bob_db_get_userid_from_username($direct_login);

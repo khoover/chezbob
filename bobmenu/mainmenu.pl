@@ -393,7 +393,7 @@ handle_transfer
   }
 
   my $source_balance = &bob_db_get_balance($source_id);
-  if ($amt > $source_balance) {
+  if ($amt > $source_balance && !$direct_login) {
     &get_dialog_result("--title \"Insufficient Funds\" --msgbox " .
                        "\"Error: Insufficient funds for transfer.\" 6 60");
     return;
