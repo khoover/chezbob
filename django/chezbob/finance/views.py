@@ -91,9 +91,16 @@ def ledger(request, account=None):
 
     transaction_filter = {}
 
+    # default include_auto, not for general ledger
     include_auto = True
-    if account is None and not request.GET.has_key('all'):
-        include_auto = False
+    if account is None: include_auto = False
+
+    # parameter override
+    if request.GET.has_key('all'):
+        if request.GET['all'] != '0':
+            include_auto = True
+        else:
+            include_auto = False
 
     if not include_auto:
         transaction_filter['auto_generated'] = False
