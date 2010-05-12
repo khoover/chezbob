@@ -54,7 +54,7 @@ use POSIX ":sys_wait_h";
 $SIG{PIPE} = sub { die "SIGPIPE" };
 
 # E-mail addresses which should receive a copy (Bcc) of all e-mails sent.
-@EXTRA_ADDRESSES = ('mvrable@localhost');
+my @EXTRA_ADDRESSES = ('mvrable@cs.ucsd.edu', 'kmowery@cs.ucsd.edu');
 
 # Lines in the template that are prefixed with $REFLOW will be processed by fmt
 # to rewrap lines, and then the $REFLOW prefix will be stripped off.  This
@@ -171,7 +171,7 @@ sub fixup_headers {
 sub mail {
     my ($msg, @recipients) = @_;
 
-    open MAIL, "|-", "sendmail", "--", @recipients;
+    open MAIL, "|-", "/usr/sbin/sendmail", "--", @recipients;
     print MAIL $msg;
     close MAIL;
 }
