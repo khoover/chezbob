@@ -1,4 +1,5 @@
 # m h  dom mon dow   command
 14 */6 * * *      psql -q -f $HOME/chezbob.hg/admin/aggregate_maintenance.sql bob
+14 1 * * *        psql -q -f $HOME/chezbob.hg/admin/maintenance.sql bob
 */10 * * * *      $HOME/chezbob.hg/reports/wall_of_shame.pl >/srv/www/www/wall_of_shame.html
 19 */6 * * *      $HOME/chezbob.hg/admin/finance-update; cp $HOME/finances.pdf /srv/www/www/reports/
