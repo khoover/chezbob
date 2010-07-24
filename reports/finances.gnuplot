@@ -12,8 +12,6 @@ set key top left
 set grid
 set xzeroaxis lt -1
 
-#set xrange ["2006-09-01":*]
-
 set term postscript solid color
 set output "finances.ps"
 
@@ -38,11 +36,3 @@ plot "accounts.data" using 1:5 with steps title "Bank Account", \
 
 set title "Monthly Sales"
 plot "monthly.data" using 1:10 with boxes fill fs solid 0.3 notitle
-
-set title "Lifetime Sales and Purchases"
-plot "accounts.data" using 1:10 with lines title "Sold to Customers", \
-     "accounts.data" using 1:($13+$14) with lines title "Inventory Purchased"
-
-set title "Cumulative Losses"
-plot "accounts.data" using 1:4 with steps title "Cash Losses", \
-     "accounts.data" using 1:11 with steps title "Debt Writeoffs"
