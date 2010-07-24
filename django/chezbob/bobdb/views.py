@@ -509,11 +509,11 @@ def estimate_order(request):
 
         # Calculate how many units of new product are needed
         needed = info['sales'] - max(info['inventory']['estimate'], 0)
-        needed += p.reserve
+        needed += max(p.reserve, p.quantity / 5.0)
         needed = float(needed) / p.quantity
         # This product went out of stock, tweak in case we didn't order enough
-        if info['inventory']['estimate'] <= 0 and info['sales'] > 0:
-            needed += 0.5
+        #if info['inventory']['estimate'] <= 0 and info['sales'] > 0:
+        #    needed += 2
         needed = max(int(math.ceil(needed)), 0)
         info['order'] = needed
         # Calculate cost of these units, add to aggregate order cost

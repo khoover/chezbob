@@ -3,12 +3,12 @@
 
 {% block content %}
 
-{% for date in dates %}
-<p><a href="{{ date }}/">{{ date }}</a></p>
-{% endfor %}
+<p><a href="order/">Order Estimate</a></p>
 
 <p><a href="{{ today }}/">Take New Inventory</a></p>
 
-<p><a href="order/">Order Estimate</a></p>
+{% for date in dates reversed %}
+<p><a href="{{ date }}/">{{ date }}</a></p>
+{% endfor %}
 
 {% endblock %}
