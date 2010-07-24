@@ -31,11 +31,11 @@ print <<"END";
     <body>
         <h1>Owe Chez Bob Money?</h1>
         <p>If you're no longer at UCSD, payment can be mailed to:</p>
-        <blockquote>Chez Bob, c/o Nathan Bales<br />
+        <blockquote>Chez Bob, c/o Michael Vrable<br />
         UCSD Department of Computer Science and Engineering<br />
         9500 Gilman Drive, Mail Code 0404<br />
         La Jolla, CA 92093-0404</blockquote>
-        <p>Checks should be made out to Nathan Bales.  Please be sure to include the name of the account to which payment should be credited.</p>
+        <p>Checks should be made out to Michael Vrable.  Please be sure to include the name of the account to which payment should be credited.</p>
 
 END
 
