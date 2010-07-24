@@ -54,7 +54,7 @@ use POSIX ":sys_wait_h";
 $SIG{PIPE} = sub { die "SIGPIPE" };
 
 # E-mail addresses which should receive a copy (Bcc) of all e-mails sent.
-my @EXTRA_ADDRESSES = ('mvrable@cs.ucsd.edu', 'kmowery@cs.ucsd.edu');
+my @EXTRA_ADDRESSES = ('mvrable@cs.ucsd.edu');
 
 # Lines in the template that are prefixed with $REFLOW will be processed by fmt
 # to rewrap lines, and then the $REFLOW prefix will be stripped off.  This
