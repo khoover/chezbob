@@ -1,21 +1,21 @@
-# Query: select username, email, balance, -balance as absbalance from users natural join balances natural left join last_activity where balance < 0 and (time is null or time < '2008-07-01') order by balance, lower(username);
-# Fields: USERNAME EMAIL BALANCE ABSBALANCE
+# Query: select username, email, -balance as absbalance, last_seen from account_summary where last_seen < '2010-04-01' and balance <= -1 order by balance, lower(username);
+# Fields: USERNAME EMAIL ABSBALANCE LASTSEEN
 From: Chez Bob <chezbob@cs.ucsd.edu>
 Subject: Your Chez Bob Account: %USERNAME%
 Reply-To: Michael Vrable <mvrable@cs.ucsd.edu>
 
 | Chez Bob, the UCSD CSE grad student food co-op, has been sorting
-| through old and inactive accounts.  Our records indicate that you had
-| an account with Chez Bob and that this account (%USERNAME%) has a
-| balance of %BALANCE%.
+| through some of our accounts and found that you still seem to owe Chez
+| Bob money.  According to our records, your account %USERNAME%
+| currently owes %ABSBALANCE%.
 
-| If you are still at UCSD, you can make a payment as usual through the
-| Chez Bob computer or soda machine.  If you are not at UCSD, see the
-| page
+| We haven't seen you make any transactions since %LASTSEEN%, so we're
+| worried that you may have left.  If you are still around the
+| department, we'd appreciate it if you could pay off your debt.  If you
+| are no longer here, you can also see the page
     http://chezbob.ucsd.edu/payment/?user=%USERNAME%&amt=%ABSBALANCE%
-| for payment instructions.  Payments can be mailed or Google Checkout can
-| be used to pay electronically.  Details are on the page listed above.
-| Paying off your balance will help keep Chez Bob running smoothly.
+| for payment instructions (payments can be mailed or Google Checkout can
+| be used to pay electronically).
 
 | If you believe our records are incorrect, please contact us so that we
 | may correct them.  To do so, you may either send a message to
