@@ -57,6 +57,7 @@ BoughtEvent, EVT_BOUGHT_EVENT = wx.lib.newevent.NewEvent()
 TtlEvent, EVT_TTL_EVENT = wx.lib.newevent.NewEvent()
 BalanceEvent, EVT_BALANCE_EVENT = wx.lib.newevent.NewEvent()
 FpEvent, EVT_FP_EVENT = wx.lib.newevent.NewEvent()
+UiNoticeEvent, EVT_UINOTICE_EVENT = wx.lib.newevent.NewEvent()
 
 # Deprecated
 def urldecode(url):
@@ -157,6 +158,7 @@ class SodaFrame(wxFrame):
         self.Bind(EVT_TTL_EVENT, self.onTtlEvent)
         self.Bind(EVT_BALANCE_EVENT, self.onBalanceEvent)
         self.Bind(EVT_FP_EVENT, self.onFpEvent)
+        self.Bind(EVT_UINOTICE_EVENT, self.onUiNoticeEvent)
 
         self.TTLTimer = wxTimer(self, 0)
         self.Bind(EVT_TIMER, self.onTTLTimerFire)
@@ -454,6 +456,9 @@ class SodaFrame(wxFrame):
         if event.complete == "1":
             self.changeState(STATE_PURCHASE)
 
+    def onUiNoticeEvent(self, event):
+        self.purchasePanel.SetStatusText(event.msg, event.color)
+
     def queryWallOfShame(self):
         self.bus.send(["BOBDB-QUERYWALLOFSHAME"])
 
@@ -535,6 +540,10 @@ class SodaFrame(wxFrame):
         evt = BalanceEvent(balance=data[1])
         wx.PostEvent(self, evt)
 
+    def handleUiNotice(self,data):
+        evt = UiNoticeEvent(msg=data[1], color=data[2])
+        wx.PostEvent(self, evt)
+
     def handleUiTtl(self,data):
         evt = TtlEvent(ttl=data[1])
         wx.PostEvent(self, evt)
@@ -576,6 +585,7 @@ class SodaApp(wxApp):
         self.bus.watchMessage("UI-BALANCE", frame.handleUiBalance)
         self.bus.watchMessage("UI-TTL", frame.handleUiTtl)
         self.bus.watchMessage("UI-FP-NOTICE", frame.handleUiFpNotice)
+        self.bus.watchMessage("UI-NOTICE", frame.handleUiNotice)
         self.bus.watchMessage("BOBDB-WALLOFSHAME", frame.handleWallOfShame)
 
         self.bus_thread = threading.Thread(target=self.bus.receive)
