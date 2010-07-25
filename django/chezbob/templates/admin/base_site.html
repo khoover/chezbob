@@ -1,0 +1,19 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{{ title }} | {% trans 'Chezbob Database Admin' %}{% endblock %}
+
+{% block branding %}<h1 id="site-name">Chez Bob</h1>{% endblock %}
+
+{% block nav-global %}
+    <b>Menu:</b>
+    <a href="/admin/">Admin Home</a> |
+    <a href="/admin/finance/accounts/">Finance</a> |
+    <a href="/admin/cashout/">Cashouts</a> |
+    <a href="/admin/inventory/">Inventory</a> |
+    <a href="/admin/orders/">Orders</a> |
+    <a href="/admin/django/">Database</a> |
+    <a href="/admin/django/logout/">Logout</a>
+{% endblock %}
+
+
