@@ -1,4 +1,10 @@
 # m h  dom mon dow   command
+
+# These next commands should run on the database server machine (currently
+# soda).
 14 */6 * * *      psql -q -f $HOME/chezbob.hg/admin/aggregate_maintenance.sql bob
-19 */6 * * *      $HOME/chezbob.hg/django/chezbob/launch finance_sync
-*/10 * * * *      $HOME/chezbob.hg/reports/wall_of_shame.pl >$HOME/www/wall_of_shame.html
+14 1 * * *        psql -q -f $HOME/chezbob.hg/admin/maintenance.sql bob
+
+# These commands should run on the web server machine (currently chezbob).
+*/10 * * * *      $HOME/chezbob.hg/reports/wall_of_shame.pl >/srv/www/www/wall_of_shame.html
+19 */6 * * *      $HOME/chezbob.hg/admin/finance-update; cp $HOME/finances.pdf /srv/www/www/reports/

@@ -1,8 +1,8 @@
  -- Merge records in the aggregate_purchases table.  New purchases simply cause
  -- new rows to be inserted in the table.  However, for storage efficiency we
- -- will combine records with the same date and barcode.  We can also decrease
- -- the resolution of the records further back in time by rounding the dates on
- -- old records to the nearest month, but we don't yet do this.
+ -- will combine records with the same date and barcode.  We could also
+ -- decrease the resolution of the records further back in time by rounding the
+ -- dates on old records to the nearest month, but we don't yet do this.
  --
  -- This version only merges records created in the past two days, to bound the
  -- work performed.  If run at least once a day, it will ensure that all
@@ -22,5 +22,5 @@ insert into aggregated
         group by date, barcode, bulkid;
 delete from aggregate_purchases where date > now() - interval '2 day';
 insert into aggregate_purchases
-    select * from aggregated where quantity <> 0;
+    select * from aggregated where quantity <> 0 or price <> 0;
 commit;
