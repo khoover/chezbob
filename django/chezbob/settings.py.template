@@ -78,7 +78,7 @@ ROOT_URLCONF = 'chezbob.urls'
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates".
     # Always use forward slashes, even on Windows.
-    "/home/mvrable/chezbob.hg/django/chezbob/templates",
+    "/srv/www/django/chezbob/templates",
 )
 
 INSTALLED_APPS = (
