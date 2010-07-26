@@ -11,7 +11,7 @@
     <table width="100%">
     {% for a in g.accounts %}
         <tr>
-            <td><a href="/finance/account/{{ a.id }}/">{{ a }}</a></td>
+            <td><a href="/admin/finance/account/{{ a.id }}/">{{ a }}</a></td>
             <td style="text-align: right">{{ a.balance|stringformat:".2f" }}</td>
         </tr>
     {% endfor %}

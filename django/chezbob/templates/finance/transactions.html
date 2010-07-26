@@ -26,7 +26,7 @@
 
     <tr id="t{{ t.info.id }}">
         <td>{{ t.info.date }}</td>
-        <td colspan="2"><a href="/finance/transaction/{{ t.info.id }}/" {% if t.info.auto_generated %}style="font-style: italic"{% else %}style="font-weight: bold"{% endif %}>{{ t.info.description }}</a></td>
+        <td colspan="2"><a href="/admin/finance/transaction/{{ t.info.id }}/" {% if t.info.auto_generated %}style="font-style: italic"{% else %}style="font-weight: bold"{% endif %}>{{ t.info.description }}</a></td>
         <td></td>
         <td></td>
         <td align="right">{% if balances %}{{ t.balance|stringformat:".2f" }}{% endif %}</td>
@@ -35,7 +35,7 @@
     <tr>
         <td></td>
         <td>{{ s.memo }}</td>
-        <td><a href="/finance/account/{{s.account.id}}/">{{ s.account }}</a></td>
+        <td><a href="/admin/finance/account/{{s.account.id}}/">{{ s.account }}</a></td>
         <td align="right">{% if s.debit %}{{ s.debit|stringformat:".2f" }}{% endif %}</td>
         <td align="right">{% if s.credit %}{{ s.credit|stringformat:".2f" }}{% endif %}</td>
         <td></td>
@@ -46,7 +46,7 @@
 </table>
 
 <div class="submit-row">
-    <a href="/finance/transaction/new/">New Transaction</a>
+    <a href="/admin/finance/transaction/new/">New Transaction</a>
 </div>
 
 {% endblock %}

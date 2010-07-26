@@ -25,15 +25,15 @@
     <tr><td colspan="6"><hr /></td></tr>
 
     <tr id="c{{ c.info.id }}">
-        <td><a href="/cashout/{{ c.info.id }}/" style="font-weight: bold">{{ c.info.datetime }}</a></td>
-        <td colspan="2"><a href="/cashout/{{ c.info.id }}/" style="font-weight: bold">{{ c.info.notes }}</a></td>
+        <td><a href="/admin/cashout/{{ c.info.id }}/" style="font-weight: bold">{{ c.info.datetime }}</a></td>
+        <td colspan="2"><a href="/admin/cashout/{{ c.info.id }}/" style="font-weight: bold">{{ c.info.notes }}</a></td>
         <td></td>
     </tr>
     {% for s in c.counts %}
     <tr>
         <td></td>
         <td>{{ s.memo }}</td>
-        <td><a href="/cashout/entity/{{s.entity.id}}/">{{ s.entity }}</a></td>
+        <td><a href="/admin/cashout/entity/{{s.entity.id}}/">{{ s.entity }}</a></td>
         {% for v in s.count %}
         <td align="right">{{ v }}</td>
         {% endfor %}
@@ -52,7 +52,7 @@
 </table>
 
 <div class="submit-row">
-    <a href="/cashout/new/">New Cashout</a>
+    <a href="/admin/cashout/new/">New Cashout</a>
 </div>
 
 {% endblock %}

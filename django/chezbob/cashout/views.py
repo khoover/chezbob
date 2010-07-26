@@ -386,6 +386,6 @@ def gen_transaction(request, cashout):
                           'accounts': finance.Account.objects.order_by('name'),
                           'transaction': transaction,
                           'splits': splits,
-                          'action':'/finance/transaction/new/'
+                          'action':'/admin/finance/transaction/new/'
                                })
     
