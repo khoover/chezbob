@@ -1,0 +1,16 @@
++ Users
+  + Creation
+  + Property Update DB
+  + Property Update GUI
+
++ Purchasing
+  + bob_db side
+  + user side
+     + Interaction Model (on scan or on logout, can remove items?)
+  + Gui
+
++ Deposits
+
++ Email Bob.
+
++ Admin Interface?
