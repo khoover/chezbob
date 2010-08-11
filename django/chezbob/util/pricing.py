@@ -9,10 +9,10 @@ import django.db.transaction
 cursor = connection.cursor()
 
 markups = {
-    1: 0.09,                    # Shelves
-    2: 0.09,                    # Refrigerator
-    3: 0.11,                    # Freezer
-    4: 0.03,                    # Soda machine
+    1: 0.10,                    # Shelves
+    2: 0.10,                    # Refrigerator
+    3: 0.12,                    # Freezer
+    4: 0.04,                    # Soda machine
     5: 0.20,                    # Terminal
     0: 0.09,                    # Unknown
 }
