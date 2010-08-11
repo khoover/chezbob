@@ -45,6 +45,7 @@ class BulkItem(models.Model):
     active = models.BooleanField(default=True)
     floor_location = models.ForeignKey(FloorLocations,
                                        db_column='floor_location')
+    product_id = models.CharField(max_length=255, blank=True)
 
     def __unicode__(self):
         return self.description

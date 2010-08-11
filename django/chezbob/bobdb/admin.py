@@ -5,19 +5,19 @@ class ProductInline(admin.TabularInline):
     model = Product
 
 class BulkItemAdmin(admin.ModelAdmin):
-    search_fields = ['description']
+    search_fields = ['description', 'product_id']
     fieldsets = [
-        ("Details", {'fields': ('description', 'quantity', 'updated',
-                                'source', 'reserve', 'active',
+        ("Details", {'fields': ('description', 'product_id', 'quantity',
+                                'updated', 'source', 'reserve', 'active',
                                 'floor_location')}),
         ("Pricing", {'fields': (('price', 'taxable'),
                                 ('crv', 'crv_taxable'))}),
     ]
     ordering = ['description']
     list_filter = ['updated', 'active', 'source', 'floor_location']
-    list_display = ['description', 'quantity', 'price', 'taxable',
-                    'crv', 'crv_taxable', 'updated', 'active', 'source',
-                    'floor_location']
+    list_display = ['description', 'product_id', 'quantity', 'price',
+                    'taxable', 'crv', 'crv_taxable', 'updated', 'active',
+                    'source', 'floor_location']
     inlines = [ProductInline]
 admin.site.register(BulkItem, BulkItemAdmin)
 
