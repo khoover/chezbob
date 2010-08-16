@@ -12,7 +12,7 @@ set key top left
 set grid
 set xzeroaxis lt -1
 
-set term postscript solid color
+set term postscript solid color font 12
 set output "finances.ps"
 
 set title "Overall Snapshot: ChezBob Net Non-Restricted Assets"
