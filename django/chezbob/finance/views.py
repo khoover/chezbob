@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseRedirect
 from chezbob.finance.models import Account, Transaction, Split, DepositBalances, InventorySummary
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
+from django.core.urlresolvers import reverse
 
 view_perm_required = \
     user_passes_test(lambda u: u.has_perm('finance.view_transactions'))
@@ -39,7 +40,7 @@ nbales 11/7/2008
 """
 @view_perm_required
 def redirect(request):
-    return HttpResponseRedirect('/finance/accounts/')
+    return HttpResponseRedirect(reverse('chezbob.finance.views.account_list'))
 
 @view_perm_required
 def account_list(request):
@@ -261,9 +262,9 @@ def edit_transaction(request, transaction=None):
                           amount=s['amount'])
             split.save()
         if transaction.auto_generated:
-            url = "/finance/ledger/?all#t%d" % (transaction.id,)
+            url = "%s/?all#t%d" % (reverse("chezbob.finance.views.ledger"), transaction.id,)
         else:
-            url = "/finance/ledger/#t%d" % (transaction.id,)
+            url = "%s/#t%d" % (reverse("chezbob.finance.views.ledger"), transaction.id,)
         return HttpResponseRedirect(url)
 
     # Include a few blank splits at the end of the transaction for entering
