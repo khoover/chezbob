@@ -262,9 +262,9 @@ def edit_transaction(request, transaction=None):
                           amount=s['amount'])
             split.save()
         if transaction.auto_generated:
-            url = "%s/?all#t%d" % (reverse("chezbob.finance.views.ledger"), transaction.id,)
+            url = "%s?all#t%d" % (reverse("chezbob.finance.views.ledger"), transaction.id,)
         else:
-            url = "%s/#t%d" % (reverse("chezbob.finance.views.ledger"), transaction.id,)
+            url = "%s#t%d" % (reverse("chezbob.finance.views.ledger"), transaction.id,)
         return HttpResponseRedirect(url)
 
     # Include a few blank splits at the end of the transaction for entering
