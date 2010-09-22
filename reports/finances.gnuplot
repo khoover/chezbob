@@ -16,18 +16,18 @@ set term postscript solid color font 12
 set output "finances.ps"
 
 set title "Overall Snapshot: ChezBob Net Non-Restricted Assets"
-plot "accounts.data" using 1:($27-$30-$23-$24) with linespoints \
+plot "accounts.data" using 1:($28-$31-$24-$25) with linespoints \
         title "Net Assets", \
-     "accounts.data" using 1:33 with lines title "Potential Bad Debt", \
-     "accounts.data" using 1:($27-$30-$23-$24+$34) with lines \
+     "accounts.data" using 1:34 with lines title "Potential Bad Debt", \
+     "accounts.data" using 1:($28-$31-$24-$25+$35) with lines \
         title "Including Inventory"
 
 set title "Inventory: Valued at Cost"
-plot "accounts.data" using 1:34 with linespoints notitle
+plot "accounts.data" using 1:35 with linespoints notitle
 
 set title "Bank of Bob Operations: Positive vs. Negative Deposits"
-plot "accounts.data" using 1:32 with lines title "Positive (Deposits)", \
-     "accounts.data" using 1:33 with lines title "Negative (Debt)", \
+plot "accounts.data" using 1:33 with lines title "Positive (Deposits)", \
+     "accounts.data" using 1:34 with lines title "Negative (Debt)", \
      "accounts.data" using 1:6 with lines title "Net"
 
 set title "Cash on Hand: Available Cash and Bank Balances"
