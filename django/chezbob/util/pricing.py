@@ -10,11 +10,11 @@ cursor = connection.cursor()
 
 markups = {
     1: 0.10,                    # Shelves
-    2: 0.10,                    # Refrigerator
+    2: 0.11,                    # Refrigerator
     3: 0.12,                    # Freezer
-    4: 0.04,                    # Soda machine
+    4: 0.05,                    # Soda machine
     5: 0.20,                    # Terminal
-    0: 0.09,                    # Unknown
+    0: 0.12,                    # Unknown
 }
 
 def to_decimal(f):
