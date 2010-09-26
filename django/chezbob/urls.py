@@ -18,6 +18,7 @@ urlpatterns = patterns('',
     (r'^admin/inventory/order/print/$', 'chezbob.bobdb.views.display_order'),
 
     # Accounting
+    (r'^admin/$', 'chezbob.finance.views.redirect'),
     (r'^admin/finance[/]$', 'chezbob.finance.views.redirect'),
     (r'^admin/finance/accounts/$', 'chezbob.finance.views.account_list'),
     (r'^admin/finance/ledger/$', 'chezbob.finance.views.ledger'),
