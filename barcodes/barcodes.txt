@@ -12,3 +12,9 @@
 428037753629:Green Tea
 485158466975:Beef Tamales
 410014682282:Milk for Tea
+464651847221:Lipton Green Tea Bags
+472792172478:Bagel: Cinnamon
+448436611788:Bagel: Honey Wheat
+472081732314:Bagel: Onion
+434613729032:Bagel: Parmesan
+415673888167:Bagel: Plain
