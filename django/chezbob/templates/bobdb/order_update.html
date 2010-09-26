@@ -35,7 +35,7 @@
         </td>
         <td>
             <input type="hidden" name="type_code.{{ forloop.counter }}" value="{{ item.type.bulkid }}" />
-            <span style="{% if item.id %}font-weight: bold{% endif %}">{{ item.type.description }}</span>
+            <span style="{% if item.id %}font-weight: bold{% endif %}"><a href="/admin/django/bobdb/bulkitem/{{ item.type.bulkid }}/">{{ item.type.description }}</a></span>
             (<input type="text" size="4" name="quantity.{{ forloop.counter }}" value="{{ item.quantity }}" />)
         </td>
         <td>
