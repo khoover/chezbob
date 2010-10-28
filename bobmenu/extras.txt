@@ -3,6 +3,7 @@
 093624835028    # Latte, Single
 042491500010    # Latte, Double
 410014682282    # Milk for Tea
+406746042227	# Milk for Latte
 488585940780    # Glass of Milk
 074570036127    # Haagen-Dazs
 436710464281    # Lipton Tea Bag
