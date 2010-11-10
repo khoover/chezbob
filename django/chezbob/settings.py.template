@@ -29,9 +29,8 @@ DATABASE_HOST = 'localhost'
 DATABASE_PORT = ''
 
 # Uncomment the following line if running over HTTPS; it will prevent session
-# cookies from being sent over unencrypted connections (assuming a
-# recent-enough Django version).
-#SESSION_COOKIE_SECURE = True
+# cookies from being sent over unencrypted connections.
+SESSION_COOKIE_SECURE = True
 
 # Local time zone for this installation. All choices can be found here:
 # http://www.postgresql.org/docs/current/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
@@ -76,8 +75,6 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'chezbob.urls'
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates".
-    # Always use forward slashes, even on Windows.
     "/srv/www/django/chezbob/templates",
 )
 
@@ -90,3 +87,5 @@ INSTALLED_APPS = (
     'chezbob.finance',
     'chezbob.cashout',
 )
+
+LOGIN_URL="/admin/accounts/login/"
