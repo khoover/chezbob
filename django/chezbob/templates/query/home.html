@@ -1,0 +1,17 @@
+{% extends "chezbob/base.html" %}
+{% block title %}Queries{% endblock %}
+
+{% block content %}
+<h1>{{ query.name }}: {{ query.description }}</h1>
+<p>Query: <span style="font-family: monospace">{{ query.query }}</span></p>
+<table>
+<tr>
+{% for c in query.columns %}<th>{{ c }}</th>{% endfor %}
+</tr>
+{% for row in query.data %}
+<tr>
+{% for item in row %}<td>{{ item }}</td>{% endfor %}
+</tr>
+{% endfor %}
+</table>
+{% endblock %}

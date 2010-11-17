@@ -31,6 +31,9 @@ urlpatterns = patterns('',
     # Cashout
     (r'^admin/cashout/', include('chezbob.cashout.urls')),
 
+    # Specialized database queries
+    (r'^admin/query/$', 'chezbob.query.views.home'),
+
     # Default admin interface for editing database
     (r'^admin/django/(.*)', admin.site.root),
 
