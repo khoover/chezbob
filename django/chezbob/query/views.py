@@ -55,8 +55,8 @@ def generate_table(query_name, request):
     query = queries[query_name]
     variables = []
     for v in query['variables']:
-        if v in request.POST:
-            variables.append(request.POST[v])
+        if v in request.GET:
+            variables.append(request.GET[v])
         else:
             variables.append('')        # TODO: Sensible defaults
     results = run_query(query, variables)

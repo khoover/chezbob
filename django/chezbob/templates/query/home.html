@@ -7,7 +7,7 @@
 <link rel="stylesheet" type="text/css" href="/js/tablesorter/style.css" />
 <style type="text/css">
 .query {
-  background-color: #e6eeee;
+  background-color: #eaf2f2;
   border: 1px solid black;
   padding: 0.5em;
   margin-bottom: 1em;
@@ -16,21 +16,28 @@
 <script tyep="text/javascript">
 // <![CDATA[
 $(document).ready(function() {
-  $(".nonexistent").each(function(index) {
-    $(this).prepend("<span class='executor'>Execute</span>");
-    $(this).prepend("<span class='hider'>Hide</span>");
+  $(".query").each(function(index) {
+    $(this).append("<div class='results'></div>");
     var results = $(".results", this);
-    results.hide();
-    $(".hider", this).click(function() {
-      results.slideToggle("fast");
-    });
-    $(".executor", this).click(function() {
+    //$(".hider", this).click(function() {
+    //  results.slideToggle("fast");
+    //});
+    var form = $("form", this);
+    var url = form.attr("action").replace("results/", "raw/");
+    form.submit(function(event) {
       results.html("Loading...");
-      $.get("/admin/query/raw/accounts/", function(data) {
-        results.html(data);
-        $("table", results).addClass("tablesorter");
-        $("table", results).tablesorter();
-      });
+      $.ajax({'url': url,
+              'data': form.serialize(),
+              'success': function(data) {
+                results.html(data);
+                var table = $("table", results);
+                table.addClass("tablesorter");
+                table.tablesorter();
+                },
+              'error': function(xhr, msg, err) {
+                results.html("Error: " + msg);
+                }});
+      event.preventDefault();
     });
   });
 });
@@ -43,7 +50,7 @@ $(document).ready(function() {
 <div class="query">
 <h1>{{ query.name }}: {{ query.description }}</h1>
 <p>Query: <span style="font-family: monospace">{{ query.query }}</span></p>
-<form action="results/{{ query.name }}/" method="post">
+<form action="results/{{ query.name }}/" method="get">
 {% for var in query.variables %}
 <div class="form-row">
 <label for="{{ var }}">{{ var }}:</label>
