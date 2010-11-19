@@ -3,6 +3,8 @@
 
 {% block html_headers %}
 <script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/tablesorter/jquery.tablesorter.js"></script>
+<link rel="stylesheet" type="text/css" href="/js/tablesorter/style.css" />
 <script tyep="text/javascript">
 // <![CDATA[
 $(document).ready(function() {
@@ -17,7 +19,9 @@ $(document).ready(function() {
     $(".executor", this).click(function() {
       results.html("Loading...");
       $.get("/admin/query/raw/accounts/", function(data) {
-	results.html(data);
+        results.html(data);
+        $("table", results).addClass("tablesorter");
+        $("table", results).tablesorter();
       });
     });
   });

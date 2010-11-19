@@ -53,16 +53,20 @@ def raw_table(request, query):
 
     response = HttpResponse(mimetype="text/html")
     response.write("<table>\n")
+    response.write("<thead>\n")
     response.write("<tr>\n")
     for c in results['columns']:
 	response.write("<th>" + c + "</th>\n")
     response.write("</tr>\n")
+    response.write("</thead>\n")
 
+    response.write("<tbody>\n")
     for row in results['data']:
 	response.write("<tr>\n")
 	for d in row:
 	    response.write("<td>" + str(d) + "</td>\n")
 	response.write("</tr>\n")
+    response.write("</tbody>\n")
 
     response.write("</table>\n")
 
