@@ -14,25 +14,62 @@ def add_query(name, description, query, variables):
     queries[name] = {"name": name,
                      "description": description,
                      "query": query,
-                     "variables": variables}
+                     "variables": [x[0] for x in variables],
+                     "defaults": [x[1] for x in variables],
+                     "param_info": [{'name': x[0], 'default': x[1]}
+                                    for x in variables]}
     query_order.append(name)
 
 add_query("accounts", "Account Balances",
           """select username, balance, last_seen, email
              from account_summary order by balance, lower(username)""",
           [])
+
+add_query("accounts_inactive", "Inactive Accounts",
+          """select username, balance, last_seen, email
+             from account_summary
+             where last_seen is null or last_seen < now() - interval %s
+             order by last_seen, lower(username)""",
+          [('interval', '2 year')])
+
 add_query("inactive", "Newly-Inactive Products",
           """select * from bulk_items
              where
                bulkid not in
                  (select distinct bulkid from aggregate_purchases
                   where date >= %s and bulkid is not null)
-               and active""",
-          ['date'])
+               and active
+             order by description""",
+          [('date', datetime.date.today() - datetime.timedelta(30))])
+
+add_query("newactive", "Recently-Purchased But Not Active Products",
+          """select * from bulk_items
+             where
+               bulkid in
+                 (select distinct bulkid from aggregate_purchases
+                  where date >= %s and bulkid is not null)
+               and not active
+             order by description""",
+          [('date', datetime.date.today() - datetime.timedelta(30))])
 
 add_query("products", "All Products",
           """select * from products""",
           [])
+
+add_query("deposits", "Cash Deposits and Refunds",
+          """select username, xacttime, xactvalue, xacttype, source
+             from transactions join users using (userid)
+             where xacttype in ('ADD', 'REFUND')
+             order by xacttime""",
+          [])
+
+add_query("transactions", "User Transaction Log",
+          """select xacttime, xactvalue, source,
+                    substring(xacttype from '^[^ ]*') as xacttype
+             from transactions join users using (userid)
+             where username = %s
+             order by xacttime""",
+          [('username', '')])
 
 ##### Helper functions #####
 def run_query(query, variables):
