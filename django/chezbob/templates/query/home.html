@@ -1,9 +1,36 @@
 {% extends "chezbob/base.html" %}
 {% block title %}Queries{% endblock %}
 
+{% block html_headers %}
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script tyep="text/javascript">
+// <![CDATA[
+$(document).ready(function() {
+  $(".query").each(function(index) {
+    $(this).prepend("<span class='executor'>Execute</span>");
+    $(this).prepend("<span class='hider'>Hide</span>");
+    var results = $(".results", this);
+    results.hide();
+    $(".hider", this).click(function() {
+      results.slideToggle("fast");
+    });
+    $(".executor", this).click(function() {
+      results.html("Loading...");
+      $.get("/admin/query/raw/accounts/", function(data) {
+	results.html(data);
+      });
+    });
+  });
+});
+// ]]>
+</script>
+{% endblock %}
+
 {% block content %}
+<div class="query">
 <h1>{{ query.name }}: {{ query.description }}</h1>
 <p>Query: <span style="font-family: monospace">{{ query.query }}</span></p>
+<div class="results">
 <table>
 <tr>
 {% for c in query.columns %}<th>{{ c }}</th>{% endfor %}
@@ -14,4 +41,5 @@
 </tr>
 {% endfor %}
 </table>
+</div>
 {% endblock %}

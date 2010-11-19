@@ -46,6 +46,28 @@ def run_query(name, variables):
     return {'name': name, 'description': description, 'query': query,
             'columns': columns, 'data': data}
 
+##### Return a raw HTML table with query results #####
+@login_required
+def raw_table(request, query):
+    results = run_query(query, [])
+
+    response = HttpResponse(mimetype="text/html")
+    response.write("<table>\n")
+    response.write("<tr>\n")
+    for c in results['columns']:
+	response.write("<th>" + c + "</th>\n")
+    response.write("</tr>\n")
+
+    for row in results['data']:
+	response.write("<tr>\n")
+	for d in row:
+	    response.write("<td>" + str(d) + "</td>\n")
+	response.write("</tr>\n")
+
+    response.write("</table>\n")
+
+    return response
+
 ##### Page view functions (invoked by Django to display a page) #####
 @login_required
 def home(request):

@@ -5,6 +5,7 @@
     <link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% load adminmedia %}{% admin_media_prefix %}css/base.css{% endblock %}" />
     <link rel="stylesheet" type="text/css" href="{% block forms_stylesheet %}{% load adminmedia %}{% admin_media_prefix %}css/forms.css{% endblock %}" />
     <link rel="stylesheet" type="text/css" href="{% block changelists_stylesheet %}{% load adminmedia %}{% admin_media_prefix %}css/changelists.css{% endblock %}" />
+    {% block html_headers %}{% endblock %}
 </head>
 
 <body>

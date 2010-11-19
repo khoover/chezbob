@@ -33,6 +33,7 @@ urlpatterns = patterns('',
 
     # Specialized database queries
     (r'^admin/query/$', 'chezbob.query.views.home'),
+    (r'^admin/query/raw/(\w+)/$', 'chezbob.query.views.raw_table'),
 
     # Default admin interface for editing database
     (r'^admin/django/(.*)', admin.site.root),
