@@ -7,10 +7,12 @@
 <link rel="stylesheet" type="text/css" href="/js/tablesorter/style.css" />
 <style type="text/css">
 .query {
-  background-color: #eaf2f2;
   border: 1px solid black;
   padding: 0.5em;
   margin-bottom: 1em;
+}
+input.hide {
+  float: right;
 }
 </style>
 <script tyep="text/javascript">
@@ -23,8 +25,17 @@ $(document).ready(function() {
     //  results.slideToggle("fast");
     //});
     var form = $("form", this);
+
+    $('input[type="submit"]', form).after(" <input type='button' value='Hide' class='hide' style='display: none' />");
+    var btn = $('input[value="Hide"]', form);
+    btn.click(function() {
+      results.toggle('fast');
+    });
+
     var url = form.attr("action").replace("results/", "raw/");
     form.submit(function(event) {
+      btn.show();
+      results.show();
       results.html("Loading...");
       $.ajax({'url': url,
               'data': form.serialize(),
