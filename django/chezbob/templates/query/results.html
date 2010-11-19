@@ -1,0 +1,22 @@
+{% extends "chezbob/base.html" %}
+{% block title %}Queries{% endblock %}
+
+{% block html_headers %}
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/tablesorter/jquery.tablesorter.js"></script>
+<link rel="stylesheet" type="text/css" href="/js/tablesorter/style.css" />
+<script tyep="text/javascript">
+// <![CDATA[
+$(document).ready(function() {
+  $(".results > table").addClass("tablesorter");
+  $(".results > table").tablesorter();
+});
+// ]]>
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="results">
+{{ raw_table|safe }}
+</div>
+{% endblock %}
