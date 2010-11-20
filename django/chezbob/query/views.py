@@ -21,8 +21,13 @@ def add_query(name, description, query, variables):
     query_order.append(name)
 
 add_query("accounts", "Account Balances",
-          """select username, balance, last_seen, email
-             from account_summary order by balance, lower(username)""",
+          """select username, balance, last_deposit, last_seen, email
+             from account_summary
+               left join (select userid, max(xacttime)::date as last_deposit
+                          from transactions where xacttype = 'ADD'
+                          group by userid) as s1
+               using (userid)
+             order by balance, lower(username)""",
           [])
 
 add_query("accounts_inactive", "Inactive Accounts",
@@ -43,13 +48,14 @@ add_query("inactive", "Newly-Inactive Products",
           [('date', datetime.date.today() - datetime.timedelta(30))])
 
 add_query("newactive", "Recently-Purchased But Not Active Products",
-          """select * from bulk_items
-             where
-               bulkid in
-                 (select distinct bulkid from aggregate_purchases
-                  where date >= %s and bulkid is not null)
-               and not active
-             order by description""",
+          """select date, description
+             from bulk_items join
+               (select bulkid, max(date) as date from aggregate_purchases
+                       where date >= %s and bulkid is not null
+                       group by bulkid) as s1
+               using (bulkid)
+             where not active
+             order by date, description""",
           [('date', datetime.date.today() - datetime.timedelta(30))])
 
 add_query("products", "All Products",

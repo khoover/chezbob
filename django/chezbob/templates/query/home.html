@@ -23,8 +23,8 @@ $(document).ready(function() {
     var results = $(".results", this);
     var form = $("form", this);
 
-    $('input[type="submit"]', form).after(" <input type='button' value='Hide' class='hide' style='display: none' />");
-    var btn = $('input[value="Hide"]', form);
+    $('input[type="submit"]', form).after(" <input type='button' value='Show/Hide' class='hide' style='display: none' />");
+    var btn = $('input.hide', form);
     btn.click(function() {
       results.toggle('fast');
     });
