@@ -90,8 +90,8 @@ bob_db_get_username_from_userbarcode
   &bob_db_check_conn;
   my $queryFormat = q{
     select username
-    from users
-    where userbarcode = '%s';
+    from userbarcodes join users using (userid)
+    where barcode = '%s';
   };
   my $result = $conn->exec(sprintf($queryFormat, $barcode));
   if ($result->ntuples != 1) {
@@ -130,8 +130,8 @@ bob_db_get_userid_from_userbarcode
   &bob_db_check_conn;
   my $queryFormat = q{
     select userid
-    from users
-    where userbarcode = '%s';
+    from userbarcodes
+    where barcode = '%s';
   };
   my $result = $conn->exec(sprintf($queryFormat, $barcode));
   if ($result->ntuples != 1) {
@@ -162,6 +162,7 @@ bob_db_get_nickname_from_userid
 }
 
 
+# TODO: Broken, needs fixing
 sub
 bob_db_get_userbarcode_from_userid
 {
@@ -169,8 +170,8 @@ bob_db_get_userbarcode_from_userid
 
   &bob_db_check_conn;
   my $queryFormat = q{
-    select userbarcode
-    from users
+    select barcode
+    from userbarcodes
     where userid = %d;
   };
   my $result = $conn->exec(sprintf($queryFormat, $userid));
@@ -225,6 +226,7 @@ bob_db_add_user
 }
 
 
+# TODO: Need to be able to delete barcodes
 sub
 bob_db_update_user_barcode
 {
@@ -232,12 +234,12 @@ bob_db_update_user_barcode
 
   &bob_db_check_conn;
   my $updatequeryFormat = q{
-    update users
-    set userbarcode = '%s'
-    where userid = %d;
+    delete from userbarcodes where userid = %d;
+    insert into userbarcodes(userid, barcode)
+    values (%d, '%s');
   };      
 
-  my $result = $conn->exec(sprintf($updatequeryFormat, $barcode, $userid));
+  my $result = $conn->exec(sprintf($updatequeryFormat, $userid, $userid, $barcode));
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     my $mesg = "In bob_db_update_user_barcode: ";
     $mesg .= "error updating user's barcode.\n" .  
@@ -280,7 +282,7 @@ bob_db_get_balance
   &bob_db_check_conn;
   my $queryFormat = q{
     select balance
-    from balances
+    from users
     where userid = %d;
   };
   my $result = $conn->exec(sprintf($queryFormat,$userid));
@@ -300,16 +302,15 @@ bob_db_init_balance
 
   &bob_db_check_conn;
   my $insertqueryFormat = q{ 
-    insert 
-    into balances(userid, balance)
-    values(%d, %.2f); 
+    update users
+    set balance = %.2f where userid = %d;
 
     insert 
     into transactions(xacttime, userid, xactvalue, xacttype)
     values('now', %d, %.2f, 'INIT'); 
   };
 
-  my $query = sprintf($insertqueryFormat, $userid, 0.0, $userid, 0.0);
+  my $query = sprintf($insertqueryFormat, 0.0, $userid, $userid, 0.0);
   my $result = $conn->exec($query);
   if ($result->resultStatus != PGRES_COMMAND_OK) {
     my $mesg = "In bob_db_init_balance: error inserting record.\n" . 
@@ -338,7 +339,7 @@ bob_db_update_balance
 
   &bob_db_check_conn;
   my $updatequeryFormat = q{
-    update balances
+    update users
     set balance = balance + %.2f
     where userid = %d;
 
@@ -456,8 +457,8 @@ bob_db_get_pwd
 
   &bob_db_check_conn;
   my $query = qq{
-    select p
-    from pwd
+    select pwd
+    from users
     where userid = $userid;
   };
   my $result = $conn->exec($query);
@@ -477,8 +478,8 @@ bob_db_remove_pwd
 
   &bob_db_check_conn;
   my $removequery = qq{
-    delete
-    from pwd
+    update users
+    set pwd = null
     where userid = $userid;
   };
 
@@ -498,8 +499,8 @@ bob_db_update_pwd
 
   &bob_db_check_conn;
   my $updatequery = qq{
-    update pwd
-    set p = '$c_pwd'
+    update users
+    set pwd = '$c_pwd'
     where userid = $userid;
   };
 
@@ -519,9 +520,8 @@ bob_db_insert_pwd
 
   &bob_db_check_conn;
   my $insertquery = qq{
-    insert
-    into pwd(userid, p)
-    values($userid, '$c_pwd'); 
+    update users set pwd = '$c_pwd'
+    where user = $userid;
   };
 
   my $result = $conn->exec($insertquery);
@@ -701,51 +701,6 @@ bob_db_update_profile_settings
       my $mesg = "In bob_db_update_profile_setting: error updating profile.\n" . "userid: $userid, %newsettings";
       &report_fatal($mesg);
     }
-  }
-}
-
-#---------------------------------------------------------------------------
-# books table
-
-sub
-bob_db_insert_book
-{
-  my ($barcode, $isbn, $author, $title) = @_;
-  &bob_db_check_conn;
-  my $insertqueryFormat = q{
-    insert
-    into books(barcode, isbn, author, title)
-    values('%s', '%s', '%s', '%s');
-  };
-  my $query = sprintf($insertqueryFormat, 
-                      $barcode, 
-                      $isbn, 
-                      &esc_apos($author), 
-                      &esc_apos($title));
-  my $result = $conn->exec($query);
-  if ($result->resultStatus != PGRES_COMMAND_OK) {
-    my $mesg = "In bob_db_insert_book: error inserting new book.\n";
-    &report_fatal($mesg);
-  }
-}
-
-
-sub
-bob_db_get_book_from_barcode
-{
-  my ($barcode) = @_;
-  &bob_db_check_conn;
-
-  my $selectqueryFormat = q{
-    select author, title
-    from books
-    where barcode = '%s';
-  };
-  my $result = $conn->exec(sprintf($selectqueryFormat, $barcode));
-  if ($result->ntuples < 1) {
-    return undef;
-  } else {
-    return $result->getvalue(0,0) . "\t" . $result->getvalue(0,1);
   }
 }
 
