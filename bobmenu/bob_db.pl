@@ -457,20 +457,16 @@ bob_db_get_pwd
 
   &bob_db_check_conn;
   my $query = qq{
-    select pwd, disabled
+    select case when disabled then 'closed' else pwd end
     from users
-    where userid = $userid;
+    where userid = $userid and (disabled or pwd is not null);
   };
   my $result = $conn->exec($query);
 
   if ($result->ntuples != 1) {
     return undef;
   } else {
-    if ($result->getvalue(0,1)) {
-      return "closed";
-    } else {
-      return $result->getvalue(0,0);
-    }
+    return $result->getvalue(0,0);
   }
 }
 
