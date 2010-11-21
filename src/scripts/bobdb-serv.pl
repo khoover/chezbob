@@ -48,24 +48,35 @@ sub sendResponse {
     sioWrite('DATA', @_);
 }
 
-# Look up the userid for a given username.  Returns undef if the user does not
-# exist in the database.
+# Look up the userid for a given username or user barcode.  Returns undef if
+# the user does not exist in the database.
 sub get_userid {
     my $username = shift;
 
+    # Lookup first by username.  Usernames are considered case-insensitively.
     my $sth = $dbh->prepare(
         "SELECT userid FROM users
-         WHERE lower(username) = lower(?) OR userbarcode = ?");
-    $sth->execute($username, $username);
+         WHERE lower(username) = lower(?)");
+    $sth->execute($username);
     my @row = $sth->fetchrow_array;
     if (@row) {
         return $row[0] + 0;
     }
 
+    # If no match, next try looking up by user barcode.
+    $sth = $dbh->prepare("SELECT userid FROM userbarcodes WHERE barcode = ?");
+    $sth->execute($username);
+    my @row = $sth->fetchrow_array;
+    if (@row) {
+        return $row[0] + 0;
+    }
+
+    # Apparently, no matches in the database...
     return undef;
 }
 
 # Look up a user preference setting in the database.
+# TODO: Update for schema change
 sub get_userpref {
     my ($userid, $pref) = @_;
 
@@ -138,7 +149,7 @@ sub make_purchase {
     $sth->execute($userid, -$price, $desc, $privacy ? undef : $barcode);
 
     $sth = $dbh->prepare(
-        "UPDATE balances SET balance = balance - ? WHERE userid = ?");
+        "UPDATE users SET balance = balance - ? WHERE userid = ?");
     $sth->execute($price, $userid);
 
     if ($barcode) {
@@ -176,20 +187,16 @@ while (1) {
                 sioWrite('LOG', "query-user: $username does not exist");
             } else {
                 my $sth = $dbh->prepare(
-                    "SELECT u.username, b.balance, u.userid
-                     FROM users u, balances b
-                     WHERE u.userid = b.userid AND u.userid = ?");
+                    "SELECT username, balance, pwd, disabled
+                     FROM users
+                     WHERE userid = ?");
                 $sth->execute($userid);
                 my @row = $sth->fetchrow_array;
                 if (@row) {
                     $username = $row[0];
                     my $balance = to_cents($row[1]);
-                    my $password = "";
-                    $sth = $dbh->prepare("SELECT p FROM pwd WHERE userid = ?");
-                    $sth->execute($userid);
-                    @row = $sth->fetchrow_array;
-                    $password = $row[0] if @row;
-                    if ($password =~ /^closed/) {
+                    my $password = $row[2] or "";
+                    if ($row[3]) {
                         sendResponse('BOBDB-FAIL', $tag, "NO-USER");
                         sioWrite('LOG',
                                  "query-user: $username account is closed");
@@ -214,8 +221,7 @@ while (1) {
     if ($cmd eq 'BOBDB-QUERYWALLOFSHAME') {
         eval {
             my $sth = $dbh->prepare("SELECT username, balance FROM users
-                NATURAL JOIN balances WHERE balance <= -5.00 ORDER BY
-                balance");
+                WHERE balance <= -5.00 ORDER BY balance");
             $sth->execute();
 
             my $array_ref = $sth->fetchall_arrayref();
@@ -340,7 +346,7 @@ while (1) {
                      VALUES (now(), ?, ?, 'ADD', 'soda')");
                 $sth->execute($userid, $amt/100.0);
                 $sth = $dbh->prepare(
-                    "UPDATE BALANCES SET balance = balance + ?
+                    "UPDATE users SET balance = balance + ?
                      WHERE userid = ?");
                 $sth->execute($amt/100.0, $userid);
                 sendResponse('BOBDB-SUCCESS', $tag);
