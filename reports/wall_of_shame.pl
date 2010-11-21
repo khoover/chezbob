@@ -29,7 +29,7 @@ my $dbh = DBI->connect("dbi:Pg:dbname=bob;host=soda.ucsd.edu", "bob")
     or die "Unable to connect to ChezBob database";
 
 my $sth = $dbh->prepare(
-    "SELECT username, balance FROM users NATURAL JOIN balances
+    "SELECT username, balance FROM users
      WHERE balance <= -5.00 ORDER BY balance"
 );
 $sth->execute();
@@ -69,7 +69,7 @@ while ((@row = $sth->fetchrow_array)) {
 format_table_rows @rows;
 
 $sth = $dbh->prepare(
-    "SELECT -sum(balance) FROM balances WHERE balance < 0"
+    "SELECT -sum(balance) FROM users WHERE balance < 0"
 );
 $sth->execute();
 @row = $sth->fetchrow_array;
