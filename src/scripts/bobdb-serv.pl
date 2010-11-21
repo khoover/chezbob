@@ -189,7 +189,7 @@ while (1) {
                 my $sth = $dbh->prepare(
                     "SELECT username, balance, pwd, disabled
                      FROM users
-                     WHERE u.userid = ?");
+                     WHERE userid = ?");
                 $sth->execute($userid);
                 my @row = $sth->fetchrow_array;
                 if (@row) {
