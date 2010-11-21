@@ -457,7 +457,7 @@ bob_db_get_pwd
 
   &bob_db_check_conn;
   my $query = qq{
-    select pwd
+    select pwd, disabled
     from users
     where userid = $userid;
   };
@@ -466,7 +466,11 @@ bob_db_get_pwd
   if ($result->ntuples != 1) {
     return undef;
   } else {
-    return $result->getvalue(0,0);
+    if ($result->getvalue(0,1)) {
+      return "closed";
+    } else {
+      return $result->getvalue(0,0);
+    }
   }
 }
 
