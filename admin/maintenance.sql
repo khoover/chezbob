@@ -4,27 +4,6 @@
  --
  -- Written by Michael Vrable <mvrable@cs.ucsd.edu>
 
- -- Update the last_activity table in the database, which tracks the most
- -- recent time that we have seen any transaction for each user.  This isn't
- -- currently updated automatically, and so must periodically be updated by
- -- scanning the transaction log.
-begin;
-set transaction isolation level serializable;
-create temp table last_activity_tmp (userid int, time timestamp with time zone)
-    on commit drop;
-insert into last_activity_tmp select userid, time from last_activity;
-insert into last_activity_tmp
-    select userid, max(xacttime) as time from transactions
-        where xacttype <> 'INIT'
-          and xacttype <> 'DONATION'
-          and xacttype <> 'WRITEOFF'
-        group by userid;
-
-delete from last_activity;
-insert into last_activity
-    select userid, max(time) as time from last_activity_tmp group by userid;
-commit;
-
  -- Search for any accounts where the reported balance does not match the
  -- transaction log.  This query should return zero rows.
 select userid, balance, xactbalance from balances_check
