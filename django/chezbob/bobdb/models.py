@@ -209,7 +209,7 @@ class Inventory(models.Model):
         transaction.commit_unless_managed()
 
     @classmethod
-    def get_inventory_summary(cls, date, include_latest=False):
+    def get_inventory_summary(cls, date, include_latest=True):
         """Returns a summary of estimated inventory of all items on the given date.\
 
         The returned value is a dictionary mapping a bulkid to a second
@@ -220,47 +220,52 @@ class Inventory(models.Model):
             activity: has this product inventory changed
             sales: number of this item sold since last inventory
             purchases: number of this item received since last inventory
+
+        If include_latest is True and an inventory was taken on the specified
+        date, that value is returned.  If include_latest is False, then the
+        returned value reports the previous inventory and sales/purchases since
+        then.  Generally include_latest=True gives better results, but
+        include_latest=False is useful for the inventory-taking page itself to
+        report what would be expected in the absence of the new inventory data.
         """
-        
+
         inventory_date = date
 
-        #DOCME [nbales] Michael, can you please explain include_latest?
         if not include_latest:
             inventory_date -= datetime.timedelta(days=1)
 
-        #Get most recent handcount and sales and purchase numbers since last handcount
-        sql = """SELECT b.bulkid, i.date, i.units,
-                    -- correlated subquery, sum total sale unit sales
-                    (SELECT sum(a.quantity)
-                     FROM aggregate_purchases a
-                     WHERE a.bulkid = b.bulkid
-                         AND (a.date > i.date OR i.date IS NULL)
-                         AND (a.date <= %s)) as sales,
-                    -- correlated subquery, sum total sale unit purchases
-                    (SELECT sum(oi.quantity * oi.number)
-                     FROM orders o JOIN order_items oi ON o.id = oi.order_id
-                     WHERE oi.bulk_type_id = b.bulkid
-                         AND (o.date > i.date OR i.date IS NULL)
-                         AND (o.date <= %s)) as purchases
-                 FROM bulk_items b
-                    LEFT JOIN
-                        -- get the most recent hand count or null for each item
-                        (SELECT i.bulkid, i.date, i.units
-                         FROM inventory2 d
-                              JOIN inventory2 i ON d.bulkid = i.bulkid
-                         WHERE d.date <= %s
-                         GROUP BY i.bulkid, i.date, i.units
-                         HAVING i.date = max(d.date))
-                      AS i ON i.bulkid = b.bulkid;;"""
+        sql = """
+select * from
+    (select bulkid, date, units
+        from (select bulkid, max(date) as date from inventory2
+                    where date <= %s group by bulkid) s1a natural join inventory2) s1
+natural full outer join
+    (select a.bulkid, sum(quantity) as sales
+        from aggregate_purchases a left join (select bulkid, max(date) as date from inventory2
+                    where date <= %s group by bulkid) s2a using (bulkid)
+        where coalesce(a.date > s2a.date, true)
+          and a.date <= %s
+        group by bulkid) s2
+natural full outer join
+    (select oi.bulk_type_id as bulkid,
+            sum(oi.quantity * oi.number) as purchases
+        from orders o
+            join order_items oi on o.id = oi.order_id
+            left join (select bulkid, max(date) as date from inventory2                                 where date <= %s group by bulkid) s3a on s3a.bulkid = oi.bulk_type_id
+        where coalesce(o.date > s3a.date, true)
+          and o.date <= %s
+        group by oi.bulk_type_id) s3
+where bulkid is not null
+"""
+        args = (inventory_date, inventory_date, date, inventory_date, date)
 
         from django.db import connection
         cursor = connection.cursor()
 
-        cursor.execute(sql,[date,date,date])
+        cursor.execute(sql, args)
 
         summary = {}
         for (bulkid, date, units, sales, purchases) in cursor.fetchall():
-
             if sales is None: sales = 0
             if purchases is None: purchases = 0
             if units is None: units = 0
