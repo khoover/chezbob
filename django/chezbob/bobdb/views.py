@@ -393,7 +393,7 @@ def take_inventory(request, date):
             pass
 
     counts = Inventory.get_inventory(date)
-    inventory_summary = Inventory.get_inventory_summary(date-datetime.timedelta(days=1))
+    inventory_summary = Inventory.get_inventory_summary(date-datetime.timedelta(days=1), include_latest=False)
 
     locations = []
     location = { 'name': 'Unknown',
@@ -486,7 +486,7 @@ def estimate_order(request):
 
     #database
     products = BulkItem.objects.order_by('description')
-    inventory = Inventory.get_inventory_summary(datetime.date.today(), True)
+    inventory = Inventory.get_inventory_summary(datetime.date.today())
     sales = Inventory.get_sales(date_from, date_to)
 
     #aggregators

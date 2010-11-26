@@ -87,8 +87,7 @@ def generate_inventory_report(start, end=None):
     for (bulkid, price) in cursor.fetchall():
         if bulkid not in price_estimates: price_estimates[bulkid] = float(price)
 
-    for (k, v) in Inventory.get_inventory_summary(start - ONE_DAY,
-                                                  True).items():
+    for (k, v) in Inventory.get_inventory_summary(start - ONE_DAY).items():
         check_item(inventory, k, price_estimates)
         inventory[k]['count'] = v['estimate']
         if v['estimate'] > 0:
