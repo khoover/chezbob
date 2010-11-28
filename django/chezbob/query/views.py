@@ -37,6 +37,14 @@ add_query("accounts_inactive", "Inactive Accounts",
              order by last_purchase_time, lower(username)""",
           [('interval', '2 year')])
 
+add_query("accounts_duplicate", "Duplicate Accounts for an E-Mail Address",
+          """select username, email, balance, last_purchase_time::date
+             from users natural join
+                  (select email, count(*) as count from users
+                   where not disabled group by email having count(*) > 1) s1
+             where not disabled order by email, username""",
+          [])
+
 add_query("inactive", "Newly-Inactive Products",
           """select * from bulk_items
              where
