@@ -424,8 +424,14 @@ def take_inventory(request, date):
     counter = 1
 
     for item in BulkItem.objects.order_by('description'):
-        #summary should contain an entry for every bulkid
-        inventory = inventory_summary[item.bulkid]  
+        # An item might not show up in the inventory summary, if for example it
+        # had never been purchased at that point in time.  In that case,
+        # synthesize a record for it.
+        if item.bulkid in inventory_summary:
+            inventory = inventory_summary[item.bulkid]
+        else:
+            inventory = {'activity': False, 'date': None, 'old_count': 0,
+                         'purchases': 0, 'sales': 0}
 
         if item.bulkid in counts:
             (count, cases, loose, case_size) = counts[item.bulkid]
