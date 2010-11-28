@@ -35,12 +35,22 @@ elif action == 'cash_check':
     chezbob.util.sync_db.check_cash()
 elif action == 'inventory_sync':
     import chezbob.util.inventory
-    chezbob.util.inventory.summary(datetime.date(2009, 7, 1),
-                                   commit_start=datetime.date(2010, 1, 1))
+
+    # Commit changes to cached inventory values for the current financial year
+    # (July-June).  Do not close out the last year until approximately one
+    # month after it ends, to allow time for final inventory accounting to be
+    # entered.
+    year = datetime.date.today().year - 1
+    if (datetime.date.today() - datetime.date(year, 7, 1)).days > 400:
+        year = year + 1
+    commit = datetime.date(year, 7, 1)
+    start = datetime.date(year, 1, 1)
+    chezbob.util.inventory.summary(start, commit_start=commit)
+
 elif action == 'loss_report':
     import chezbob.util.inventory
-    chezbob.util.inventory.category_report(datetime.date(2010, 7, 29),
-                                           datetime.date(2010, 10, 26))
+    chezbob.util.inventory.category_report(datetime.date(2010, 9, 21),
+                                           datetime.date(2010, 11, 23))
 elif action == 'reprice':
     import chezbob.util.pricing
     chezbob.util.pricing.reprice(dry_run=True)
