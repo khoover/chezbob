@@ -23,7 +23,8 @@ Leave a message for Bob!  We need your feedback about:
 What is your message?};
 
   if (&confirm_win("Message to Bob",
-                   "\nDo you want to send your message anonymously?", 55)) {
+                   "\nDo you want to send your message anonymously?",
+                   55, 7, 1)) {
     $username = "anonymous";
     undef $userid;
     undef $email;

@@ -28,10 +28,17 @@ $TMP = "$BOBPATH";		# locn of temp files for dialog output
 sub
 confirm_win
 {
-  my ($win_title,$win_text,$w,$h) = @_;
+  my ($win_title,$win_text,$w,$h,$def_no) = @_;
   $h ||= 7;
   $w ||= 40;
+  if ($def_no) {
+    $def_no = "--defaultno";
+  } else {
+    $def_no = "";
+  }
 
+  # Adding $def_no to the options below doesn't work for some reason, not sure
+  # why...  --Michael Vrable
   my($retval, $res) = &get_dialog_result("--title \"$win_title\" --clear " .
          "--cr-wrap --yesno \"" .  $win_text .  "\" $h $w");
   return ($retval == 0);
