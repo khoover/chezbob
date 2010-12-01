@@ -70,18 +70,13 @@ def generate_inventory_report(start, end=None):
     # Look for an item price from near the start of the period, for computing
     # the initial inventory cost valuations.
     cursor.execute(
-        """SELECT s1.bulk_type_id AS bulkid,
-                  (cost_taxable * (1 + tax_rate) + cost_nontaxable)
-                      / quantity AS price
+        """SELECT bulkid, cost / quantity AS price
            FROM
-             (SELECT *
-              FROM orders JOIN order_items
-                ON (orders.id = order_items.order_id)) s1
-           JOIN
-             (SELECT i.bulk_type_id, max(o.date) AS date
-              FROM orders o JOIN order_items i ON (o.id = i.order_id)
-              WHERE o.date < %s GROUP BY i.bulk_type_id) s2
-           USING (bulk_type_id, date)""",
+             (SELECT bulkid, max(date) AS date
+              FROM order_purchases_summary
+              WHERE date < %s GROUP BY bulkid) s1
+           NATURAL JOIN order_purchases_summary
+           ORDER BY price""",
         (start,))
     price_estimates = {}
     for (bulkid, price) in cursor.fetchall():
@@ -105,12 +100,10 @@ def generate_inventory_report(start, end=None):
                       ORDER BY date""", (start, end))
     sales = cursor.fetchall()
 
-    cursor.execute("""SELECT o.date, i.bulk_type_id, i.quantity * i.number,
-                             i.number * (cost_taxable * (1 + o.tax_rate)
-                                          + cost_nontaxable)
-                      FROM orders o JOIN order_items i ON (o.id = i.order_id)
-                      WHERE o.date >= %s AND o.date <= %s
-                      ORDER BY o.date""", (start, end))
+    cursor.execute("""SELECT date, bulkid, quantity, cost
+                      FROM order_purchases_summary
+                      WHERE date >= %s AND date <= %s
+                      ORDER BY date""", (start, end))
     purchases = cursor.fetchall()
 
     cursor.execute("""SELECT date, bulkid, units
