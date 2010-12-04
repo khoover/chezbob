@@ -17,6 +17,8 @@ urlpatterns = patterns('',
     (r'^admin/inventory/order/$', 'chezbob.bobdb.views.estimate_order'),
     (r'^admin/inventory/order/print/$', 'chezbob.bobdb.views.display_order'),
 
+    (r'^admin/ajax/bulk_items_json/$', 'chezbob.ajax.views.bulk_items_json'),
+
     # Accounting
     (r'^admin/$', 'chezbob.finance.views.redirect'),
     (r'^admin/finance[/]$', 'chezbob.finance.views.redirect'),
@@ -27,6 +29,10 @@ urlpatterns = patterns('',
     (r'^admin/finance/transaction/new/$', 'chezbob.finance.views.edit_transaction'),
     (r'^admin/finance/dump/$', 'chezbob.finance.views.gnuplot_dump'),
     (r'^admin/finance/xactdump/$', 'chezbob.finance.views.transaction_dump'),
+
+    # User Management
+    #(r'^admin/users/$', 'chezbob.users.views.user_list'),
+    #(r'^admin/user/(\w+)/$', 'chezbob.users.views.user_details'),
 
     # Cashout
     (r'^admin/cashout/', include('chezbob.cashout.urls')),
@@ -40,5 +46,8 @@ urlpatterns = patterns('',
     (r'^admin/django/(.*)', admin.site.root),
 
     (r'^admin/accounts/login/$', 'django.contrib.auth.views.login'),
+
+    # Making the debug server behave
+    #(r'^js/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/Users/nbales/Desktop/chezbob.hg/www/js/'}),
 )
 
