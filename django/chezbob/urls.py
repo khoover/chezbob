@@ -31,8 +31,8 @@ urlpatterns = patterns('',
     (r'^admin/finance/xactdump/$', 'chezbob.finance.views.transaction_dump'),
 
     # User Management
-    #(r'^admin/users/$', 'chezbob.users.views.user_list'),
-    #(r'^admin/user/(\w+)/$', 'chezbob.users.views.user_details'),
+    (r'^admin/users/$', 'chezbob.users.views.user_list'),
+    (r'^admin/user/(\w+)/$', 'chezbob.users.views.user_details'),
 
     # Cashout
     (r'^admin/cashout/', include('chezbob.cashout.urls')),

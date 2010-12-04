@@ -1,0 +1,29 @@
+{% extends "chezbob/base.html" %}
+{% block title %}User List{% endblock %}
+
+{% block content %}
+<table cellspacing="0">
+
+<thead>
+<tr>
+    <th><a href="?o=0">Username</a></th>
+    <th><a href="?o=1">Nickname</a></th>
+    <th><a href="?o=2">Balance</a></th>
+    <th><a href="?o=3">Empty</a></th>
+    <th><a href="?o=4">Empty</a></th>
+</tr>
+</thead>
+
+<tbody>
+{% for user in users %}
+<tr class="{% cycle row1,row2 %}">
+    <td><a href="{{user.id}}/">{{ user.username }}</a></td>
+    <td>{{ user.nickname|default_if_none:"-" }}</td>
+    <td>{{ user.balance|stringformat:".2f" }}</td>
+    <td>{{ "" }}</td>
+    <td>{{ "" }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}
