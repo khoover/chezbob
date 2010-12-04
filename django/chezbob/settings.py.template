@@ -7,6 +7,9 @@
 #     by a pre-existing site, or for a new installation create a random ~50
 #     character string.)
 #   - Edit any paths as necessary based on install location.
+      e.g. TEMPLATE_DIRS
+# When running on a testing server (manage.py runserver 8888)
+#   - Comment out SESSION_COOKIE_SECURE
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
