@@ -11,12 +11,12 @@ class BulkItemAdmin(admin.ModelAdmin):
                                 'updated', 'source', 'reserve', 'active',
                                 'floor_location')}),
         ("Pricing", {'fields': (('price', 'taxable'),
-                                ('crv', 'crv_taxable'))}),
+                                ('crv_per_unit', 'crv_taxable'))}),
     ]
     ordering = ['description']
     list_filter = ['updated', 'active', 'source', 'floor_location']
     list_display = ['description', 'product_id', 'quantity', 'price',
-                    'taxable', 'crv', 'crv_taxable', 'updated', 'active',
+                    'taxable', 'crv_per_unit', 'crv_taxable', 'updated', 'active',
                     'source', 'floor_location']
     inlines = [ProductInline]
 admin.site.register(BulkItem, BulkItemAdmin)

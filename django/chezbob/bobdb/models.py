@@ -1,6 +1,6 @@
 import datetime
 from decimal import Decimal
-from django.db import models
+from django.db import models, connection, transaction
 
 # Current tax rate.  This is only used to compute current item prices.  For any
 # historical analysis, the per-order tax rate stored with each order is used
@@ -36,10 +36,12 @@ class BulkItem(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=12, decimal_places=2)
     taxable = models.BooleanField()
-    crv = models.DecimalField(max_digits=12, decimal_places=2)
+    crv_per_unit = models.DecimalField(max_digits=12, decimal_places=2,
+                                       verbose_name="CRV per-unit")
     crv_taxable = models.BooleanField()
     quantity = models.IntegerField()
-    updated = models.DateField()
+    updated = models.DateField() #For Django 1.2+, add auto_now=True to 
+                                 #automatically update field when record updated
     source = models.ForeignKey(ProductSource, db_column='source')
     reserve = models.IntegerField()
     active = models.BooleanField(default=True)
@@ -54,14 +56,14 @@ class BulkItem(models.Model):
         """Portion of total price which is taxed."""
         amt = Decimal("0.00")
         if self.taxable: amt += self.price
-        if self.crv_taxable: amt += self.crv
+        if self.crv_taxable: amt += self.quantity * self.crv_per_unit
         return amt
 
     def cost_nontaxable(self):
         """Portion of total price which is not taxed."""
         amt = Decimal("0.00")
         if not self.taxable: amt += self.price
-        if not self.crv_taxable: amt += self.crv
+        if not self.crv_taxable: amt += self.quantity * self.crv_per_unit
         return amt
 
     def total_price(self):
@@ -71,7 +73,6 @@ class BulkItem(models.Model):
 
     def unit_price(self):
         """Total price (including all taxes) for each individual item."""
-
         return (self.total_price() / self.quantity).quantize(Decimal("0.0001"))
 
 class Product(models.Model):
@@ -93,7 +94,6 @@ class Product(models.Model):
     def sales_stats(self):
         """Return a list with historical sales per day."""
 
-        from django.db import connection
         cursor = connection.cursor()
         cursor.execute("""SELECT date, sum(quantity) FROM aggregate_purchases
                           WHERE barcode = %s GROUP BY date ORDER BY date""",
@@ -158,7 +158,6 @@ class Inventory(models.Model):
 
     @classmethod
     def all_inventories(cls):
-        from django.db import connection
         cursor = connection.cursor()
         cursor.execute("SELECT DISTINCT date FROM inventory ORDER BY date")
         return [r[0] for r in cursor.fetchall()]
@@ -174,7 +173,6 @@ class Inventory(models.Model):
         a case (at the time the inventory was taken).
         """
 
-        from django.db import connection
         cursor = connection.cursor()
         cursor.execute("""SELECT bulkid, units, cases, loose_units, case_size
                           FROM inventory
@@ -194,7 +192,6 @@ class Inventory(models.Model):
         None, then any existing inventory count for the given day is deleted.
         """
 
-        from django.db import connection, transaction
         cursor = connection.cursor()
 
         cursor.execute("""DELETE FROM inventory
@@ -234,32 +231,77 @@ class Inventory(models.Model):
         if not include_latest:
             inventory_date -= datetime.timedelta(days=1)
 
+##
+## Use this version of the query once postgre 8.4+ is installed
+##
+
+#        sql = """
+#with start_dates as
+#   (select bulkid, max(date) as date from inventory
+#       where date <= %s group by bulkid)
+#select * from
+#   (select bulkid, date, units
+#       from start_dates natural join inventory) s1
+#natural full outer join
+#   (select a.bulkid, sum(quantity) as sales
+#       from aggregate_purchases a left join start_dates using (bulkid)
+#       where coalesce(a.date > start_dates.date, true)
+#         and a.date <= %s
+#       group by bulkid) s2
+#natural full outer join
+#   (select oi.bulk_type_id as bulkid,
+#           sum(oi.quantity * oi.number) as purchases
+#       from orders o
+#           join order_items oi on o.id = oi.order_id
+#           left join start_dates on start_dates.bulkid = oi.bulk_type_id
+#       where coalesce(o.date > start_dates.date, true)
+#         and o.date <= %s
+#       group by oi.bulk_type_id) s3
+#where bulkid is not null
+#order by bulkid;"""
+#
+#        args = (inventory_date, date, date)
+
+##
+## This version compatable with postgre <8.4
+##
         sql = """
-select * from
-    (select bulkid, date, units
-        from (select bulkid, max(date) as date from inventory
-                    where date <= %s group by bulkid) s1a natural join inventory) s1
-natural full outer join
+select * 
+from (select bulkid, date, units
+      from (select bulkid, max(date) as date 
+            from inventory
+            where date <= %s 
+            group by bulkid) s1a 
+      natural join inventory) s1
+natural full outer join 
     (select a.bulkid, sum(quantity) as sales
-        from aggregate_purchases a left join (select bulkid, max(date) as date from inventory
-                    where date <= %s group by bulkid) s2a using (bulkid)
-        where coalesce(a.date > s2a.date, true)
-          and a.date <= %s
-        group by bulkid) s2
+     from aggregate_purchases a 
+     left join 
+         (select bulkid, max(date) as date 
+          from inventory
+          where date <= %s 
+          group by bulkid) s2a using (bulkid)
+     where coalesce(a.date > s2a.date, true) and a.date <= %s
+     group by bulkid) s2
 natural full outer join
-    (select oi.bulk_type_id as bulkid,
-            sum(oi.quantity * oi.number) as purchases
-        from orders o
-            join order_items oi on o.id = oi.order_id
-            left join (select bulkid, max(date) as date from inventory                                 where date <= %s group by bulkid) s3a on s3a.bulkid = oi.bulk_type_id
-        where coalesce(o.date > s3a.date, true)
-          and o.date <= %s
-        group by oi.bulk_type_id) s3
+    (select oi.bulk_type_id as bulkid, sum(oi.quantity * oi.number) as purchases
+     from orders o
+     join order_items oi on o.id = oi.order_id
+     left join 
+         (select bulkid, max(date) as date 
+          from inventory
+          where date <= %s 
+          group by bulkid) s3a on s3a.bulkid = oi.bulk_type_id
+     where coalesce(o.date > s3a.date, true) and o.date <= %s
+     group by oi.bulk_type_id) s3
 where bulkid is not null
 """
         args = (inventory_date, inventory_date, date, inventory_date, date)
 
-        from django.db import connection
+##
+## End postgre <8.4 code
+##
+
         cursor = connection.cursor()
 
         cursor.execute(sql, args)
@@ -284,7 +326,6 @@ where bulkid is not null
     def get_sales(cls, date_from, date_to):
         """Returns total sales of each bulk item in the given date range."""
 
-        from django.db import connection
         cursor = connection.cursor()
 
         cursor.execute("""SELECT bulkid, sum(aggregate_purchases.quantity)
