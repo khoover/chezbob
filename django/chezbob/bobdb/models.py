@@ -160,7 +160,7 @@ class Inventory(models.Model):
     def all_inventories(cls):
         from django.db import connection
         cursor = connection.cursor()
-        cursor.execute("SELECT DISTINCT date FROM inventory2 ORDER BY date")
+        cursor.execute("SELECT DISTINCT date FROM inventory ORDER BY date")
         return [r[0] for r in cursor.fetchall()]
 
     @classmethod
@@ -177,7 +177,7 @@ class Inventory(models.Model):
         from django.db import connection
         cursor = connection.cursor()
         cursor.execute("""SELECT bulkid, units, cases, loose_units, case_size
-                          FROM inventory2
+                          FROM inventory
                           WHERE date = %s""", [date])
 
         inventory = {}
@@ -197,12 +197,12 @@ class Inventory(models.Model):
         from django.db import connection, transaction
         cursor = connection.cursor()
 
-        cursor.execute("""DELETE FROM inventory2
+        cursor.execute("""DELETE FROM inventory
                           WHERE date = %s AND bulkid = %s""",
                        (date, bulkid))
 
         if count is not None:
-            cursor.execute("""INSERT INTO inventory2(date, bulkid, units, cases, loose_units, case_size)
+            cursor.execute("""INSERT INTO inventory(date, bulkid, units, cases, loose_units, case_size)
                               VALUES (%s, %s, %s, %s, %s, %s)""",
                            (date, bulkid, count, cases, loose, case_size))
 
@@ -237,11 +237,11 @@ class Inventory(models.Model):
         sql = """
 select * from
     (select bulkid, date, units
-        from (select bulkid, max(date) as date from inventory2
-                    where date <= %s group by bulkid) s1a natural join inventory2) s1
+        from (select bulkid, max(date) as date from inventory
+                    where date <= %s group by bulkid) s1a natural join inventory) s1
 natural full outer join
     (select a.bulkid, sum(quantity) as sales
-        from aggregate_purchases a left join (select bulkid, max(date) as date from inventory2
+        from aggregate_purchases a left join (select bulkid, max(date) as date from inventory
                     where date <= %s group by bulkid) s2a using (bulkid)
         where coalesce(a.date > s2a.date, true)
           and a.date <= %s
@@ -251,7 +251,7 @@ natural full outer join
             sum(oi.quantity * oi.number) as purchases
         from orders o
             join order_items oi on o.id = oi.order_id
-            left join (select bulkid, max(date) as date from inventory2                                 where date <= %s group by bulkid) s3a on s3a.bulkid = oi.bulk_type_id
+            left join (select bulkid, max(date) as date from inventory                                 where date <= %s group by bulkid) s3a on s3a.bulkid = oi.bulk_type_id
         where coalesce(o.date > s3a.date, true)
           and o.date <= %s
         group by oi.bulk_type_id) s3

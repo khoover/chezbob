@@ -107,7 +107,7 @@ def generate_inventory_report(start, end=None):
     purchases = cursor.fetchall()
 
     cursor.execute("""SELECT date, bulkid, units
-                      FROM inventory2
+                      FROM inventory
                       WHERE date >= %s AND date <= %s
                       ORDER BY date""", (start, end))
     inventories = cursor.fetchall()

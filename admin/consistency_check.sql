@@ -35,5 +35,5 @@ select * from
     (select date, bulkid, units as units_listed,
                   round(coalesce(cases, 0) * case_size
                          + coalesce(loose_units, 0)) as units_expected
-        from inventory2 where cases is not null or loose_units is not null) s
+        from inventory where cases is not null or loose_units is not null) s
 where units_listed <> units_expected;
