@@ -1,9 +1,12 @@
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models.query import QuerySet
 from django.core import serializers 
-import json
+import simplejson as json
 
-from bobdb import BulkItem
+from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+from chezbob.bobdb.models import BulkItem
 
 # FROM http://djangosnippets.org/snippets/1639/
 class JsonResponse(HttpResponse):
