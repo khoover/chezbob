@@ -1,5 +1,7 @@
 \.o$
 \.pyc$
+.DS_Store$
+\~$
 ^barcodes/barcodes\.html$
 ^barcodes/[^/]*\.png$
 ^bobmenu/dialog-0\.9a/config\.(cache|h|log|status)$
