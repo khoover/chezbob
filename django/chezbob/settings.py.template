@@ -89,6 +89,10 @@ INSTALLED_APPS = (
     'chezbob.bobdb',
     'chezbob.finance',
     'chezbob.cashout',
+    'chezbob.users',
+    'chezbob.ajax',
+    'chezbob.orders',
+    'chezbob.query',
 )
 
 LOGIN_URL="/admin/accounts/login/"
