@@ -1,29 +1,68 @@
 {% extends "chezbob/base.html" %}
+
 {% block title %}User List{% endblock %}
 
 {% block content %}
-<table cellspacing="0">
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/tablesorter/jquery.tablesorter.js"></script>
+<script type="text/javascript" src="/js/tablesorter/jquery.tablesorter.pager.js"></script>
+<link rel="stylesheet" type="text/css" href="/js/tablesorter/style.css" />
+<script tyep="text/javascript">
+// <![CDATA[
+$(document).ready(function() { 
+  $("#userListTable")
+    .tablesorter({ widgets: ['zebra'] })
+    .tablesorterPager({container: $("#pager_top"), positionFixed: false, size: 25});
+} 
+);
+// ]]>
+</script>
 
+<div id="pager_top" class="pager" style="text-align:center;">
+	<form>
+		<a href="#" class="first">&lt;&lt;</a>
+		<a href="#" class="prev">&lt;</a>
+		<input type="text" class="pagedisplay"/>
+		<a href="#" class="next">&gt;</a>
+		<a href="#" class="last">&gt;&gt;</a>
+		Page size: <select class="pagesize">
+			<option value="10">10</option>
+			<option selected="selected"  value="25">25</option>
+			<option value="50">50</option>
+			<option value="100">100</option>
+			<option value="999999">All</option>
+		</select>
+	</form>
+</div>
+
+<div>
+<table cellspacing="0" id="userListTable" class="tablesorter">
 <thead>
 <tr>
-    <th><a href="?o=0">Username</a></th>
-    <th><a href="?o=1">Nickname</a></th>
-    <th><a href="?o=2">Balance</a></th>
-    <th><a href="?o=3">Empty</a></th>
-    <th><a href="?o=4">Empty</a></th>
+  <th>id</th> 
+  <th>username</th> 
+  <th>email</th> 
+  <th>last purchase</th> 
+  <th>last deposit</th> 
+  <th>status</th> 
+  <th>balance</th> 
 </tr>
 </thead>
-
 <tbody>
 {% for user in users %}
-<tr class="{% cycle row1,row2 %}">
-    <td><a href="{{user.id}}/">{{ user.username }}</a></td>
-    <td>{{ user.nickname|default_if_none:"-" }}</td>
-    <td>{{ user.balance|stringformat:".2f" }}</td>
-    <td>{{ "" }}</td>
-    <td>{{ "" }}</td>
+<tr onclick="window.location.href='{% url chezbob.users.views.user_details user.id %}';" >  
+	<td>{{ user.id }}</td> 
+  <td>{{ user.username }}</td> 
+  <td>{{ user.email }}</td> 
+  <td>{{ user.last_purchase_time|date:"Y/m/d, H:i" }}</td> 
+  <td>{{ user.last_deposit_time|date:"Y/m/d, H:i" }}</td> 
+  <td>{{ user.disabled|yesno:"disabled,," }}</td> 
+  <td style="text-align:right;">{{ user.balance }}</td> 
 </tr>
 {% endfor %}
 </tbody>
 </table>
+</div>
+
+
 {% endblock %}

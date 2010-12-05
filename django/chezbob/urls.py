@@ -47,7 +47,7 @@ urlpatterns = patterns('',
 
     (r'^admin/accounts/login/$', 'django.contrib.auth.views.login'),
 
-    # Making the debug server behave
-    #(r'^js/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/Users/nbales/Desktop/chezbob.hg/www/js/'}),
+    # Uncomment when running on local testing server, set correct path for js files
+    # (r'^js/(?P<path>.*)$', 'django.views.static.serve', {'document_root': '/home/nbales/Sources/chezbob.hg/www/js/'}),
 )
 

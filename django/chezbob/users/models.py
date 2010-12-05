@@ -7,13 +7,13 @@ class User(models.Model):
         db_table = 'users'
 
     id =       models.IntegerField(db_column='userid', primary_key=True)
-    username = models.CharField(db_column='username')
-    email =    models.CharField(db_column='email')
-    nickname = models.CharField(db_column='nickname')
+    username = models.CharField(db_column='username', max_length=255)
+    email =    models.CharField(db_column='email', max_length=255)
+    nickname = models.CharField(db_column='nickname', max_length=255)
     balance =  models.DecimalField(db_column='balance', max_digits=12, 
                                    decimal_places=2)
     disabled =           models.BooleanField(db_column='disabled')
-    password =           models.CharField(db_column='pwd')
+    password =           models.CharField(db_column='pwd', max_length=255)
     last_purchase_time = models.DateTimeField(db_column='last_purchase_time')
     last_deposit_time =  models.DateTimeField(db_column='last_deposit_time')
     auto_logout =        models.BooleanField(db_column='pref_auto_logout')
@@ -27,14 +27,27 @@ class User(models.Model):
         return "<User:" + self.username + ">"
 
 
-class UserBarcode(models.Model):
+class Barcode(models.Model):
     class Meta:
         db_table = 'userbarcodes'
 
     user = models.ForeignKey(User, db_column='userid', related_name='barcodes')
-    barcode = models.CharField(db_column='barcode')
+    barcode = models.CharField(db_column='barcode', primary_key=True, max_length=255)
 
     def __unicode__(self):
         return "<Barcode:" + self.barcode + ">";
+        
+class Transaction(models.Model):
+    class Meta:
+        db_table = 'transactions'
+    
+    time    = models.DateTimeField(db_column='xacttime')
+    value   = models.DecimalField(db_column='xactvalue', max_digits=12, 
+                                  decimal_places=2)
+    type    = models.CharField(db_column='xacttype', max_length=255)
+    barcode = models.CharField(db_column='barcode', max_length=255)
+    source  = models.CharField(db_column='source', max_length=255)
+    user    = models.ForeignKey(User, db_column='userid', 
+                                related_name='transactions')
    
 
