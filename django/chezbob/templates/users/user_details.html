@@ -30,9 +30,8 @@ $(document).ready(function() {
 </div>
 
 {% else %}
-
-<h2>Details</h2>
 <div>
+<h2>Details</h2> 
 <form>
 <table>
   <tr><th>Profile</th><th></th></tr>
@@ -63,6 +62,25 @@ $(document).ready(function() {
 </form>
 </div>
 <div>
+<h2>Tools</h2>
+<form>
+if open then
+	if positive balance
+	* Donate Balance
+	else
+	* Write off Blance
+	endif
+* Close Account
+else 
+* Reopen Account
+endif
+* Make Purchase...
+* Transfer To/From...
+* Reimburse...
+* Add Funds...
+</form>
+</div>
+<div>
 <h2>Transactions</h2>
 <div id="pager_top" class="pager" style="text-align:center;">
 	<form>
@@ -88,7 +106,7 @@ $(document).ready(function() {
   <th>value</th> 
   <th>type</th> 
   <th>barcode</th> 
-  <th>souce</th>
+  <th>source</th>
   <th>tools</th>
 </tr>
 </thead>

@@ -1,6 +1,7 @@
 import datetime
 from decimal import Decimal
 from django.db import models
+from chezbob.bobdb import Product
 
 class User(models.Model):
     class Meta:
@@ -24,7 +25,7 @@ class User(models.Model):
                                db_column='pref_skip_purchase_confirm')
 
     def __unicode__(self):
-        return "<User:" + self.username + ">"
+        return "{User:" + self.username + "}"
 
 
 class Barcode(models.Model):
@@ -35,7 +36,7 @@ class Barcode(models.Model):
     barcode = models.CharField(db_column='barcode', primary_key=True, max_length=255)
 
     def __unicode__(self):
-        return "<Barcode:" + self.barcode + ">";
+        return "{Barcode:" + self.barcode + "}";
         
 class Transaction(models.Model):
     class Meta:
@@ -45,9 +46,13 @@ class Transaction(models.Model):
     value   = models.DecimalField(db_column='xactvalue', max_digits=12, 
                                   decimal_places=2)
     type    = models.CharField(db_column='xacttype', max_length=255)
-    barcode = models.CharField(db_column='barcode', max_length=255)
     source  = models.CharField(db_column='source', max_length=255)
+    barcode = models.ForeignKey(Product, db_column='barcode', max_length=255, 
+                                related_name='sales')
     user    = models.ForeignKey(User, db_column='userid', 
-                                related_name='transactions')
+                                related_name='purchases')
+
+    def __unicode__(self):
+        return "{Transaction: $" + self.value + "@" + self.time + "}";
    
 
