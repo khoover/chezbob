@@ -22,11 +22,22 @@ table.tablesorter thead tr .header {
 table.tablesorter tbody td {
 	color: #3D3D3D;
 	padding: 4px;
-	background-color: #FFF;
 	vertical-align: top;
 }
-table.tablesorter tbody tr.odd td {
+table.tablesorter tbody tr {
+	background-color: #FFFFFF;
+}
+table.tablesorter tbody tr.odd {
+	background-color:#FFFFFF;
+}
+table.tablesorter tbody tr.even {
 	background-color:#F0F0F6;
+}
+table.tablesorter tbody tr.odd:hover {
+	background-color:#CDCDCD;
+}
+table.tablesorter tbody tr.even:hover {
+	background-color:#CDCDCD;
 }
 table.tablesorter thead tr .headerSortUp {
 	background-image: url(/js/tablesorter/asc.gif);
@@ -37,3 +48,4 @@ table.tablesorter thead tr .headerSortDown {
 table.tablesorter thead tr .headerSortDown, table.tablesorter thead tr .headerSortUp {
 background-color: #8dbdd8;
 }
+
