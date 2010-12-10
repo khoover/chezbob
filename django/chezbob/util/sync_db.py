@@ -170,7 +170,7 @@ def sync_day(date):
     for (amt, desc) in cursor.fetchall():
         bob_liabilities += amt
         category = desc.split()[0]
-        if category in ("INIT", "TRANSFER"):
+        if category in ("INIT", "TRANSFER", "REIMBURSE"):
             continue
         elif category == "ADD":
             sum_deposit += amt
