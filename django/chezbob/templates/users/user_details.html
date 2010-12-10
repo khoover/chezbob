@@ -18,38 +18,94 @@ $(document).ready(function() {
 // ]]>
 </script>
 
+<style>
+  fieldset 
+    { margin-bottom:10px;
+      padding:5px; }
+  fieldset input[type="submit"] 
+    { text-align:center; }
+  .tool_button
+    { width:200px; }
+</style>
+
+<div>
 <a href="{% url chezbob.users.views.user_list %}">&lt;&lt; Back to all Users</a>
+</div>
 {% if errors %}
+
 <div class="errorbox">
-<h2>Errors on page</h2>
-<ul>
-{% for error in errors %}
-  <li>{{ error }}</li>
-{% endfor %}
-</ul>
+  <h2>Errors on page</h2>
+  <ul>
+    {% for error in errors %}
+      <li>{{ error }}</li>
+    {% endfor %}
+  </ul>
 </div>
 
 {% else %}
+
 <div>
 <h2>Details</h2> 
 <form>
 <table>
   <tr><th>Profile</th><th></th></tr>
-  <tr><td>Userid:</td><td>{{ user_detailed.id}}</td></tr>
-  <tr><td>Username:</td><td>{{ user_detailed.username}}</td></tr>
-  <tr><td>Nickname:</td><td>{{ user_detailed.nickname}}</td></tr>
-  <tr><td>Email:</td><td>{{ user_detailed.email}}</td></tr>
-  <tr><td>Password:</td><td>{{ user_detailed.pwd}}</td></tr>
-  <tr><td>Disabled</td><td>{{ user_detailed.disabled}}</td></tr>
+  <tr><td>Userid:</td><td>{{ user_detailed.id }}</td></tr>
+  <tr>
+    <td>Username:</td>
+    <td><input type="text" value="{{ user_detailed.username }}"/></td>
+  </tr>
+  <tr>
+    <td>Nickname:</td>
+    <td><input type="text" value="{{ user_detailed.nickname }}"/></td>
+  </tr>
+  <tr>
+    <td>Email:</td>
+    <td><input type="text" value="{{ user_detailed.email }}"/></td>
+  </tr>
+  <tr>
+    <td>Password:</td>
+    <td><input type="text" value="{{ user_detailed.pwd }}"/></td>
+  </tr>
+  <tr>
+    <td>Disabled</td>
+    <td><input type="checkbox" {{ user_detailed.disabled|yesno:"checked,," }}/></td>
+  </tr>
   <tr><th>Statistics</th><th></th></tr>
-  <tr><td>Last Purcahse Time:</td><td>{{ user_detailed.last_purchase_time|date:"Y/m/d, H:i"}}</td></tr>
-  <tr><td>Last Deposite Time:</td><td>{{ user_detailed.last_deposit_time|date:"Y/m/d, H:i"}}</td></tr>
-  <tr><td>Account Balance:</td><td>{{ user_detailed.balance}}</td></tr>
+  <tr>
+    <td>Last Purcahse Time:</td>
+    <td>{{ user_detailed.last_purchase_time|date:"Y/m/d, H:i" }}</td>
+  </tr>
+  <tr>
+    <td>Last Deposite Time:</td>
+    <td>{{ user_detailed.last_deposit_time|date:"Y/m/d, H:i" }}</td>
+  </tr>
+  <tr>
+    <td>Account Balance:</td>
+    <td>${{ user_detailed.balance }}</td>
+  </tr>
+  {% if user_detailed.balance > 0 %}
+    <tr><td></td><td><input value="Donate Balance" type="submit" disabled="disabled"/></td></tr>
+  {% endif %}
+  {% if user_detailed.balance < 0 %}
+    <tr><td></td><td><input value="Forgive Debt" type="submit" disabled="disabled"/></td></tr>
+  {% endif %}
   <tr><th>Preferences</th><th></th></tr>
-  <tr><td>Auto Logout:</td><td>{{ user_detailed.auto_logout }}</td></tr>
-  <tr><td>Speech:</td><td>{{ user_detailed.speech }}</td></tr>
-  <tr><td>Forget Which Product:</td><td>{{ user_detailed.forget_which_product }}</td></tr>
-  <tr><td>Skip Purchase Confirmation:</td><td>{{ user_detailed.skip_purchase_confirmation }}</td></tr>
+  <tr>
+    <td>Auto Logout:</td>
+    <td><input type="checkbox" {{ user_detailed.auto_logout|yesno:"checked,," }}/></td>
+  </tr>
+  <tr>
+    <td>Speech:</td>
+    <td><input type="checkbox" {{ user_detailed.speech|yesno:"checked,," }}/></td>
+  </tr>
+  <tr>
+    <td>Forget Which Product:</td>
+    <td><input type="checkbox" {{ user_detailed.forget_which_product|yesno:"checked,," }}/></td>
+  </tr>
+  <tr>
+    <td>Skip Purchase Confirmation:</td>
+    <td><input type="checkbox" {{ user_detailed.skip_purchase_confirmation|yesno:"checked,," }}/></td>
+  </tr>
   <tr><th>Barcodes</th><th></th></tr>
 {% if barcodes %}
 {% for barcode in barcodes %}
@@ -59,44 +115,45 @@ $(document).ready(function() {
   <tr><td colspan="2" style="emptytable">No Barcodes Registered</td></tr>
 {% endif %}
 </table>
+<input type="submit" value="Save Details" disabled="disabled"  class="tool_button"/>
 </form>
 </div>
 <div>
-<h2>Tools</h2>
-<form>
-if open then
-	if positive balance
-	* Donate Balance
-	else
-	* Write off Blance
-	endif
-* Close Account
-else 
-* Reopen Account
-endif
-* Make Purchase...
-* Transfer To/From...
-* Reimburse...
-* Add Funds...
-</form>
+  <h2>Tools</h2>
+  {% for form in tools %}
+  <form action="" method="post">
+    {% if form.show %}
+    <fieldset>
+    {% else %}
+    <input type="submit" value="{{ form.title }}" name="{{ form.type }}_open" class="tool_button"/> 
+    <fieldset style="display:none;">
+    {% endif %}
+      <legend>{{ form.title }}</legend>
+      {{ form.fields.as_p }}
+      <input type="submit" value="Save" name="{{ form.type }}_save" />
+      <input type="submit" value="Cancel" name="{{ form.type }}_cancel" />
+    </fieldset>
+  </form>
+  {% endfor %}
 </div>
+
 <div>
 <h2>Transactions</h2>
 <div id="pager_top" class="pager" style="text-align:center;">
-	<form>
-		<a href="#" class="first">&lt;&lt;</a>
-		<a href="#" class="prev">&lt;</a>
-		<input type="text" class="pagedisplay"/>
-		<a href="#" class="next">&gt;</a>
-		<a href="#" class="last">&gt;&gt;</a>
-		Page size: <select class="pagesize">
-			<option selected="selected"  value="10">10</option>
-			<option value="25">25</option>
-			<option value="50">50</option>
-			<option value="100">100</option>
-			<option value="999999">All</option>
-		</select>
-	</form>
+  <form>
+    <a href="#" class="first">&lt;&lt;</a>
+    <a href="#" class="prev">&lt;</a>
+    <input type="text" class="pagedisplay"/>
+    <a href="#" class="next">&gt;</a>
+    <a href="#" class="last">&gt;&gt;</a>
+    Page size: <select class="pagesize">
+      <option selected="selected"  value="10">10</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+      <option value="999999">All</option>
+    </select>
+  </form>
 </div>
 
 <table cellspacing="0" id="transactionsTable" class="tablesorter">
@@ -113,7 +170,7 @@ endif
 <tbody>
 {% for transaction in transactions %}
 <tr onclick="window.location.href='{% url chezbob.users.views.user_details user.id %}';" >  
-	<td>{{ transaction.time|date:"Y/m/d, H:i:s" }}</td> 
+  <td>{{ transaction.time|date:"Y/m/d, H:i:s" }}</td> 
   <td style="text-align:right">${{ transaction.value }}</td> 
   <td>{{ transaction.type }}</td> 
   <td>{{ transaction.barcode }}</td> 

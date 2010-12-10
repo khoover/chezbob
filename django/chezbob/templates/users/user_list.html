@@ -19,20 +19,20 @@ $(document).ready(function() {
 </script>
 
 <div id="pager_top" class="pager" style="text-align:center;">
-	<form>
-		<a href="#" class="first">&lt;&lt;</a>
-		<a href="#" class="prev">&lt;</a>
-		<input type="text" class="pagedisplay"/>
-		<a href="#" class="next">&gt;</a>
-		<a href="#" class="last">&gt;&gt;</a>
-		Page size: <select class="pagesize">
-			<option value="10">10</option>
-			<option selected="selected"  value="25">25</option>
-			<option value="50">50</option>
-			<option value="100">100</option>
-			<option value="999999">All</option>
-		</select>
-	</form>
+  <form>
+    <a href="#" class="first">&lt;&lt;</a>
+    <a href="#" class="prev">&lt;</a>
+    <input type="text" class="pagedisplay"/>
+    <a href="#" class="next">&gt;</a>
+    <a href="#" class="last">&gt;&gt;</a>
+    Page size: <select class="pagesize">
+     <option value="10">10</option>
+     <option selected="selected"  value="25">25</option>
+     <option value="50">50</option>
+     <option value="100">100</option>
+     <option value="999999">All</option>
+    </select>
+  </form>
 </div>
 
 <div>
@@ -52,7 +52,7 @@ $(document).ready(function() {
 {% for user in users %}
 <tr onclick="window.location
              .href='{% url chezbob.users.views.user_details user.username %}';">  
-	<td>{{ user.id }}</td> 
+  <td>{{ user.id }}</td> 
   <td>
     <a href="{% url chezbob.users.views.user_details user.username %}">
       {{ user.username }}

@@ -33,6 +33,7 @@ urlpatterns = patterns('',
     # User Management
     (r'^admin/users/$', 'chezbob.users.views.user_list'),
     (r'^admin/user/(\w+)/$', 'chezbob.users.views.user_details'),
+    (r'^admin/username/(\w+)/$', 'chezbob.users.views.user_details_byname'),
 
     # Cashout
     (r'^admin/cashout/', include('chezbob.cashout.urls')),

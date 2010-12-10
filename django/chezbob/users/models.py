@@ -1,13 +1,13 @@
 import datetime
 from decimal import Decimal
 from django.db import models
-from chezbob.bobdb import Product
+from chezbob.bobdb.models import Product
 
 class User(models.Model):
     class Meta:
         db_table = 'users'
 
-    id =       models.IntegerField(db_column='userid', primary_key=True)
+    id =       models.AutoField(db_column='userid', primary_key=True)
     username = models.CharField(db_column='username', max_length=255)
     email =    models.CharField(db_column='email', max_length=255)
     nickname = models.CharField(db_column='nickname', max_length=255)
@@ -25,7 +25,7 @@ class User(models.Model):
                                db_column='pref_skip_purchase_confirm')
 
     def __unicode__(self):
-        return "{User:" + self.username + "}"
+        return self.username
 
 
 class Barcode(models.Model):
@@ -33,15 +33,17 @@ class Barcode(models.Model):
         db_table = 'userbarcodes'
 
     user = models.ForeignKey(User, db_column='userid', related_name='barcodes')
-    barcode = models.CharField(db_column='barcode', primary_key=True, max_length=255)
+    barcode = models.CharField(db_column='barcode', primary_key=True, 
+                               max_length=255)
 
     def __unicode__(self):
-        return "{Barcode:" + self.barcode + "}";
+        return self.barcode;
         
 class Transaction(models.Model):
     class Meta:
         db_table = 'transactions'
     
+    id      = models.AutoField(db_column='id', primary_key=True)
     time    = models.DateTimeField(db_column='xacttime')
     value   = models.DecimalField(db_column='xactvalue', max_digits=12, 
                                   decimal_places=2)
@@ -53,6 +55,6 @@ class Transaction(models.Model):
                                 related_name='purchases')
 
     def __unicode__(self):
-        return "{Transaction: $" + self.value + "@" + self.time + "}";
+        return self.type;
    
 
