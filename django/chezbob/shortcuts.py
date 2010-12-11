@@ -14,11 +14,10 @@ class JsonResponse(HttpResponse):
     super(JsonResponse, self).__init__(content, *args, content_type='application/json', **kwargs)
 
 class BobMessages(dict, DictMixin):
-  _errors   = []
-  _warnings = []
-  _notes    = []
-  
   def __init__(self, *args, **kwds):
+    self._errors = []
+    self._warnings = []
+    self._notes = []
     self['errors']   = self._errors
     self['warnings'] = self._warnings
     self['notes'] =    self._notes
@@ -45,7 +44,7 @@ class BobMessages(dict, DictMixin):
     return self;
 
 def error(m):
-  return render_to_response('chezbob/bob_message.html', m)
+  return render_to_response('chezbob/base.html', m)
 
 def render_json(data):
   return JsonResponse(data=data)
@@ -63,7 +62,7 @@ def render_bob_messages(messages, content_type='text/html'):
     return render_or_error("chezbob/bob_message.html", messages)
 
 def redirect_or_error(to_url, messages):
-  if messages.has_errors:
+  if messages.has_errors():
     return error(messages)
   else:
     return HttpResponseRedirect(to_url)
