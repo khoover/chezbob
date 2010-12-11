@@ -1,12 +1,6 @@
 {% extends "chezbob/base.html" %}
 
-{% block title %}User Details for {{ user_detailed.username }}{% endblock %}
-
-{% block content %}
-<script type="text/javascript" src="/js/jquery.js"></script>
-<script type="text/javascript" src="/js/tablesorter/jquery.tablesorter.js"></script>
-<script type="text/javascript" src="/js/tablesorter/jquery.tablesorter.pager.js"></script>
-<link rel="stylesheet" type="text/css" href="/js/tablesorter/style.css" />
+{% block html_headers %}
 <script tyep="text/javascript">
 // <![CDATA[
 $(document).ready(function() { 
@@ -24,102 +18,62 @@ $(document).ready(function() {
       padding:5px; }
   fieldset input[type="submit"] 
     { text-align:center; }
+  fieldset input[type="text"] 
+    { width:150px; }
   .tool_button
-    { width:200px; }
+    { width:300px; }
+  .pagedisplay
+    { width:70px;
+      text-align: center; }
+  label 
+    { width:150px;
+      display:inline-block;}
 </style>
+{% endblock %}
+
+{% block title %}User Details for {{ user_detailed.username }}{% endblock %}
+
+{% block pretitle %}
+<div>
+  <a href="{% url chezbob.users.views.user_list %}">&lt;&lt; Back to all Users</a>
+</div>
+{% endblock%}
+
+{% block content %}
 
 <div>
-<a href="{% url chezbob.users.views.user_list %}">&lt;&lt; Back to all Users</a>
-</div>
-{% if errors %}
+  <h2>Details</h2> 
+  <form>
+    <fieldset>
+      <legend>Profile</legend>
+      {{ profile_form.as_p }}
+      <input type="submit" value="Save Details" disabled="disabled"  class="tool_button"/>
+    </fieldset>
+    <fieldset>
+      <legend>Preferences</legend>
+      {{ preferences_form.as_p }}
+      <input type="submit" value="Save Preferences" disabled="disabled"  class="tool_button"/>
+    </fieldset>
+    <fieldset>
+      <legend>Statistics</legend>
+      {{ stats_form.as_p }}
+    </fieldset>
 
-<div class="errorbox">
-  <h2>Errors on page</h2>
-  <ul>
-    {% for error in errors %}
-      <li>{{ error }}</li>
+    <h2>Barcodes</h2>
+    {% if barcodes %}
+    <ul>
+    {% for barcode in barcodes %}
+      <li>{{ barcode.barcode }}</li>
     {% endfor %}
-  </ul>
+    </ul>
+    {% else %}
+      <em>No Barcodes Registered</em>
+    {% endif %}
+  </form>
 </div>
 
-{% else %}
-
 <div>
-<h2>Details</h2> 
-<form>
-<table>
-  <tr><th>Profile</th><th></th></tr>
-  <tr><td>Userid:</td><td>{{ user_detailed.id }}</td></tr>
-  <tr>
-    <td>Username:</td>
-    <td><input type="text" value="{{ user_detailed.username }}"/></td>
-  </tr>
-  <tr>
-    <td>Nickname:</td>
-    <td><input type="text" value="{{ user_detailed.nickname }}"/></td>
-  </tr>
-  <tr>
-    <td>Email:</td>
-    <td><input type="text" value="{{ user_detailed.email }}"/></td>
-  </tr>
-  <tr>
-    <td>Password:</td>
-    <td><input type="text" value="{{ user_detailed.pwd }}"/></td>
-  </tr>
-  <tr>
-    <td>Disabled</td>
-    <td><input type="checkbox" {{ user_detailed.disabled|yesno:"checked,," }}/></td>
-  </tr>
-  <tr><th>Statistics</th><th></th></tr>
-  <tr>
-    <td>Last Purcahse Time:</td>
-    <td>{{ user_detailed.last_purchase_time|date:"Y/m/d, H:i" }}</td>
-  </tr>
-  <tr>
-    <td>Last Deposite Time:</td>
-    <td>{{ user_detailed.last_deposit_time|date:"Y/m/d, H:i" }}</td>
-  </tr>
-  <tr>
-    <td>Account Balance:</td>
-    <td>${{ user_detailed.balance }}</td>
-  </tr>
-  {% if user_detailed.balance > 0 %}
-    <tr><td></td><td><input value="Donate Balance" type="submit" disabled="disabled"/></td></tr>
-  {% endif %}
-  {% if user_detailed.balance < 0 %}
-    <tr><td></td><td><input value="Forgive Debt" type="submit" disabled="disabled"/></td></tr>
-  {% endif %}
-  <tr><th>Preferences</th><th></th></tr>
-  <tr>
-    <td>Auto Logout:</td>
-    <td><input type="checkbox" {{ user_detailed.auto_logout|yesno:"checked,," }}/></td>
-  </tr>
-  <tr>
-    <td>Speech:</td>
-    <td><input type="checkbox" {{ user_detailed.speech|yesno:"checked,," }}/></td>
-  </tr>
-  <tr>
-    <td>Forget Which Product:</td>
-    <td><input type="checkbox" {{ user_detailed.forget_which_product|yesno:"checked,," }}/></td>
-  </tr>
-  <tr>
-    <td>Skip Purchase Confirmation:</td>
-    <td><input type="checkbox" {{ user_detailed.skip_purchase_confirmation|yesno:"checked,," }}/></td>
-  </tr>
-  <tr><th>Barcodes</th><th></th></tr>
-{% if barcodes %}
-{% for barcode in barcodes %}
-  <tr><td></td><td>{{ barcode.barcode }}</td></tr>
-{% endfor %}
-{% else %}
-  <tr><td colspan="2" style="emptytable">No Barcodes Registered</td></tr>
-{% endif %}
-</table>
-<input type="submit" value="Save Details" disabled="disabled"  class="tool_button"/>
-</form>
-</div>
-<div>
-  <h2>Tools</h2>
+  <h2>New Transactions</h2>
   {% for form in tools %}
   <form action="" method="post">
     {% if form.show %}
@@ -143,7 +97,7 @@ $(document).ready(function() {
   <form>
     <a href="#" class="first">&lt;&lt;</a>
     <a href="#" class="prev">&lt;</a>
-    <input type="text" class="pagedisplay"/>
+    <input type="text" class="pagedisplay" disabled="disabled"/>
     <a href="#" class="next">&gt;</a>
     <a href="#" class="last">&gt;&gt;</a>
     Page size: <select class="pagesize">
@@ -156,32 +110,43 @@ $(document).ready(function() {
   </form>
 </div>
 
-<table cellspacing="0" id="transactionsTable" class="tablesorter">
-<thead>
-<tr>
-  <th>time</th> 
-  <th>value</th> 
-  <th>type</th> 
-  <th>barcode</th> 
-  <th>source</th>
-  <th>tools</th>
-</tr>
-</thead>
-<tbody>
-{% for transaction in transactions %}
-<tr onclick="window.location.href='{% url chezbob.users.views.user_details user.id %}';" >  
-  <td>{{ transaction.time|date:"Y/m/d, H:i:s" }}</td> 
-  <td style="text-align:right">${{ transaction.value }}</td> 
-  <td>{{ transaction.type }}</td> 
-  <td>{{ transaction.barcode }}</td> 
-  <td>{{ transaction.source }}</td> 
-  <td><form><input type="submit" value="Delete" disabled="1" style="padding:1px 5px 1px 5px"/></form></td> 
-</tr>
-{% endfor %}
-</tbody>
-</table>
+<form method='post'>
+  <table cellspacing="0" id="transactionsTable" class="tablesorter">
+    <thead>
+      <tr>
+        <th>time</th> 
+        <th>value</th> 
+        <th>type</th> 
+        <th>barcode</th> 
+        <th>source</th>
+        <th>tools</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for transaction in transactions %}
+      <tr onclick="window.location.href='{% url chezbob.users.views.user_details user.id %}';" >  
+        <td>{{ transaction.time|date:"Y/m/d, H:i:s" }}</td> 
+        <td style="text-align:right">${{ transaction.value }}</td> 
+        <td>{{ transaction.type }}</td> 
+        <td>{{ transaction.barcode }}</td> 
+        <td>{{ transaction.source }}</td> 
+        <td>
+            <!--<input type="submit" 
+                       value="Edit" 
+                       name="edit_tran_{{ transaction.id }}" 
+                       style="padding:1px 5px 1px 5px"/>-->
+            {% if not transaction.type = "INIT" %}
+            <input type="submit" 
+                   value="Delete" 
+                   name="delete_tran_{{ transaction.id }}" 
+                   style="padding:1px 5px 1px 5px"/>
+            {% endif %}
+        </td> 
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</form>
 </div>
-
-{% endif %}
 
 {% endblock %}

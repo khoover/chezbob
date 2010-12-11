@@ -6,32 +6,54 @@ from chezbob.bobdb.models import Product
 from chezbob.finance.models import Account
 from chezbob.users.models import User
 
+class ProfileForm(forms.Form):
+  id       = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}))
+  username = forms.CharField()
+  nickname = forms.CharField()
+  email    = forms.EmailField()
+  password = forms.CharField(required=False)
+  disabled = forms.BooleanField(required=False)
+  
+class PreferencesForm(forms.Form):
+  auto_logout          = forms.BooleanField(required=False)
+  speech               = forms.BooleanField(required=False)
+  forget_which_product = forms.BooleanField(required=False)
+  skip_confirmation    = forms.BooleanField(required=False)
+
+class StatisticsForm(forms.Form):
+  last_purcahse_time = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}))
+  last_deposit_time  = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}))
+  balance            = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}))
 
 class UserTransactionForm(forms.Form):
+  id         = forms.CharField(initial="new", widget=forms.HiddenInput)
   time       = forms.DateTimeField(initial=datetime.now)
 
 class BuyForm(UserTransactionForm):
   barcode    = forms.ModelChoiceField(
                    queryset=Product.objects.all().order_by("name"))
-  value      = forms.DecimalField()
+  price      = forms.DecimalField(required=False, 
+                                  help_text="Leave empty for current price.")
 
   def set_transaction_fields(self, transaction, messages):
     if self.is_valid():
       transaction.time  = self.cleaned_data['time']
       transaction.barcode = self.cleaned_data['barcode']
-      if self.cleaned_data['value'] is not None:
-        transaction.value = self.cleaned_data['value']
+      if self.cleaned_data['price'] is not None:
+        transaction.value = -1 * self.cleaned_data['price']
       else:
-        transaction.value = transaction.barcode.price
+        transaction.value = -1 * transaction.barcode.price
       transaction.source = "django"
       transaction.type = "BUY " + transaction.barcode.name.upper()
     else:
-      messages.errors.extend(self.errors)
-    
-  def set_form_fields(transaction):
-    return BuyForm({ 'time': transaction.xacttime,
-                     'value': transaction.value,
-                     'barcode': transaction.barcode, })
+      messages.errors(self.errors)
+  
+  @classmethod  
+  def set_form_fields(cls, transaction, messages):
+    return BuyForm({ 'id': transaction.id,
+                     'time': transaction.time,
+                     'price': -1 * transaction.value,
+                     'barcode': transaction.barcode.barcode, })
     
   
 class TransferForm(UserTransactionForm):
@@ -42,76 +64,137 @@ class TransferForm(UserTransactionForm):
                    queryset=User.objects.all().order_by("username"), 
                    required=True)
 
-  def new_transaction(self, user, messages):
-    message.add_error("new_transaction not implemented for trans-type transfer")
-
-  def update_transaction(self, user, transaction, messages):
-    message.add_error("update_transaction now implemented for trans-type transfer")
+  def set_transaction_fields(self, transaction, messages):
+    if self.is_valid():
+      transaction.time  = self.cleaned_data['time']
+      transaction.source = "django"
+      other = self.cleaned_data['other_user']
+      direction = self.cleaned_data['direction']
+      if direction == 'to':
+        transaction.value = -1 * self.cleaned_data['ammount']
+        transaction.type = "TRANSFER TO " + other.username.upper()
+      elif direction == 'from':
+        transaction.value = self.cleaned_data['ammount']
+        transaction.type = "TRANSFER FROM " + other.username.upper()
+      else:
+        messages.error("Unknown transfer direction %s." % [direction])
+    else:
+      messages.errors(self.errors)
     
-  def populate(transaction):
-    raise Exception() #not implemented
+  @classmethod  
+  def set_form_fields(cls, transaction, messages):
+    messages.warning("""The 'second half' of the transfer transaction is not
+                        yet edited by this form""")
+    return BuyForm({ 'id': transaction.id,
+                     'time': transaction.time,
+                     'value': transaction.value,
+                     'barcode': transaction.barcode, })
                   
 class AddUncountedForm(UserTransactionForm):
   ammount    = forms.DecimalField()
   repository = forms.ChoiceField(choices=[('cashbox','cashbox'),('soda','soda'),],
                                  required=True)
 
-  def new_transaction(self, user, messages):
-    message.add_error("new_transaction not implemented for trans-type add uncounted")
+  def set_transaction_fields(self, transaction, messages):
+    if self.is_valid():
+      transaction.time  = self.cleaned_data['time']
+      transaction.value = self.cleaned_data['ammount']
+      transaction.source = self.cleaned_data['repository']
+      transaction.type = "ADD"
+    else:
+      messages.errors(self.errors)
+  
+  @classmethod  
+  def set_form_fields(cls, transaction, messages):
+    return AddUncountedForm({ 'id': transaction.id,
+                              'time': transaction.time,
+                              'ammount': transaction.value,
+                              'repository': transaction.source, })
 
-  def update_transaction(self, user, transaction, messages):
-    message.add_error("update_transaction now implemented for trans-type add uncounted")
-
-  def populate(transaction):
-    raise Exception() #not implemented
-
-class ReimburseForm(forms.Form):
+class ReimburseForm(UserTransactionForm):
   ammount    = forms.DecimalField()
   account    = forms.ModelChoiceField(queryset=Account.objects.all().order_by("name"),
                                       required=True)
 
-  def new_transaction(self, user, messages):
-    message.add_error("new_transaction not implemented for trans-type payment")
+  def set_transaction_fields(self, transaction, messages):
+    if self.is_valid():
+      transaction.time  = self.cleaned_data['time']
+      transaction.value = self.cleaned_data['ammount']
+      transaction.source = "django"
+      transaction.type = "REIMBURSE FROM " + self.cleaned_data['account'].id
+    else:
+      messages.errors(self.errors)
+   
+  @classmethod   
+  def set_form_fields(cls, transaction, messages):
+    str_id = transaction.type.split()[2]
+    try:    
+      account_id = int(str_id)
+    except: 
+      return messages.error("Reimbursement account id %s invalid" % [str_id]);
+    else:   
+      account = Account.objects.get(account_id)
+      if account == None:
+        messages.warning("Reimbursement account id %s unrecognized" % [str_id])
+      return ReimburseForm({ 'id': transaction.id,
+                             'time': transaction.time,
+                             'ammount': transaction.value,
+                             'account': account, })
 
-  def update_transaction(self, user, transaction, messages):
-    message.add_error("update_transaction now implemented for trans-type payment")
-
-  def populate(transaction):
-    raise Exception() #not implemented
-
-class RefundForm(forms.Form):
+class RefundForm(UserTransactionForm):
   ammount    = forms.DecimalField()
+  repository = forms.ChoiceField(choices=[('cashbox','cashbox'),('soda','soda'),],
+                                 required=True)
 
-  def new_transaction(self, user, messages):
-    message.add_error("new_transaction not implemented for trans-type reimbursement")
-
-  def update_transaction(self, user, transaction, messages):
-    message.add_error("update_transaction now implemented for trans-type reimbursement")
-
-  def populate(transaction):
-    raise Exception() #not implemented
-
-class DonateForm(forms.Form):
-  ammount    = forms.DecimalField()
-
-  def new_transaction(self, user, messages):
-    message.add_error("new_transaction not implemented for trans-type donation")
-
-  def update_transaction(self, user, transaction, messages):
-    message.add_error("update_transaction now implemented for trans-type donation")
-
-  def populate(transaction):
-    raise Exception() #not implemented
+  def set_transaction_fields(self, transaction, messages):
+    if self.is_valid():
+      transaction.time  = self.cleaned_data['time']
+      transaction.value = -1 * self.cleaned_data['ammount']
+      transaction.source = self.cleaned_data['repository']
+      transaction.type = "REFUND"
+    else:
+      messages.errors(self.errors)
     
-class WriteOffForm(forms.Form):
+  @classmethod   
+  def set_form_fields(cls, transaction, messages):
+    return RefundForm({ 'id': transaction.id,
+                        'time': transaction.time,
+                        'ammount': -1 * transaction.value,
+                        'repository': transaction.source,  })
+
+class DonateForm(UserTransactionForm):
   ammount    = forms.DecimalField()
 
-  def new_transaction(self, user, messages):
-    message.add_error("new_transaction not implemented for trans-type donation")
+  def set_transaction_fields(self, transaction, messages):
+    if self.is_valid():
+      transaction.time  = self.cleaned_data['time']
+      transaction.value = -1 * self.cleaned_data['ammount']
+      transaction.source = "django"
+      transaction.type = "DONATION"
+    else:
+      messages.errors(self.errors)
+    
+  @classmethod   
+  def set_form_fields(cls, transaction, messages):
+    return DonateForm({ 'id': transaction.id,
+                        'time': transaction.time,
+                        'ammount': transaction.value, })
+    
+class WriteOffForm(UserTransactionForm):
+  ammount    = forms.DecimalField()
 
-  def update_transaction(self, user, transaction, messages):
-    message.add_error("update_transaction now implemented for trans-type donation")
-
-  def populate(transaction):
-    raise Exception() #not implemented
+  def set_transaction_fields(self, transaction, messages):
+    if self.is_valid():
+      transaction.time  = self.cleaned_data['time']
+      transaction.value = self.cleaned_data['ammount']
+      transaction.source = "django"
+      transaction.type = "WRITEOFF"
+    else:
+      messages.errors(self.errors)
+    
+  @classmethod   
+  def set_form_fields(cls, transaction, messages):
+    return WriteOffForm({ 'id': transaction.id,
+                          'time': transaction.time,
+                          'ammount': transaction.value, })
 
