@@ -2,6 +2,10 @@
 <html>
 <head>
     <title>{% block title %}{% endblock %}</title>
+    <script type="text/javascript" src="/js/jquery.js"></script>
+    <script type="text/javascript" src="/js/tablesorter/jquery.tablesorter.js"></script>
+    <script type="text/javascript" src="/js/tablesorter/jquery.tablesorter.pager.js"></script>
+    <link rel="stylesheet" type="text/css" href="/js/tablesorter/style.css" />
     <link rel="stylesheet" type="text/css" href="{% block stylesheet %}{% load adminmedia %}{% admin_media_prefix %}css/base.css{% endblock %}" />
     <link rel="stylesheet" type="text/css" href="{% block forms_stylesheet %}{% load adminmedia %}{% admin_media_prefix %}css/forms.css{% endblock %}" />
     <link rel="stylesheet" type="text/css" href="{% block changelists_stylesheet %}{% load adminmedia %}{% admin_media_prefix %}css/changelists.css{% endblock %}" />
@@ -34,6 +38,24 @@
     <div id="content" class="{% block coltype %}flex{% endblock %}">
         {% block pretitle %}{% endblock %}
         {% block content_title %}{% if title %}<h1>{{ title|escape }}</h1>{% endif %}{% endblock %}
+        <div id="errorbox" {% if errors|length == 0 %}style='display:none'{% endif %}>
+          <h3>Errors</h3>
+          {% for msg in errors %}
+          <p>{{ msg }}</p>
+          {% endfor %}
+        </div>
+        <div id="warningbox" {% if warnings|length == 0 %}style='display:none'{% endif %}>
+          <h3>Warnings</h3>
+          {% for msg in warnings %}
+          <p>{{ msg }}</p>
+          {% endfor %}
+        </div>
+        <div id="messagebox" {% if notes|length == 0 %}style='display:none'{% endif %}>
+          <h3>Messages</h3>
+          {% for msg in notes %}
+          <p>{{ msg }}</p>
+          {% endfor %}
+        </div>
         {% block content %}{{ content }}{% endblock %}
         {% block sidebar %}{% endblock %}
         {% block bottom_pagination %} {% endblock %}
