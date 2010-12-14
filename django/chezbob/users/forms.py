@@ -9,7 +9,7 @@ from chezbob.users.models import User
 class ProfileForm(forms.Form):
   id       = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}))
   username = forms.CharField()
-  nickname = forms.CharField()
+  nickname = forms.CharField(required=False)
   email    = forms.EmailField()
   password = forms.CharField(required=False)
   disabled = forms.BooleanField(required=False)
