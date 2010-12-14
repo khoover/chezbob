@@ -1,13 +1,17 @@
+
+from UserDict import DictMixin
+
+from django.db.models.query import QuerySet
+from django.core.serializers import json, serialize
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils import simplejson as json
-from UserDict import DictMixin
 
 class JsonResponse(HttpResponse):
   def __init__(self, data, *args, **kwargs):
     content = None;
     if isinstance(data, QuerySet):
-      content = serialize('json', object)
+      content = serialize('json', data)
     else:
       content = json.dumps(data, indent=2, cls=json.DjangoJSONEdncoder,
                            ensure_ascii=False)
