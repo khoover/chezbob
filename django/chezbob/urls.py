@@ -7,8 +7,11 @@ urlpatterns = patterns('',
     # Chez Bob products, pricing, and inventory
     (r'^admin/products/$', 'chezbob.bobdb.views.products'),
     (r'^admin/products/([0-9]+)/$', 'chezbob.bobdb.views.product_detail'),
-    (r'^admin/orders/([0-9]+)/$', 'chezbob.bobdb.views.view_order'),
-    (r'^admin/orders/([0-9]+)/update/$', 'chezbob.bobdb.views.update_order'),
+    #(r'^admin/orders/([0-9]+)/$', 'chezbob.bobdb.views.view_order'),
+    #(r'^admin/orders/([0-9]+)/update/$', 'chezbob.bobdb.views.update_order'),
+    (r'^admin/orders/$', 'chezbob.orders.views.order_list'),
+    (r'^admin/orders/(\d+)/$', 'chezbob.orders.views.order_summary'),
+    (r'^admin/orders/new/$', 'chezbob.orders.views.new_order'),
     (r'^admin/sales/$', 'chezbob.bobdb.views.inventory'),
     (r'^admin/sales/([0-9]+)/$', 'chezbob.bobdb.views.inventory_detail'),
 

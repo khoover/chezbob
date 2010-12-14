@@ -1,0 +1,232 @@
+{% extends "chezbob/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<script type="text/javascript">
+var bulk_items = [];
+
+$(document).ready(function() {
+  selObj = document.getElementById("bulkSelect")
+  for (i = 0; i < selObj.options.length; i++) {
+    bulk_items.push(selObj.options[i])
+  }
+});
+
+function match_item(description_part) {
+  matched = []
+  for (item in bulk_items) {
+    if (bulk_items[item].fields.description.indexOf(description_part) >= 0) {
+      matched.push(bulk_items[item])
+    }
+  }
+  return matched;
+}
+
+function add_text_input(parent, name, size, value) {
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.size = size;
+    inp.name = name;
+    inp.value = value;
+    parent.appendChild(inp);
+}
+
+function add_hidden_input(parent, name, value) {
+    var inp = document.createElement('input');
+    inp.type = 'hidden'
+    inp.name = name;
+    inp.value = value;
+    parent.appendChild(inp);
+}
+
+function checkTab(typeInput, event) {
+  matches = match_item(typeInput.value);
+  if (matches.length == 1) {
+    item = matches[0];
+    
+    var new_count = document.getElementById('new_count');
+    var tbl = document.getElementById('ordered_items_table');
+    var rows = tbl.rows.length;
+    var row = tbl.insertRow(rows);
+
+    var cellZero = row.insertCell(0);
+    add_hidden_input(cellZero, 'id.' + rows, '');
+    add_text_input(cellZero, 'number.' + rows, 4, new_count.value);
+
+    var cellOne = row.insertCell(1);
+    add_hidden_input(cellOne, 'type_code.' + rows, item.pk);
+    var link = document.createElement('a');
+    link.href='/admin/django/bobdb/bulkitem/' + item.pk + '/'; // hard coded URI should be fixed
+    link.innerHTML = item.fields.description
+    cellOne.appendChild(link);
+    cellOne.appendChild(document.createTextNode('('))
+    add_text_input(cellOne, 'quantity.' + rows, 4, item.fields.quantity)
+    cellOne.appendChild(document.createTextNode(')'))
+
+    // compute taxable price and nontaxible price...
+    var taxable = 0
+    var taxfree = 0
+    if (item.fields.taxable) { 
+       taxable += parseFloat(item.fields.price);
+    } else {
+       taxfree += parseFloat(item.fields.price);
+    }
+    if (item.fields.crv_taxable) { 
+        taxable += parseFloat(item.fields.crv);
+    } else {
+        taxfree += parseFloat(item.fields.crv);
+    }
+    var cellTwo = row.insertCell(2);
+    add_text_input(cellTwo, 'nontaxable.' + rows, 6, taxfree);
+    cellTwo.appendChild(document.createTextNode('+'))
+    add_text_input(cellTwo, 'taxable.' + rows, 6, taxable);
+    cellTwo.appendChild(document.createTextNode('T'));
+
+    var cellThree = row.insertCell(3);
+    total_price = (taxable + taxfree) * parseInt(new_count.value);
+    cellThree.appendChild(document.createTextNode(total_price))
+
+    new_count.value = '';
+    typeInput.value = '';
+    new_count.focus();
+
+  } else {
+    //alert("I don't know which you mean?");
+  }
+}
+
+function filterSelect(filterInput, event) {
+  selObj = document.getElementById("bulkSelect")
+  description_part = filterInput.value.toLowerCase()
+  for (i = selObj.options.length - 1; i >= 0 ; i--) {
+    selObj.remove(i)
+  }
+  for (i = 0; i < bulk_items.length; i++) {
+    option = bulk_items[i]
+    if (option.text.toLowerCase().indexOf(description_part) >= 0) {
+      selObj.add(option, null);
+    }
+  }
+  selObj.selectedIndex = 0
+}
+</script>
+<style>
+  label {
+    display:inline-block;
+    width:100px;
+  }
+</style>
+
+<form action="" method="post">
+
+<h2>Details<h2>
+{{ details_form.as_p }}
+<input type="submit" value="Save Details" name="save_details"/>
+
+{% if order %}
+<h2>Ordered Items</h2>
+<table cellspacing="0" id="ordered_items_table">
+
+<thead>
+<tr>
+    <th>Ordered</th>
+    <th>Item</th>
+    <th>Description</th>
+    <th>Quantity</th>
+    <th>Unit Price</th>
+    <th>Tax</th>
+    <th>Ammount</th>
+    <th>TOOLS</th>
+</tr>
+</thead>
+
+<tbody>
+{% for item in items %}
+<tr class="{% cycle row1,row2 %}">
+    <td>
+        <input type="hidden" 
+               name="id.{{ forloop.counter }}" 
+               value="{{ item.id }}" />
+        <input type="hidden" 
+               name="type_code.{{ forloop.counter }}" 
+               value="{{ item.type.bulkid }}" />
+        <input type="text" size="4" 
+               name="number.{{ forloop.counter }}" 
+               value="{{ item.cases_ordered }}" />
+    </td>
+    <td>{{ item.bulk_type.product_id }}</td>
+    <td><span style="{% if item.id %}font-weight: bold{% endif %}">
+      <a href="/admin/django/bobdb/bulkitem/{{ item.type.bulkid }}/">
+        {{ item.bulk_type.description }}</a></span></td>
+    <td>
+        <input type="text" size="4" 
+               name="quantity.{{ forloop.counter }}" 
+               value="{{ item.units_per_case }}" /></td>
+    <td><input type="box" size="6" 
+               name="nontaxable.{{ forloop.counter }}" 
+               value="{{ item.case_cost|stringformat:".2f" }}" /></td>
+    <td><input type="checkbox" 
+               name="taxed.{{ forloop.counter }}" 
+               {{ item.is_cost_taxed|yesno:'checked="checked",,' }} /></td>
+    <td style="text-align:right;">${{ item.ammount }}</td>
+    <td>
+      <input type="submit" value="Save" name="save.{{ forloop.counter }}"/>
+      <input type="submit" value="Delete" name="del.{{ forloop.counter }}"/>
+		  {% if item.price_differs %}
+		    <input type="submit" value="Update Bulk Price" name="ubp.{{ forloop.counter }}"/>
+		  {% endif %}
+		  {% if item.quantity_differs %}
+		    <input type="submit" value="Update Bulk Quantity" name="ubq.{{ forloop.counter }}"/>
+		  {% endif %}
+    </td>
+</tr>
+{% if item.crv_per_unit %}
+<tr class="{% cycle row1,row2 %}">
+  <td></td>
+  <td></td>
+  <td>CRV for {{ item.bulk_type.description }}</td>
+  <td></td>
+  <td><input type="box" size="6" 
+             name="nontaxable.{{ forloop.counter }}" 
+             value="{{ item.crv_per_unit|stringformat:".2f" }}"</td>
+  <td><input type="checkbox" 
+             name="taxed.{{ forloop.counter }}" 
+             {{ item.is_crv_taxed|yesno:'checked="checked",,' }} /></td>
+  <td style="text-align:right;">${{ item.crv_ammount }}</td>
+  <td>
+	  {% if item.crv_differs %}
+	    <input type="submit" value="Update Bulk CRV" name="ubc.{{ forloop.counter }}"/>
+	  {% endif %}
+  </td>
+</tr>
+{% endif %}
+{% endfor %}
+</tbody>
+</table>
+
+
+Filter: <input type="text" size="30" id="new_description" style="width:354px;"
+       onChange="checkTab(this, event)" 
+       onKeyUp="filterSelect(this, event)"/><br/>
+<select size="15" id="bulkSelect" name="new_item" style="width:400px;">		  
+  {% for bi in bulk_items %}
+	  <option value="{{ bi.bulkid }}">{{ bi }}</option>
+	{% endfor %}
+</select><br/>
+Cases: <input type="text" size="4" name="new_count" value="1"/>
+<input type="submit" value="Add" name="add_item"/>
+</form> 
+
+<div>
+Total:
+{{ total_notax|stringformat:".2f" }} (Non-Taxable)
++ {{ total_tax|stringformat:".2f" }} (Taxable)
+= {{ total|stringformat:".2f" }}
+</div>
+
+<div>Actual Total: {{ order.amount|stringformat:".2f" }}</div>
+{% endif %}
+
+</form>
+
+{% endblock %}
