@@ -8,7 +8,7 @@ goods sold, profits, and shrinkage.
 import datetime, time, re, sys
 from decimal import Decimal
 
-from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, ProductSource
+from chezbob.bobdb.models import BulkItem, Inventory
 from django.db import connection
 import django.db.transaction
 cursor = connection.cursor()
