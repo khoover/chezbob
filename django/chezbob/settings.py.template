@@ -90,7 +90,6 @@ INSTALLED_APPS = (
     'chezbob.finance',
     'chezbob.cashout',
     'chezbob.users',
-    'chezbob.ajax',
     'chezbob.orders',
     'chezbob.query',
 )

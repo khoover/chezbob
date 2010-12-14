@@ -15,7 +15,8 @@ class JsonResponse(HttpResponse):
     else:
       content = json.dumps(data, indent=2, cls=json.DjangoJSONEdncoder,
                            ensure_ascii=False)
-    super(JsonResponse, self).__init__(content, *args, content_type='application/json', **kwargs)
+    kwargs['content_type'] = 'application/json'
+    super(JsonResponse, self).__init__(content, *args, **kwargs)
 
 class BobMessages(dict, DictMixin):
   def __init__(self, *args, **kwds):

@@ -38,19 +38,19 @@
     <div id="content" class="{% block coltype %}flex{% endblock %}">
         {% block pretitle %}{% endblock %}
         {% block content_title %}{% if title %}<h1>{{ title|escape }}</h1>{% endif %}{% endblock %}
-        <div id="errorbox" {% if errors|length == 0 or not errors %}style='display:none'{% endif %}>
+        <div id="errorbox" {% if errors|length_is:'0' or not errors %}style='display:none'{% endif %}>
           <h3>Errors</h3>
           {% for msg in errors %}
           <p>{{ msg }}</p>
           {% endfor %}
         </div>
-        <div id="warningbox" {% if warnings|length == 0 or not warnings %}style='display:none'{% endif %}>
+        <div id="warningbox" {% if warnings|length_is:'0' or not warnings %}style='display:none'{% endif %}>
           <h3>Warnings</h3>
           {% for msg in warnings %}
           <p>{{ msg }}</p>
           {% endfor %}
         </div>
-        <div id="messagebox" {% if notes|length == 0 or not notes %}style='display:none'{% endif %}>
+        <div id="messagebox" {% if notes|length_is:'0' or not notes %}style='display:none'{% endif %}>
           <h3>Messages</h3>
           {% for msg in notes %}
           <p>{{ msg }}</p>

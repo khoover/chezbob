@@ -94,7 +94,7 @@ def new_transaction(type, bound, user, messages):
       tran.save()
       user.save()
     messages.note("New transaction generated %s" % unicode(tran))
-  except Exception as e:
+  except Exception, e: # use AS keyword in 2.6+
     transaction.rollback()
     messages.error("Exception while creating new transaction: " + str(e))
   else:
@@ -107,7 +107,7 @@ def edit_transaction(bound, tran, messages):
     if not bound.is_valid:
       messages.errors(bound.error)
       return
-  except Exception as e:
+  except Exception, e: # use AS keyword in 2.6+
     transaction.rollback()
     messages.error("Exception while creating new transaction: " + e.message)
   else:
@@ -145,7 +145,7 @@ def delete_transaction(tran, messages):
       tran.delete()
       user.save()
       messages.note("Transaction %s deleted" % unicode(tran))
-  except Exception as e:
+  except Exception, e: # use AS keyword in 2.6
     transaction.rollback()
     messages.error("Exception while creating new transaction: " + e.message)
   else:

@@ -20,8 +20,6 @@ urlpatterns = patterns('',
     (r'^admin/inventory/order/$', 'chezbob.bobdb.views.estimate_order'),
     (r'^admin/inventory/order/print/$', 'chezbob.bobdb.views.display_order'),
 
-    (r'^admin/ajax/bulk_items_json/$', 'chezbob.ajax.views.bulk_items_json'),
-
     # Accounting
     (r'^admin/$', 'chezbob.finance.views.redirect'),
     (r'^admin/finance[/]$', 'chezbob.finance.views.redirect'),
