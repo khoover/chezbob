@@ -100,49 +100,49 @@ class Product(models.Model):
                        [self.barcode])
         return cursor.fetchall()
 
-class Order(models.Model):
-    class Meta:
-        db_table = 'orders'
-        permissions = [("edit_orders", "Enter Order Information")]
-
-    date = models.DateField()
-    description = models.CharField(max_length=256)
-    amount = models.DecimalField(max_digits=12, decimal_places=2)
-    tax_rate = models.DecimalField(max_digits=6, decimal_places=4)
-
-    def __unicode__(self):
-        return "%s %s" % (self.date, self.description)
-
-class OrderItem(models.Model):
-    class Meta:
-        db_table = 'order_items'
-
-    # What order is this line item part of?
-    order = models.ForeignKey(Order)
-
-    # What was ordered?  This refers to BulkItem rather than Product since a
-    # single unit ordered might contain multiple items with different UPC
-    # barcodes.
-    bulk_type = models.ForeignKey(BulkItem)
-
-    # Number of individual items that come in each unit ordered.  Should match
-    # bulk_type.quantity except in unusual cases.
-    quantity = models.IntegerField()
-
-    # Number of units ordered.  The total number of individual items received
-    # will be number*quantity.
-    number = models.IntegerField()
-
-    # Cost for each unit ordered.  To get the total cost, multiply by number.
-    # The cost is split into taxable and non-taxable components; we do this
-    # instead of using a "taxable" boolean since both could be present (for
-    # example, item is not taxable but the CRV on the item is).  In most cases,
-    # one of the costs will be zero.
-    cost_taxable = models.DecimalField(max_digits=12, decimal_places=2)
-    cost_nontaxable = models.DecimalField(max_digits=12, decimal_places=2)
-
-    def __unicode__(self):
-        return "%d %s" % (self.number, self.bulk_type)
+#class Order(models.Model):
+#    class Meta:
+#        db_table = 'orders'
+#        permissions = [("edit_orders", "Enter Order Information")]
+#
+#    date = models.DateField()
+#    description = models.CharField(max_length=256)
+#    amount = models.DecimalField(max_digits=12, decimal_places=2)
+#    tax_rate = models.DecimalField(max_digits=6, decimal_places=4)
+#
+#    def __unicode__(self):
+#        return "%s %s" % (self.date, self.description)
+#
+#class OrderItem(models.Model):
+#    class Meta:
+#        db_table = 'order_items'
+#
+#    # What order is this line item part of?
+#    order = models.ForeignKey(Order)
+#
+#    # What was ordered?  This refers to BulkItem rather than Product since a
+#    # single unit ordered might contain multiple items with different UPC
+#    # barcodes.
+#    bulk_type = models.ForeignKey(BulkItem)
+#
+#    # Number of individual items that come in each unit ordered.  Should match
+#    # bulk_type.quantity except in unusual cases.
+#    quantity = models.IntegerField()
+#
+#    # Number of units ordered.  The total number of individual items received
+#    # will be number*quantity.
+#    number = models.IntegerField()
+#
+#    # Cost for each unit ordered.  To get the total cost, multiply by number.
+#    # The cost is split into taxable and non-taxable components; we do this
+#    # instead of using a "taxable" boolean since both could be present (for
+#    # example, item is not taxable but the CRV on the item is).  In most cases,
+#    # one of the costs will be zero.
+#    cost_taxable = models.DecimalField(max_digits=12, decimal_places=2)
+#    cost_nontaxable = models.DecimalField(max_digits=12, decimal_places=2)
+#
+#    def __unicode__(self):
+#        return "%d %s" % (self.number, self.bulk_type)
 
 # This class doesn't actually connect directly with the underlying database
 # table, but the class methods provided do perform useful queries.

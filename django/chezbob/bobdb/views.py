@@ -6,7 +6,8 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseRedirect
-from chezbob.bobdb.models import BulkItem, Inventory, Product, Order, OrderItem, ProductSource
+from chezbob.bobdb.models import BulkItem, Inventory, Product, ProductSource 
+from chezbob.orders.models import Order, OrderItem
 
 def parse_date(datestr):
     """Parse a string representation of a date into a datetime.Date object.

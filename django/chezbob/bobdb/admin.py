@@ -1,4 +1,4 @@
-from chezbob.bobdb.models import BulkItem, Product, Order
+from chezbob.bobdb.models import BulkItem, Product
 from django.contrib import admin
 
 class ProductInline(admin.TabularInline):
@@ -27,8 +27,8 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ['barcode', 'name', 'price']
 admin.site.register(Product, ProductAdmin)
 
-class OrderAdmin(admin.ModelAdmin):
-    ordering = ['date', 'description']
-    search_fields = ['date', 'description']
-    list_display = ['date', 'amount', 'tax_rate', 'description']
-admin.site.register(Order, OrderAdmin)
+#class OrderAdmin(admin.ModelAdmin):
+#    ordering = ['date', 'description']
+#    search_fields = ['date', 'description']
+#    list_display = ['date', 'amount', 'tax_rate', 'description']
+#admin.site.register(Order, OrderAdmin)
