@@ -3,7 +3,18 @@
 
 {% block content %}
 <script type="text/javascript">
-var bulk_items = [];
+var bulk_items = [
+  {% for bi in bulk_items %}
+	  { 'bulkid'        : {{ bi.bulkid }},
+	    'description'   : '{{ bi.description }}',
+	    'units_per_case': {{ bi.quantity }},
+	    'price'         : {{ bi.price }},
+	    'is_cost_taxed' : {{ bi.taxable|yesno:'true,false,' }},
+	    'crv_per_unit'  : {{ bi.crv_per_unit }},
+	    'is_crv_taxed'  : {{ bi.crv_taxable|yesno:'true,false,' }} 
+	  },
+	{% endfor %}  
+];
 
 $(document).ready(function() {
   selObj = document.getElementById("bulkSelect")
@@ -102,12 +113,65 @@ function filterSelect(filterInput, event) {
     selObj.remove(i)
   }
   for (i = 0; i < bulk_items.length; i++) {
-    option = bulk_items[i]
-    if (option.text.toLowerCase().indexOf(description_part) >= 0) {
-      selObj.add(option, null);
+    bi = bulk_items[i]
+    if (bi.description.toLowerCase().indexOf(description_part) >= 0) {
+      selObj.add(new Option(bi.description, bi.bulkid), null);
     }
   }
   selObj.selectedIndex = 0
+}
+
+$(document).ajaxError(function(e, xhr, settings, exception) { 
+  window["error_frame"].document.body.innerHTML = xhr.responseText;
+});
+
+function update_bulk_price(item_id, bulk_id, table_row) {
+  data = { 'ajax'      : 'update_bulk_price',
+           'bulk_id'   : bulk_id,
+           'new_price' : $("input[name=price\\."+table_row+"]")[0].value,
+           'is_taxed'  : $("input[name=taxed\\."+table_row+"]")[0].value == 'on',
+           'date'      : $("#id_date")[0].value }
+  handler = function(data) {
+    alert("bulk price updated.  updated will be reflected in next refresh");
+  }
+  $.post('/admin/orders/{{ order.id }}/', data, handler);
+  return false;
+}
+
+function new_order_item() {
+  data = { 'ajax'    : 'new_order_item',
+           'bulk_id' : $("#bulkSelect")[0].value,
+           'count'   : $("#id_new_count")[0].value }
+  handler = function(data) {
+    alert("order_item added: " + data);
+  }
+  $.post('/admin/orders/{{ order.id }}/', data, handler);
+  return false;
+}
+
+function update_crv_price(item_id, bulk_id, table_row) {
+  alert("update CRV price function is TODO");
+  return false;
+}
+
+function save_order_item(item_id, table_row) {
+  alert("save order item ");
+  return false;
+}
+
+function delete_order_item(item_id, table_row) {
+  data = { 'ajax'    : 'delete_order_item',
+           'item_id' : item_id }
+  handler = function(data) {
+    alert("order_item deleted: " + data);
+  }
+  $.post('/admin/orders/{{ order.id }}/', data, handler);
+  return false;
+}
+
+function update_details() {
+  alert("update_detail ");
+  return false;
 }
 </script>
 <style>
@@ -117,15 +181,18 @@ function filterSelect(filterInput, event) {
   }
 </style>
 
-<form action="" method="post">
+<form action="" method="post" onSubmit="return false;">
 
 <h2>Details<h2>
 {{ details_form.as_p }}
-<input type="submit" value="Save Details" name="save_details"/>
+<input type="submit" value="Save Details" name="save_details"
+		   onClick="update_details();"/>
 
 {% if order %}
 <h2>Ordered Items</h2>
 <table cellspacing="0" id="ordered_items_table">
+
+<iframe name="error_frame" style="width:800px;"></iframe>
 
 <thead>
 <tr>
@@ -149,7 +216,7 @@ function filterSelect(filterInput, event) {
                value="{{ item.id }}" />
         <input type="hidden" 
                name="type_code.{{ forloop.counter }}" 
-               value="{{ item.type.bulkid }}" />
+               value="{{ item.bulk_type.bulkid }}" />
         <input type="text" size="4" 
                name="number.{{ forloop.counter }}" 
                value="{{ item.cases_ordered }}" />
@@ -162,18 +229,23 @@ function filterSelect(filterInput, event) {
         <input type="text" size="4" 
                name="quantity.{{ forloop.counter }}" 
                value="{{ item.units_per_case }}" /></td>
-    <td><input type="box" size="6" 
-               name="nontaxable.{{ forloop.counter }}" 
+    <td><input type="text" size="6" 
+               name="price.{{ forloop.counter }}" 
                value="{{ item.case_cost|stringformat:".2f" }}" /></td>
     <td><input type="checkbox" 
                name="taxed.{{ forloop.counter }}" 
                {{ item.is_cost_taxed|yesno:'checked="checked",,' }} /></td>
     <td style="text-align:right;">${{ item.ammount }}</td>
     <td>
-      <input type="submit" value="Save" name="save.{{ forloop.counter }}"/>
-      <input type="submit" value="Delete" name="del.{{ forloop.counter }}"/>
+      <input type="submit" value="Save" name="save.{{ forloop.counter }}"
+		         onClick="save_order_item({{ item.id }}, {{ forloop.counter }});"/>
+      <input type="submit" value="Delete" name="del.{{ forloop.counter }}"
+		         onClick="delete_order_item({{ item.id }}, {{ forloop.counter }});"/>
 		  {% if item.price_differs %}
-		    <input type="submit" value="Update Bulk Price" name="ubp.{{ forloop.counter }}"/>
+		    <input type="submit" 
+		           value="Update Bulk Price" 
+		           name="ubp.{{ forloop.counter }}"
+		           onClick="update_bulk_price({{ item.id }},{{ item.bulk_type.bulkid }},{{ forloop.counter }});"/>
 		  {% endif %}
 		  {% if item.quantity_differs %}
 		    <input type="submit" value="Update Bulk Quantity" name="ubq.{{ forloop.counter }}"/>
@@ -186,16 +258,18 @@ function filterSelect(filterInput, event) {
   <td></td>
   <td>CRV for {{ item.bulk_type.description }}</td>
   <td></td>
-  <td><input type="box" size="6" 
-             name="nontaxable.{{ forloop.counter }}" 
-             value="{{ item.crv_per_unit|stringformat:".2f" }}"</td>
+  <td><input type="text" size="6" 
+             name="crv.{{ forloop.counter }}" 
+             value="{{ item.crv_per_unit|stringformat:".2f" }}"/></td>
   <td><input type="checkbox" 
              name="taxed.{{ forloop.counter }}" 
              {{ item.is_crv_taxed|yesno:'checked="checked",,' }} /></td>
   <td style="text-align:right;">${{ item.crv_ammount }}</td>
   <td>
 	  {% if item.crv_differs %}
-	    <input type="submit" value="Update Bulk CRV" name="ubc.{{ forloop.counter }}"/>
+	    <input type="submit" value="Update Bulk CRV" 
+	           name="ubc.{{ forloop.counter }}"
+	           onClick="update_crv_price({{ item.id }},{{ item.bulk_type.bulkid }},{{ forloop.counter }});"/>/>
 	  {% endif %}
   </td>
 </tr>
@@ -213,8 +287,9 @@ Filter: <input type="text" size="30" id="new_description" style="width:354px;"
 	  <option value="{{ bi.bulkid }}">{{ bi }}</option>
 	{% endfor %}
 </select><br/>
-Cases: <input type="text" size="4" name="new_count" value="1"/>
-<input type="submit" value="Add" name="add_item"/>
+Cases: <input type="text" size="4" name="new_count" id="id_new_count" value="1"/>
+<input type="submit" value="Add" name="add_item"
+	     onClick="new_order_item();"/>
 </form> 
 
 <div>

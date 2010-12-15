@@ -32,10 +32,55 @@ class OrderForm(forms.Form):
   amount         = forms.DecimalField()
   sales_tax_rate = forms.DecimalField(initial=0.0875)
 
+def simp(obj):
+  new = {}
+  for key in obj.__dict__:
+    if not key.startswith("_"):
+      new[key] = obj.__dict__[key]
+  return new
+
 @edit_orders_required
-def order_summary(request, order):
+def order_summary(request, order): 
+  messages = BobMessages()  
   order = get_object_or_404(Order, id=int(order))
-  messages = BobMessages()
+                    
+  if 'ajax' in request.POST:
+    if request.POST['ajax'] == 'update_bulk_price':
+      bulk_id   = request.POST['bulk_id']
+      new_price = request.POST['new_price']
+      is_taxed  = request.POST['is_taxed']
+      date      = request.POST['date']
+      bulk_item = BulkItem.objects.get(bulkid = bulk_id)
+      bulk_item.price = new_price
+      bulk_item.taxable = is_taxed
+      bulk_item.updated = date
+      bulk_item.save()
+      messages['new_bulk'] = simp(bulk_item)
+    elif request.POST['ajax'] == 'new_order_item':
+      bulk_id = request.POST['bulk_id']
+      count   = request.POST['count']
+      bulk_item = BulkItem.objects.get(bulkid = bulk_id)
+      item = OrderItem( order = order,
+                        bulk_type = bulk_item,
+                        units_per_case = bulk_item.quantity,
+                        cases_ordered = count,
+                        case_cost = bulk_item.price,
+                        crv_per_unit = bulk_item.crv_per_unit,
+                        is_cost_taxed = bulk_item.taxable,
+                        is_crv_taxed = bulk_item.crv_taxable )
+      item.save()
+      messages['new_order_item'] = simp(item)
+    elif request.POST['ajax'] == 'delete_order_item':
+      item_id = request.POST['item_id']
+      item = OrderItem.objects.get(id = item_id)
+      if item.order.id == order.id :
+        item.delete()
+      else:
+        messages.add("Can only delete items that are part of this order")
+    else:
+      messages.error("unknown ajax command '%s'" % request.POST['ajax'])
+    return JsonResponse(messages)
+      
   
   order_form = OrderForm({'date': order.date,
                           'amount': order.amount,
