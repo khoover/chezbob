@@ -7,7 +7,7 @@
  -- Search for any accounts where the reported balance does not match the
  -- transaction log.  This query should return zero rows.
 select userid, balance, xactbalance from balances_check
-    where balance <> xactbalance;
+    where balance <> coalesce(xactbalance, 0.00);
 
  -- Delete old transactions from the transaction log, inserting appropriate
  -- initial balance transactions where needed.
@@ -26,11 +26,13 @@ insert into initial_balances select userid, sum(xactvalue) as balance
     group by userid;
 
 delete from transactions where xacttime <= (select * from date_cutoff);
-insert into transactions select (select * from date_cutoff) as xacttime,
-    userid, balance as xactvalue, 'INIT' as xacttype
-    from initial_balances;
+insert into transactions(xacttime, userid, xactvalue, xacttype)
+    select (select * from date_cutoff) as xacttime,
+        userid, balance as xactvalue, 'INIT' as xacttype
+    from initial_balances
+    where balance <> 0;
 commit;
 
  -- Verify no new inconsistencies were introduced.
 select userid, balance, xactbalance from balances_check
-    where balance <> xactbalance;
+    where balance <> coalesce(xactbalance, 0.00);
