@@ -32,18 +32,31 @@ class OrderForm(forms.Form):
   amount         = forms.DecimalField()
   sales_tax_rate = forms.DecimalField(initial=0.0875)
 
-def simp(obj):
-  new = {}
-  for key in obj.__dict__:
-    if not key.startswith("_"):
-      new[key] = obj.__dict__[key]
-  return new
+
+
 
 @edit_orders_required
 def order_summary(request, order): 
   messages = BobMessages()  
   order = get_object_or_404(Order, id=int(order))
-                    
+  
+  # helper methods
+  def simp(obj):
+    new = {}
+    for key in obj.__dict__:
+      if not key.startswith("_"):
+        new[key] = obj.__dict__[key]
+    return new
+  
+  def order_item_expand(oi):
+    oi2 = simp(oi)
+    oi.amount = oi.case_cost * oi.cases_ordered
+    oi.crv_amount = oi.crv_per_unit * oi.units_per_case * oi.cases_ordered
+    oi.price_differs = oi.case_cost != oi.bulk_type.price
+    oi.crv_differes = oi.crv_per_unit != oi.bulk_type.crv_per_unit
+    oi.quantity_differs = oi.units_per_case != oi.bulk_type.quantity
+             
+  # handle ajax requests       
   if 'ajax' in request.POST:
     if request.POST['ajax'] == 'update_bulk_price':
       bulk_id   = request.POST['bulk_id']
@@ -57,8 +70,8 @@ def order_summary(request, order):
       bulk_item.save()
       messages['new_bulk'] = simp(bulk_item)
     elif request.POST['ajax'] == 'new_order_item':
-      bulk_id = request.POST['bulk_id']
-      count   = request.POST['count']
+      bulk_id = int(request.POST['bulk_id'])
+      count   = int(request.POST['count'])
       bulk_item = BulkItem.objects.get(bulkid = bulk_id)
       item = OrderItem( order = order,
                         bulk_type = bulk_item,
@@ -69,14 +82,30 @@ def order_summary(request, order):
                         is_cost_taxed = bulk_item.taxable,
                         is_crv_taxed = bulk_item.crv_taxable )
       item.save()
+      order_item_expand(item)
       messages['new_order_item'] = simp(item)
     elif request.POST['ajax'] == 'delete_order_item':
       item_id = request.POST['item_id']
       item = OrderItem.objects.get(id = item_id)
       if item.order.id == order.id :
+        order_item_expand(item)
+        messages['deleted_order_item'] = simp(item)
         item.delete()
       else:
         messages.add("Can only delete items that are part of this order")
+    elif request.POST['ajax'] == 'update_order_item':
+      item_id = request.POST['item_id']
+      item = OrderItem.objects.get(id = item_id)
+      messages['old_order_item'] = simp(item)
+      item.cases_ordered = int(request.POST['count'])
+      item.units_per_case = int(request.POST['quant'])
+      item.case_cost      = Decimal(request.POST['price'])
+      item.is_cost_taxed  = request.POST['is_taxed'] == "true"
+      if 'crv' in request.POST:
+        item.crv_per_unit = Decimal(request.POST['crv'])
+        item.is_crv_taxed = request.POST['crv_taxed'] == "true"
+      item.save()
+      messages['new_order_item'] = simp(item)
     else:
       messages.error("unknown ajax command '%s'" % request.POST['ajax'])
     return JsonResponse(messages)
@@ -208,22 +237,16 @@ def order_summary(request, order):
   total_nontaxed = Decimal("0.00")
 
   items = order.orderitem_set.order_by('id')
-  for i in items: 
-    if i.case_cost != i.bulk_type.price or i.crv_per_unit != i.bulk_type.crv_per_unit:
-        i.message = "Price differs from bulk data"
-    i.ammount = i.case_cost * i.cases_ordered
-    i.crv_ammount = i.crv_per_unit * i.units_per_case * i.cases_ordered
+  for i in items:
+    order_item_expand(i) 
     if i.is_cost_taxed:
-      total_taxed += i.ammount
+      total_taxed += i.amount
     else:
-      total_nontaxed += i.ammount
+      total_nontaxed += i.amount
     if i.is_crv_taxed:
-      total_taxed += i.crv_ammount
+      total_taxed += i.crv_amount
     else:
-      total_nontaxed += i.crv_ammount
-    i.price_differs = i.case_cost != i.bulk_type.price
-    i.crv_differes = i.crv_per_unit != i.bulk_type.crv_per_unit
-    i.quantity_differs = i.units_per_case != i.bulk_type.quantity
+      total_nontaxed += i.crv_amount
 
   total = total_nontaxed + total_taxed * (1 + order.tax_rate)
   total = total.quantize(Decimal("0.01"))
@@ -236,7 +259,7 @@ def order_summary(request, order):
                    'total_notax': total_nontaxed,
                    'total_tax': total_taxed,
                    'total': total,
-                   'bulk_items' : BulkItem.objects.all().order_by('description')})
+                   'bulk_items' : [simp(bi) for bi in BulkItem.objects.all().order_by('description')]})
 
   return render_to_response('orders/order_summery.html', messages)
                                
