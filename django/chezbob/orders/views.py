@@ -13,6 +13,22 @@ from chezbob.shortcuts import *
 
 from django.core.urlresolvers import reverse
 
+def coerce_boolean(s):
+  """Convert a string to a boolean value.
+
+  For handling AJAX inputs, we probably only need to handle 'true' and 'false',
+  but for robustness accept a few other strings that might be used to represent
+  a boolean."""
+
+  s = str(s).lower().strip()
+  if s in ('', 'f', 'false', '0', 'off'):
+    return False
+  elif s in ('t', 'true', '1', 'on'):
+    return True
+  else:
+    # Perhaps ought to raise an error?
+    return True
+
 ##### Order tracking #####
 edit_orders_required = \
     user_passes_test(lambda u: u.has_perm('bobdb.edit_orders'))
@@ -65,7 +81,7 @@ def order_summary(request, order):
       date      = request.POST['date']
       bulk_item = BulkItem.objects.get(bulkid = bulk_id)
       bulk_item.price = new_price
-      bulk_item.taxable = is_taxed
+      bulk_item.taxable = coerce_boolean(is_taxed)
       bulk_item.updated = date
       bulk_item.save()
       messages['new_bulk'] = simp(bulk_item)
@@ -100,10 +116,10 @@ def order_summary(request, order):
       item.cases_ordered = int(request.POST['count'])
       item.units_per_case = int(request.POST['quant'])
       item.case_cost      = Decimal(request.POST['price'])
-      item.is_cost_taxed  = request.POST['is_taxed'] == "true"
+      item.is_cost_taxed  = coerce_boolean(request.POST['is_taxed'])
       if 'crv' in request.POST:
         item.crv_per_unit = Decimal(request.POST['crv'])
-        item.is_crv_taxed = request.POST['crv_taxed'] == "true"
+        item.is_crv_taxed = coerce_boolean(request.POST['crv_taxed'])
       item.save()
       messages['new_order_item'] = simp(item)
     else:

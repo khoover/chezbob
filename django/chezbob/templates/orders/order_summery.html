@@ -49,7 +49,7 @@ function update_bulk_price(item_id, bulk_id) {
   data = { 'ajax'      : 'update_bulk_price',
            'bulk_id'   : bulk_id,
            'new_price' : $("input[name=price\\."+item_id+"]")[0].value,
-           'is_taxed'  : $("input[name=taxed\\."+item_id+"]")[0].value == 'on',
+           'is_taxed'  : $("input[name=taxed\\."+item_id+"]")[0].checked,
            'date'      : $("#id_date")[0].value }
   handler = function(data) {
     alert("bulk price updated.  updated will be reflected in next refresh");
