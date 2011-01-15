@@ -45,11 +45,11 @@ $(document).ajaxError(function(e, xhr, settings, exception) {
   window["error_frame"].document.body.innerHTML = xhr.responseText;
 });
 
-function update_bulk_price(item_id, bulk_id, table_row) {
+function update_bulk_price(item_id, bulk_id) {
   data = { 'ajax'      : 'update_bulk_price',
            'bulk_id'   : bulk_id,
-           'new_price' : $("input[name=price\\."+table_row+"]")[0].value,
-           'is_taxed'  : $("input[name=taxed\\."+table_row+"]")[0].value == 'on',
+           'new_price' : $("input[name=price\\."+item_id+"]")[0].value,
+           'is_taxed'  : $("input[name=taxed\\."+item_id+"]")[0].value == 'on',
            'date'      : $("#id_date")[0].value }
   handler = function(data) {
     alert("bulk price updated.  updated will be reflected in next refresh");
@@ -71,12 +71,12 @@ function new_order_item() {
   return false;
 }
 
-function update_crv_price(item_id, bulk_id, table_row) {
+function update_crv_price(item_id, bulk_id) {
   alert("update CRV price function is TODO");
   return false;
 }
 
-function save_order_item(item_id, table_row) {
+function save_order_item(item_id) {
   data = { 'ajax'     : 'update_order_item',
            'item_id'  : item_id,
            'count'    : $("input[name=cases\\." + item_id + "]").val(),
@@ -97,7 +97,7 @@ function save_order_item(item_id, table_row) {
   return false;
 }
 
-function delete_order_item(item_id, table_row) {
+function delete_order_item(item_id) {
   data = { 'ajax'    : 'delete_order_item',
            'item_id' : item_id }
   handler = function(data) {
