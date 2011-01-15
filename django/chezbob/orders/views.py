@@ -68,8 +68,8 @@ def order_summary(request, order):
     oi2 = simp(oi)
     oi.amount = oi.case_cost * oi.cases_ordered
     oi.crv_amount = oi.crv_per_unit * oi.units_per_case * oi.cases_ordered
-    oi.price_differs = oi.case_cost != oi.bulk_type.price
-    oi.crv_differes = oi.crv_per_unit != oi.bulk_type.crv_per_unit
+    oi.price_differs = oi.case_cost != oi.bulk_type.price or oi.is_cost_taxed != oi.bulk_type.taxable
+    oi.crv_differes = oi.crv_per_unit != oi.bulk_type.crv_per_unit or oi.is_crv_taxed != oi.bulk_type.crv_taxable
     oi.quantity_differs = oi.units_per_case != oi.bulk_type.quantity
              
   # handle ajax requests       
