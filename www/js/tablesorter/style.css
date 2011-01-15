@@ -25,18 +25,15 @@ table.tablesorter tbody td {
 	vertical-align: top;
 }
 table.tablesorter tbody tr {
-	background-color: #FFFFFF;
+	/*background-color: #FFFFFF;*/
 }
-table.tablesorter tbody tr.odd {
-	background-color:#FFFFFF;
+table.tablesorter tbody tr:nth-child(odd) { 
+  background-color:#FFFFFF; 
 }
-table.tablesorter tbody tr.even {
-	background-color:#F0F0F6;
+table.tablesorter tbody tr:nth-child(even) { 
+  background-color:#F0F0F6; 
 }
-table.tablesorter tbody tr.odd:hover {
-	background-color:#CDCDCD;
-}
-table.tablesorter tbody tr.even:hover {
+table.tablesorter tbody tr:hover {
 	background-color:#CDCDCD;
 }
 table.tablesorter thead tr .headerSortUp {
