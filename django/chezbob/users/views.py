@@ -9,6 +9,8 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db import connection, transaction
 from django.db.models import F
 
+from chezbob.finance.models import Split, Account
+from chezbob.finance.models import Transaction as FinanceTransaction
 from chezbob.users.models import User, Barcode, Transaction
 from chezbob.users.forms import *
 from chezbob.shortcuts import BobMessages, render_bob_messages, render_or_error, redirect_or_error
@@ -86,7 +88,22 @@ def new_transaction(type, bound, user, messages):
         otran.user.save()
         messages.note("New transaction generated %s" % unicode(otran))
     elif type == 'REIMBURSE':
-      messages.error("Add new reimburse transaction not supported yet")
+      print (bound.cleaned_data)
+      ftrans = FinanceTransaction()
+      ftrans.date = tran.time
+      ftrans.description = "Reimbursing " + user.name + " for " + bound.cleaned_data['note']
+      ftrans.auto_generated = False
+      ftrans.save()
+      toBank = Split()
+      toBank.transaction = ftrans
+      toBank.account = Account.objects.get(id=1)
+      toBank.amount = tran.value
+      fromOther = Split()
+      fromOther.transaction = ftrans
+      fromOther.account = bound.cleaned_data['account']
+      fromOther.amount = -1 * tran.value
+      toBank.save()
+      fromOther.save()
     else:
       messages.error("Unknown transaction category %s. Cannot add transaction" 
                      % [type])
@@ -97,6 +114,10 @@ def new_transaction(type, bound, user, messages):
   except Exception, e: # use AS keyword in 2.6+
     transaction.rollback()
     messages.error("Exception while creating new transaction: " + str(e))
+    import sys, traceback
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    traceback.print_exception(exc_type, exc_value, exc_traceback,
+                              limit=2, file=sys.stdout)
   else:
     transaction.commit()
     
@@ -173,7 +194,7 @@ def user_details(request, userid):
   make_form('BUY',       'Make Buy Transaction', BuyForm)
   make_form('TRANSFER',  'Make Transfer',        TransferForm)
   make_form('ADD',       'Add Cash',             AddUncountedForm)
-  make_form('REIMBURSE', 'Issue Reimbursement [TODO]',  ReimburseForm)
+  make_form('REIMBURSE', 'Issue Reimbursement',  ReimburseForm)
   make_form('REFUND',    'Issue Cash Refund',    RefundForm)
   make_form('DONATION',  'Donate Balance',       DonateForm)
   make_form('WRITEOFF',  'Write-off Balance',    WriteOffForm)

@@ -113,6 +113,7 @@ class AddUncountedForm(UserTransactionForm):
 
 class ReimburseForm(UserTransactionForm):
   ammount    = forms.DecimalField()
+  note       = forms.CharField(initial="")
   account    = forms.ModelChoiceField(queryset=Account.objects.all().order_by("name"),
                                       required=True)
 
@@ -121,7 +122,7 @@ class ReimburseForm(UserTransactionForm):
       transaction.time  = self.cleaned_data['time']
       transaction.value = self.cleaned_data['ammount']
       transaction.source = "django"
-      transaction.type = "REIMBURSE FROM " + self.cleaned_data['account'].id
+      transaction.type = "REIMBURSE FROM " + self.cleaned_data['account'].name.upper()
     else:
       messages.errors(self.errors)
    

@@ -2,6 +2,7 @@ import datetime
 from decimal import Decimal
 from django.db import models
 from chezbob.bobdb.models import Product
+from chezbob.finance.models import Transaction as FinanceTransaction
 
 class User(models.Model):
     class Meta:
@@ -53,6 +54,9 @@ class Transaction(models.Model):
                                 related_name='sales')
     user    = models.ForeignKey(User, db_column='userid', 
                                 related_name='purchases')
+    finance_trans = models.ForeignKey(FinanceTransaction, 
+                                      db_column='finance_trans_id', 
+                                      related_name='finance_transaction')
 
     def __unicode__(self):
         return self.type;
