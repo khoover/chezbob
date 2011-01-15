@@ -4,6 +4,7 @@ import time
 #from time import strptime
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.conf.urls.defaults import *
 from django.http import HttpResponse, HttpResponseRedirect
@@ -283,9 +284,9 @@ def edit_cashout(request, cashout=None):
                               )
             count.save()
 
-        url = "/cashout/ledger#c%d" % (cashout.id,)
-
-        return HttpResponseRedirect(url)
+        return HttpResponseRedirect(
+                reverse('chezbob.cashout.views.ledger') + ('#c%d' % cashout.id)
+                                   )
 
     blank_values = []
     for f in fields:

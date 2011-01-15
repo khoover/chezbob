@@ -135,12 +135,12 @@ $(document).ready(function() {
                        value="Edit" 
                        name="edit_tran_{{ transaction.id }}" 
                        style="padding:1px 5px 1px 5px"/>-->
-            {% if not transaction.type = "INIT" %}
+            {% ifnotequal transaction.type "INIT" %}
             <input type="submit" 
                    value="Delete" 
                    name="delete_tran_{{ transaction.id }}" 
                    style="padding:1px 5px 1px 5px"/>
-            {% endif %}
+            {% endifnotequal %}
         </td> 
       </tr>
       {% endfor %}

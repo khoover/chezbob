@@ -21,7 +21,7 @@ insert into aggregated
         where date > now() - interval '2 day'
         group by date, barcode, bulkid;
 delete from aggregate_purchases where date > now() - interval '2 day';
-insert into aggregate_purchases
+insert into aggregate_purchases(date, barcode, quantity, price, bulkid)
     select * from aggregated where quantity <> 0 or price <> 0;
 commit;
 
@@ -60,4 +60,3 @@ update users set last_purchase_time = s.last
     where users.userid = s.userid;
 
 commit;
-
