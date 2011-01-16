@@ -3,20 +3,20 @@
  -- mixed up and should be fixed.
 
 select 'Account balances match transaction data' as check;
-select s.userid, balances.balance, s.xactbalance
+select userid, users.balance, s.xactbalance
     from (select transactions.userid,
                  sum(transactions.xactvalue)::numeric(12,2) AS xactbalance
           from transactions group by transactions.userid) s
-    join balances using (userid)
+    join users using (userid)
     where balance <> xactbalance;
 
 select 'Anonymous account has zero balance' as check;
-select username, balance from users natural join balances
+select username, balance from users
     where username = 'anonymous' and balance <> 0.00;
 
 select 'Closed accounts have zero balance' as check;
-select userid, balance from balances natural join pwd
-    where p like 'closed%' and balance <> 0.00;
+select userid, balance from users
+    where disabled and balance <> 0.00;
 
 select 'Double-entry accounting transactions balance' as check;
 select transaction_id, sum(amount) from finance_splits
