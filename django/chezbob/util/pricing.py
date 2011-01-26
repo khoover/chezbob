@@ -12,7 +12,7 @@ markups = {
     1: 0.13,                    # Shelves
     2: 0.13,                    # Refrigerator
     3: 0.16,                    # Freezer
-    4: 0.05,                    # Soda machine
+    4: 0.06,                    # Soda machine
     5: 0.25,                    # Terminal
 }
 
