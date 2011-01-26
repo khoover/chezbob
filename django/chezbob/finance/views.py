@@ -304,6 +304,7 @@ def gen_gnuplot_dump():
     yield "# %d: %s\n" % (i + 3, "Bank of Bob Accounts: Negative")
     yield "# %d: %s\n" % (i + 4, "Inventory: Value at Cost")
     yield "# %d: %s\n" % (i + 5, "Inventory: Shrinkage")
+    yield "# %d: %s\n" % (i + 6, "Inventory: Cumulative Shrinkage")
 
     balances = [Decimal("0.00")] * len(columns)
     date = None
@@ -312,6 +313,7 @@ def gen_gnuplot_dump():
     totals = {}
     for t in Account.TYPES:
         totals[t] = Decimal("0.00")
+    totals['shrinkage'] = Decimal("0.00")
 
     for (id, i) in columns.items():
         if Account.objects.get(id=id).is_reversed():
@@ -339,7 +341,9 @@ def gen_gnuplot_dump():
         # Inventory value and shrinkage
         try:
             d = InventorySummary.objects.get(date=date)
-            line += "\t%.2f\t%.2f" % (d.value, d.shrinkage)
+            totals['shrinkage'] += d.shrinkage
+            line += "\t%.2f\t%.2f\t%.2f" \
+                    % (d.value, d.shrinkage, totals['shrinkage'])
         except InventorySummary.DoesNotExist:
             pass
 

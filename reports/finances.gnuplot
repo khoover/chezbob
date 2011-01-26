@@ -34,5 +34,9 @@ set title "Cash on Hand: Available Cash and Bank Balances"
 plot "accounts.data" using 1:5 with steps title "Bank Account", \
      "accounts.data" using 1:($5+$8+$9) with lines title "Bank Account + Cash"
 
+set title "Cumulative Losses"
+plot "accounts.data" using 1:4 with lines title "Cash Losses", \
+     "accounts.data" using 1:37 with lines title "Inventory Shrinkage"
+
 set title "Monthly Sales"
 plot "monthly.data" using 1:10 with boxes fill fs solid 0.3 notitle
