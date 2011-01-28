@@ -91,17 +91,18 @@ def new_transaction(type, bound, user, messages):
       print (bound.cleaned_data)
       ftrans = FinanceTransaction()
       ftrans.date = tran.time
-      ftrans.description = "Reimbursing " + user.name + " for " + bound.cleaned_data['note']
+      ftrans.description = "Reimbursing " + user.username + " for " + bound.cleaned_data['note']
       ftrans.auto_generated = False
       ftrans.save()
       toBank = Split()
       toBank.transaction = ftrans
-      toBank.account = Account.objects.get(id=1)
-      toBank.amount = tran.value
+      bank_of_bob_account_id=2
+      toBank.account = Account.objects.get(id=bank_of_bob_account_id)
+      toBank.amount = -1 * tran.value
       fromOther = Split()
       fromOther.transaction = ftrans
       fromOther.account = bound.cleaned_data['account']
-      fromOther.amount = -1 * tran.value
+      fromOther.amount = tran.value
       toBank.save()
       fromOther.save()
     else:
