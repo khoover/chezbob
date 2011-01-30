@@ -35,9 +35,31 @@ sub bob_db_set_source {
 sub
 bob_db_connect
 {
-  $conn = Pg::connectdb("host=soda.ucsd.edu dbname=bob");
+  my $db_conf_path = "$BOBPATH/../db.conf";
+  open CONF, $db_conf_path
+    or &report_fatal("Unable to open database config file $db_conf_path: $!");
+
+  my %params = ();
+  my @required_params = qw(DATABASE_HOST DATABASE_NAME DATABASE_USER);
+  while (($_ = <CONF>)) {
+    continue if m/^\s*(#.*)?$/;
+    if (m/^(\w+)\s*=\s*\"(.*)\"$/) {
+      $params{$1} = $2;
+    } else {
+      &report_nonfatal("Bad line in database config file: $_");
+    }
+  }
+  close CONF;
+
+  foreach (@required_params) {
+    &report_fatal("Parameter $_ not in db.conf") if not exists $params{$_};
+  }
+
+  my $db_name = "host=$params{DATABASE_HOST} dbname=$params{DATABASE_NAME}"
+                . " user=$params{DATABASE_USER}";
+  $conn = Pg::connectdb($db_name);
   if ($conn->status == PGRES_CONNECTION_BAD) {
-    my $mesg = "Error connecting to database.\n";
+    my $mesg = "Error connecting to database $db_name.\n";
     $mesg .= $conn->errorMessage;
     &report_fatal($mesg);
   }
