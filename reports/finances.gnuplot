@@ -36,6 +36,7 @@ plot "accounts.data" using 1:5 with steps title "Bank Account", \
 
 set title "Cumulative Losses"
 plot "accounts.data" using 1:4 with lines title "Cash Losses", \
+     "accounts.data" using 1:11 with lines title "Debt Writeoffs", \
      "accounts.data" using 1:37 with lines title "Inventory Shrinkage"
 
 set title "Monthly Sales"
