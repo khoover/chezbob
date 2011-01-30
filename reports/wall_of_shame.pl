@@ -7,7 +7,44 @@
 
 use strict;
 use DBI;
+use File::Basename;
 use POSIX qw(strftime);
+
+# Extract database connection parameters from the shared database settings
+# configuration file.
+sub get_database_connection {
+    # Expect db.conf in the parent of the directory where this script resides.
+    my $db_config_path = dirname(`which $0`) . "/..";
+
+    die "Can't find DB config file at $db_config_path/db.conf"
+        unless -r "$db_config_path/db.conf";
+
+    open CONF, "$db_config_path/db.conf"
+        or die "Can't open DB config file: $!";
+
+    my %params = ();
+    my @required_params = qw(DATABASE_HOST DATABASE_NAME DATABASE_USER);
+    while (($_ = <CONF>)) {
+        next if m/^\s*(#.*)?$/;
+        if (m/^(\w+)\s*=\s*\"(.*)\"$/) {
+            $params{$1} = $2;
+        } else {
+            die "Bad line in database config file: $_";
+        }
+    }
+    close CONF;
+
+    foreach (@required_params) {
+        die "Parameter $_ not in db.conf" if not exists $params{$_};
+    }
+
+    my $name = "dbi:Pg:dbname=$params{DATABASE_NAME};"
+                . "host=$params{DATABASE_HOST}";
+    my $dbh = DBI->connect($name, $params{DATABASE_USER})
+        or die "Unable to connect to ChezBob database";
+
+    return $dbh;
+}
 
 sub format_table_rows {
     my @rows = @_;
@@ -25,8 +62,7 @@ sub format_table_rows {
     }
 }
 
-my $dbh = DBI->connect("dbi:Pg:dbname=bob;host=soda.ucsd.edu", "bob")
-    or die "Unable to connect to ChezBob database";
+my $dbh = get_database_connection();
 
 my $sth = $dbh->prepare(
     "SELECT username, balance FROM users
