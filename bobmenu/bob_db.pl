@@ -42,7 +42,7 @@ bob_db_connect
   my %params = ();
   my @required_params = qw(DATABASE_HOST DATABASE_NAME DATABASE_USER);
   while (($_ = <CONF>)) {
-    continue if m/^\s*(#.*)?$/;
+    next if m/^\s*(#.*)?$/;
     if (m/^(\w+)\s*=\s*\"(.*)\"$/) {
       $params{$1} = $2;
     } else {
