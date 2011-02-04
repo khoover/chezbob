@@ -85,6 +85,15 @@ def order_summary(request, order):
       bulk_item.updated = date
       bulk_item.save()
       messages['new_bulk'] = simp(bulk_item)
+    elif request.POST['ajax'] == 'update_bulk_quantity':
+      bulk_id   = request.POST['bulk_id']
+      new_count = request.POST['new_count']
+      date      = request.POST['date']
+      bulk_item = BulkItem.objects.get(bulkid = bulk_id)
+      bulk_item.quantity = new_count
+      bulk_item.updated = date
+      bulk_item.save()
+      messages['new_bulk'] = simp(bulk_item)
     elif request.POST['ajax'] == 'new_order_item':
       bulk_id = int(request.POST['bulk_id'])
       count   = int(request.POST['count'])
@@ -110,17 +119,17 @@ def order_summary(request, order):
       else:
         messages.add("Can only delete items that are part of this order")
     elif request.POST['ajax'] == 'update_order_item':
-      item_id = request.POST['item_id']
+      item_id = request.POST['id']
       item = OrderItem.objects.get(id = item_id)
       messages['old_order_item'] = simp(item)
-      item.cases_ordered = int(request.POST['count'])
-      item.units_per_case = int(request.POST['quant'])
-      item.case_cost      = Decimal(request.POST['price'])
-      item.is_cost_taxed  = coerce_boolean(request.POST['is_taxed'])
-      if 'crv' in request.POST:
-        item.crv_per_unit = Decimal(request.POST['crv'])
-        item.is_crv_taxed = coerce_boolean(request.POST['crv_taxed'])
+      item.cases_ordered  = int(request.POST['cases_ordered'])
+      item.units_per_case = int(request.POST['units_per_case'])
+      item.case_cost      = Decimal(request.POST['case_cost'])
+      item.is_cost_taxed  = coerce_boolean(request.POST['is_cost_taxed'])
+      item.crv_per_unit   = Decimal(request.POST['crv_per_unit'])
+      item.is_crv_taxed   = coerce_boolean(request.POST['is_crv_taxed'])
       item.save()
+      order_item_expand(item)
       messages['new_order_item'] = simp(item)
     else:
       messages.error("unknown ajax command '%s'" % request.POST['ajax'])
@@ -292,7 +301,7 @@ def new_order(request):
                        tax_rate = order_form.cleaned_data['sales_tax_rate'])
       newOrder.save()
       newId = newOrder.id
-      redirect(reverse('chezbob.orders.views.order_summary', args=(newId,)))
+      redirect_or_error(reverse('chezbob.orders.views.order_summary', args=(newId,)))
     else:
       for error_field in order_form.errors:
         messages.error("Field %s: %s" % (error_field, order_form[error_field].errors));

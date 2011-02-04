@@ -15,7 +15,7 @@ var tax_rate       = {{ order.tax_rate|stringformat:".4f"}};
 var bulk_items = [
   {% for bi in bulk_items %}
 	  { 'bulkid'        : {{ bi.bulkid }},
-	    'description'   : '{{ bi.description }}',
+	    'description'   : "{{ bi.description|safe }}",
 	    'units_per_case': {{ bi.quantity }},
 	    'product_id'    : '{{ bi.product_id|default_if_none:"" }}',
 	    'price'         : {{ bi.price }},
@@ -26,8 +26,33 @@ var bulk_items = [
 	{% endfor %}  
 ];
 
+var order_items = {
+  {% for item in items %}
+  {{ item.id }} :
+	  { 'id'             : {{ item.id }},
+	    'bulk_type'      : { 'bulkid' : {{ item.bulk_type.bulkid }} },
+	    'cases_ordered'  : {{ item.cases_ordered }},
+	    'units_per_case' : {{ item.units_per_case }},
+	    'case_cost'      : {{ item.case_cost }},
+	    'is_cost_taxed'  : {{ item.is_cost_taxed|yesno:'true,false,' }},
+	    'crv_per_unit'   : {{ item.crv_per_unit }},
+	    'is_crv_taxed'   : {{ item.is_crv_taxed|yesno:'true,false,' }},
+	    'amount'         : {{ item.amount }},
+	    'crv_amount'     : {{ item.crv_amount }}
+	  },
+	{% endfor %}  
+};
+
 function filterSelect(filterInput, event) {
   selObj = document.getElementById("bulkSelect")
+  if (event.keyCode == 13) {
+    new_order_item()
+    return
+  }
+  if (event.keyCode == 40) {
+    selObj.focus()
+    return
+  }
   description_part = filterInput.value.toLowerCase()
   for (i = selObj.options.length - 1; i >= 0 ; i--) {
     selObj.remove(i)
@@ -39,20 +64,64 @@ function filterSelect(filterInput, event) {
     }
   }
   selObj.selectedIndex = 0
+  if (selObj.options.length == 1) {
+    selObj.className = "selectSingleOption"
+  } else if (selObj.options.length == 0) {
+    selObj.className = "selectNoOption"
+  } else {
+    selObj.className = "selectMuliOption"
+  }
 }
 
-$(document).ajaxError(function(e, xhr, settings, exception) { 
+
+function bulkSelectKeyDown(selObj, event) {
+  if (event.keyCode == 13) {
+    new_order_item()
+    return
+  }
+  if (event.keyCode == 38) {
+    if (selObj.selectedIndex == 0) {
+      filterBox = document.getElementById("new_description")
+      filterBox.focus()
+    }
+    return
+  }
+}
+
+$(document).ajaxError(function(e, xhr, settings, exception) {
+  $("iframe[name=error_frame]").show() 
   window["error_frame"].document.body.innerHTML = xhr.responseText;
 });
 
+$(document).ready(function() {
+  for (item_id in order_items) {
+    $("input[name=save\\." + item_id + "]").hide();
+  }
+});
+
 function update_bulk_price(item_id, bulk_id) {
+  order_item = order_items[item_id]
   data = { 'ajax'      : 'update_bulk_price',
            'bulk_id'   : bulk_id,
-           'new_price' : $("input[name=price\\."+item_id+"]")[0].value,
-           'is_taxed'  : $("input[name=taxed\\."+item_id+"]")[0].checked,
+           'new_price' : order_item['case_cost'],
+           'is_taxed'  : order_item['is_crv_taxed'],
            'date'      : $("#id_date")[0].value }
   handler = function(data) {
-    alert("bulk price updated.  updated will be reflected in next refresh");
+    $('input[name=ubp.' + item_id + ']').hide()
+  }
+  $.post('/admin/orders/{{ order.id }}/', data, handler);
+  return false;
+}
+
+
+function update_bulk_quantity(item_id, bulk_id) {
+  order_item = order_items[item_id]
+  data = { 'ajax'      : 'update_bulk_quantity',
+           'bulk_id'   : bulk_id,
+           'new_count' : order_item['units_per_case'],
+           'date'      : $("#id_date")[0].value }
+  handler = function(data) {
+    $('input[name=ubq.' + item_id + ']').hide()
   }
   $.post('/admin/orders/{{ order.id }}/', data, handler);
   return false;
@@ -63,11 +132,16 @@ function new_order_item() {
            'bulk_id' : $("#bulkSelect")[0].value,
            'count'   : $("#id_new_count")[0].value }
   handler = function(data) {
-    item = data['new_order_item'];
-    new_template(item);
-    addtototal(item);
+    order_item = data['new_order_item'];
+    order_items[order_item.id] = order_item
+    new_template(order_item);
+    recomputeTotal();
   }
   $.post('/admin/orders/{{ order.id }}/', data, handler);
+  filterBox = document.getElementById("new_description")
+  filterBox.value = ""
+  filterBox.focus()
+  window.scrollTo(0, document.body.scrollHeight);
   return false;
 }
 
@@ -76,46 +150,27 @@ function update_crv_price(item_id, bulk_id) {
   return false;
 }
 
-function save_order_item(item_id) {
-  data = { 'ajax'     : 'update_order_item',
-           'item_id'  : item_id,
-           'count'    : $("input[name=cases\\." + item_id + "]").val(),
-           'quant'    : $("input[name=quantity\\." + item_id + "]").val(),
-           'price'    : $("input[name=price\\." + item_id + "]").val(),
-           'is_taxed' : $("input[name=taxed\\." + item_id + "]")[0].checked,
-           'crv'      : $("input[name=crv\\." + item_id + "]").val(),}
-  if (data['crv']) {
-    data['crv_taxed'] = $("input[name=crv_taxed\\." + item_id + "]")[0].checked;
-  }
-  handler = function(data) {
-    old_item = data['old_order_item'];
-    new_item = data['new_order_item'];
-    removefromtotal(old_item);
-    addtototal(new_item);
-  }
-  $.post('/admin/orders/{{ order.id }}/', data, handler);
-  return false;
-}
-
 function delete_order_item(item_id) {
   data = { 'ajax'    : 'delete_order_item',
            'item_id' : item_id }
   handler = function(data) {
+    delete order_items[item_id]
     item = data['deleted_order_item'];
-    removefromtotal(item);
     $("#main_row\\." + item_id).remove();
     $("#crv_row\\." + item_id).remove();
+    recomputeTotal();
   }
   $.post('/admin/orders/{{ order.id }}/', data, handler);
   return false;
 }
 
 function update_details() {
-  alert("update_detail ");
+  alert("update_detail is TODO");
   return false;
 }
-	          
-function update_template(item) {
+
+function new_template(item) {
+  $("#orderItemTemplate").tmpl([item]).appendTo("#orderItemList");
   item_id = item.id;
   main_row        = $("#main_row\\." + item_id)[0];
   crv_row         = $("#crv_row\\." + item_id)[0];
@@ -156,11 +211,6 @@ function update_template(item) {
   }
 }
 
-function new_template(item) {
-  $("#orderItemTemplate").tmpl([item]).appendTo("#orderItemList");
-  update_template(item);
-}
-
 function find_bulk(bulk_id) {
   for (i in bulk_items) {
     bi = bulk_items[i];
@@ -170,58 +220,132 @@ function find_bulk(bulk_id) {
   }
 }
 
-function refresh_total() {
-  total = (total_taxed * (1+tax_rate)) + total_nontaxed;
-  $("#total_nontaxed").html(total_nontaxed.toFixed(2));
-  $("#total_taxed").html(total_taxed.toFixed(2));
+function recomputeTotal() {
+  taxed = 0
+  nontaxed = 0
+  for (id in order_items) {
+    order_item = order_items[id]
+    if (order_item.is_cost_taxed) {
+      taxed += parseFloat(order_item.amount);
+    } else {
+      nontaxed += parseFloat(order_item.amount);
+    }
+    if (order_item.is_crv_taxed) {
+      taxed += parseFloat(order_item.crv_amount);
+    } else {
+      nontaxed += parseFloat(order_item.crv_amount);
+    }
+  }
+  total = (taxed * (1+tax_rate)) + nontaxed;
+  $("#total_nontaxed").html(nontaxed.toFixed(2));
+  $("#total_taxed").html(taxed.toFixed(2));
   $("#total").html(total.toFixed(2));
 }
 
-function addtototal(item) {
-  if (item.is_cost_taxed) {
-    total_taxed += parseFloat(item.amount);
-  } else {
-    total_nontaxed += parseFloat(item.amount);
+// Prevent the enter key from updating the order details when selecting a bulk
+// item in the filtered list
+function stopRKey(evt) {
+   var evt = (evt) ? evt : ((event) ? event : null);
+   var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null);
+   if ((evt.keyCode == 13) && ((node.type=="select-one") || (node.type=="text"))) {return false;}
+}
+document.onkeypress = stopRKey; 
+
+function refreshTemplate(item_id) {
+  main_row        = $("#main_row\\." + item_id)[0];
+  crv_row         = $("#crv_row\\." + item_id)[0];
+  spn_amount      = $("#id_amount\\." + item_id)[0];
+  spn_crv_amount  = $("#id_crv_amount\\." + item_id)[0];
+  item = order_items[item_id]
+  spn_amount.innerHTML     = '$' + parseFloat(item.amount.toString()).toFixed(2).toString();
+  if (item.crv_per_unit > 0) {
+    spn_crv_amount.innerHTML = '$' + parseFloat(item.crv_amount.toString()).toFixed(2).toString();
   }
-  if (item.is_crv_taxed) {
-    total_taxed += parseFloat(item.crv_amount);
+  if (item.price_differs) {
+     $("input[name=ubp\\." + item_id + "]").show();
   } else {
-    total_nontaxed += parseFloat(item.crv_amount);
+     $("input[name=ubp\\." + item_id + "]").hide();
   }
-  refresh_total();
+  if (item.crv_differes) {
+     $("input[name=ubc\\." + item_id + "]").show();
+  } else {
+     $("input[name=ubc\\." + item_id + "]").hide();
+  }
+  if (item.quantity_differs) {
+    $("input[name=ubq\\." + item_id + "]").show();
+  } else {
+    $("input[name=ubq\\." + item_id + "]").hide();
+  }
+  if (item.crv_per_unit == 0.00) {
+    $("#crv_row\\." + item_id).remove();
+  }
 }
 
-function removefromtotal(item) {
-  if (item.is_cost_taxed) {
-    total_taxed -= parseFloat(item.amount);
-  } else {
-    total_nontaxed -= parseFloat(item.amount);
+function updateItem(itemId) {
+  data = { 'ajax'     : 'update_order_item'}
+  order_item = order_items[itemId]
+  for (field in order_item) {
+    data[field] = order_item[field]
   }
-  if (item.is_crv_taxed) {
-    total_taxed -= parseFloat(item.crv_amount);
-  } else {
-    total_nontaxed -= parseFloat(item.crv_amount);
+  handler = function(data) {
+    order_items[itemId] = data['new_order_item'];
+    refreshTemplate(itemId)
+    recomputeTotal()
   }
-  refresh_total();
+  $.post('/admin/orders/{{ order.id }}/', data, handler);
+  return false;
+}
+
+
+function updateNumCases(itemId, newValue) {
+  order_items[itemId].cases_ordered = newValue
+  updateItem(itemId)
+}
+
+function updateCaseSize(itemId, newValue) {
+  order_items[itemId].units_per_case = newValue
+  updateItem(itemId)
+}
+
+function updateCasePrice(itemId, newValue) {
+  order_items[itemId].case_cost = newValue
+  updateItem(itemId)
+}
+
+function updateTaxable(itemId, newValue) {
+  order_items[itemId].is_cost_taxed = newValue
+  updateItem(itemId)
+}
+
+function updateCrv(itemId, newValue) {
+  order_items[itemId].crv_per_unit = newValue
+  updateItem(itemId)
+}
+
+function updateCrvTaxable(itemId, newValue) {
+  order_items[itemId].is_crv_taxed = newValue
+  updateItem(itemId)
 }
 
 </script>
 
-<script id="orderItemTemplate" type="text/html">
+<script id="orderItemTemplate" type="text/x-jquery-tmpl">
   <tr id="main_row.${id}">
     <td><input type="hidden" name="bulkid.${id}" />
-        <input type="text" size="4" name="cases.${id}"/></td>
+        <input type="text" size="4" name="cases.${id}"
+               onchange="updateNumCases(${id}, this.value)"/></td>
     <td>${find_bulk(bulk_type_id).product_id}</td>
     <td><a href="/admin/django/bobdb/bulkitem/${bulk_type_id}/">
         ${find_bulk(bulk_type_id).description}
       </a></td>
-    <td><input type="text" size="4" name="quantity.${id}""/></td>
-    <td><input type="text" size="6" name="price.${id}"/></td>
-    <td><input type="checkbox" name="taxed.${id}"/></td>
+    <td><input type="text" size="4" name="quantity.${id}"
+               onchange="updateCaseSize(${id}, this.value)"/></td>
+    <td><input type="text" size="6" name="price.${id}"
+               onchange="updateCasePrice(${id}, this.value)"/></td>
+    <td><input type="checkbox" name="taxed.${id}"
+               onchange="updateTaxable(${id}, this.checked)"/></td>
     <td style="text-align:right;" id="id_amount.${id}"></td>
-    <td><input type="submit" value="Save" name="save.${id}"
-		           onClick="save_order_item(${id});"/>
-        <input type="submit" value="Delete" name="del.${id}"
+    <td><input type="submit" value="Delete" name="del.${id}"
 		           onClick="delete_order_item(${id});"/>
 		    <input type="submit" value="Update Bulk Price" name="ubp.${id}"
 		           onClick="update_bulk_price(${id}, ${bulk_type_id});"
@@ -232,8 +356,10 @@ function removefromtotal(item) {
     <td></td>
     <td>CRV for ${find_bulk(bulk_type_id).description}</td>
     <td></td>
-    <td><input type="text" size="6" name="crv.${id}" /></td>
-    <td><input type="checkbox" name="crv_taxed.${id}" /></td>
+    <td><input type="text" size="6" name="crv.${id}" 
+               onchange="updateCrv(${id}, this.value)"/></td>
+    <td><input type="checkbox" name="crv_taxed.${id}" 
+               onchange="updateCrvTaxable(${id}, this.checked)"/></td>
     <td style="text-align:right;" id="id_crv_amount.${id}"></td>
     <td><input type="submit" value="Update Bulk CRV" name="ubc.${id}"
 	             onClick="update_crv_price(${id}, ${bulk_id});"/></td></tr>
@@ -243,6 +369,21 @@ function removefromtotal(item) {
   label {
     display:inline-block;
     width:100px;
+  }
+  
+  .selectSingleOption {
+    border:5px solid green;
+    background-color: lightgreen;
+  }
+  
+  .selectNoOption {
+    border:5px solid red;
+    background-color: #FFCCFF;
+  }
+  
+  .selectMuliOption {
+    border:5px solid gray;
+    background-color: #DDDDDD;
   }
 </style>
 
@@ -255,7 +396,7 @@ function removefromtotal(item) {
 {% if order %}
 <h2>Ordered Items</h2>
 
-<iframe name="error_frame" style="width:800px;"></iframe>
+<iframe name="error_frame" style="width:100%;height:500px;display:none;"></iframe>
 
 <table class="tablesorter" cellspacing="0" id="ordered_items_table">
 <thead>
@@ -277,30 +418,32 @@ function removefromtotal(item) {
   <td><input type="hidden" name="bulkid.{{ item.id }}"  
              value="{{ item.bulk_type.bulkid }}" />
       <input type="text" size="4"  name="cases.{{ item.id }}" 
-             value="{{ item.cases_ordered }}" /></td>
+             value="{{ item.cases_ordered }}" 
+             onchange="updateNumCases({{ item.id }}, this.value)"/></td>
   <td>{{ item.bulk_type.product_id }}</td>
-  <td><a href="/admin/django/bobdb/bulkitem/{{ item.type.bulkid }}/">
+  <td><a href="/admin/django/bobdb/bulkitem/{{ item.bulk_type.bulkid }}/">
          {{ item.bulk_type.description }}</a></td>
     <td><input type="text" size="4" name="quantity.{{ item.id }}" 
-               value="{{ item.units_per_case }}" /></td>
+               value="{{ item.units_per_case }}"
+               onchange="updateCaseSize({{ item.id }}, this.value)" /></td>
     <td><input type="text" size="6" name="price.{{ item.id }}" 
-               value="{{ item.case_cost|stringformat:".2f" }}" /></td>
+               value="{{ item.case_cost|stringformat:".2f" }}" 
+               onchange="updateCasePrice({{ item.id }}, this.value)"/></td>
     <td><input type="checkbox" name="taxed.{{ item.id }}" 
-               {{ item.is_cost_taxed|yesno:'checked="checked",,' }} /></td>
+               {{ item.is_cost_taxed|yesno:'checked="checked",,' }}
+               onchange="updateTaxable({{ item.id }}, this.checked)" /></td>
     <td style="text-align:right;" 
         id="id_amount.{{ item.id }}">${{ item.amount }}</td>
     <td><input type="submit" value="Save" name="save.{{ item.id }}"
 		           onClick="save_order_item({{ item.id }});"/>
         <input type="submit" value="Delete" name="del.{{ item.id }}"
 		           onClick="delete_order_item({{ item.id }});"/>
-		  {% if item.price_differs %}
 		    <input type="submit" value="Update Bulk Price"  name="ubp.{{ item.id }}"
-		           onClick="update_bulk_price({{ item.id }}, {{ item.bulk_type.bulkid }});"/>
-		  {% endif %}
-		  {% if item.quantity_differs %}
+		           onClick="update_bulk_price({{ item.id }}, {{ item.bulk_type.bulkid }});"
+		           style="{{ item.price_differs|yesno:',display:none;,' }}" />
 		    <input type="submit" value="Update Bulk Quantity" name="ubq.{{ item.id }}"
-		           onClick="update_bulk_quantity({{ item.id }}, {{ item.bulk_type.bulkid }});"/>
-		  {% endif %}
+		           onClick="update_bulk_quantity({{ item.id }}, {{ item.bulk_type.bulkid }});"
+		           style="{{ item.quantity_differs|yesno:',display:none;,' }}"/>
     </td></tr>
 {% if item.crv_per_unit %} 
 <tr id="crv_row.{{ item.id }}">
@@ -309,16 +452,17 @@ function removefromtotal(item) {
   <td>CRV for {{ item.bulk_type.description }}</td>
   <td></td>
   <td><input type="text" size="6" name="crv.{{ item.id }}" 
-             value="{{ item.crv_per_unit|stringformat:".2f" }}"/></td>
+             value="{{ item.crv_per_unit|stringformat:".2f" }}"
+             onchange="updateCrv({{ item.id }}, this.value)"/></td>
   <td><input type="checkbox" name="crv_taxed.{{ item.id }}" 
-             {{ item.is_crv_taxed|yesno:'checked="checked",,' }} /></td>
+             {{ item.is_crv_taxed|yesno:'checked="checked",,' }} 
+             onchange="updateCrvTaxable({{ item.id }}, this.checked)"/></td>
   <td style="text-align:right;" 
       id="id_crv_amount.{{ item.id }}">${{ item.crv_amount }}</td>
   <td>
-	  {% if item.crv_differs %}
-	    <input type="submit" value="Update Bulk CRV" name="ubc.{{ item.id }}"
-	           onClick="update_crv_price({{ item.id }}, {{ item.bulk_type.bulkid }});"/>/>
-	  {% endif %}
+    <input type="submit" value="Update Bulk CRV" name="ubc.{{ item.id }}"
+           onClick="update_crv_price({{ item.id }}, {{ item.bulk_type.bulkid }});"
+	         style="{{ item.crv_differs|yesno:',display:none;,' }}"/>
   </td></tr>
 {% endif %}
 {% endfor %}
@@ -326,13 +470,16 @@ function removefromtotal(item) {
 </table>
 
 
+Cases: 
+<input type="text" size="4" name="new_count" id="id_new_count" value="1"/>
+&nbsp;
 Filter: 
 <input type="text" size="30" id="new_description" style="width:210px;" 
-       onKeyUp="filterSelect(this, event)"/>&nbsp;
-Cases: <input type="text" size="4" name="new_count" id="id_new_count" value="1"/>
+       onKeyDown="filterSelect(this, event)"/>
 <input type="submit" value="Add" name="add_item"
 	     onClick="new_order_item();"/><br/>
-<select size="15" id="bulkSelect" name="new_item" style="width:400px;">		  
+<select size="15" id="bulkSelect" name="new_item" style="width:400px;" 
+        class="selectMuliOption" onKeyDown="bulkSelectKeyDown(this, event);">		  
   {% for bi in bulk_items %}
 	  <option value="{{ bi.bulkid }}">{{ bi.description }}</option>
 	{% endfor %}
