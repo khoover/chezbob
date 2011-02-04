@@ -92,7 +92,7 @@ class TransferForm(UserTransactionForm):
                   
 class AddUncountedForm(UserTransactionForm):
   ammount    = forms.DecimalField()
-  repository = forms.ChoiceField(choices=[('cashbox','cashbox'),('soda','soda'),],
+  repository = forms.ChoiceField(choices=[('chezbob','chezbob'),('soda','soda'),],
                                  required=True)
 
   def set_transaction_fields(self, transaction, messages):
@@ -144,7 +144,7 @@ class ReimburseForm(UserTransactionForm):
 
 class RefundForm(UserTransactionForm):
   ammount    = forms.DecimalField()
-  repository = forms.ChoiceField(choices=[('cashbox','cashbox'),('soda','soda'),],
+  repository = forms.ChoiceField(choices=[('chezbob','chezbob'),('soda','soda'),],
                                  required=True)
 
   def set_transaction_fields(self, transaction, messages):
