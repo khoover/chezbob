@@ -1,0 +1,30 @@
+# Query: select select username, email, balance, greatest(last_purchase_time, last_deposit_time)::date as last_seen from users where balance > 0 and greatest(last_purchase_time, last_deposit_time, '2000-01-01') < '2009-01-01' order by balance;
+# Fields: USERNAME EMAIL BALANCE LASTSEEN
+From: Michael Vrable <mvrable@cs.ucsd.edu>
+Subject: Your Old Chez Bob Account (%USERNAME%)
+
+| Chez Bob, the UCSD CSE grad student food co-op, has been sorting
+| through old accounts.  According to our records, you have an account
+| with Chez Bob (%USERNAME%) which has not been used since %LASTSEEN%.
+| This account currently has a balance of $%BALANCE%.
+
+| We are happy to keep the account open for you if you like; simply make
+| a transaction or send an e-mail.  If you wish to close the account,
+| you have several options for your remaining balance:
+  - We can give you a refund if you stop by UCSD.
+  - You may transfer the funds to another Chez Bob user.
+  - You may donate the funds to Chez Bob.
+| We aren't at this time mailing out refunds because of the hassle
+| involved.
+
+| Chez Bob recently upgraded the lounge with a second, larger
+| refrigerator, and donations will help us cover the cost and would be
+| much appreciated.  However, the choice of what to do with the funds is
+| up to you.
+
+| If we don't hear from you and there are no further transactions on
+| your account, we will default to donating the balance to Chez Bob.  To
+| let us know otherwise, send me an e-mail or send an e-mail to
+| chezbob@cs.ucsd.edu.
+
+--Michael Vrable (for Chez Bob)
