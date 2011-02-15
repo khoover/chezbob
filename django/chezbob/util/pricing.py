@@ -8,14 +8,6 @@ from django.db import connection
 import django.db.transaction
 cursor = connection.cursor()
 
-markups = {
-    1: 0.13,                    # Shelves
-    2: 0.13,                    # Refrigerator
-    3: 0.16,                    # Freezer
-    4: 0.06,                    # Soda machine
-    5: 0.25,                    # Terminal
-}
-
 def to_decimal(f):
     """Convert a floating-point value to a decimal.
 
@@ -23,6 +15,7 @@ def to_decimal(f):
     currency value."""
 
     return Decimal(str(f)).quantize(Decimal("0.00"))
+
 def reprice(dry_run=False):
     def format_price_list(l):
         if len(l) == 0:
@@ -32,7 +25,7 @@ def reprice(dry_run=False):
 
     def price_set(s):
         for b in s:
-            markup = markups[b.floor_location.id]
+            markup = float(b.floor_location.markup)
             price = to_decimal(float(b.unit_price()) * (1 + markup))
             old_prices = [p.price for p in b.product_set.all()]
             print "%s\t%s\t%s\t%s" % (b.description, format_price_list(old_prices), price, b.unit_price())

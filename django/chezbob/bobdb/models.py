@@ -24,6 +24,7 @@ class FloorLocations(models.Model):
 
     id = models.AutoField(db_column='id', primary_key=True)
     name = models.CharField(db_column='name', max_length=255)
+    markup = models.FloatField(db_column='markup')
 
     def __unicode__(self):
         return self.name
