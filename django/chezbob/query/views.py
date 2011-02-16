@@ -45,6 +45,18 @@ add_query("accounts_duplicate", "Duplicate Accounts for an E-Mail Address",
              where not disabled order by email, username""",
           [])
 
+add_query("coffee", "Coffee-Related Income",
+          """select name, s1.*
+             from (select barcode, sum(quantity) as quantity,
+                          sum(price) as proceeds
+                   from aggregate_purchases
+                   where date >= %s and date <= %s group by barcode) s1
+                join products using (barcode)
+             where coffee
+             order by name""",
+          [('start', datetime.date.today() - datetime.timedelta(120)),
+           ('end', datetime.date.today())])
+
 add_query("inactive", "Newly-Inactive Products",
           """select * from bulk_items
              where
