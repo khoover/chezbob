@@ -46,7 +46,7 @@ add_query("accounts_duplicate", "Duplicate Accounts for an E-Mail Address",
           [])
 
 add_query("coffee", "Coffee-Related Income",
-          """select name, s1.*
+          """select price, name, s1.*
              from (select barcode, sum(quantity) as quantity,
                           sum(price) as proceeds
                    from aggregate_purchases
