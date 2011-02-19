@@ -3,12 +3,18 @@
 093624835028    # Latte, Single
 042491500010    # Latte, Double
 410014682282    # Milk for Tea
-406746042227	# Milk for Latte
+406746042227    # Milk for Latte
 488585940780    # Glass of Milk
-074570036127    # Haagen-Dazs
 436710464281    # Lipton Tea Bag
-438334145539    # Herbal Tea Bag
+438334145539    # Lipton Herbal Tea Bag
+464651847221    # Lipton Green Tea Bag
 431016311314    # Decaffeinated Lipton Tea Bag
 476989929852    # Apple
 418686540282    # Banana
 464121094254    # Orange
+472792172478    # Bagel: Cinnamon
+448436611788    # Bagel: Honey Wheat
+472081732314    # Bagel: Onion
+434613729032    # Bagel: Parmesan
+415673888167    # Bagel: Plain
+427213093702    # Bagel: Sesame Seed
