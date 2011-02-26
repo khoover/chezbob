@@ -68,8 +68,8 @@ def dump_price_listing(out, update=True):
             if price != old_prices[0].price:
                 old_price = old_prices[0]
             else:
-                old_price = old_prices[1]
                 add_new_historical_price = False
+                old_price = old_prices[1]
 
             change = (float(price) / float(old_price.price) - 1) * 100
             if change != 0:
