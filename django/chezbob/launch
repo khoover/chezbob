@@ -39,7 +39,8 @@ def html_dump(func, title=""):
 <script type="text/javascript" src="/js/tablesorter/jquery.tablesorter.js"></script>
 <link rel="stylesheet" type="text/css" href="/js/tablesorter/style.css" />
 <body>
-""" % (title,))
+<h1>%s</h1>
+""" % (title, title))
     func(sys.stdout)
     sys.stdout.write("</body>\n</html>\n")
 
@@ -82,7 +83,7 @@ elif action == 'gnuplot_dump':
         sys.stdout.write(line)
 elif action == 'price_dump':
     import chezbob.util.pricing
-    html_dump(chezbob.util.pricing.dump_price_listing, "Item Prices")
+    html_dump(chezbob.util.pricing.dump_price_listing, "Current Chez Bob Prices")
 else:
     sys.stderr.write("Unknown action: %s\n", action)
     sys.exit(1)

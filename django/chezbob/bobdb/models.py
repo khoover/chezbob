@@ -101,6 +101,15 @@ class Product(models.Model):
                        [self.barcode])
         return cursor.fetchall()
 
+class HistoricalPrice(models.Model):
+    class Meta:
+        db_table = 'historical_prices'
+
+    id = models.AutoField(primary_key=True)
+    bulkid = models.ForeignKey(BulkItem, db_column='bulkid', blank=True)
+    date = models.DateField()
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+
 #class Order(models.Model):
 #    class Meta:
 #        db_table = 'orders'
