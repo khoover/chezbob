@@ -51,6 +51,9 @@ elif action == 'loss_report':
     import chezbob.util.inventory
     chezbob.util.inventory.category_report(datetime.date(2010, 9, 21),
                                            datetime.date(2011, 1, 12))
+elif action == 'itemized_loss_report':
+    import chezbob.util.inventory
+    chezbob.util.inventory.item_report(datetime.date(2011, 1, 1))
 elif action == 'reprice':
     import chezbob.util.pricing
     chezbob.util.pricing.reprice(dry_run=True)

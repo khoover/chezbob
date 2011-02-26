@@ -286,7 +286,7 @@ def item_report(start, end=None):
             continue
         bulk = BulkItem.objects.get(bulkid=id)
         print "%s\t%d\t%.2f\t%.2f\t%.2f" % \
-            (bulk.description, bulk.floor_location, items[id]['sales'],
+            (bulk.description, bulk.floor_location.id, items[id]['sales'],
              items[id]['cost'], items[id]['shrinkage'])
         sales += items[id]['sales']
         shrinkage += items[id]['shrinkage']
