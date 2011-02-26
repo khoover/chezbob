@@ -24,6 +24,25 @@ except ImportError:
 import chezbob
 os.environ['DJANGO_SETTINGS_MODULE'] = 'chezbob.settings'
 
+def html_dump(func, title=""):
+    """Call the given function to dump a static HTML data page.
+
+    The function will be called with an open file as the sole argument, to
+    which the body of the HTML page should be written.
+    """
+
+    sys.stdout.write("""<!DOCTYPE html>
+<html>
+<head>
+<title>%s</title>
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/tablesorter/jquery.tablesorter.js"></script>
+<link rel="stylesheet" type="text/css" href="/js/tablesorter/style.css" />
+<body>
+""" % (title,))
+    func(sys.stdout)
+    sys.stdout.write("</body>\n</html>\n")
+
 # Examine the command-line to determine what action has been requested.
 action = sys.argv[1]
 
@@ -61,6 +80,9 @@ elif action == 'gnuplot_dump':
     import chezbob.finance.views
     for line in chezbob.finance.views.gen_gnuplot_dump():
         sys.stdout.write(line)
+elif action == 'price_dump':
+    import chezbob.util.pricing
+    html_dump(chezbob.util.pricing.dump_price_listing, "Item Prices")
 else:
     sys.stderr.write("Unknown action: %s\n", action)
     sys.exit(1)
