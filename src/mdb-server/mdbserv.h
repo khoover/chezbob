@@ -11,6 +11,7 @@
 
 extern "C" {
 #include <glob.h>
+#include <string.h>
 }
 
 using std::max;
@@ -54,89 +55,51 @@ public:
         };
     }
 
-    bool open_serport() {
-        errno = 0;
-        char real_port[1512];
+    int poll(int &sleep_for);
+    void cash_reset();
+    void flush_buffer();
 
-        glob_t gl;
-        bzero(&gl, sizeof(gl));
-        int gt = glob(ser_port, GLOB_ERR|GLOB_MARK|GLOB_NOCHECK, 0, &gl);
-        if ((gt != 0) || (gl.gl_pathc == 0)) {
-            sio_write(SIO_WARN, "glob %s: retval %d, results %d", ser_port, errno); 
-            strncpy(real_port, ser_port, sizeof(real_port));
-        } else if (gl.gl_pathc == 1) {
-            strncpy(real_port, gl.gl_pathv[0], sizeof(real_port));
-        } else {
-            strncpy(real_port, gl.gl_pathv[gl.gl_pathc - 1], sizeof(real_port));
-            sio_write(SIO_LOG, "glob %s: %d results, picking %s, first 3: %s/%s/%s",
-                      ser_port, gl.gl_pathc, 
-                      real_port,
-                      (gl.gl_pathc>=1)?gl.gl_pathv[0] : "{null}",
-                      (gl.gl_pathc>=2)?gl.gl_pathv[1] : "{null}",
-                      (gl.gl_pathc>=3)?gl.gl_pathv[2] : "{null}");
-        };
+    // accept/reject stuff in escrow
+    int cash_accept(bool accept, int amt=0);
 
-        srh = ser_open(real_port, SER_M8N1 | SER_B9600 | SER_SIGTIMEOUTS); 
-        if (!srh) {
-            sio_write(SIO_WARN, "could not open port at %s (actual %s): %d", ser_port, real_port, errno); 
-            return false;
-        } else {
-            sio_write(SIO_LOG, "opended serport at %s (actual %s)", ser_port, real_port); 
-        };
-        return true;
-    };
-
-    int poll(int &sleep_for)
+    void refresh_all(bool forceprint)
     {
-        int stop_num = 0;
-
-        sleep_for = 200; // default poll is 0.2 sec
-
-	if (!srh) {
-	  // no serial port...
-	  cc_ready = 0;
-	  bb_ready = 0;
-	  open_serport();
-          sleep_for = 3000;
-	} else if (!cc_ready) {
-	  // coinchanger not ready? init it
-	  if (cc_init() < 0) {
-		sleep_for = 3000; // sleep 3 sec, retry coinchanger
-	  };
-	} else if (!bb_ready) {
-	  // bill acceptor not ready? init it, too
-	  if (bb_init() < 0) {
-		sleep_for = 3000; // sleep 3 sec, retry bill acceptor
-	  };
-	} else {
-	  // manually poll the device
-	  if (cc_ready > 0) 
-		if (cc_poll() < 0) next_scan = 0;
-	  if (bb_ready > 0) 
-		if (bb_poll() < 0) next_scan = 0;
-
-	  if (time(0) > next_scan) {
-		int rv = cc_tube_refresh(0);
-		if (rv < 0) rv = cc_tube_refresh(0); // retry if first time failed
-		if (rv < 0) 
-		  cc_ready = 0; // coinchanger went offline
-		
-		rv = bb_stacker_refresh(0);
-		if (rv < 0) rv =  bb_stacker_refresh(0);
-		if (rv < 0) 
-		  bb_ready = 0; // stacker went offline
-
-		next_scan = time(0) + 10; // re-check in 10 seconds
-	  };
-	};
-
-	bool ready = ((cc_ready > 0) && (bb_ready > 0));
-	sio_setvar("ready",    "+:d", ready);
-	sio_setvar("cc_ready", "+:d", cc_ready);
-	sio_setvar("bb_ready", "+:d", bb_ready);
-
-        return stop_num;
+        cc_tube_refresh(forceprint);
+        bb_stacker_refresh(forceprint);
     }
+
+    int dispense_coints(int denom, int count, int *type)
+    {
+        *type = -1;
+        for (int i=0; i<16; i++)
+            if ((cc_values[i] == denom) && (cc_count[i]>=count)) {
+                *type = i;
+                break;
+            };
+
+        int rv = -1;
+        if (*type > -1) rv = giveout_coins(*type, count);
+        return rv;
+    }
+
+    // gives given amount using availible coins of higest denomination
+    // RV is amount given sucessfully
+    //  or -1/-2 if error occur before first coin was given
+    // uses giveout_coins with all of its side effects
+    int giveout_smart(int amount);
+
+    int set_manual_disp(int denom, int mode)
+    {
+        for (int i=0; i<16; i++)
+            if ((denom==0) || (cc_values[i] == denom)) {
+                cc_mandisp[i] = mode;
+            };
+        cc_tube_refresh(0);
+    }
+
+private:
+    bool open_serport();
+
 
     // init coinchanger
     //   returns -1 on error or timeout, or 0 if init  ok and all ready
@@ -167,45 +130,8 @@ public:
     //   -1 print as changed, do not scan tube full
     int cc_tube_refresh(int forceprint);
 
-    void cash_reset();
 
-    // accept/reject stuff in escrow
-    int cash_accept(bool accept, int amt=0);
 
-    // gives given amount using availible coins of higest denomination
-    // RV is amount given sucessfully
-    //  or -1/-2 if error occur before first coin was given
-    // uses giveout_coins with all of its side effects
-    int giveout_smart(int amount);
-
-    int dispense_coints(int denom, int count, int *type)
-    {
-        *type = -1;
-        for (int i=0; i<16; i++)
-            if ((cc_values[i] == denom) && (cc_count[i]>=count)) {
-                *type = i;
-                break;
-            };
-
-        int rv = -1;
-        if (*type > -1) rv = giveout_coins(*type, count);
-        return rv;
-    }
-
-    int set_manual_disp(int denom, int mode)
-    {
-        for (int i=0; i<16; i++)
-            if ((denom==0) || (cc_values[i] == denom)) {
-                cc_mandisp[i] = mode;
-            };
-        cc_tube_refresh(0);
-    }
-
-    void refresh_all(bool forceprint)
-    {
-        cc_tube_refresh(forceprint);
-        bb_stacker_refresh(forceprint);
-    }
 
 // send_command
 //   send string in "cmd"
@@ -222,7 +148,6 @@ public:
 ////int send_command(const char * cmd, char* expect=0, int timeout = 1000);
     int send_command(const char *cmd, const char *expect=NULL, int timeout = 1000);
 
-    void flush_buffer();
 
     unsigned char resp[64];
     int resplen;
@@ -303,8 +228,6 @@ public:
         int cmdlen;
 
         int stop_num = 0;
-
-	bus.flush_buffer();
 
 	errno = 0;
 	if ((cmdlen=sio_read(cmd,sizeof(cmd),sleep_for))>0) {
@@ -424,6 +347,7 @@ public:
         sio_setvar("escrow_total", "+:d", esc_total);
     }
 
+private:
     // virtual escrow settings
     int esc_total;      // total amount of money in the escrow
     int esc_coins[16];  // coint for each coin type
