@@ -271,7 +271,6 @@ public:
     MdbServ(int argc, char**argv)
         :bus(this)
     {
-        init();
 
         if (sio_open(argc, argv, "MDBSERV", VERSION, "") < 0) {
             exit(11);
@@ -279,6 +278,7 @@ public:
 
         sio_write(SIO_DATA, "SYS-ACCEPT\tCASH-\tSYS-SET");
 
+        init();
         bus.init();
     }
 

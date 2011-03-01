@@ -264,10 +264,10 @@ int main(int argc, char ** argv) {
 
   int sleep_for = 0;
   while (!stop_num) {
-        stop_num = mdbserv.sio_poll(sleep_for);
+        /* stop_num is how we collect signals */
+        stop_num = max(stop_num, mdbserv.sio_poll(sleep_for));
         if (stop_num != 0) break;
-
-        stop_num = mdbserv.mdb_poll(sleep_for);
+        stop_num = max(stop_num, mdbserv.mdb_poll(sleep_for));
   };
   
   sio_close(stop_num, "Signal Recieved");
