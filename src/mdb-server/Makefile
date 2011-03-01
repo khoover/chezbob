@@ -9,11 +9,13 @@ install: ${APPNAME}
 run: all
 	SERVIO_DEBUG=4 ./mdbserv
 
-${APPNAME}: ${APPNAME}.o ${VLIBS} mdblogic.o
-
-mdblogic.o: mdblogic.cpp  mdbserv.h
+${APPNAME}: ${APPNAME}.o ${VLIBS} mdbmain.o mdbbus.o
 
 mdbserv.o: mdbserv.cpp mdbserv.h
+
+mdbbus.o: mdbbus.cpp mdbserv.h
+
+mdbmain.o: mdbmain.cpp mdbserv.h
 
 clean:
 	rm -f *~ *.o ${APPNAME} ${VLIBS} core
