@@ -1,4 +1,3 @@
-
 APPNAME=mdbserv
 include ../sodacom.in
 
