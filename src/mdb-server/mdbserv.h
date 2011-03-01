@@ -27,14 +27,7 @@ public:
     MdbBus(MdbServ *mdbserv)
         :serv(mdbserv)
     {
-        char cmd[1024];
         ser_port = strdup("/dev/ttyUSB0");
-        sio_getvar("port", "D:s", &ser_port);
-        if (!open_serport()) {
-            while (sio_read(cmd, sizeof(cmd), 100) > 0) {};
-            sio_close(2, "serial port open failed");
-            exit(2);
-        };
     }
     ~MdbBus()
     {
@@ -44,11 +37,21 @@ public:
 
     void init()
     {
+        char cmd[1024];
+
         cc_ready = 0;
         bb_ready = 0;
         next_scan = 0;
         want_enabled = 0;
+
         sio_getvar("enabled", "D+:d", &want_enabled);
+        sio_getvar("port", "D:s", &ser_port);
+
+        if (!open_serport()) {
+            while (sio_read(cmd, sizeof(cmd), 100) > 0) {};
+            sio_close(2, "serial port open failed");
+            exit(2);
+        };
     }
 
     bool open_serport() {
