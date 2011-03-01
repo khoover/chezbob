@@ -78,6 +78,20 @@ add_query("newactive", "Recently-Purchased But Not Active Products",
              order by date, description""",
           [('date', datetime.date.today() - datetime.timedelta(30))])
 
+add_query("nobulk", "Recent Purchases Without an Associated Bulk Item",
+          """select s1.*, products.name
+             from
+               (select barcode, max(date) as last_purchase, count(*) as sales
+                from aggregate_purchases
+                where date >= %s and barcode in
+                  (select barcode from aggregate_purchases
+                   where date >= %s and bulkid is null)
+                group by barcode) s1
+               join products using (barcode)
+             order by last_purchase""",
+          [('date', datetime.date.today() - datetime.timedelta(60)),
+           ('date', datetime.date.today() - datetime.timedelta(60))])
+
 add_query("products", "All Products",
           """select * from products""",
           [])
