@@ -166,7 +166,7 @@ int sio_getvar(const char * varname, const char* format, ...);
 int sio_setvar(const char *varname, const char* format, ...);
 
 // call before exit - flushes all buffers
-void sio_close(int excode=0, char*comment="");
+void sio_close(int excode=0, const char*comment="");
 
 // helper - useconds since epoch as 64-bit int
 #ifndef int64

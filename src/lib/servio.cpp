@@ -763,7 +763,7 @@ int sio_setvar(const char * varname, const char* format, ...) {
 
 
 
-void sio_close(int excode, char*comment) {
+void sio_close(int excode, const char*comment) {
   fprintf(stderr, "%s: exiting (%d %s)\n", appname, excode, comment);
   sio_write(SIO_DATA, "SYS-DONE\t%s\t%d\t%s", appname, excode, comment);
   if (ser_fd_write != -1) {	
