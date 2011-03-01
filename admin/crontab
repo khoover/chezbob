@@ -8,3 +8,4 @@
 # These commands should run on the web server machine (currently chezbob).
 */10 * * * *      $HOME/chezbob.hg/reports/wall_of_shame.pl >/srv/www/www/wall_of_shame.html
 19 */6 * * *      $HOME/chezbob.hg/admin/finance-update >$HOME/update.log; cp $HOME/finances.pdf /srv/www/www/reports/
+12 0 * * *      $HOME/chezbob.hg/django/chezbob/launch update_prices >$HOME/prices.html; cp $HOME/prices.html /srv/www/www/prices.html

@@ -16,30 +16,7 @@ def to_decimal(f):
 
     return Decimal(str(f)).quantize(Decimal("0.00"))
 
-def reprice(dry_run=False):
-    def format_price_list(l):
-        if len(l) == 0:
-            return "??"
-        p = sorted(set(map(str, l)))
-        return ", ".join(p)
-
-    def price_set(s):
-        for b in s:
-            markup = float(b.floor_location.markup)
-            price = to_decimal(float(b.unit_price()) * (1 + markup))
-            old_prices = [p.price for p in b.product_set.all()]
-            print "%s\t%s\t%s\t%s" % (b.description, format_price_list(old_prices), price, b.unit_price())
-            if not dry_run:
-                for p in b.product_set.all():
-                    p.price = price
-                    p.save()
-
-    print "Product\tOld Price\tNew Price\tCost"
-    price_set(BulkItem.objects.filter(active=True).order_by('description'))
-    print
-    price_set(BulkItem.objects.filter(active=False).order_by('description'))
-
-def dump_price_listing(out, update=True):
+def update_price_listing(out, update=True):
     today = datetime.date.today()
 
     def format_price_list(l):

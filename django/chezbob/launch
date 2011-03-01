@@ -69,21 +69,23 @@ elif action == 'inventory_sync':
 
 elif action == 'loss_report':
     import chezbob.util.inventory
-    chezbob.util.inventory.category_report(datetime.date(2010, 9, 21),
-                                           datetime.date(2011, 1, 12))
+    chezbob.util.inventory.category_report(datetime.date(2010, 12, 16),
+                                           datetime.date(2011, 2, 24))
 elif action == 'itemized_loss_report':
     import chezbob.util.inventory
     chezbob.util.inventory.item_report(datetime.date(2011, 1, 1))
-elif action == 'reprice':
-    import chezbob.util.pricing
-    chezbob.util.pricing.reprice(dry_run=True)
 elif action == 'gnuplot_dump':
     import chezbob.finance.views
     for line in chezbob.finance.views.gen_gnuplot_dump():
         sys.stdout.write(line)
-elif action == 'price_dump':
+elif action == 'update_prices':
+    # Update prices of all items based on current bulk item costs and
+    # per-location markups (in the floor_locations table).  This also dumps an
+    # HTML file with current prices to stdout, which can made available to post
+    # the current prices.
     import chezbob.util.pricing
-    html_dump(chezbob.util.pricing.dump_price_listing, "Current Chez Bob Prices")
+    html_dump(chezbob.util.pricing.update_price_listing,
+              "Current Chez Bob Prices")
 else:
     sys.stderr.write("Unknown action: %s\n", action)
     sys.exit(1)
