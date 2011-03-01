@@ -229,8 +229,6 @@ public:
 
         int stop_num = 0;
 
-	bus.flush_buffer();
-
 	errno = 0;
 	if ((cmdlen=sio_read(cmd,sizeof(cmd),sleep_for))>0) {
 	  cmdc = sio_parse(cmd, cmdv, sizeof(cmdv));
