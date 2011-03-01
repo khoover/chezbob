@@ -31,7 +31,7 @@ int sio_open(int &argc, char ** &argv, const char* appname, const char* ver, con
 //   0 for ok, -1 for error
 // "level" is one of SIO_ constants above, possibly OR'ed with 
 //   debug level required (1..100, 1 = most verbose, 100=least verbose)
-int sio_write(int level, char * format, ...);
+int sio_write(int level, const char * format, ...);
 
 
 
