@@ -263,12 +263,11 @@ int main(int argc, char ** argv) {
 
 
   int sleep_for = 0;
-  int next_scan = 0; // when to rescan tube/bill acceptor status
   while (!stop_num) {
-        stop_num = mdbserv.sio_poll();
+        stop_num = mdbserv.sio_poll(sleep_for);
         if (stop_num != 0) break;
 
-        stop_num = mdbserv.mdb_poll();
+        stop_num = mdbserv.mdb_poll(sleep_for);
   };
   
   sio_close(stop_num, "Signal Recieved");

@@ -83,27 +83,27 @@ public:
         return true;
     };
 
-    int poll()
+    int poll(int &sleep_for)
     {
         int stop_num = 0;
-	
-	// XXX sleep_for = 200; // default poll is 0.2 sec
+
+        sleep_for = 200; // default poll is 0.2 sec
 
 	if (!srh) {
 	  // no serial port...
 	  cc_ready = 0;
 	  bb_ready = 0;
 	  open_serport();
-	  // XXX sleep_for = 3000;
+          sleep_for = 3000;
 	} else if (!cc_ready) {
 	  // coinchanger not ready? init it
 	  if (cc_init() < 0) {
-		// XXX sleep_for = 3000; // sleep 3 sec, retry coinchanger
+		sleep_for = 3000; // sleep 3 sec, retry coinchanger
 	  };
 	} else if (!bb_ready) {
 	  // bill acceptor not ready? init it, too
 	  if (bb_init() < 0) {
-		// XXX sleep_for = 3000; // sleep 3 sec, retry bill acceptor
+		sleep_for = 3000; // sleep 3 sec, retry bill acceptor
 	  };
 	} else {
 	  // manually poll the device
@@ -292,7 +292,7 @@ public:
         escrow_change("reset", 0, 0);
     }
 
-    int sio_poll()
+    int sio_poll(int &sleep_for)
     {
         char cmd[1024];
         char * cmdv[16];
@@ -302,8 +302,6 @@ public:
         int stop_num = 0;
 
 	bus.flush_buffer();
-
-        /* XXX */ int sleep_for = 0; 
 
 	errno = 0;
 	if ((cmdlen=sio_read(cmd,sizeof(cmd),sleep_for))>0) {
@@ -386,9 +384,9 @@ public:
         return stop_num;
     }
 
-    int mdb_poll()
+    int mdb_poll(int &sleep_for)
     {
-        return bus.poll();
+        return bus.poll(sleep_for);
     }
 
     int report_fail(const char * where,

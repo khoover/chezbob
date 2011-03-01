@@ -530,7 +530,7 @@ int MdbBus::cash_accept(bool accept, int amt) {
 
   if (accept) {
 	//   ACCEPT coins - just verify variables actually
-	if ((grv == 0) && (serv->get_total_escrow())) {
+	if ((grv == 0) && (serv->get_escrow_total())) {
 	  // accept coins now
 	  int cval = 0;
 	  for (int i=0; i<16; i++) 
