@@ -10,6 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #include <string>
 #include <deque>
@@ -30,7 +31,7 @@ static int eol_char = '\n';
 
 int sio_commdump = 0;
 
-static char * appname = "??";
+static const char * appname = "??";
 
 static std::deque<std::string> postponed;
 
@@ -126,7 +127,7 @@ int sio_open(int &argc, char ** &argv, const char*g_appname, const char*ver, con
 	bzero(&servaddr, sizeof(servaddr));
 	servaddr.sin_family = AF_INET;
 	servaddr.sin_port = htons(port);
-	char * ip =  getenv("SODACTRL_IP");
+	const char * ip =  getenv("SODACTRL_IP");
 	if (!ip) ip = "127.0.0.1";
 	servaddr.sin_addr.s_addr =inet_addr(ip);
 
@@ -153,7 +154,7 @@ int sio_open(int &argc, char ** &argv, const char*g_appname, const char*ver, con
   char * commd = getenv("SERVIO_COMMDUMP");
   sio_commdump = commd ? atoi(commd) : 0;
 
-  char* proto = "106";
+  const char* proto = "106";
 
   if (g_appname[0] == '+') {
 	proto = "101";
@@ -162,7 +163,7 @@ int sio_open(int &argc, char ** &argv, const char*g_appname, const char*ver, con
 
   appname = strdup(g_appname);
   if (sio_write(SIO_DATA, "SYS-INIT\t%s\t%s\t%s\t%d\t%s",
-				(int)proto, (int)appname, (int)ver, getpid(), (int)(client?client:"")) == -1) {
+				proto, appname, ver, getpid(), (client?client:"")) == -1) {
 	perror("Cannot write to server");
 	return -1;
   };
@@ -193,7 +194,7 @@ int sio_open(int &argc, char ** &argv, const char*g_appname, const char*ver, con
 };
 
 
-int sio_write(int level, char * format, ...) {
+int sio_write(int level, const char * format, ...) {
   char bf[1024];
 
   int ilevel = level & 0xFFF;
@@ -254,7 +255,7 @@ int _sio_handlemsg(std::string & msg) {
   // system handler
   if (msg.substr(0, 10)=="SYS-CPING\t") {
 	std::string r2 =  msg.substr(10);
-	if (sio_write(SIO_DATA, "SYS-CPONG\t%s",(int) r2.c_str())==-1) {
+	if (sio_write(SIO_DATA, "SYS-CPONG\t%s", r2.c_str())==-1) {
 	  return -1;
 	};
 	return 0;
@@ -762,9 +763,9 @@ int sio_setvar(const char * varname, const char* format, ...) {
 
 
 
-void sio_close(int excode, char*comment) {
+void sio_close(int excode, const char*comment) {
   fprintf(stderr, "%s: exiting (%d %s)\n", appname, excode, comment);
-  sio_write(SIO_DATA, "SYS-DONE\t%s\t%d\t%s", (int)appname, excode, (int)comment);
+  sio_write(SIO_DATA, "SYS-DONE\t%s\t%d\t%s", appname, excode, comment);
   if (ser_fd_write != -1) {	
 	close(ser_fd_write);
   };

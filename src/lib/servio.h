@@ -31,7 +31,7 @@ int sio_open(int &argc, char ** &argv, const char* appname, const char* ver, con
 //   0 for ok, -1 for error
 // "level" is one of SIO_ constants above, possibly OR'ed with 
 //   debug level required (1..100, 1 = most verbose, 100=least verbose)
-int sio_write(int level, char * format, ...);
+int sio_write(int level, const char * format, ...);
 
 
 
@@ -166,7 +166,7 @@ int sio_getvar(const char * varname, const char* format, ...);
 int sio_setvar(const char *varname, const char* format, ...);
 
 // call before exit - flushes all buffers
-void sio_close(int excode=0, char*comment="");
+void sio_close(int excode=0, const char*comment="");
 
 // helper - useconds since epoch as 64-bit int
 #ifndef int64

@@ -51,11 +51,11 @@ typedef struct  {
 
 
 int ser_getc_8bit(SER_HANDLE srh, int timeout);
-int ser_fail(char * func, int arg=0);
+int ser_fail(const char * func, int arg=0);
 
 
 // prints error, returns -1
-int ser_fail(char * func, int arg) {
+int ser_fail(const char * func, int arg) {
 	int e = errno;	
 	fprintf(stderr, "serport: %s: %s (%d)\n", func, strerror(e), arg);
 	return -1;
