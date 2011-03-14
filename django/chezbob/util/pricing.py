@@ -34,13 +34,16 @@ def update_price_listing(out, update=True):
         markup = float(b.floor_location.markup)
         price = to_decimal(float(b.unit_price()) * (1 + markup))
         add_new_historical_price = True
+
         try:
             # The historical_prices table contains prices for items at various
             # points in the past.  Pull out the most recent two prices; since
             # we try not to insert consecutive entries at the same price at
             # least one of these should be different from the current price.
             # Choose the most recent price which differs from the current one
-            # as the "old" price.
+            # as the "old" price.  If the old price is at least a month ago,
+            # though, don't clutter the prices page with it--only show recent
+            # changes.
             old_prices = b.historicalprice_set.order_by('-date')[0:2]
             if price != old_prices[0].price:
                 old_price = old_prices[0]
@@ -48,12 +51,16 @@ def update_price_listing(out, update=True):
                 add_new_historical_price = False
                 old_price = old_prices[1]
 
-            change = (float(price) / float(old_price.price) - 1) * 100
-            if change != 0:
-                change = "%.01f%%" % (change,)
+            if datetime.date.today() - old_price.date < datetime.timedelta(30):
+                change = (float(price) / float(old_price.price) - 1) * 100
+                if change != 0:
+                    change = "%.01f%%" % (change,)
+                else:
+                    change = ""
+                old_price = "$%.02f on %s" % (old_price.price, old_price.date)
             else:
+                old_price = ""
                 change = ""
-            old_price = "$%.02f on %s" % (old_price.price, old_price.date)
         except:
             old_price = ""
             change = ""
