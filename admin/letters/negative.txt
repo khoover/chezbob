@@ -1,10 +1,10 @@
-# Query: select username, email, balance from account_summary where balance <= -4.00 order by balance
+# Query: select username, email, balance from account_summary where where last_seen >= '2010-12-01' and balance <= -1 order by balance, lower(username);
 # Fields: USERNAME EMAIL BALANCE
 From: Chez Bob <chezbob@cs.ucsd.edu>
-Reply-To: Keaton Mowery <kmowery@cs.ucsd.edu>
+Reply-To: Nathan Bales <nbales@cs.ucsd.edu>
 Subject: Your Chez Bob Account: %USERNAME%
 
-| This is an automated reminder message from Chez Bob, the UCSD CSE grad
+| This is a reminder message from Chez Bob, the UCSD CSE grad
 | student food co-op.  Our records indicate that you have an account
 | with Chez Bob and that this account (%USERNAME%) currently has a
 | balance of %BALANCE%.
@@ -15,7 +15,7 @@ Subject: Your Chez Bob Account: %USERNAME%
 | everyone.
 
 | If you believe this message to have been sent in error, please contact
-| us to help clear up the situation.  You may reply to Keaton Mowery 
-| (kmowery@cs.ucsd.edu) or send a message to chezbob@cs.ucsd.edu.
+| us to help clear up the situation.  You may reply to Nathan Bales 
+| (nbales@cs.ucsd.edu) or send a message to chezbob@cs.ucsd.edu.
 
 --Chez Bob
