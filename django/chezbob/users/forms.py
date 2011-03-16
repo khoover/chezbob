@@ -199,3 +199,4 @@ class WriteOffForm(UserTransactionForm):
                           'time': transaction.time,
                           'ammount': transaction.value, })
 
+
