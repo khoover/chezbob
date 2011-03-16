@@ -1,8 +1,8 @@
-# Query: select username, email, -balance as absbalance, last_seen from account_summary where last_seen < '2010-04-01' and balance <= -1 order by balance, lower(username);
+# Query: select username, email, -balance as absbalance, last_seen from account_summary where last_seen < '2010-12-01' and balance <= -0 order by balance, lower(username);
 # Fields: USERNAME EMAIL ABSBALANCE LASTSEEN
 From: Chez Bob <chezbob@cs.ucsd.edu>
 Subject: Your Chez Bob Account: %USERNAME%
-Reply-To: Michael Vrable <mvrable@cs.ucsd.edu>
+Reply-To: Nathan Bales <nbales@cs.ucsd.edu>
 
 | Chez Bob, the UCSD CSE grad student food co-op, has been sorting
 | through some of our accounts and found that you still seem to owe Chez
@@ -19,7 +19,7 @@ Reply-To: Michael Vrable <mvrable@cs.ucsd.edu>
 
 | If you believe our records are incorrect, please contact us so that we
 | may correct them.  To do so, you may either send a message to
-| chezbob@cs.ucsd.edu or to Michael Vrable (one of the current finance
-| managers) at mvrable@cs.ucsd.edu.
+| chezbob@cs.ucsd.edu or to Nathan Bales (one of the current finance
+| managers) at nbales@cs.ucsd.edu.
 
 --Chez Bob
