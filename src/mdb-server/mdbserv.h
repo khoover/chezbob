@@ -98,8 +98,11 @@ public:
     }
 
 private:
-    bool open_serport();
+    static const int RESET_TIMEOUT = 2500;
+    static const int GIVEOUT_TIMEOUT = 2500;
+    static const int BILL_ACCEPT_TIMEOUT = 3500;
 
+    bool open_serport();
 
     // init coinchanger
     //   returns -1 on error or timeout, or 0 if init  ok and all ready

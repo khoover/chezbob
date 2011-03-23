@@ -364,7 +364,7 @@ int MdbBus::cc_init() {
 
   cc_ready = 0;
   // reset changegiver, disable acceptance
-  if (send_command("R1", "Z", 2000) < 0) return -1;
+  if (send_command("R1", "Z", MdbBus::RESET_TIMEOUT) < 0) return -1;
 
   if (send_command("P1", "I1") < 0) return -1; // space is stripped
 
@@ -449,7 +449,7 @@ int MdbBus::giveout_coins(int type, int count) {
 
 	char bf[64];
 	sprintf(bf, "G %.2X %.2X", type, ctry);
-	rv = send_command(bf, "Z", 1000); 
+	rv = send_command(bf, "Z", MdbBus::GIVEOUT_TIMEOUT); 
 	if (rv < 0) grv = serv->report_fail("giveout_coins.giveout", rv);
 	// poll every 100ms up to 10 sec, until results are ready
 	for (int i=0; i<100; i++) {
@@ -635,7 +635,7 @@ int MdbBus::bb_init() {
 
   bb_ready = 0;
   // reset, disable acceptance
-  if (send_command("R2", "Z", 2000) < 0) return -1;
+  if (send_command("R2", "Z", MdbBus::RESET_TIMEOUT) < 0) return -1;
 
   // ensure its connected
   if (send_command("P2", "I2") < 0) return -1;
@@ -732,7 +732,7 @@ int MdbBus::cash_accept(bool accept, int amt) {
 	send_command("D2", "Z"); // disable bill acceptance
          */
 	
-	int rv = send_command(cmd, "Z", 3000);
+	int rv = send_command(cmd, "Z", MdbBus::BILL_ACCEPT_TIMEOUT);
 	if (rv < 0) grv = serv->report_fail("cash_accept.bill.reject", rv);
 	for (int i=0; i<10*5; i++) { // wait up to 10 seconds for bill to be ejected
 	  // poll bill acceptor until message handler clears esc_bill
