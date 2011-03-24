@@ -43,7 +43,7 @@ bob_action_win
   # Might later want to come up with a cleaner way to do this.
   if ($balance <= $MIN_BALANCE && $userid != 1998) {
     if ($balance <= $MIN_BALANCE_ANNOUNCE) {
-      system("perl $BOBPATH/soda_sound negative_balance&");
+      system("perl $BOBPATH/soda_sound.pl negative_balance&");
     }
     &balanceNag_win($balance);
   } elsif ($PROFILE{"Speech"}) { 

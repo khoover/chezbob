@@ -89,7 +89,7 @@ buy_single_item_with_scanner
   }
 
   # Play a sound to give feedback that the barcode was processed.
-  system("perl $BOBPATH/soda_sound.pl purchased&");
+  system("perl $BOBPATH/soda_sound.pl purchased &");
 
   my $phonetic_name = &bob_db_get_phonetic_name_from_barcode($barcode);
   if ($PROFILE{"Speech"}) { &sayit("$phonetic_name"); }
