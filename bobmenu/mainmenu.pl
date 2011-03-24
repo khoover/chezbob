@@ -42,8 +42,7 @@ bob_action_win
   # Don't complain to the visitday account (uid=1998) about a negative balance.
   # Might later want to come up with a cleaner way to do this.
   if ($balance <= $MIN_BALANCE && $userid != 1998) {
-    if ($balance <= -100 ){#$MIN_BALANCE_ANNOUNCE) {
-      print "RAWR\n";
+    if ($balance <= $MIN_BALANCE_ANNOUNCE) {
       system("$BOBPATH/soda_sound.pl negative_balance&");
     }
     &balanceNag_win($balance);
