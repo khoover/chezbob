@@ -114,6 +114,9 @@ class SodaBackend:
                                              ui=self.ui,
                                              fpctrl=self.FPCtrl)
                 self.bus.send(["LOGIN-SUCCEEDED"])
+
+                self.checkBalance()
+
         else:
             print "DB Request for " + data[1]
             self.querytag = genTag()
@@ -203,6 +206,7 @@ class SodaBackend:
                                          fpctrl=self.FPCtrl)
             self.bus.send(["LOGIN-SUCCEEDED"])
             #print "Login OK"
+            self.checkBalance()
         else:
             print "Setting last_login to " + str(data[2])
             self.last_login = data[2]
@@ -345,6 +349,10 @@ class SodaBackend:
     def handleUnimplemented(self, data):
         #print "Unimplemented " + str(data)
         pass
+
+    def checkBalance(self):
+        if self.current_user is not None and self.current_user.balance < -100:
+            self.bus.send(["SOUND-PLAY","negative_balance"])
 
     def MainLoop(self):
         running = True
