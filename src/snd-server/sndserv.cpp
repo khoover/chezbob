@@ -38,7 +38,6 @@ void SndServ::play_sound(const std::string &sound_name)
         return;
     }
 
-    sio_write(SIO_DEBUG|45, playcmd.str().c_str());
     system(playcmd.str().c_str());
 }
 
