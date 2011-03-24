@@ -184,8 +184,10 @@ int sio_register_lock( int (*glob_lock)(void * arg),
 		       void * arg );
 
 
+#if 0
 #if !defined(min)
 #define min(x, y)   (( (x) < (y) ) ? (x) : (y))
+#endif
 #endif
 
 #endif
