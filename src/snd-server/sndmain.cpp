@@ -2,7 +2,7 @@ extern "C" {
 #include <signal.h>
 }
 
-#include "mdbserv.h"
+#include "sndserv.h"
 
 //
 //  P-115 interface required
@@ -20,7 +20,7 @@ void onsignal(int num) {
 
 int main(int argc, char ** argv) {
 
-  MdbServ mdbserv(argc, argv);
+  SndServ sndserv(argc, argv);
   
   
   signal(SIGHUP, &onsignal); 
@@ -33,10 +33,8 @@ int main(int argc, char ** argv) {
 
   int sleep_for = 0;
   while (!stop_num) {
-        /* stop_num is how we collect signals */
-        stop_num = max(stop_num, mdbserv.sio_poll(sleep_for));
-        if (stop_num != 0) break;
-        stop_num = max(stop_num, mdbserv.mdb_poll(sleep_for));
+    /* stop_num is how we collect signals */
+      stop_num = std::max(stop_num, sndserv.sio_poll(1000));
   };
   
   sio_close(stop_num, "Signal Recieved");
