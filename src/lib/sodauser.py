@@ -257,6 +257,7 @@ class SodaUser:
                              self.querytag,
                              self.login,
                              item['barcode']])
+            self.servio.send(["SOUND-PLAY","purchased"])
 
         print "Charged " + self.login + ": " + str(price) + "c"
         self.setBalance(self.balance - price)
