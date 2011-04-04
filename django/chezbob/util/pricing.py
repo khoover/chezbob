@@ -45,19 +45,22 @@ def update_price_listing(out, update=True):
             # though, don't clutter the prices page with it--only show recent
             # changes.
             old_prices = b.historicalprice_set.order_by('-date')[0:2]
+            changed_date = None
             if price != old_prices[0].price:
                 old_price = old_prices[0]
+                changed_date = datetime.date.today()
             else:
                 add_new_historical_price = False
+                changed_date = old_prices[0].date
                 old_price = old_prices[1]
 
-            if datetime.date.today() - old_price.date < datetime.timedelta(30):
+            if datetime.date.today() - changed_date < datetime.timedelta(30):
                 change = (float(price) / float(old_price.price) - 1) * 100
                 if change != 0:
                     change = "%.01f%%" % (change,)
                 else:
                     change = ""
-                old_price = "$%.02f on %s" % (old_price.price, old_price.date)
+                old_price = "$%.02f before %s" % (old_price.price, changed_date)
             else:
                 old_price = ""
                 change = ""
