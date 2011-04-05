@@ -84,7 +84,7 @@ class Product(models.Model):
     name = models.CharField(max_length=256)
     phonetic_name = models.CharField(max_length=256)
     price = models.DecimalField(max_digits=12, decimal_places=2)
-    bulk = models.ForeignKey(BulkItem, db_column='bulkid', blank=True)
+    bulk = models.ForeignKey(BulkItem, db_column='bulkid', null=True, blank=True)
 
     def __unicode__(self):
         return "%s [%s]" % (self.name, self.barcode)
