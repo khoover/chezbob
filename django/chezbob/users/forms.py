@@ -21,8 +21,8 @@ class PreferencesForm(forms.Form):
   skip_confirmation    = forms.BooleanField(required=False)
 
 class StatisticsForm(forms.Form):
-  last_purcahse_time = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}))
-  last_deposit_time  = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}))
+  last_purcahse_time = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}), required=False)
+  last_deposit_time  = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}), required=False)
   balance            = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}))
 
 class UserTransactionForm(forms.Form):
