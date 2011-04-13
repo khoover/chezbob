@@ -246,18 +246,43 @@ def user_details(request, userid):
 
   messages['tools'] = form_types.values()
   
-  messages['profile_form'] = ProfileForm({ 'id'       : user.id,
-                                           'username' : user.username,
-                                           'nickname' : user.nickname,
-                                           'email'    : user.email,
-                                           'password' : user.password,
-                                           'disabled' : user.disabled, })
-                                           
-  messages['preferences_form'] = PreferencesForm(
-      { 'auto_logout'          : user.auto_logout,
-        'speech'               : user.speech,
-        'forget_which_product' : user.forget_which_product,
-        'skip_confirmation'    : user.skip_purchase_confirmation, })
+  if "profile_save" in request.POST:
+    bound = ProfileForm(request.POST)
+    messages['profile_form'] = bound
+    if bound.is_valid():
+      user.username = bound.cleaned_data['username']
+      user.nickname = bound.cleaned_data['nickname']
+      user.email    = bound.cleaned_data['email']
+      user.disabled = bound.cleaned_data['disabled']
+      user.save()
+    else:
+      messages.error(str(request.POST))
+      messages.errors(bound.errors)
+  else:
+    messages['profile_form'] = ProfileForm({ 'id'       : user.id,
+                                             'username' : user.username,
+                                             'nickname' : user.nickname,
+                                             'email'    : user.email,
+                                             'password' : user.password,
+                                             'disabled' : user.disabled, })
+  
+  if "preferences_save" in request.POST:
+    bound = PreferencesForm(request.POST)
+    messages['preferences_form'] = bound
+    if bound.is_valid():
+      user.auto_logout                = bound.cleaned_data['auto_logout']
+      user.speech                     = bound.cleaned_data['speech']
+      user.forget_which_product       = bound.cleaned_data['forget_which_product']
+      user.skip_purchase_confirmation = bound.cleaned_data['skip_purchase_confirmation']
+      user.save()
+    else:
+      messages.errors(bound.errors)
+  else:
+    messages['preferences_form'] = PreferencesForm(
+        { 'auto_logout'          : user.auto_logout,
+          'speech'               : user.speech,
+          'forget_which_product' : user.forget_which_product,
+          'skip_confirmation'    : user.skip_purchase_confirmation, })
         
   messages['stats_form'] = StatisticsForm({ 'last_purcahse_time' : user.last_purchase_time,
                                             'last_deposit_time' : user.last_deposit_time,

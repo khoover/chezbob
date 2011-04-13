@@ -43,16 +43,16 @@ $(document).ready(function() {
 
 <div>
   <h2>Details</h2> 
-  <form>
+  <form method="post">
     <fieldset>
       <legend>Profile</legend>
       {{ profile_form.as_p }}
-      <input type="submit" value="Save Details" disabled="disabled"  class="tool_button"/>
+      <input type="submit" value="Save Details" name="profile_save"  class="tool_button"/>
     </fieldset>
     <fieldset>
       <legend>Preferences</legend>
       {{ preferences_form.as_p }}
-      <input type="submit" value="Save Preferences" disabled="disabled"  class="tool_button"/>
+      <input type="submit" value="Save Preferences" name="preferences_save"  class="tool_button"/>
     </fieldset>
     <fieldset>
       <legend>Statistics</legend>

@@ -7,11 +7,11 @@ from chezbob.finance.models import Account
 from chezbob.users.models import User
 
 class ProfileForm(forms.Form):
-  id       = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}))
+  id       = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
   username = forms.CharField()
   nickname = forms.CharField(required=False)
   email    = forms.EmailField()
-  password = forms.CharField(required=False)
+  password = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}), required=False)
   disabled = forms.BooleanField(required=False)
   
 class PreferencesForm(forms.Form):
@@ -92,7 +92,7 @@ class TransferForm(UserTransactionForm):
                   
 class AddUncountedForm(UserTransactionForm):
   ammount    = forms.DecimalField()
-  repository = forms.ChoiceField(choices=[('chezbob','chezbob'),('soda','soda'),],
+  repository = forms.ChoiceField(choices=[('chezbob','chezbob'),('soda','soda'),('google_checkout','google_checkout'),('other','other'),],
                                  required=True)
 
   def set_transaction_fields(self, transaction, messages):
