@@ -10,7 +10,7 @@ my ($username, $amount, $markup);
 if (param()) {
     $amount = param('amt') + 0.0;
     $amount = 0.0 if $amount < 0;
-    $markup = ($amount / .971) + 0.30;
+    $markup = ($amount * 1.029) + 0.30;
     $amount = sprintf "%.02f", $amount;
     $markup = sprintf "%.02f", $markup;
     $username = escapeHTML(param('user'));
