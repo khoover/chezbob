@@ -7,7 +7,7 @@ from chezbob.finance.models import Account
 from chezbob.users.models import User
 
 class ProfileForm(forms.Form):
-  id       = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}))
+  id       = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}), required=False)
   username = forms.CharField()
   nickname = forms.CharField(required=False)
   email    = forms.EmailField()

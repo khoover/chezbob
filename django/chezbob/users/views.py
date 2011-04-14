@@ -248,7 +248,6 @@ def user_details(request, userid):
   
   if "profile_save" in request.POST:
     bound = ProfileForm(request.POST)
-    messages['profile_form'] = bound
     if bound.is_valid():
       user.username = bound.cleaned_data['username']
       user.nickname = bound.cleaned_data['nickname']
@@ -256,19 +255,17 @@ def user_details(request, userid):
       user.disabled = bound.cleaned_data['disabled']
       user.save()
     else:
-      messages.error(str(request.POST))
       messages.errors(bound.errors)
-  else:
-    messages['profile_form'] = ProfileForm({ 'id'       : user.id,
-                                             'username' : user.username,
-                                             'nickname' : user.nickname,
-                                             'email'    : user.email,
-                                             'password' : user.password,
-                                             'disabled' : user.disabled, })
+  
+  messages['profile_form'] = ProfileForm({ 'id'       : user.id,
+                                           'username' : user.username,
+                                           'nickname' : user.nickname,
+                                           'email'    : user.email,
+                                           'password' : user.password,
+                                           'disabled' : user.disabled, })
   
   if "preferences_save" in request.POST:
     bound = PreferencesForm(request.POST)
-    messages['preferences_form'] = bound
     if bound.is_valid():
       user.auto_logout                = bound.cleaned_data['auto_logout']
       user.speech                     = bound.cleaned_data['speech']
@@ -277,12 +274,12 @@ def user_details(request, userid):
       user.save()
     else:
       messages.errors(bound.errors)
-  else:
-    messages['preferences_form'] = PreferencesForm(
-        { 'auto_logout'          : user.auto_logout,
-          'speech'               : user.speech,
-          'forget_which_product' : user.forget_which_product,
-          'skip_confirmation'    : user.skip_purchase_confirmation, })
+      
+  messages['preferences_form'] = PreferencesForm(
+      { 'auto_logout'          : user.auto_logout,
+        'speech'               : user.speech,
+        'forget_which_product' : user.forget_which_product,
+        'skip_confirmation'    : user.skip_purchase_confirmation, })
         
   messages['stats_form'] = StatisticsForm({ 'last_purcahse_time' : user.last_purchase_time,
                                             'last_deposit_time' : user.last_deposit_time,
