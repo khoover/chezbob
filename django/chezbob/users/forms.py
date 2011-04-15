@@ -12,7 +12,9 @@ class ProfileForm(forms.Form):
   nickname = forms.CharField(required=False)
   email    = forms.EmailField()
   password = forms.CharField(widget=forms.TextInput(attrs={'readonly':'readonly'}), required=False)
-  disabled = forms.BooleanField(required=False)
+  disabled   = forms.BooleanField(required=False)
+  fraudulent = forms.BooleanField(required=False)
+  notes      = forms.CharField(required=False, widget=forms.Textarea)
   
 class PreferencesForm(forms.Form):
   auto_logout          = forms.BooleanField(required=False)
@@ -23,6 +25,7 @@ class PreferencesForm(forms.Form):
 class StatisticsForm(forms.Form):
   last_purcahse_time = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}), required=False)
   last_deposit_time  = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}), required=False)
+  created_time       = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}), required=False)
   balance            = forms.CharField(widget=forms.TextInput(attrs={'disabled':'disabled'}))
 
 class UserTransactionForm(forms.Form):

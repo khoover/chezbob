@@ -249,20 +249,24 @@ def user_details(request, userid):
   if "profile_save" in request.POST:
     bound = ProfileForm(request.POST)
     if bound.is_valid():
-      user.username = bound.cleaned_data['username']
-      user.nickname = bound.cleaned_data['nickname']
-      user.email    = bound.cleaned_data['email']
-      user.disabled = bound.cleaned_data['disabled']
+      user.username   = bound.cleaned_data['username']
+      user.nickname   = bound.cleaned_data['nickname']
+      user.email      = bound.cleaned_data['email']
+      user.disabled   = bound.cleaned_data['disabled']
+      user.fraudulent = bound.cleaned_data['fraudulent']
+      user.notes      = bound.cleaned_data['notes']
       user.save()
     else:
       messages.errors(bound.errors)
   
-  messages['profile_form'] = ProfileForm({ 'id'       : user.id,
-                                           'username' : user.username,
-                                           'nickname' : user.nickname,
-                                           'email'    : user.email,
-                                           'password' : user.password,
-                                           'disabled' : user.disabled, })
+  messages['profile_form'] = ProfileForm({ 'id'         : user.id,
+                                           'username'   : user.username,
+                                           'nickname'   : user.nickname,
+                                           'email'      : user.email,
+                                           'password'   : user.password,
+                                           'disabled'   : user.disabled,
+                                           'fraudulent' : user.fraudulent,
+                                           'notes'      : user.notes })
   
   if "preferences_save" in request.POST:
     bound = PreferencesForm(request.POST)
@@ -283,6 +287,7 @@ def user_details(request, userid):
         
   messages['stats_form'] = StatisticsForm({ 'last_purcahse_time' : user.last_purchase_time,
                                             'last_deposit_time' : user.last_deposit_time,
+                                            'created_time' : user.created_time,
                                             'balance' : user.balance, })
 
   return render_to_response('users/user_details.html', 

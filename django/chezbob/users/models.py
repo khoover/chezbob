@@ -15,15 +15,18 @@ class User(models.Model):
     balance =  models.DecimalField(db_column='balance', max_digits=12, 
                                    decimal_places=2)
     disabled =           models.BooleanField(db_column='disabled')
+    fraudulent =         models.BooleanField(db_column='fraudulent')
     password =           models.CharField(db_column='pwd', max_length=255)
     last_purchase_time = models.DateTimeField(db_column='last_purchase_time')
     last_deposit_time =  models.DateTimeField(db_column='last_deposit_time')
+    created_time =       models.DateTimeField(db_column='created_time')
     auto_logout =        models.BooleanField(db_column='pref_auto_logout')
     speech =             models.BooleanField(db_column='pref_speech')
     forget_which_product = models.BooleanField(
                                db_column='pref_forget_which_product')
     skip_purchase_confirmation = models.BooleanField(
                                db_column='pref_skip_purchase_confirm')
+    notes =    models.CharField(db_column='notes', max_length=1024)
 
     def __unicode__(self):
         return self.username
