@@ -15,6 +15,8 @@ set xzeroaxis lt -1
 set term postscript solid color font 12
 set output "finances.ps"
 
+round(x, n) = floor(x * 10**n + 0.5) / 10.0**n
+
 set title "Overall Snapshot: ChezBob Net Non-Restricted Assets"
 plot "accounts.data" using 1:($28-$31-$24-$25) with linespoints \
         title "Net Assets", \
@@ -43,4 +45,4 @@ set title "Monthly Sales"
 plot "monthly.data" using 1:10 with boxes fill fs solid 0.3 notitle
 
 set title "Bank of Bob: Consistency"
-plot "accounts.data" using 1:($33-$34-$6) with impulses title "Discrepancy"
+plot "accounts.data" using 1:(round($33-$34-$6, 3)) with impulses title "Discrepancy"
