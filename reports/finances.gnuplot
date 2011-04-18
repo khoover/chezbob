@@ -41,3 +41,6 @@ plot "accounts.data" using 1:4 with lines title "Cash Losses", \
 
 set title "Monthly Sales"
 plot "monthly.data" using 1:10 with boxes fill fs solid 0.3 notitle
+
+set title "Bank of Bob: Consistency"
+plot "accounts.data" using 1:($33-$34-$6) with impulses title "Discrepancy"
