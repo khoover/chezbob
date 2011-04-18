@@ -270,6 +270,8 @@ def check_cash():
             print "  Expected:"
             for (s, t) in source_totals.items():
                 print "    %s %s" % (t, s)
+                if s not in cash_deltas:
+                    cash_deltas[s] = Decimal("0.00")
                 cash_deltas[s] -= t
             source_totals.clear()
 
