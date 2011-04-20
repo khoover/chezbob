@@ -9,5 +9,5 @@ $CHEZBOB/django/chezbob/launch finance_sync
 $CHEZBOB/django/chezbob/launch inventory_sync
 $CHEZBOB/django/chezbob/launch gnuplot_dump >$HOME/accounts.data
 $CHEZBOB/reports/gen-monthly.py <$HOME/accounts.data >$HOME/monthly.data
-(cd $HOME; gnuplot $CHEZBOB/reports/finances.gnuplot)
+(cd $HOME; gnuplot $CHEZBOB/reports/finances.gnuplot 2> /dev/null)
 ps2pdf $HOME/finances.ps
