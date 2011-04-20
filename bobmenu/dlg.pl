@@ -40,7 +40,7 @@ confirm_win
   # Adding $def_no to the options below doesn't work for some reason, not sure
   # why...  --Michael Vrable
   my($retval, $res) = &get_dialog_result("--title \"$win_title\" --clear " .
-         "--cr-wrap --yesno \"" .  $win_text .  "\" $h $w");
+         "--cr-wrap $def_no --yesno \"" .  $win_text .  "\" $h $w");
   return ($retval == 0);
 }
 
