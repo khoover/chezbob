@@ -1,7 +1,7 @@
 from wxPython.wx import *
-from pyui.config import *
-from pyui.sodapanel import *
-from pyui.sodabutton import *
+from config import *
+from sodapanel import *
+from sodabutton import *
 
 class SodaFPPanel(SodaPanel):
     def __init__(self, parent, ID, pos, size):

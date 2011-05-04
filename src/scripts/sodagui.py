@@ -24,7 +24,7 @@
 
 from wxPython.wx import *
 import sys
-import servio
+from pybob import servio
 import threading
 import wx.lib.newevent
 import crypt
