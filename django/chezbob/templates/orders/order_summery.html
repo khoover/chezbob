@@ -21,7 +21,8 @@ var bulk_items = [
 	    'price'         : {{ bi.price }},
 	    'is_cost_taxed' : {{ bi.taxable|yesno:'true,false,' }},
 	    'crv_per_unit'  : {{ bi.crv_per_unit }},
-	    'is_crv_taxed'  : {{ bi.crv_taxable|yesno:'true,false,' }} 
+	    'is_crv_taxed'  : {{ bi.crv_taxable|yesno:'true,false,' }},
+	    'is_active'     : {{ bi.active|yesno:'true,false,' }}
 	  },
 	{% endfor %}  
 ];
@@ -44,15 +45,11 @@ var order_items = {
 };
 
 function filterSelect(filterInput, event) {
-  selObj = document.getElementById("bulkSelect")
   if (event.keyCode == 13) {
-    new_order_item()
+    event.preventDefault();
     return
   }
-  if (event.keyCode == 40) {
-    selObj.focus()
-    return
-  }
+  selObj = document.getElementById("bulkSelect")
   description_part = filterInput.value.toLowerCase()
   for (i = selObj.options.length - 1; i >= 0 ; i--) {
     selObj.remove(i)
@@ -73,12 +70,47 @@ function filterSelect(filterInput, event) {
   }
 }
 
-
-function bulkSelectKeyDown(selObj, event) {
+function genericKeyDown(input, event) {
   if (event.keyCode == 13) {
-    new_order_item()
+    new_order_item();
     return
   }
+  var casesInp = $('#id_new_count');
+  if (event.keyCode == 107 || event.keyCode == 187 || event.keyCode == 61) {
+    var cases = parseInt(casesInp.val());
+    cases += 1;
+    casesInp.val(cases);
+    event.preventDefault();
+  }
+  if (event.keyCode == 109 || event.keyCode == 189) {
+    var cases = parseInt(casesInp.val());
+    cases -= 1;
+    casesInp.val(cases);
+    event.preventDefault();
+  }
+}
+
+function filterInputKeyDown(filterInp, event) {
+  genericKeyDown(filterInp, event);
+  if (event.keyCode == 40) {
+    selObj.focus()
+    return
+  }
+}
+
+function casesInputKeyDown(casesInp, event) {
+  genericKeyDown(casesInp, event);
+  if (event.keyCode == 38) {
+    if (selObj.selectedIndex == 0) {
+      filterBox = document.getElementById("new_description")
+      filterBox.focus()
+    }
+    return
+  }
+}
+
+function bulkSelectKeyDown(selObj, event) {
+  genericKeyDown(selObj, event);
   if (event.keyCode == 38) {
     if (selObj.selectedIndex == 0) {
       filterBox = document.getElementById("new_description")
@@ -387,7 +419,7 @@ function updateCrvTaxable(itemId, newValue) {
   }
 </style>
 
-<form action="" method="post" {% if order %} onSubmit="return false;" {% endif %}>
+<form action="" method="post" {% if order %} onSubmit="return false;" {% endif %} autocomplete="off">
 
 <h2>Details<h2>
 {{ details_form.as_p }}
@@ -398,7 +430,45 @@ function updateCrvTaxable(itemId, newValue) {
 
 <iframe name="error_frame" style="width:100%;height:500px;display:none;"></iframe>
 
-<table class="tablesorter" cellspacing="0" id="ordered_items_table">
+<div id="controls" style="position:fixed; bottom:20px; width:100%;">
+
+<div style="float:left;padding-right:15px;">
+Cases: 
+<input type="text" size="4" name="new_count" id="id_new_count" value="1" onKeyDown="casesInputKeyDown(this, event)"/>
+&nbsp;
+Filter: 
+<input type="text" size="30" id="new_description" style="width:210px;" 
+       onKeyDown="filterInputKeyDown(this, event)"
+       onKeyUp="filterSelect(this, event)"/>
+<input type="submit" value="Add" name="add_item"
+	     onClick="new_order_item();"/><br/>
+<select size="15" id="bulkSelect" name="new_item" style="width:400px;" 
+        class="selectMuliOption" onKeyDown="bulkSelectKeyDown(this, event);">		  
+  {% for bi in bulk_items %}
+	  <option value="{{ bi.bulkid }}">{{ bi.description }}</option>
+	{% endfor %}
+</select>
+</div>
+
+<div>
+
+<table style="padding:20px;margin:20px;">
+<tr><td>Taxable</td>        <td style="text-align:right" id="total_taxed">{{ total_tax|stringformat:".2f" }}</td></tr>
+<tr><td>Non Taxable</td>    <td style="text-align:right" id="total_nontaxed">{{ total_notax|stringformat:".2f" }}</td></tr>
+<tr><td>Sales Tax</td>      <td style="text-align:right"></td></tr>
+<tr><td>Coupon</td>         <td style="text-align:right"></td></tr>
+<tr><th>TOTAL:</th>         <th style="text-align:right" id="total">{{ total|stringformat:".2f" }}</th></tr>
+<tr><td>Expected Total</td> <td style="text-align:right">{{ order.amount|stringformat:".2f" }}</td></tr>
+</table>
+
+</div>
+
+{% endif %}
+
+
+</div>
+
+<table class="tablesorter" cellspacing="0" id="ordered_items_table" style="margin-bottom:300px;">
 <thead>
 <tr>
     <th>Ordered</th>
@@ -468,33 +538,6 @@ function updateCrvTaxable(itemId, newValue) {
 {% endfor %}
 </tbody>
 </table>
-
-
-Cases: 
-<input type="text" size="4" name="new_count" id="id_new_count" value="1"/>
-&nbsp;
-Filter: 
-<input type="text" size="30" id="new_description" style="width:210px;" 
-       onKeyDown="filterSelect(this, event)"/>
-<input type="submit" value="Add" name="add_item"
-	     onClick="new_order_item();"/><br/>
-<select size="15" id="bulkSelect" name="new_item" style="width:400px;" 
-        class="selectMuliOption" onKeyDown="bulkSelectKeyDown(this, event);">		  
-  {% for bi in bulk_items %}
-	  <option value="{{ bi.bulkid }}">{{ bi.description }}</option>
-	{% endfor %}
-</select>
-</form> 
-
-<div>
-Total:
-<span id="total_nontaxed">{{ total_notax|stringformat:".2f" }}</span> (Non-Taxable)
-+ <span id="total_taxed">{{ total_tax|stringformat:".2f" }}</span> (Taxable)
-= <span id="total">{{ total|stringformat:".2f" }}</span>
-</div>
-
-<div>Actual Total: {{ order.amount|stringformat:".2f" }}</div>
-{% endif %}
 
 </form>
 
