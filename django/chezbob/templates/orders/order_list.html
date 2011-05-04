@@ -13,10 +13,17 @@ $(document).ready(function() {
 </script>
 {% endblock %}
 
-{% block title %}User List{% endblock %}
+{% block title %}Order History{% endblock %}
 
 {% block content %}
 
+<ul class="object-tools"> 
+  <li> 
+    <a href="new/" class="addlink"> 
+      Add new order
+    </a> 
+  </li> 
+</ul>
 
 <div id="pager_top" class="pager" style="text-align:center;">
   <form>

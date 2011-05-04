@@ -135,7 +135,6 @@ def order_summary(request, order):
       messages.error("unknown ajax command '%s'" % request.POST['ajax'])
     return JsonResponse(messages)
       
-  
   order_form = OrderForm({'date': order.date,
                           'amount': order.amount,
                           'description': order.description,
@@ -275,7 +274,15 @@ def order_summary(request, order):
 
   total = total_nontaxed + total_taxed * (1 + order.tax_rate)
   total = total.quantize(Decimal("0.01"))
-
+  
+  bulk_items = BulkItem.objects.all().order_by('-active', 'description');
+  simp_bulk_items = []
+  for bi in bulk_items:
+    sbi = simp(bi)
+    if not bi.active:
+      sbi["description"] = '[inactive] ' + sbi["description"]
+    simp_bulk_items.append(sbi)
+  
   messages.extend({'user': request.user,
                    'title': 'Order Summary - ' + str(order.date),
                    'details_form': order_form,
@@ -284,7 +291,7 @@ def order_summary(request, order):
                    'total_notax': total_nontaxed,
                    'total_tax': total_taxed,
                    'total': total,
-                   'bulk_items' : [simp(bi) for bi in BulkItem.objects.all().order_by('description')]})
+                   'bulk_items' : simp_bulk_items})
 
   return render_to_response('orders/order_summery.html', messages)
                                
@@ -301,7 +308,7 @@ def new_order(request):
                        tax_rate = order_form.cleaned_data['sales_tax_rate'])
       newOrder.save()
       newId = newOrder.id
-      redirect_or_error(reverse('chezbob.orders.views.order_summary', args=(newId,)))
+      redirect_or_error(reverse('chezbob.orders.views.order_summary', args=(newId,)), messages)
     else:
       for error_field in order_form.errors:
         messages.error("Field %s: %s" % (error_field, order_form[error_field].errors));
