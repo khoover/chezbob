@@ -9,6 +9,9 @@ class BaseUI:
     def updateBalance(self, sodauser):
         pass
 
+    def updateTTL(self, sodauser):
+        pass
+
     def logOut(self, sodauser=None):
         pass
 

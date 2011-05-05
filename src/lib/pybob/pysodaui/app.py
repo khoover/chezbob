@@ -352,6 +352,8 @@ class SodaFrame(wxFrame):
 
         self.purchasePanel.Bind(EVT_BUTTON, self.onLogout, id=ID_LOGOUT)
         self.purchasePanel.Bind(EVT_BUTTON, self.onFpLearn, id=ID_FPLEARN)
+        self.purchasePanel.Bind(EVT_BUTTON, self.onBuyOther, id=ID_BUYOTHER)
+        self.purchasePanel.Bind(EVT_BUTTON, self.onMoreTime, id=ID_MORETIME)
 
         self.purchasePanel.Layout()
         self.purchasePanel.Show(false)
@@ -384,6 +386,13 @@ class SodaFrame(wxFrame):
             return
 
         self.changeState(STATE_FPLEARN)
+
+    def onBuyOther(self, event):
+        # In progress
+        pass
+
+    def onMoreTime(self, event):
+        self.bus.send(["TTL-RESET"])
 
     def onLogout(self, event):
         self.bus.send(["LOGOUT"])

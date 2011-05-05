@@ -24,12 +24,14 @@ class SodaUser:
         print "User " + login + " Logged In"
         self.anon = anon        # User is anonymous.  Escrow mode.
         self.login = login
+        self.time = 0
         self.timeout = timeout
         self.balance = int(balance)
         self.servio = servio
 
         self.servio.sendLog("User " + login + " Logged In")
 
+        self.ui = ui
         self.resetTTL()
 
         self.vend_in_progress = False
@@ -44,7 +46,6 @@ class SodaUser:
         self.should_logout = False # Whether to logout on transaction
                                    # completion
 
-        self.ui = ui
         self.ui.logIn(self)
 
         self.FPCtrl = fpctrl
@@ -53,6 +54,7 @@ class SodaUser:
 
         # Turn off the finger print reader during login
         self.FPCtrl.doDisable()
+
 
         if not self.anon:
             self.alquerytag = "A" + genTag()
@@ -119,6 +121,7 @@ class SodaUser:
     def resetTTL(self):
         # Kick UI
         self.time = int(time.time())
+        self.ui.updateTTL(self)
 
     def isAnon(self):
         return self.anon

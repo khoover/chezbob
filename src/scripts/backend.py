@@ -37,6 +37,7 @@ class SodaBackend:
 
         self.bus.watchMessage("LOGIN",             self.handleLogin)
         self.bus.watchMessage("LOGOUT",            self.handleLogout)
+        self.bus.watchMessage("TTL-RESET",         self.handleTtlReset)
 
         self.bus.watchMessage("VEND-READY",        self.handleVendReady)
         self.bus.watchMessage("VEND-REQUEST",      self.handleVendRequest)
@@ -127,6 +128,10 @@ class SodaBackend:
         if self.current_user is not None and self.current_user.doLogout():
             self.current_user = None
 
+    def handleTtlReset(self, data):
+        if self.current_user is not None:
+            print "Resetting TTL"
+            self.current_user.resetTTL()
 
     def handleVendRequest(self, data):
         self.canType = int(data[1])

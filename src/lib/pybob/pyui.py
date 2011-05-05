@@ -6,9 +6,13 @@ class PyUI(baseui.BaseUI):
 
     def updateBalance(self, sodauser):
         balance = sodauser.getBalance()
-        ttl = sodauser.getTTL()
         self.servio.send(["UI-BALANCE", str(balance)])
+        self.updateTTL(self, sodauser)
+
+    def updateTTL(self, sodauser):
+        ttl = sodauser.getTTL()
         self.servio.send(["UI-TTL", str(ttl)])
+
 
     def logOut(self, sodauser=None):
         self.servio.send(["UI-LOGGEDOUT"])

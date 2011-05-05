@@ -18,7 +18,16 @@ class SodaPurchasePanel(SodaPanel):
                     )
                    )
 
-        self.AddLeftSpacer(wxSize(-1, 200))
+        self.AddLeftSpacer(wxSize(-1, 160))
+
+        self.AddLeftButton(
+                SodaButton(
+                    self,
+                    ID_MORETIME,
+                    'MoreTime',
+                    font_size=42
+                    )
+                   )
 
         self.AddLeftButton(
                 SodaButton(
