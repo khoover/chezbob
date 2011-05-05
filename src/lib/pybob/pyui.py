@@ -7,7 +7,7 @@ class PyUI(baseui.BaseUI):
     def updateBalance(self, sodauser):
         balance = sodauser.getBalance()
         self.servio.send(["UI-BALANCE", str(balance)])
-        self.updateTTL(self, sodauser)
+        self.updateTTL(sodauser)
 
     def updateTTL(self, sodauser):
         ttl = sodauser.getTTL()
