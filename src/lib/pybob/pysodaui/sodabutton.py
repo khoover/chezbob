@@ -1,6 +1,6 @@
 from wxPython.wx import *
 
-from pyui.sodapanel import *
+from sodapanel import *
 
 class SodaButton(wxButton):
     def __init__(self, parent, ID, Text):

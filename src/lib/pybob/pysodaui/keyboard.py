@@ -1,5 +1,5 @@
 from wxPython.wx import *
-from pyui.config import *
+from config import *
 
 K_BS = 0
 K_CAPS = 1

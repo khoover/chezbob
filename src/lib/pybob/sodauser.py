@@ -48,6 +48,8 @@ class SodaUser:
         self.ui.logIn(self)
 
         self.FPCtrl = fpctrl
+        if self.FPCtrl is None:
+            self.FPCtrl = FPCtrl.FPCtrlNoOp()
 
         # Turn off the finger print reader during login
         self.FPCtrl.doDisable()

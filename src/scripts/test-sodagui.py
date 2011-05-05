@@ -1,7 +1,4 @@
-import servio
-import pyui
-import unionui
-import sodauser
+from pybob import servio, pyui, unionui, sodauser
 import time
 
 bus = servio.ServIO("TestNugget", "5")
