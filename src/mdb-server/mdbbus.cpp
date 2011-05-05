@@ -515,17 +515,17 @@ int MdbBus::giveout_smart(int amount) {
 
 
 int MdbBus::bb_poll() {
-  int ev_cnt = 0;
+  int res = 0;
   while (send_command("P2") >= 0) {
 	int i1 = resp[2];
 
 	if (resp[0] == 'Z') {
-	  return ev_cnt;
+	  return res;
         }
 
-	ev_cnt++;
-
 	if ((resp[0] == 'Q') && (resp[1] == '1')) {
+          res = 1;
+
 	  sio_write(SIO_LOG, "accepted bill\t%d\t%d", i1, bb_values[i1]); 
 	  if ((i1<0)||(i1>15)) i1 = 15;
 
@@ -543,6 +543,7 @@ int MdbBus::bb_poll() {
 	  };
 
 	} else if ((resp[0] == 'Q') && (resp[1] == '2')) {
+          res = 2;
 	  sio_write(SIO_LOG, "stacked bill\t%d\t%d", i1, bb_values[i1]); 
 	  if ((i1+100) != serv->get_bill_escrow()) {
 		sio_write(SIO_ERROR,
@@ -561,6 +562,7 @@ int MdbBus::bb_poll() {
 	  bb_stacker_refresh(0);
 
 	} else if ((resp[0] == 'Q') && (resp[1] == '3')) {
+          res = 3;
 	  sio_write(SIO_LOG, "returned bill\t%d\t%d", i1, bb_values[i1]); 
 	  if ((i1+100) != serv->get_bill_escrow()) {
 		sio_write(SIO_ERROR,
@@ -576,6 +578,7 @@ int MdbBus::bb_poll() {
 	  bb_stacker_refresh(0);
 	  
 	} else if ((resp[0] == 'Q') && (resp[1] == '4')) {
+          res = 4;
 	  sio_write(SIO_LOG, "rejected bill\t%d\t%d", i1, bb_values[i1]); 
 	  if (serv->get_bill_escrow()) {
 	    sio_write(SIO_ERROR, "Got REJECT while having bill %d in escrow", 
@@ -738,6 +741,13 @@ int MdbBus::cash_accept(bool accept, int amt) {
 	  // poll bill acceptor until message handler clears esc_bill
 	  rv = bb_poll();
 	  if (rv < 0) grv = serv->report_fail("cash_accept.bill.poll", rv);
+          /* Double accept, re-issue command */
+          else if (rv == 1)
+          {
+                int nrv = send_command(cmd, "Z", MdbBus::BILL_ACCEPT_TIMEOUT);
+                if (nrv < 0) grv = serv->report_fail("cash_accept.bill.double_accept", nrv);
+                continue;
+          }
 	  if (serv->get_bill_escrow() == 0) break;
 	  usleep(200*1000);
 	};
