@@ -1,16 +1,15 @@
 #!/usr/bin/python
 
-import servio
+from pybob import servio
 import threading
 import time
 import sys
 import random
-import pyui
-import unionui
-import FPCtrl
+from pybob import pyui
+from pybob import FPCtrl
 
-from servio import genTag
-from sodauser import SodaUser
+from pybob.servio import genTag
+from pybob.sodauser import SodaUser
 
 # Verified FP Learn
 # Verified FP Login
