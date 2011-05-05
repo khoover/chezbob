@@ -1,8 +1,8 @@
 from wxPython.wx import *
-from pyui.config import *
-from pyui.sodapanel import *
-from pyui.sodabutton import *
-from pyui.stats import *
+from config import *
+from sodapanel import *
+from sodabutton import *
+from stats import *
 import random
 import traceback
 import sys

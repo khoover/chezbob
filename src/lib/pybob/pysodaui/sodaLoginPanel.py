@@ -1,8 +1,8 @@
 from wxPython.wx import *
-from pyui.config import *
-from pyui.sodapanel import *
-from pyui.sodabutton import *
-from pyui.keyboard import *
+from config import *
+from sodapanel import *
+from sodabutton import *
+from keyboard import *
 
 class SodaLoginPanel(SodaPanel):
     def __init__(self, parent, ID, pos, size):

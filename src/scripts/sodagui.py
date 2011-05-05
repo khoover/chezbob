@@ -24,23 +24,23 @@
 
 from wxPython.wx import *
 import sys
-import servio
+from pybob import servio
 import threading
 import wx.lib.newevent
 import crypt
 
-#from pyui.keyboard import SodaKeyBoard
-from pyui.config import *
+#from pybob.pysodaui.keyboard import SodaKeyBoard
+from pybob.pysodaui.config import *
 
-#from pyui.sodabutton import *
-#from pyui.sodapanel import *
-from pyui.sodaLoginIdlePanel import *
-from pyui.sodaLoginPanel import *
-from pyui.sodaPasswordPanel import *
-from pyui.sodaPurchasePanel import *
-from pyui.sodaFpPanel import *
+#from pybob.pysodaui.sodabutton import *
+#from pybob.pysodaui.sodapanel import *
+from pybob.pysodaui.sodaLoginIdlePanel import *
+from pybob.pysodaui.sodaLoginPanel import *
+from pybob.pysodaui.sodaPasswordPanel import *
+from pybob.pysodaui.sodaPurchasePanel import *
+from pybob.pysodaui.sodaFpPanel import *
 
-from pyui.stats import *
+from pybob.pysodaui.stats import *
 
 
 
@@ -559,8 +559,8 @@ class SodaFrame(wxFrame):
 
 class SodaApp(wxApp):
     def OnInit(self):
-        self.bus = servio.ServIO("PYUI", "1.0", "0:u")
-        #self.bus = servio.ServIO("PYUI", "1.0", 100)#"0:")
+        #self.bus = servio.ServIO("PYUI", "1.0", "0:u")
+        self.bus = servio.ServIO("PYUI", "1.0", 100)#"0:")
         self.bus.defaultHandler(servio.noop_handler)
 
         frame = SodaFrame(NULL, -1, "Python Soda UI", self.bus)

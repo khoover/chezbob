@@ -1,7 +1,7 @@
 from wxPython.wx import *
-from pyui.config import *
-from pyui.sodapanel import *
-from pyui.sodabutton import *
+from config import *
+from sodapanel import *
+from sodabutton import *
 
 def monetize(val):
     return "$%0.2f" % (int(val) / 100.0)

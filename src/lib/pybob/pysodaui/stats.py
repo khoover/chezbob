@@ -1,5 +1,5 @@
 from wxPython.wx import *
-from pyui.config import *
+from config import *
 import PHPUnserialize
 import fcntl # for flock
 

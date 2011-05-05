@@ -1,6 +1,11 @@
 import servio
 
-class FPCtrl:
+class FPCtrlNoOp(object):
+    def doLoginMode(self): pass
+    def doDisable(self): pass
+    def doLearnMode(self): pass
+
+class FPCtrl(object):
     def __init__(self, bus):
         self.bus = bus
         self.FPServVL = self.bus.getVarList("FPSERV")
