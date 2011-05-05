@@ -166,7 +166,7 @@ class SodaFrame(wxFrame):
 
         self.FPServVL = self.bus.getVarList("FPSERV")
 
-        self.debugging = True
+        self.debugging = False
 
         self.wall_of_shame = []
         self.wall_of_shame_cv = threading.Condition()
@@ -558,9 +558,12 @@ class SodaFrame(wxFrame):
 
 
 class SodaApp(wxApp):
-    def OnInit(self):
-        #self.bus = servio.ServIO("PYUI", "1.0", "0:u")
-        self.bus = servio.ServIO("PYUI", "1.0", 100)#"0:")
+    def OnInit(self, unique=True):
+        if unique:
+            self.bus = servio.ServIO("PYUI", "1.0", "0:u")
+        else:
+            self.bus = servio.ServIO("PYUI", "1.0", 100)
+
         self.bus.defaultHandler(servio.noop_handler)
 
         frame = SodaFrame(NULL, -1, "Python Soda UI", self.bus)
