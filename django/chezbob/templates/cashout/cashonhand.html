@@ -49,6 +49,14 @@
     </tr>
 
 {% endfor %}
+    <tr>
+        <th style="text-align: left" width="20%">Date</th>
+        <th style="text-align: left" width="30%">Description</th>
+        <th style="text-align: left" width="20%"></th>
+        {% for f in field_names %}
+        <th style="text-align: right">{{ f }}</th>
+        {% endfor %}
+    </tr>
 </table>
 
 <div class="submit-row">
