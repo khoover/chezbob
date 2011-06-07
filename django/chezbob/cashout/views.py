@@ -389,4 +389,111 @@ def gen_transaction(request, cashout):
                           'splits': splits,
                           'action':'/admin/finance/transaction/new/'
                                })
-    
+
+@view_perm_required
+def show_losses(request):
+    title = 'Cash Losses'
+    transcript = ""
+    summary = []
+
+    from django.db import connection
+    cursor = connection.cursor()
+
+    def add_amt(dict, key, value):
+        # Add the given value into a dictionary, adding it to any existing
+        # value.
+        if key not in dict: dict[key] = Decimal("0.00")
+        dict[key] += value
+
+    def show_dict(dict):
+        # Convert a dictionary to a format more suitable for display in a
+        # Django template.
+        val = [{'key': k, 'value': v} for (k, v) in sorted(dict.items())]
+        val.append({'key': 'TOTAL',
+                    'value': sum(dict.values(), Decimal("0.00"))})
+        return val
+
+    # FIXME: These ought to not be hard-coded
+    acct_cash = finance.Account.objects.get(id=7)
+    acct_adjustments = finance.Account.objects.get(id=23)
+    cashout_entity_soda = Entity.objects.get(id=1)
+    cashout_entity_box = Entity.objects.get(id=2)
+
+    cursor.execute("""SELECT MIN(xacttime::date) FROM transactions""")
+    (last_date,) = cursor.fetchone()
+
+    cursor.execute("""SELECT sum(amount)
+                      FROM finance_splits s JOIN finance_transactions t
+                           ON (s.transaction_id = t.id)
+                      WHERE account_id = %s AND date < %s""",
+                   [acct_cash.id, last_date])
+    (balance,) = cursor.fetchone()
+
+    cash_deltas = {'soda': Decimal("0.00"), 'chezbob': Decimal("0.00")}
+
+    transcript += "Starting cash: %s on %s\n\n" % (balance, last_date)
+
+    source_totals = {}
+    for cashout in CashOut.objects.filter(datetime__gte=last_date).order_by('datetime'):
+        transcript += str(cashout) + "\n"
+        cursor.execute("""SELECT source, sum(xactvalue)
+                          FROM transactions
+                          WHERE (xacttype = 'ADD' OR xacttype = 'REFUND')
+                            AND xacttime >= %s AND xacttime < %s
+                          GROUP BY source""",
+                       [last_date, cashout.datetime])
+        for (source, amt) in cursor.fetchall():
+            transcript += "    Deposit: %s (%s)\n" % (amt, source)
+            add_amt(source_totals, source, amt)
+            balance += amt
+
+        cursor.execute("""SELECT s.amount, t.description
+                          FROM finance_splits s JOIN finance_transactions t
+                               ON (s.transaction_id = t.id)
+                          WHERE account_id = %s AND NOT auto_generated
+                            AND date::timestamp >= %s
+                            AND date::timestamp < %s
+                          ORDER BY date, t.id""",
+                       [acct_cash.id, last_date, cashout.datetime])
+        other_transactions = []
+        for (a, d) in cursor.fetchall():
+            other_transactions.append({'key': d, 'value': a})
+            balance += a
+
+        cashcount = False
+        collected = {}
+        for c in cashout.cashcount_set.all():
+            if c.entity in (cashout_entity_soda, cashout_entity_box) \
+                and c.total > 0:
+                add_amt(collected, c.entity.name, c.total)
+                transcript += "  Cash Count: %s (%s)\n" % (c.total, c.entity.name)
+                cashcount = True
+                if c.entity == cashout_entity_soda:
+                    cash_deltas['soda'] += c.total
+                else:
+                    cash_deltas['chezbob'] += c.total
+        if cashcount:
+            transcript += "  Expected:\n"
+            for (s, t) in source_totals.items():
+                transcript += "    %s %s\n" % (t, s)
+                if s not in cash_deltas:
+                    cash_deltas[s] = Decimal("0.00")
+                cash_deltas[s] -= t
+
+            transcript += "  Cumulative Errors:\n"
+            for (s, t) in cash_deltas.items():
+                transcript += "    %s %s\n" % (t, s)
+
+            transcript += "  BALANCE: %s\n" % (balance,)
+            summary.append({'date': cashout.datetime,
+                            'deposits': show_dict(source_totals),
+                            'collected': show_dict(collected),
+                            'extra': other_transactions,
+                            'error': balance})
+
+            source_totals = {}
+
+        last_date = cashout.datetime
+
+    return render_to_response('cashout/losses.html',
+                              {'summary': summary, 'debug': transcript})
