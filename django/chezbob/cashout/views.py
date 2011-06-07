@@ -457,7 +457,7 @@ def show_losses(request):
                        [acct_cash.id, last_date, cashout.datetime])
         other_transactions = []
         for (a, d) in cursor.fetchall():
-            other_transactions.append({'key': d, 'value': a})
+            other_transactions.append({'key': d, 'value': -a})
             balance += a
 
         cashcount = False
