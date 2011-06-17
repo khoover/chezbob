@@ -543,7 +543,7 @@ bob_db_insert_pwd
   &bob_db_check_conn;
   my $insertquery = qq{
     update users set pwd = '$c_pwd'
-    where user = $userid;
+    where userid = $userid;
   };
 
   my $result = $conn->exec($insertquery);
