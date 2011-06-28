@@ -1,0 +1,32 @@
+{% extends "chezbob/base.html" %}
+{% block title %}Cash Losses{% endblock %}
+
+{% block content %}
+<h1>Cash Losses</h1>
+
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Deposits</th>
+<th>Collected</th>
+<th>Finance Transactions</th>
+<th>Remaining Error (Cumulative)</th>
+</tr>
+</thead>
+{% for s in summary %}
+<tr>
+<td>{{ s.date }}</td>
+<td>{% for i in s.deposits %}<p><b>{{ i.key }}</b>: {{ i.value }}{% endfor %}</p></th>
+<td>{% for i in s.collected %}<p><b>{{ i.key }}</b>: {{ i.value }}{% endfor %}</p></th>
+<td>{% for i in s.extra %}<p><b>{{ i.key }}</b>: {{ i.value }}{% endfor %}</p></th>
+<td>{{ s.error }}</td>
+</tr>
+{% endfor %}
+<tbody>
+</tbody>
+</table>
+
+<!-- <pre class="debug">{{ debug }}</pre> -->
+
+{% endblock %}

@@ -7,4 +7,5 @@ urlpatterns = patterns('chezbob.cashout.views',
         (r'^onhand/$', 'cashonhand'),
         (r'^$', 'ledger'),
         (r'gen_tr/(\d+)/$', 'gen_transaction'),
+        (r'^losses/$', 'show_losses'),
         )
