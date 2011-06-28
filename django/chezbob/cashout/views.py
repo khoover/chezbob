@@ -456,9 +456,12 @@ def show_losses(request):
                           ORDER BY date, t.id""",
                        [acct_cash.id, last_date, cashout.datetime])
         other_transactions = []
+        other_total = Decimal("0.00")
         for (a, d) in cursor.fetchall():
             other_transactions.append({'key': d, 'value': -a})
+            other_total -= a
             balance += a
+        other_transactions.append({'key': "TOTAL", 'value': other_total})
 
         cashcount = False
         collected = {}
