@@ -1,5 +1,7 @@
 \.o$
 \.pyc$
+\.jar$
+\.class$
 .DS_Store$
 \~$
 ^barcodes/barcodes\.html$
