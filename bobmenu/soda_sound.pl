@@ -19,6 +19,6 @@ if (!$sound_name) {
     exit 1;
 }
 
-system("ssh -oBatchMode=yes -l mvrable soda.ucsd.edu '/home/kiosk/sodafw/bin/ctool -send \"SOUND-PLAY|$sound_name\"' </dev/null");
+system("ssh -oBatchMode=yes -l bob soda.ucsd.edu '/home/kiosk/sodafw/bin/ctool -send \"SOUND-PLAY|$sound_name\"' </dev/null");
 
 exit 0
