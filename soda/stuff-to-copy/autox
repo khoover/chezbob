@@ -49,11 +49,12 @@ case "$1" in
 	# special setting when run from inittab - start, but do not fork to background
 	# set flags to ensure newline is correct
         stty inlcr opost onlcr
+	
+	# XXX: commented out to see if it works without them; may need to put one or both back
         # create ext_mouse fifo if needed
-	test -r /dev/ext_mouse || mkfifo /dev/ext_mouse
-
+	# test -r /dev/ext_mouse || mkfifo /dev/ext_mouse
 	# start touchscreen filter
-	/root/pvbin/ts_filter /dev/input/ev_touchscreen &
+	# /root/pvbin/ts_filter /dev/input/ev_touchscreen &
 
         HOME=/home/kiosk
         start-stop-daemon --start --quiet -c kiosk:kiosk --pidfile $PIDFILE \

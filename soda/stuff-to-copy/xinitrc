@@ -1,3 +1,4 @@
+#!/bin/bash
 #disable screen savers
 cd ~
 
@@ -7,6 +8,7 @@ export SSTART=`date +'%Y-%m-%d %H:%M:%S'`
 # 'live' server port - take from /etc/services file
 # do not use
 # export SODACTRL_PORT=`perl -le 'print 0+getservbyname("sodactrl","tcp")'`
+export PATH=$PATH:/home/kiosk/sodafw/bin/
 
 
 # start up the services
