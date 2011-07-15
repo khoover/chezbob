@@ -4,6 +4,8 @@
 #include <sys/mman.h>
 #include <assert.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include <pthread.h>
 #include "fpserv.h"

@@ -120,7 +120,7 @@ int win_fpcontr = 1;;
 
 class MyStatusBox: public Fl_Widget {
 public:
-  MyStatusBox::MyStatusBox(int x, int y, int w, int h) :
+  MyStatusBox(int x, int y, int w, int h) :
     Fl_Widget(x, y, w, h) {
   };
   virtual void draw();

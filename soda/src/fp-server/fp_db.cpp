@@ -1,6 +1,9 @@
 #include <mysql/mysql.h>
-#include <servio.h>
 #include <pthread.h>
+#include <servio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "fpserv.h"
 #include <VFinger.h>
