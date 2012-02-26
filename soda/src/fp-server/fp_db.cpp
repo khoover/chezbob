@@ -1,10 +1,12 @@
+#include <VFinger.h>
 #include <mysql/mysql.h>
-#include <servio.h>
 #include <pthread.h>
+#include <servio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "fpserv.h"
-#include <VFinger.h>
-
 
 pthread_mutex_t sql_mutex = PTHREAD_ERRORCHECK_MUTEX_INITIALIZER_NP;
 
@@ -18,7 +20,7 @@ void fpdb_init() {
   // init MYSQL database
   db_conn = mysql_init(0);
   char * sql_host = "";
-  char * sql_user = 0; 
+  char * sql_user = 0;
   char * sql_passwd = 0;
   char * sql_db = 0;
   // todo: read fromtext-based config file?
@@ -47,8 +49,8 @@ int fpdata_save(unsigned char * featdata, int featsize, int life) {
   char * qbuff = (char*)malloc(featsize*2 + 512);
   int g = VFFeatGetG(featdata);
 
-  int qsize = sprintf(qbuff, 
-		      "INSERT INTO fp_fingers SET fp_g=%d, rec_expires=NOW() + INTERVAL %d HOUR, rec_added=NOW(), fp_data='", 
+  int qsize = sprintf(qbuff,
+		      "INSERT INTO fp_fingers SET fp_g=%d, rec_expires=NOW() + INTERVAL %d HOUR, rec_added=NOW(), fp_data='",
 		      g, life ? 7*24 : 2);
 
   qsize += mysql_real_escape_string(db_conn, qbuff + qsize, (char*)featdata, featsize);
@@ -63,7 +65,7 @@ int fpdata_save(unsigned char * featdata, int featsize, int life) {
     sio_write(SIO_ERROR, "FP save failed: err='%s', rv=%d", mysql_error(db_conn), rv);
     return 0;
   };
-  
+
   int id = mysql_insert_id(db_conn);;
   sio_write(SIO_DEBUG, "FP save ok, id=%d, len=%d sql_len=%d g=%d", id, featsize, qsize, g);
 
@@ -72,18 +74,18 @@ int fpdata_save(unsigned char * featdata, int featsize, int life) {
   return  id;
 };
 
-int  fpdata_match(unsigned char * featdata, int featsize, 
+int  fpdata_match(unsigned char * featdata, int featsize,
 				  std::string & uid, std::string & finger, int & rel) {
 
   SQL_LOCK();
   int g = VFFeatGetG(featdata);
 
-  char bf[256]; 
+  char bf[256];
 
   int rv = sprintf(bf, "SELECT fp_data, fp_id, rec_uid, rec_finger FROM fp_fingers "
 				   "WHERE m_ok=1 ORDER BY ABS(fp_g-%d), m_count, m_last_time", g);
   rv = mysql_real_query(db_conn, bf, rv);
-  
+
   if (rv < 0) {
     SQL_UNLOCK();
 	sio_write(SIO_ERROR, "FP record select failed: error %s (for %s)", mysql_error(db_conn), bf);
@@ -99,8 +101,8 @@ int  fpdata_match(unsigned char * featdata, int featsize,
 
   VFMatchDetails md;
   md.Size = sizeof(VFMatchDetails);
-  
-  VFSetParameter(VFP_MATCHING_THRESHOLD, thresh_match, vfcont); 
+
+  VFSetParameter(VFP_MATCHING_THRESHOLD, thresh_match, vfcont);
   VFIdentifyStart (featdata, vfcont);
 
   char ** row = 0;
@@ -171,7 +173,7 @@ int  fpdata_persists(int fpid, const std::string uid, const std::string finger) 
 // try to generalize one or more fingerpints
 // input: array of ints, 0-terminated
 // output: fpid of result, if any
-// RV:   >0  - match went fine, this is the similarity 
+// RV:   >0  - match went fine, this is the similarity
 //        0  - values did not match
 //       -1  - mysql error
 //       -2  - some input was not found
@@ -180,7 +182,7 @@ int  fpdata_generalize(int * fpid_in, std::string& exinfo) {
   char buff[1024];
 
   sprintf(buff, "SELECT fp_data FROM fp_fingers WHERE fp_id IN (");
-  char * log_val = strchr(buff, '('); 
+  char * log_val = strchr(buff, '(');
   int cnt = 0;
   while ((cnt<10) && (fpid_in[cnt])) { // max 10 features...
 	sprintf(strchr(buff, 0), "%c %d", (cnt==0)?' ':',', fpid_in[cnt]);
@@ -194,8 +196,8 @@ int  fpdata_generalize(int * fpid_in, std::string& exinfo) {
   };
 
   SQL_LOCK();
-  
-  int rv = mysql_query(db_conn, buff);  
+
+  int rv = mysql_query(db_conn, buff);
   if (rv < 0) {
 	sio_write(SIO_ERROR, "FP generalize select failed: error %s (for %s)", mysql_error(db_conn), buff);
 	SQL_UNLOCK();
@@ -206,11 +208,11 @@ int  fpdata_generalize(int * fpid_in, std::string& exinfo) {
   int actcnt = (msres==0)?-1: (int)mysql_num_rows(msres);
   if (actcnt != cnt) {
     SQL_UNLOCK();
-	sio_write(SIO_ERROR, "FP generalize select did not find everything: got %d instead of %d recs, error %s, stmt '%s", 
+	sio_write(SIO_ERROR, "FP generalize select did not find everything: got %d instead of %d recs, error %s, stmt '%s",
 			  actcnt, cnt, mysql_error(db_conn), log_val);
 	return -2;
   };
-  
+
   unsigned char ** feat_in = (unsigned char**)malloc(sizeof(char*)*cnt);
   for (int i=0; i<cnt; i++) {
 	char** res = mysql_fetch_row(msres);
@@ -228,7 +230,7 @@ int  fpdata_generalize(int * fpid_in, std::string& exinfo) {
 
   unsigned char nfeat[VF_MAX_FEATURES_SIZE];
   DWORD fsize = sizeof(nfeat);
-  
+
   rv = VFGeneralize(cnt, feat_in, nfeat, &fsize, vfcont);
 
   for (int i=0; i<cnt; i++) free(feat_in[i]);
@@ -251,7 +253,7 @@ int  fpdata_generalize(int * fpid_in, std::string& exinfo) {
 int  fpdata_db_cleanup() {
   SQL_LOCK();
   char buff[1000] = "DELETE FROM fp_fingers WHERE rec_expires>0 AND rec_expires<NOW()";
-  int rv = mysql_query(db_conn, buff);  
+  int rv = mysql_query(db_conn, buff);
   if (rv < 0) {
     SQL_UNLOCK();
     sio_write(SIO_ERROR, "FP cleanup failed: error %s (for %s)", mysql_error(db_conn), buff);
@@ -269,7 +271,7 @@ int fpdata_unpersist(int fpid) {
   char buff[1000];
   SQL_LOCK();
   sprintf(buff, "UPDATE fp_fingers SET rec_expires=NOW() + INTERVAL 10 HOURS, m_ok=0 WHERRE fpid='%d'", fpid);
-  int rv = mysql_query(db_conn, buff);  
+  int rv = mysql_query(db_conn, buff);
   if (rv < 0) {
     SQL_UNLOCK();
     sio_write(SIO_ERROR, "FP unpersist failed: error %s (for %s)", mysql_error(db_conn), buff);
@@ -310,14 +312,14 @@ int fpdata_list(const char* queryid, const char * mode, const char * arg1, const
 
   MYSQL_RES *  msres = 0;
   if (*buff) {
-	int rv = mysql_query(db_conn, buff);  
+	int rv = mysql_query(db_conn, buff);
 	if (rv < 0) {
 	  sio_write(SIO_ERROR, "FPdata_list failed: error %s (for %s)", mysql_error(db_conn), buff);
 	} else {
 	  msres = mysql_store_result(db_conn);
 	};
   };
-  
+
   while (msres!=NULL) {
 	char** res = mysql_fetch_row(msres);
 	if (!res) break;
