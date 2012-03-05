@@ -73,7 +73,7 @@ bool CFPImage::acquire() {
   contrast = total / (DPFP_IMG_WIDTH*DPFP_IMG_HEIGHT);
 
   // .. and upside-down
-  for (unsigned int y1=0, y2=(height-1); y1 < y2; y1++, y2--) 
+  for (unsigned int y1=0, y2=(height-1); y1 < y2; y1++, y2--)
     for (unsigned int x=0; x<width; x++) {
       unsigned char c = data[ x + y1 * stride ];
       data[ x + y1 * stride ] = data[ width-1-x + y2 * stride ];
@@ -114,7 +114,7 @@ bool fpr_acquire_mode(bool acquire) {
 // 0 - timeout
 // -1 - failure
 int fpr_wait_finger(int timeout) {
-  int r = dpfp_await_finger_on_timeout(fp_dev, (timeout-1)/1000 + 1); 
+  int r = dpfp_await_finger_on_timeout(fp_dev, (timeout-1)/1000 + 1);
   return r;
 };
 
@@ -136,7 +136,7 @@ CFPImage::CFPImage() {
   finger = "";
   fpid = 0;
   fprel = 0;
-  hw_init();  
+  hw_init();
 };
 
 CFPImage::~CFPImage() {
@@ -178,7 +178,7 @@ bool fpr_init() {
 // global cleanup
 bool fpr_cleanup() {
   fpr_hw_cleanup();
-  return true;  
+  return true;
 };
 
 extern int dev_threshold;  // unused
@@ -193,7 +193,7 @@ bool CFPImage::prepare() {
   featsize = sizeof(featdata);
   assert(width == stride);
   if (VFExtract(width, height, data, dpi,
-		(unsigned char*)featdata, (unsigned long*)&featsize, vfcont) < 0) {
+                (unsigned char*)featdata, (unsigned long*)&featsize, vfcont) < 0) {
     featsize = 0;
     featG = 0;
     mincount = 0;
@@ -211,7 +211,7 @@ bool CFPImage::prepare() {
 
 
 bool CFPImage::match() {
-  
+
   //feat_done_msg[0] = 0;
   // save_image_data();
   if (capture_match) {
@@ -223,13 +223,13 @@ bool CFPImage::match() {
   if (fpid > 0) {
     state = FPS_MATCHES;
     sio_write(SIO_DEBUG, "FP matched %d, uid '%s', finger '%s', rel %d",
-	      fpid, uid.c_str(), finger.c_str(), fprel);
-  } else { 
+              fpid, uid.c_str(), finger.c_str(), fprel);
+  } else {
     // always save
     state = capture_match ? FPS_NOMATCH : FPS_STORED;
     if (fprel) {
       sio_write(SIO_DEBUG, "FP (min=%d, contr=%d) was almost uid '%s', finger '%s', rel %d/%d",
-		mincount, contrast, uid.c_str(), finger.c_str(), fprel, capture_match);
+                mincount, contrast, uid.c_str(), finger.c_str(), fprel, capture_match);
     } else if (capture_match) {
       sio_write(SIO_DEBUG, "FP (min=%d, contr=%d) was unrecognizeable", mincount, contrast);
     } else {
@@ -266,15 +266,15 @@ bool CFPImage::saveData(std::string & prefix) {
     fprintf(f, "FEATURE START\n");
     for (int i=0; i<mincount; i++) {
       fprintf(f, " %s Pos=(%d,%d) D=%d,%d C=%d,%d G=%d\n",
-	      (mindata[i].T==vfmtBifurcation) ? "BIF":
-	      (mindata[i].T==vfmtEnd) ? "END": "OTH",
-	      mindata[i].X, mindata[i].Y,
-	      mindata[i].D, VFDirToDeg((int)mindata[i].D),
-	      mindata[i].C, VFDirToDeg((int)mindata[i].C),
-	      mindata[i].G);
+              (mindata[i].T==vfmtBifurcation) ? "BIF":
+              (mindata[i].T==vfmtEnd) ? "END": "OTH",
+              mindata[i].X, mindata[i].Y,
+              mindata[i].D, VFDirToDeg((int)mindata[i].D),
+              mindata[i].C, VFDirToDeg((int)mindata[i].C),
+              mindata[i].G);
     };
     fprintf(f, "FEATURE END\n");
-    
+
     fclose(f);
   };
 };
@@ -302,7 +302,7 @@ CFPImage * fpr_get_image() {
   rv = gui_img;
   if (rv)
     rv->refcount++;
-  pthread_mutex_unlock(&gui_mutex);  
+  pthread_mutex_unlock(&gui_mutex);
   return rv;
 };
 
@@ -322,13 +322,13 @@ static int set_gui_state(int s, CFPImage * img = (CFPImage*)-1) {
   gui_state = s;
 
   pthread_mutex_lock(&gui_mutex);
-  if ((img != (CFPImage*)-1) && 
+  if ((img != (CFPImage*)-1) &&
       (img != gui_img)) {
     // delete old image
     if (gui_img) {
       gui_img->refcount--;
       if (gui_img->refcount == 0)
-	delete gui_img;
+        delete gui_img;
       gui_img = 0;
     };
     // set new image
@@ -336,7 +336,7 @@ static int set_gui_state(int s, CFPImage * img = (CFPImage*)-1) {
     if (gui_img)
       gui_img->refcount++;
   };
-  pthread_mutex_unlock(&gui_mutex);    
+  pthread_mutex_unlock(&gui_mutex);
 
   refresh_gui = true;
 };
@@ -350,9 +350,9 @@ void* fpr_main(void * dummy) {
     if (r < 0) {
       stop_num = 3000 - r;
       break;
-    }; 
+    };
     // no finger
-    if (r == 0) 
+    if (r == 0)
       continue;
     CFPImage * img = 0;
     set_gui_state(FPS_UNCAPTURED, NULL);
@@ -362,49 +362,49 @@ void* fpr_main(void * dummy) {
     for (int i=0; i<3; i++) {
       if (thread_stop) break;
       if (img)
-	fpr_release_image(img);
-	
+        fpr_release_image(img);
+
       img = new CFPImage();
       set_gui_state(FPS_UNCAPTURED);
 
       if (!img->acquire()) {
-	fpr_release_image(img);
-	break;
+        fpr_release_image(img);
+        break;
       };
       set_gui_state(FPS_UNPARSED);
 
       if (!img->prepare()) {
-	set_gui_state(FPS_EMPTY, 0);
-	fpr_release_image(img);
-	img = 0;
-	break;
+        set_gui_state(FPS_EMPTY, 0);
+        fpr_release_image(img);
+        img = 0;
+        break;
       };
 
       set_gui_state(img->state, img);
 
       if (img->state == FPS_CANMATCH) {
-	if (img->match()) {
-	  set_gui_state(img->state, img); // match
-	  break;
-	};
+        if (img->match()) {
+          set_gui_state(img->state, img); // match
+          break;
+        };
       } else {
-	set_gui_state(FPS_LOWPOINTS, img);
+        set_gui_state(FPS_LOWPOINTS, img);
       };
     };
 
     if (img) {
-      if (img->state == FPS_LOWPOINTS) { 
-	set_gui_state(FPS_NOMATCH_BAD, img);
+      if (img->state == FPS_LOWPOINTS) {
+        set_gui_state(FPS_NOMATCH_BAD, img);
       } else {
-	// we had at least one satisfactory image
-	set_gui_state(img->state, img);
+        // we had at least one satisfactory image
+        set_gui_state(img->state, img);
 
-	if (img->state == FPS_MATCHES) {
-	  sio_write(SIO_DATA, "FP-GOODREAD\t%d\t%s\t%s\t%d", img->fpid, img->uid.c_str(), img->finger.c_str(), img->fprel);
-	} else {
-	  img->store();
-	  sio_write(SIO_DATA, "FP-BADREAD\t%d", img->fpid);	  
-	};
+        if (img->state == FPS_MATCHES) {
+          sio_write(SIO_DATA, "FP-GOODREAD\t%d\t%s\t%s\t%d", img->fpid, img->uid.c_str(), img->finger.c_str(), img->fprel);
+        } else {
+          img->store();
+          sio_write(SIO_DATA, "FP-BADREAD\t%d", img->fpid);
+        };
       };
       fpr_release_image(img);
       // TODO: fix this somehow!!!
