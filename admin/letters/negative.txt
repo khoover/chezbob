@@ -1,4 +1,4 @@
-# Query: select username, email, balance from account_summary where where last_seen >= '2010-12-01' and balance <= -1 order by balance, lower(username);
+# Query: select username, email, balance from users where last_purchase_time >= '2010-12-05' and balance < -1 and (balance < -5 or last_deposit_time < '2011-03-01' or last_deposit_time IS NULL) order by balance, lower(username);
 # Fields: USERNAME EMAIL BALANCE
 From: Chez Bob <chezbob@cs.ucsd.edu>
 Reply-To: Nathan Bales <nbales@cs.ucsd.edu>
