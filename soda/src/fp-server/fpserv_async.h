@@ -21,9 +21,13 @@ class FPReader {
  public:
   static void InitializeFP();
 
-
   FPReader();
   ~FPReader();
+
+  // Sets the username for the next Enroll phase
+  void SetUsername(std::string username);
+
+
   void ChangeState(SingleState newstate);
   void UpdateState();
 
@@ -46,6 +50,8 @@ class FPReader {
 
   SingleState state;
   SingleState next;
+
+  std::string enrollingUser;
 
   std::vector<User*> users;
   fp_print_data** user_array;

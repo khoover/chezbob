@@ -82,6 +82,10 @@ void FPReader::UpdateState() {
   }
 }
 
+void FPReader::SetUsername(std::string username) {
+  enrollingUser = username;
+}
+
 void FPReader::AddUser(User* u) {
   if(user_array) {
     free(user_array);
@@ -111,7 +115,7 @@ void FPReader::EnrollStageCallback(int result, struct fp_print_data* print, stru
 
   switch (result) {
     case FP_ENROLL_COMPLETE:
-      AddUser(new User(print, "a user"));
+      AddUser(new User(print, enrollingUser));
       printf("<b>Enrollment completed!</b>\n");
       StopEnroll();
       break;
@@ -171,6 +175,7 @@ void FPReader::IdentifyCallback(int result, size_t match_offset, struct fp_img *
     case FP_VERIFY_MATCH:
       // Found it
       printf("Match found at %Zu\n", match_offset);
+      printf("%s\n", users[match_offset]->username.c_str());
       break;
     case FP_VERIFY_RETRY:
       // poor scan quality
@@ -255,7 +260,9 @@ bool FPReader::OpenDevice() {
 
 //int main(int argc, char** argv) {
 //  FPReader fp;
+//  std::string s = "kmowery";
 //
+//  fp.SetUsername(s);
 //  fp.StartEnroll();
 //
 //  while(true) {
