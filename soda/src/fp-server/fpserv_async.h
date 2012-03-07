@@ -7,6 +7,8 @@
 
 #include <libfprint/fprint.h>
 
+#include "fp_db.h"
+
 typedef enum {
   NONE = 0,
   WAITING = 1,
@@ -56,6 +58,7 @@ class FPReader {
 
  //private:
   void AddUser(User*);
+  void SetUsersArray();
 
   // Opens the first device that libfprint sees
   bool OpenDevice();
@@ -71,11 +74,14 @@ class FPReader {
   fp_dev* device;
 
   static bool fp_initialized;
+
+  DB* db;
 };
 
 class User {
  public:
   User(fp_print_data* fingerprint_, std::string username_);
+
   fp_print_data* print;
   std::string username;
 };

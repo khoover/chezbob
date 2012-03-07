@@ -14,7 +14,7 @@ int state;
 enum{ STATE_READ, STATE_LEARN, STATE_STOPPED };
 
 int main(int argc, char** argv) {
-  if (sio_open(argc, argv, "FPSERV", "1.34", "") < 0)
+  if (sio_open(argc, argv, "FPSERV", "2.0", "") < 0)
     exit(10);
   sio_write(SIO_DATA, "SYS-ACCEPT\tFP-");
 

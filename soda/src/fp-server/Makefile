@@ -3,13 +3,13 @@ CPP=g++
 CPPFLAGS=-g -I../lib
 
 # I know, I know. In the current lack of a unified build system, use this hack.
-LDFLAGS=-lfprint ../lib/servio.o
+LDFLAGS=-lfprint -lsqlite3 ../lib/servio.o
 
 .SUFFIXES: .c .o
 
 TARGET=fpserv
 
-SRCS=fpserv_async.cpp fpserv.cpp
+SRCS=fpserv_async.cpp fp_db.cpp fpserv.cpp
 OBJS=$(SRCS:.cpp=.o)
 
 all: ${TARGET}

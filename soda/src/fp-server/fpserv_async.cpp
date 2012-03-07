@@ -30,8 +30,16 @@ FPReader::FPReader() {
   state = NONE;
   next = NONE;
 
-  user_array = (fp_print_data**) malloc(sizeof(fp_print_data*));
-  user_array[0] = NULL;
+  db = new DB();
+  if(db) {
+    users = db->GetUsers();
+    printf("Loaded %d fingerprints.\n", users.size());
+  } else {
+    printf("Fingerprint DB failed to load.");
+  }
+
+  user_array = NULL;
+  SetUsersArray();
 
   OpenDevice();
 }
@@ -97,9 +105,15 @@ void FPReader::AddUser(User* u) {
   if(user_array) {
     free(user_array);
   }
+  if(db) {
+    db.SaveUser(u);
+  }
 
   users.push_back(u);
+  SetUsersArray();
+}
 
+void FPReader::SetUsersArray() {
   user_array = (fp_print_data**) malloc(sizeof(fp_print_data*) * (users.size()+1));
   int i = 0;
   for(std::vector<User*>::iterator iter = users.begin();
@@ -163,7 +177,6 @@ void FPReader::EnrollStageCallback(int result, struct fp_print_data* print, stru
 void FPReader::EnrollStopCallback() {
   //TODO: assert state == WAITING
   state = NONE;
-  //TODO: check for next stage. make call.
   printf("Enroll stopped.\n");
 
   ChangeState(IDENTIFYING);
@@ -181,37 +194,30 @@ void FPReader::IdentifyCallback(int result, size_t match_offset, struct fp_img *
   switch(result) {
     case FP_VERIFY_NO_MATCH:
       // Did not find
-      printf("No match found\n");
       SendBadRead("Fingerprint not recognized.");
       break;
     case FP_VERIFY_MATCH:
       // Found it
-      printf("Match found at %Zu: %s\n", match_offset, users[match_offset]->username.c_str());
       SendGoodRead(users[match_offset]);
       break;
     case FP_VERIFY_RETRY:
       // poor scan quality
-      printf("Match failed due to scan quality\n");
       SendBadRead("Fingerprint failed due to poor scan quality.");
       break;
     case FP_VERIFY_RETRY_TOO_SHORT:
       // swipe too short. Not an issue with this reader.
-      printf("Match failed, swipe longer\n");
       SendBadRead("Fingerprint failed. Try again.");
       break;
     case FP_VERIFY_RETRY_CENTER_FINGER:
       // center finger.
-      printf("Match failed, center finger and try again\n");
       SendBadRead("Fingerprint failed. Center your finger and try again.");
       break;
     case FP_VERIFY_RETRY_REMOVE_FINGER:
       // pressed too hard
       SendBadRead("Fingerprint failed. Lift your finger and try again.");
-      printf("Match failed, remove finger and try again\n");
       break;
     default:
       SendBadRead("Fingerprint failed for an uknown reason.");
-      printf("Identify returned, no idea what's going on");
       break;
   }
 
