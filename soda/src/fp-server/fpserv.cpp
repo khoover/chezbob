@@ -35,31 +35,31 @@ int main(int argc, char** argv) {
     fp.UpdateState();
 
     // Poll the bus and handle results
-   str = "";
-   ret_val = sio_read(str, 1000);
+    str = "";
+    ret_val = sio_read(str, 0);
 
-   if(ret_val > 0) {
-     std::string command = sio_field(str, 0);
-     std::string userid = sio_field(str, 1);
+    if(ret_val > 0) {
+      std::string command = sio_field(str, 0);
+      std::string userid = sio_field(str, 1);
 
-     if(command == "FP-LEARN-START"){
-       state = STATE_LEARN;
-       fp.SetUsername(userid);
-       fp.ChangeState(ENROLLING);
-       // TODO: send messages back up when enrolling finishes
-       //       sio_write(SIO_DATA, "FP-LEARN-GOOD");
-       //sio_write(SIO_DATA, "FP-LEARN-FAIL");
-     }
-     else if(command == "FP-LEARN-STOP"){
-       state = STATE_READ;
-       fp.SetUsername("not-a-user:identifying-mode");
-       fp.ChangeState(IDENTIFYING);
-     }
-     else{
-       std::cout << "Message received: " << str;
-       std::cout << " arg1: " << command << " arg2: " << userid << std::endl;
-     }
-   }
+      if(command == "FP-LEARN-START"){
+        state = STATE_LEARN;
+        fp.SetUsername(userid);
+        fp.ChangeState(ENROLLING);
+        // TODO: send messages back up when enrolling finishes
+        //       sio_write(SIO_DATA, "FP-LEARN-GOOD");
+        //sio_write(SIO_DATA, "FP-LEARN-FAIL");
+      }
+      else if(command == "FP-LEARN-STOP"){
+        state = STATE_READ;
+        fp.SetUsername("not-a-user:identifying-mode");
+        fp.ChangeState(IDENTIFYING);
+      }
+      else{
+        std::cout << "Message received: " << str;
+        std::cout << " arg1: " << command << " arg2: " << userid << std::endl;
+      }
+    }
   }
   sio_close(-1, "NewFP server going down");
 

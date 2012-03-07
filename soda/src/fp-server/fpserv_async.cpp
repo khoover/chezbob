@@ -47,6 +47,7 @@ FPReader::~FPReader() {
 // Eventually, FPReader will swing itself around to be in this state.
 // Try calling UpdateState a few times.
 void FPReader::ChangeState(SingleState newstate) {
+  printf("Changing state from %s to %s.\n", STATESTRING(state), STATESTRING(newstate));
   next = newstate;
 }
 
@@ -64,6 +65,13 @@ void FPReader::UpdateState() {
     next = NONE;
   }
 
+  if(state == WAITING && next == IDENTIFYING) {
+    // Do nothing
+  }
+  if(state == WAITING && next == ENROLLING) {
+    // Do nothing
+  }
+
   //if(state == IDENTIFYING && next == IDENTIFYING) {
   //  next = NONE;
   //}
@@ -74,11 +82,9 @@ void FPReader::UpdateState() {
   if(state == ENROLLING && next == IDENTIFYING) {
     // We need this handler to finish before we can call StartIdentify.
     // The next call to ChangeState will handle this case.
-    state = NONE;
     StopEnroll();
   }
   if(state == IDENTIFYING && next == ENROLLING) {
-    state = NONE;
     StopIdentify();
   }
 }
@@ -153,6 +159,7 @@ void FPReader::EnrollStageCallback(int result, struct fp_print_data* print, stru
 }
 
 void FPReader::EnrollStopCallback() {
+  //TODO: assert state == WAITING
   state = NONE;
   //TODO: check for next stage. make call.
   printf("Enroll stopped.\n");
@@ -161,6 +168,7 @@ void FPReader::EnrollStopCallback() {
 }
 
 void FPReader::IdentifyCallback(int result, size_t match_offset, struct fp_img *img) {
+  printf("Identify callbacked\n");
   // If we don't immediately stop, the driver gets all excited.
   // In our StopIdentify handler, we'll start identifying again
   StopIdentify();
@@ -204,24 +212,31 @@ void FPReader::IdentifyCallback(int result, size_t match_offset, struct fp_img *
 }
 
 void FPReader::IdentifyStopCallback() {
+  //TODO: assert state == WAITING
   state = NONE;
   printf("Identify stopped\n");
 }
 
 
 int FPReader::StartEnroll() {
+  printf("StartEnroll()\n");
   state = ENROLLING;
   return fp_async_enroll_start(device, &enroll_stage_cb, this);
 }
 
 int FPReader::StopEnroll() {
+  state = WAITING;
+  printf("StopEnroll()\n");
   return fp_async_enroll_stop(device, &enroll_stop_cb, this);
 }
 int FPReader::StartIdentify() {
+  printf("StartIdentify()\n");
   state = IDENTIFYING;
   return fp_async_identify_start(device, user_array, &identify_cb, this);
 }
 int FPReader::StopIdentify() {
+  state = WAITING;
+  printf("StopIdentify()\n");
   return fp_async_identify_stop(device, &identify_stop_cb, this);
 }
 

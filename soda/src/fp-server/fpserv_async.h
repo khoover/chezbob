@@ -8,9 +8,16 @@
 
 typedef enum {
   NONE = 0,
-  ENROLLING = 1,
-  IDENTIFYING = 2
+  WAITING = 1,
+  ENROLLING = 2,
+  IDENTIFYING = 3
 } SingleState;
+
+#define STATESTRING(var) \
+  (var == IDENTIFYING ? "IDENTIFYING" : \
+   var == ENROLLING ? "ENROLLING" : \
+   var == WAITING ? "WAITING" : \
+   "NONE")
 
 class User;
 class FPReader;
