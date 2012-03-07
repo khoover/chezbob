@@ -19,7 +19,11 @@ class FPReader;
 
 class FPReader {
  public:
-  FPReader(fp_dev* device);
+  static void InitializeFP();
+
+
+  FPReader();
+  ~FPReader();
   void ChangeState(SingleState newstate);
   void UpdateState();
 
@@ -37,6 +41,9 @@ class FPReader {
  //private:
   void AddUser(User*);
 
+  // Opens the first device that libfprint sees
+  bool OpenDevice();
+
   SingleState state;
   SingleState next;
 
@@ -44,7 +51,10 @@ class FPReader {
   fp_print_data** user_array;
 
   fp_dev* device;
+
+  static bool fp_initialized;
 };
+bool FPReader::fp_initialized = false;
 
 class User {
  public:

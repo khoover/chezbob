@@ -10,13 +10,36 @@
 // Notes: you cannot call a Start function from a callback. I don't know why;
 // libfprint throws an error.
 
-FPReader::FPReader(fp_dev* device_) {
-  device = device_;
+void FPReader::InitializeFP() {
+  if(fp_init() != 0) {
+    //TODO: throw an exception
+  }
+  fp_set_debug(1000);
+
+  fp_initialized = true;
+}
+
+FPReader::FPReader() {
+  if(!fp_initialized) {
+    FPReader::InitializeFP();
+    fp_initialized = true;
+  }
+
+  device = NULL;
   state = NONE;
   next = NONE;
 
   user_array = (fp_print_data**) malloc(sizeof(fp_print_data*));
   user_array[0] = NULL;
+
+  OpenDevice();
+}
+
+FPReader::~FPReader() {
+  if(device) {
+    fp_dev_close(device);
+  }
+  fp_exit();
 }
 
 // This marks a new state that we hope to be in.
@@ -201,10 +224,9 @@ User::User(fp_print_data* fingerprint_, std::string username_) {
   username = username_;
 }
 
-// Gets an opened fingerprint device, or NULL if none exist.
 // By using this, you ignore the case where there might be multiple devices.
 // You _must_ have called fp_init before calling this function.
-fp_dev* get_device() {
+bool FPReader::OpenDevice() {
   fp_dscv_dev** handle = NULL;
   fp_dscv_dev** p = NULL;
   fp_dev* to_ret = NULL;
@@ -216,44 +238,31 @@ fp_dev* get_device() {
 
   p = handle;
   while(*p) {
-    to_ret = fp_dev_open(*p);
-    //fp_async_dev_open(*p, &dev_open_cb, NULL);
+    device = fp_dev_open(*p);
 
-    printf("after open: 0x%x\n", to_ret);
-    if(to_ret) {
+    printf("after open: 0x%x\n", device);
+    if(device) {
       break;
     }
 
     p++;
   }
 
+  // TODO: if device is null, throw an exception
+
   fp_dscv_devs_free(handle);
-  return to_ret;
 }
 
-int main(int argc, char** argv) {
-  fp_init();
-  fp_set_debug(1000);
-
-  fp_dev* device = get_device();
-
-  if(!device) {
-    printf("no devices found\n");
-    exit(-1);
-  }
-
-  FPReader fp(device);
-
-  fp.StartEnroll();
-
-  while(true) {
-    fp_handle_events();
-    fp.UpdateState();
-  }
-
-  fp_dev_close(device);
-  fp_exit();
-
-  printf("complete\n");
-}
+//int main(int argc, char** argv) {
+//  FPReader fp;
+//
+//  fp.StartEnroll();
+//
+//  while(true) {
+//    fp_handle_events();
+//    fp.UpdateState();
+//  }
+//
+//  printf("complete\n");
+//}
 
