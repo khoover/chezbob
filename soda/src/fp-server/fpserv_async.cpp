@@ -4,25 +4,25 @@
 #include <math.h>
 #include <unistd.h>
 
-#include <libfprint/fprint.h>
-
-void dev_open_cb(struct fp_dev* dev, int status, void *user_data);
-void enroll_stage_cb(struct fp_dev *dev, int result,
-                     struct fp_print_data *print, struct fp_img *img, void *user_data);
-void enroll_stop_cb(struct fp_dev *dev, void *user_data);
+#include "fpserv_async.h"
 
 
-void dev_open_cb(struct fp_dev* dev, int status, void *user_data) {
-  printf("device opened with status %d\n", status);
-  printf("device obj: 0x%x\n", dev);
-  printf("starting enroll...\n");
-
-  fp_async_enroll_start(dev, &enroll_stage_cb, NULL);
-  printf("done.\n");
+FPReader::FPReader(fp_dev* device_) {
+  device = device_;
+  state = NONE;
+  next = NONE;
 }
 
-void enroll_stage_cb(struct fp_dev *dev, int result,
-                     struct fp_print_data *print, struct fp_img *img, void *user_data) {
+void FPReader::ChangeState(Action a) {
+
+}
+
+void FPReader::OpenCallback(int status) {
+  // Probably won't use? Figure out.
+}
+
+void FPReader::EnrollStageCallback(int result, struct fp_print_data* print, struct fp_img* img) {
+  printf("Enroll stage callbacked!");
   if(result < 0) {
     printf("result negative: %d\n", result);
   }
@@ -30,7 +30,7 @@ void enroll_stage_cb(struct fp_dev *dev, int result,
   switch (result) {
     case FP_ENROLL_COMPLETE:
       printf("<b>Enrollment completed!</b>\n");
-      fp_async_enroll_stop(dev, &enroll_stop_cb, NULL);
+      StopEnroll();
       break;
     case FP_ENROLL_PASS:
       printf("<b>Step %d of %d</b>\n", 0, 146789);
@@ -56,49 +56,36 @@ void enroll_stage_cb(struct fp_dev *dev, int result,
   }
 }
 
-void enroll_stop_cb(struct fp_dev *dev, void *user_data) {
-  printf("enroll stopped\n");
+void FPReader::EnrollStopCallback() {
+  //TODO: check for next stage. make call.
+  printf("Enroll stopped.");
 }
 
-//int run_enroll(fp_dev* device, fp_print_data** print_data) {
-//  if(!device) {
-//    return -1;
-//  }
-//
-//  int code= FP_ENROLL_PASS;
-//  int stages = fp_dev_get_nr_enroll_stages(device);
-//
-//  fp_print_data* data = NULL;
-//  fp_img* img = NULL;
-//
-//  // The Microsoft fingerprint reader has a single stage. Loop shouldn't matter.
-//  //for(int i = 0; i < stages; i++) {
-//  while(code == FP_ENROLL_PASS ||
-//        code == FP_ENROLL_RETRY ||
-//        code == FP_ENROLL_RETRY_TOO_SHORT ||
-//        code == FP_ENROLL_RETRY_CENTER_FINGER ||
-//        code == FP_ENROLL_RETRY_REMOVE_FINGER
-//        ) {
-//    code = fp_enroll_finger_img(device, &data, &img);
-//    printf("code is %d\n", code);
-//    fp_img_save_to_file(img, "file.pgm");
-//
-//    if(code == FP_ENROLL_FAIL) {
-//      return code;
-//    }
-//
-//    if(code == FP_ENROLL_COMPLETE) {
-//      *print_data = data;
-//      return code;
-//    }
-//
-//    // TODO:do a thing with these
-//    fp_print_data_free(data);
-//    fp_img_free(img);
-//  }
-//
-//  return code;
-//}
+void FPReader::IdentifyCallback(int result, size_t match_offset, struct fp_img *img) {}
+void FPReader::IdentifyStopCallback() {}
+
+
+
+
+
+
+int FPReader::StartEnroll() {
+  state = ENROLLING;
+  return fp_async_enroll_start(device, &enroll_stage_cb, this);
+}
+
+int FPReader::StopEnroll() {
+  return fp_async_enroll_stop(device, &enroll_stop_cb, this);
+
+}
+int FPReader::StartIdentify() {
+  state = IDENTIFYING;
+  // TODO: put together a fingerprint gallery
+  //return fp_async_identify_start(globalstate.device, &identify_cb, this);
+}
+int FPReader::StopIdentify() {
+  return fp_async_identify_stop(device, &identify_stop_cb, this);
+}
 
 // Gets an opened fingerprint device, or NULL if none exist.
 // By using this, you ignore the case where there might be multiple devices.
@@ -136,39 +123,37 @@ int main(int argc, char** argv) {
 
   fp_dev* device = get_device();
 
-  //if(!device) {
-  //  printf("no devices found\n");
-  //  exit(-1);
-  //}
-
-  printf("starting async enroll\n");
-
-  sleep(4);
-
-  //int code;
-  //fp_print_data *data = NULL;
-  //fp_img* img = NULL;
-  //code = fp_enroll_finger_img(device, &data, &img);
-  if(0 > fp_async_enroll_start(device, &enroll_stage_cb, NULL)) {
-    printf("enrolling failed\n");
+  if(!device) {
+    printf("no devices found\n");
+    exit(-1);
   }
 
-  printf("done with main\n");
+  FPReader fp(device);
 
-  fp_handle_events();
-  fp_handle_events();
-  fp_handle_events();
-  fp_handle_events();
-  fp_handle_events();
-  fp_handle_events();
-  fp_handle_events();
+  fp.StartEnroll();
 
-  sleep(5);
+  //printf("starting async enroll\n");
 
-  printf("stopping\n");
+  //if(0 > fp_async_enroll_start(device, &enroll_stage_cb, NULL)) {
+  //  printf("enrolling failed\n");
+  //}
 
+  //printf("done with main\n");
 
-  fp_async_enroll_stop(device, &enroll_stop_cb, NULL);
+  //fp_handle_events();
+  //fp_handle_events();
+  //fp_handle_events();
+  //fp_handle_events();
+  //fp_handle_events();
+  //fp_handle_events();
+  //fp_handle_events();
+
+  //sleep(5);
+
+  //printf("stopping\n");
+
+  //fp.StopEnroll();
+
   while(true)
     fp_handle_events();
 
