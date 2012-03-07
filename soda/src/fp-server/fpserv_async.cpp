@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "fpserv_async.h"
 
@@ -28,7 +29,6 @@ void FPReader::ChangeState(SingleState newstate) {
 // Effects a state change.
 // If called with NONE, will look at the next instance variable
 void FPReader::UpdateState() {
-  //printf("Updating: %d %d ", state, next);
   if(state == NONE && next == IDENTIFYING) {
     StartIdentify();
     state = IDENTIFYING;
@@ -57,8 +57,6 @@ void FPReader::UpdateState() {
     state = NONE;
     StopIdentify();
   }
-
-  //printf("%d %d\n", state, next);
 }
 
 void FPReader::AddUser(User* u) {
@@ -132,8 +130,6 @@ void FPReader::EnrollStopCallback() {
   printf("Enroll stopped.\n");
 
   ChangeState(IDENTIFYING);
-
-  //StartIdentify();
 }
 
 void FPReader::IdentifyCallback(int result, size_t match_offset, struct fp_img *img) {
@@ -182,10 +178,6 @@ void FPReader::IdentifyStopCallback() {
   state = NONE;
   printf("Identify stopped\n");
 }
-
-
-
-
 
 
 int FPReader::StartEnroll() {
@@ -254,18 +246,8 @@ int main(int argc, char** argv) {
 
   fp.StartEnroll();
 
-  //printf("starting async enroll\n");
-
-  //if(0 > fp_async_enroll_start(device, &enroll_stage_cb, NULL)) {
-  //  printf("enrolling failed\n");
-  //}
-
-  //printf("done with main\n");
-
   while(true) {
     fp_handle_events();
-
-    //printf("%d %d\n", fp.state, fp.next);
     fp.UpdateState();
   }
 
