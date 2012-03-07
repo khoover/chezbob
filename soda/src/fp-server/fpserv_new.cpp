@@ -5,6 +5,8 @@
 
 #include <libfprint/fprint.h>
 
+#include "nbis/include/bozorth.h"
+
 int run_enroll(fp_dev* device, fp_print_data** print_data) {
   if(!device) {
     return -1;
@@ -92,15 +94,26 @@ int main(int argc, char** argv) {
     printf("Imaging supported!\n");
   }
 
-  fp_print_data* print_data = NULL;
-  run_enroll(device, &print_data);
+  //fp_print_data *array = NULL;
+  //size_t loc;
+  //printf("identifying...\n");
+  //int ret = fp_identify_finger(device, &array, &loc);
+  //printf("return value: %d\n loc: %d\n", ret, loc);
 
-  int result;
-  printf("place finger again, please\n");
-  result = fp_verify_finger_img(device, print_data, NULL);
-  printf("code is %d\n", result);
+  //fp_verify_finger_img(device, print_data, NULL);
+
+  //printf("doing enroll\n");
+
+  //fp_print_data* print_data = NULL;
+  //run_enroll(device, &print_data);
+
+  //int result;
+  //printf("place finger again, please\n");
+  //result = fp_verify_finger_img(device, print_data, NULL);
+  //printf("code is %d\n", result);
 
   fp_dev_close(device);
+  fp_exit();
 
   printf("complete\n");
 }

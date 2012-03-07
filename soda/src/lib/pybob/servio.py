@@ -20,7 +20,8 @@ def noop_handler(data):
 class ServIO:
     '''ServIO Python Class.  Currently overly lightweight'''
     def __init__(self, appname="PyServIO", appversion="0.0",proto="0:u"):
-        self.port = 2732 #SODACTRL_PORT=2732
+        #self.port = 2732 #SODACTRL_PORT=2732
+        self.port = 7357
         self.s = socket.socket(
                                socket.AF_INET,
                                socket.SOCK_STREAM,
