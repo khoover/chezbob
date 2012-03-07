@@ -1,6 +1,10 @@
 #ifndef FPSERV_ASYNC_H
 #define FPSERV_ASYNC_H
 
+#include <iostream>
+#include <vector>
+
+
 #include <libfprint/fprint.h>
 
 typedef enum {
@@ -14,11 +18,15 @@ typedef enum {
   NONE
 } SingleState;
 
+class User;
+class FPReader;
+
 
 class FPReader {
  public:
   FPReader(fp_dev* device);
-  void ChangeState(Action a);
+  void ChangeState(SingleState newstate);
+  void UpdateState();
 
   void OpenCallback(int status);
   void EnrollStageCallback(int result, struct fp_print_data* print, struct fp_img* img);
@@ -32,10 +40,22 @@ class FPReader {
   int StopIdentify();
 
  private:
+  void AddUser(User*);
+
   SingleState state;
   SingleState next;
 
+  std::vector<User*> users;
+  fp_print_data** user_array;
+
   fp_dev* device;
+};
+
+class User {
+ public:
+  User(fp_print_data* fingerprint_, std::string username_);
+  fp_print_data* print;
+  std::string username;
 };
 
 
