@@ -4,7 +4,6 @@
 #include <iostream>
 #include <vector>
 
-
 #include <libfprint/fprint.h>
 
 typedef enum {
@@ -60,7 +59,6 @@ class FPReader {
 
   static bool fp_initialized;
 };
-bool FPReader::fp_initialized = false;
 
 class User {
  public:
@@ -69,47 +67,11 @@ class User {
   std::string username;
 };
 
-
-
-void dev_open_cb(struct fp_dev* dev,
-                 int status,
-                 void *user_data) {
-  if(user_data) {
-    ((FPReader*) user_data)->OpenCallback(status);
-  }
-}
-
-void enroll_stage_cb(struct fp_dev *dev,
-                     int result,
-                     struct fp_print_data *print,
-                     struct fp_img *img,
-                     void *user_data) {
-  if(user_data) {
-    ((FPReader*) user_data)->EnrollStageCallback(result, print, img);
-  }
-}
-void enroll_stop_cb(struct fp_dev *dev,
-                    void *user_data) {
-  if(user_data) {
-    ((FPReader*) user_data)->EnrollStopCallback();
-  }
-}
-void identify_cb(struct fp_dev *dev,
-                 int result,
-                 size_t match_offset,
-                 struct fp_img *img,
-                 void *user_data) {
-  if(user_data) {
-    ((FPReader*) user_data)->IdentifyCallback(result, match_offset, img);
-  }
-}
-void identify_stop_cb(struct fp_dev *dev,
-                      void *user_data) {
-  if(user_data) {
-    ((FPReader*) user_data)->IdentifyStopCallback();
-  }
-}
-
-
+// Callbacks for the C function pointer API
+void dev_open_cb(struct fp_dev* dev, int status, void *user_data);
+void enroll_stage_cb(struct fp_dev *dev, int result, struct fp_print_data *print, struct fp_img *img, void *user_data);
+void enroll_stop_cb(struct fp_dev *dev, void *user_data);
+void identify_cb(struct fp_dev *dev, int result, size_t match_offset, struct fp_img *img, void *user_data);
+void identify_stop_cb(struct fp_dev *dev, void *user_data);
 
 #endif

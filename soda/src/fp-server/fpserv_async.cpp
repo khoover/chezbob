@@ -9,6 +9,7 @@
 
 // Notes: you cannot call a Start function from a callback. I don't know why;
 // libfprint throws an error.
+bool FPReader::fp_initialized = false;
 
 void FPReader::InitializeFP() {
   if(fp_init() != 0) {
@@ -273,3 +274,41 @@ bool FPReader::OpenDevice() {
 //  printf("complete\n");
 //}
 
+void dev_open_cb(struct fp_dev* dev,
+                 int status,
+                 void *user_data) {
+  if(user_data) {
+    ((FPReader*) user_data)->OpenCallback(status);
+  }
+}
+
+void enroll_stage_cb(struct fp_dev *dev,
+                     int result,
+                     struct fp_print_data *print,
+                     struct fp_img *img,
+                     void *user_data) {
+  if(user_data) {
+    ((FPReader*) user_data)->EnrollStageCallback(result, print, img);
+  }
+}
+void enroll_stop_cb(struct fp_dev *dev,
+                    void *user_data) {
+  if(user_data) {
+    ((FPReader*) user_data)->EnrollStopCallback();
+  }
+}
+void identify_cb(struct fp_dev *dev,
+                 int result,
+                 size_t match_offset,
+                 struct fp_img *img,
+                 void *user_data) {
+  if(user_data) {
+    ((FPReader*) user_data)->IdentifyCallback(result, match_offset, img);
+  }
+}
+void identify_stop_cb(struct fp_dev *dev,
+                      void *user_data) {
+  if(user_data) {
+    ((FPReader*) user_data)->IdentifyStopCallback();
+  }
+}
