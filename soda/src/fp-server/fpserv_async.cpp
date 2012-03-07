@@ -3,34 +3,94 @@
 #include <string.h>
 #include <math.h>
 #include <unistd.h>
+#include <signal.h>
 
-#include <libfprint/fprint.h>
+#include "fpserv_async.h"
 
-void dev_open_cb(struct fp_dev* dev, int status, void *user_data);
-void enroll_stage_cb(struct fp_dev *dev, int result,
-                     struct fp_print_data *print, struct fp_img *img, void *user_data);
-void enroll_stop_cb(struct fp_dev *dev, void *user_data);
+// Notes: you cannot call a Start function from a callback. I don't know why;
+// libfprint throws an error.
 
+FPReader::FPReader(fp_dev* device_) {
+  device = device_;
+  state = NONE;
+  next = NONE;
 
-void dev_open_cb(struct fp_dev* dev, int status, void *user_data) {
-  printf("device opened with status %d\n", status);
-  printf("device obj: 0x%x\n", dev);
-  printf("starting enroll...\n");
-
-  fp_async_enroll_start(dev, &enroll_stage_cb, NULL);
-  printf("done.\n");
+  user_array = (fp_print_data**) malloc(sizeof(fp_print_data*));
+  user_array[0] = NULL;
 }
 
-void enroll_stage_cb(struct fp_dev *dev, int result,
-                     struct fp_print_data *print, struct fp_img *img, void *user_data) {
+// This marks a new state that we hope to be in.
+// Eventually, FPReader will swing itself around to be in this state.
+// Try calling UpdateState a few times.
+void FPReader::ChangeState(SingleState newstate) {
+  next = newstate;
+}
+
+// Effects a state change.
+// If called with NONE, will look at the next instance variable
+void FPReader::UpdateState() {
+  if(state == NONE && next == IDENTIFYING) {
+    StartIdentify();
+    state = IDENTIFYING;
+    next = NONE;
+  }
+  if(state == NONE && next == ENROLLING) {
+    StartEnroll();
+    state = ENROLLING;
+    next = NONE;
+  }
+
+  //if(state == IDENTIFYING && next == IDENTIFYING) {
+  //  next = NONE;
+  //}
+  //if(state == ENROLLING && next == ENROLLING) {
+  //  next = NONE;
+  //}
+
+  if(state == ENROLLING && next == IDENTIFYING) {
+    // We need this handler to finish before we can call StartIdentify.
+    // The next call to ChangeState will handle this case.
+    state = NONE;
+    StopEnroll();
+  }
+  if(state == IDENTIFYING && next == ENROLLING) {
+    state = NONE;
+    StopIdentify();
+  }
+}
+
+void FPReader::AddUser(User* u) {
+  if(user_array) {
+    free(user_array);
+  }
+
+  users.push_back(u);
+
+  user_array = (fp_print_data**) malloc(sizeof(fp_print_data*) * (users.size()+1));
+  int i = 0;
+  for(std::vector<User*>::iterator iter = users.begin();
+      iter < users.end();
+      iter++, i++) {
+    user_array[i] = (*iter)->print;
+  }
+  user_array[users.size()] = NULL;
+}
+
+void FPReader::OpenCallback(int status) {
+  // Probably won't use? Figure out.
+}
+
+void FPReader::EnrollStageCallback(int result, struct fp_print_data* print, struct fp_img* img) {
+  printf("Enroll stage callbacked!");
   if(result < 0) {
     printf("result negative: %d\n", result);
   }
 
   switch (result) {
     case FP_ENROLL_COMPLETE:
+      AddUser(new User(print, "a user"));
       printf("<b>Enrollment completed!</b>\n");
-      fp_async_enroll_stop(dev, &enroll_stop_cb, NULL);
+      StopEnroll();
       break;
     case FP_ENROLL_PASS:
       printf("<b>Step %d of %d</b>\n", 0, 146789);
@@ -54,51 +114,92 @@ void enroll_stage_cb(struct fp_dev *dev, int result,
     default:
       printf("Unknown state!\n");
   }
+
+  if(img) {
+    fp_img_save_to_file(img, "file.pgm");
+    fp_img_free(img);
+  }
+  if(print && result != FP_ENROLL_COMPLETE) {
+    fp_print_data_free(print);
+  }
 }
 
-void enroll_stop_cb(struct fp_dev *dev, void *user_data) {
-  printf("enroll stopped\n");
+void FPReader::EnrollStopCallback() {
+  state = NONE;
+  //TODO: check for next stage. make call.
+  printf("Enroll stopped.\n");
+
+  ChangeState(IDENTIFYING);
 }
 
-//int run_enroll(fp_dev* device, fp_print_data** print_data) {
-//  if(!device) {
-//    return -1;
-//  }
-//
-//  int code= FP_ENROLL_PASS;
-//  int stages = fp_dev_get_nr_enroll_stages(device);
-//
-//  fp_print_data* data = NULL;
-//  fp_img* img = NULL;
-//
-//  // The Microsoft fingerprint reader has a single stage. Loop shouldn't matter.
-//  //for(int i = 0; i < stages; i++) {
-//  while(code == FP_ENROLL_PASS ||
-//        code == FP_ENROLL_RETRY ||
-//        code == FP_ENROLL_RETRY_TOO_SHORT ||
-//        code == FP_ENROLL_RETRY_CENTER_FINGER ||
-//        code == FP_ENROLL_RETRY_REMOVE_FINGER
-//        ) {
-//    code = fp_enroll_finger_img(device, &data, &img);
-//    printf("code is %d\n", code);
-//    fp_img_save_to_file(img, "file.pgm");
-//
-//    if(code == FP_ENROLL_FAIL) {
-//      return code;
-//    }
-//
-//    if(code == FP_ENROLL_COMPLETE) {
-//      *print_data = data;
-//      return code;
-//    }
-//
-//    // TODO:do a thing with these
-//    fp_print_data_free(data);
-//    fp_img_free(img);
-//  }
-//
-//  return code;
-//}
+void FPReader::IdentifyCallback(int result, size_t match_offset, struct fp_img *img) {
+  // If we don't immediately stop, the driver gets all excited.
+  // In our StopIdentify handler, we'll start identifying again
+  StopIdentify();
+
+  // Mark down that we want to continue identifying
+  next = IDENTIFYING;
+
+  switch(result) {
+    case FP_VERIFY_NO_MATCH:
+      // Did not find
+      printf("No match found\n");
+      break;
+    case FP_VERIFY_MATCH:
+      // Found it
+      printf("Match found at %Zu\n", match_offset);
+      break;
+    case FP_VERIFY_RETRY:
+      // poor scan quality
+      printf("Match failed due to scan quality\n");
+      break;
+    case FP_VERIFY_RETRY_TOO_SHORT:
+      // swipe too short. Not an issue with this reader.
+      printf("Match failed, swipe longer\n");
+      break;
+    case FP_VERIFY_RETRY_CENTER_FINGER:
+      // center finger.
+      printf("Match failed, center finger and try again\n");
+    case FP_VERIFY_RETRY_REMOVE_FINGER:
+      // pressed too hard
+      printf("Match failed, remove finger and try again\n");
+      break;
+    default:
+      printf("Identify returned, no idea what's going on");
+      break;
+  }
+
+  if(img) {
+    fp_img_free(img);
+  }
+}
+
+void FPReader::IdentifyStopCallback() {
+  state = NONE;
+  printf("Identify stopped\n");
+}
+
+
+int FPReader::StartEnroll() {
+  state = ENROLLING;
+  return fp_async_enroll_start(device, &enroll_stage_cb, this);
+}
+
+int FPReader::StopEnroll() {
+  return fp_async_enroll_stop(device, &enroll_stop_cb, this);
+}
+int FPReader::StartIdentify() {
+  state = IDENTIFYING;
+  return fp_async_identify_start(device, user_array, &identify_cb, this);
+}
+int FPReader::StopIdentify() {
+  return fp_async_identify_stop(device, &identify_stop_cb, this);
+}
+
+User::User(fp_print_data* fingerprint_, std::string username_) {
+  print = fingerprint_;
+  username = username_;
+}
 
 // Gets an opened fingerprint device, or NULL if none exist.
 // By using this, you ignore the case where there might be multiple devices.
@@ -136,44 +237,19 @@ int main(int argc, char** argv) {
 
   fp_dev* device = get_device();
 
-  //if(!device) {
-  //  printf("no devices found\n");
-  //  exit(-1);
-  //}
-
-  printf("starting async enroll\n");
-
-  sleep(4);
-
-  //int code;
-  //fp_print_data *data = NULL;
-  //fp_img* img = NULL;
-  //code = fp_enroll_finger_img(device, &data, &img);
-  if(0 > fp_async_enroll_start(device, &enroll_stage_cb, NULL)) {
-    printf("enrolling failed\n");
+  if(!device) {
+    printf("no devices found\n");
+    exit(-1);
   }
 
-  printf("done with main\n");
+  FPReader fp(device);
 
-  fp_handle_events();
-  fp_handle_events();
-  fp_handle_events();
-  fp_handle_events();
-  fp_handle_events();
-  fp_handle_events();
-  fp_handle_events();
+  fp.StartEnroll();
 
-  sleep(5);
-
-  printf("stopping\n");
-
-
-  fp_async_enroll_stop(device, &enroll_stop_cb, NULL);
-  while(true)
+  while(true) {
     fp_handle_events();
-
-  //sleep(30);
-
+    fp.UpdateState();
+  }
 
   fp_dev_close(device);
   fp_exit();
