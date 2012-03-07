@@ -49,19 +49,19 @@ class PyUI(baseui.BaseUI):
                           sodauser.getBalance(),
                           sodauser.getTTL()])
 
-    def fpRead(self, sodauser, count):
+    def fpRead(self, count):
         self.servio.send(["UI-FP-NOTICE",
                           count,
                           "Print Read Successfully",
                           0])
 
-    def fpLearnFail(self, sodauser, count, msg):
+    def fpLearnFail(self, msg):
         self.servio.send(["UI-FP-NOTICE",
-                          count,
+                          0, #This may be displayed it is no longer used
                           "LEARNING FAILED: " + msg,
                           0])
 
-    def fpLearnSuccess(self, sodauser, msg):
+    def fpLearnSuccess(self, msg):
         self.servio.send(["UI-FP-NOTICE",
                           0,
                           "LEARNING SUCCEEDED: " + msg,

@@ -53,7 +53,8 @@ class SodaBackend:
 
         self.bus.watchMessage("FP-BADREAD",        self.handleFpBadRead)
         self.bus.watchMessage("FP-GOODREAD",       self.handleFpGoodRead)
-        self.bus.watchMessage("FP-LEARN-DONE",     self.handleFpLearnDone)
+        self.bus.watchMessage("FP-LEARN-GOOD",     self.handleFpLearnGood)
+        self.bus.watchMessage("FP-LEARN-FAIL",     self.handleFpLearnFail)
 
         self.bus.watchMessage("LEARNSTART",        self.handleLearnStart)
         self.bus.watchMessage("LEARNEND",          self.handleLearnEnd)
@@ -74,12 +75,11 @@ class SodaBackend:
         self.bus_thread.start()
 
         self.StartUpVL = self.bus.getVarList(self.appname)
-        self.FPServVL  = self.bus.getVarList("FPSERV")
         self.MdbVL     = self.bus.getVarList("MDBSERV")
 
-        self.FPCtrl = FPCtrl.FPCtrl(self.bus)
-
         self.escrow_reject_threshold = 500
+
+        self.inLearnMode = False
 
         # Switch back to get both old mozilla and new pyui
         # simultaneously
@@ -111,8 +111,7 @@ class SodaBackend:
                 self.current_user = SodaUser(login=data[1],
                                              balance=data[2],
                                              servio=self.bus,
-                                             ui=self.ui,
-                                             fpctrl=self.FPCtrl)
+                                             ui=self.ui)
                 self.bus.send(["LOGIN-SUCCEEDED"])
 
                 self.checkBalance()
@@ -206,8 +205,7 @@ class SodaBackend:
             self.current_user = SodaUser(servio=self.bus,
                                          login=login,
                                          balance=balance,
-                                         ui=self.ui,
-                                         fpctrl=self.FPCtrl)
+                                         ui=self.ui)
             self.bus.send(["LOGIN-SUCCEEDED"])
             #print "Login OK"
             self.checkBalance()
@@ -266,34 +264,44 @@ class SodaBackend:
         else:
             self.current_user.gotGoodFpRead(id=data[1], name=data[2])
 
-    def handleFpLearnDone(self, data):
+    def handleFpLearnGood(self, data):
         if self.current_user is None:
-            print "Didn't expect Learn Done without a user"
+            print "Didn't expect Learn Good without a user"
+        elif self.inLearnMode is False:
+            print "Didn't expect Learn Good without being in learn mode"
         else:
-            fpidr = data[1]
-            result = data[2]
-            exinfo = data[3]
-            message = data[4]
+            print "Learned fingerprint"
+            self.ui.fpLearnSuccess("")
+            self.handleLearnEnd(data) # Lets go end learning 
 
-            self.current_user.gotLearnDone(self.FPServVL, 
-                                           fpidr,
-                                           result,
-                                           exinfo,
-                                           message)
 
-        print "fp learn done"
+        print "fp learn good"
+
+    def handleFpLearnFail(self, data):
+        if self.current_user is None:
+            print "Didn't expect Learn Fail without a user"
+        elif self.inLearnMode is False:
+            print "Didn't expect Learn Fail without being in learn mode"
+        else:
+            self.ui.fpLearnFail("Unable to read fingerprint r something")
+            # TODO: Something with a failed learn attempt, better msg
+            
+        print "fp learn fail"
 
     def handleLearnStart(self, data):
         if self.current_user is not None:
-            self.current_user.beginFpLearn(self.FPServVL)
+            self.inLearnMode = True
+            self.bus.send(["FP-LEARN-START",
+                           self.current_user.login])                                   
         else:
-            print "Unexpected LearnStart"
+            print "Unexpected LearnStart, no user"
 
     def handleLearnEnd(self, data):
         if self.current_user is not None:
-            self.current_user.endFpLearn(self.FPServVL)
+            self.inLearnMode = False
+            self.bus.send(["FP-LEARN-STOP"])
         else:
-            print "Unexpected LearnEnd"
+            print "Unexpected LearnEnd, no user"
 
     def handleBarCodeScan(self, data):
         if self.current_user is None:
@@ -320,8 +328,7 @@ class SodaBackend:
 
             self.current_user = SodaUser(anon=True, 
                                          servio=self.bus, 
-                                         ui=self.ui,
-                                         fpctrl=self.FPCtrl)
+                                         ui=self.ui)
 
         self.current_user.beginEscrow()
 
@@ -337,8 +344,7 @@ class SodaBackend:
         if self.current_user is None:
             self.current_user = SodaUser(anon=True, 
                                          servio=self.bus, 
-                                         ui=self.ui,
-                                         fpctrl=self.FPCtrl)
+                                         ui=self.ui)
 
         self.current_user.deposit(amount)
 
@@ -368,7 +374,7 @@ class SodaBackend:
 
         # Show the login screen when we start.
         self.ui.logOut(None)
-        self.FPCtrl.doLoginMode()
+
 
         while running:
             try:
@@ -382,8 +388,6 @@ class SodaBackend:
                         print "Timed out"
                         self.current_user = None
                 else:
-                    # Make sure we didn't wedge in learning
-                    self.FPServVL.set("capture_match", None, "1")
                     self.MdbVL.set("enabled", None, "7")
 
                 if not self.bus_thread.isAlive():

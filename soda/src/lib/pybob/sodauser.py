@@ -10,7 +10,6 @@ import FPCtrl
 from servio import genTag
 
 class SodaUser:
-    fp_learn_count = 3
 
     def __init__(self, 
                  anon=False, 
@@ -18,8 +17,7 @@ class SodaUser:
                  timeout=30, 
                  balance=0,
                  servio=None,
-                 ui=None,
-                 fpctrl=None):
+                 ui=None):
 
         print "User " + login + " Logged In"
         self.anon = anon        # User is anonymous.  Escrow mode.
@@ -38,23 +36,12 @@ class SodaUser:
         self.barcode_vend_in_progress = False
         self.escrow_in_progress = False
 
-        # Less critical
-        self.fp_learn_in_progress = False
-
         self.item = None
 
         self.should_logout = False # Whether to logout on transaction
                                    # completion
 
         self.ui.logIn(self)
-
-        self.FPCtrl = fpctrl
-        if self.FPCtrl is None:
-            self.FPCtrl = FPCtrl.FPCtrlNoOp()
-
-        # Turn off the finger print reader during login
-        self.FPCtrl.doDisable()
-
 
         if not self.anon:
             self.alquerytag = "A" + genTag()
@@ -78,12 +65,6 @@ class SodaUser:
 
             self.servio.send(["CASH-CHANGE", self.balance])
 
-
-        if self.fp_learn_in_progress:
-            # TODO Tidy
-            pass
-
-        self.FPCtrl.doLoginMode()
 
         self.ui.logOut(self)
 
@@ -125,9 +106,6 @@ class SodaUser:
 
     def isAnon(self):
         return self.anon
-
-    def isLearningFp(self):
-        return self.fp_learn_in_progress
 
     def getBalance(self):
         return self.balance
@@ -323,65 +301,3 @@ class SodaUser:
         self.barcode_vend_in_progress = False
 
         return (self.anon or self.shouldLogout()) and self.canLogout()
-
-    def beginFpLearn(self, FPServVL):
-        if self.anon:
-            return
-
-        self.FPCtrl.doLearnMode()
-
-        self.fp_learn_in_progress = True
-        self.fp_list = []
-
-        self.resetTTL()
-
-
-    def endFpLearn(self, FPServVL):
-        if self.anon:
-            return
-
-        self.fp_learn_in_progress = False
-        self.FPCtrl.doDisable()
-
-    def gotBadFpRead(self, id):
-        if self.fp_learn_in_progress:
-            self.fp_list = self.fp_list + [id]
-            if len(self.fp_list) >= self.fp_learn_count:
-                self.servio.send(["FP-LEARN"] + self.fp_list)
-            else:
-                print "Have " + str(len(self.fp_list)) + " fingerprints"
-
-            self.ui.fpRead(self, self.fp_learn_count - len(self.fp_list))
-
-            self.resetTTL()
-        else:
-            print "Didn't expect bad FP Read"
-
-    def gotGoodFpRead(self, id, name):
-        if not self.anon and self.fp_learn_in_progress:
-            print "GOOD FP while learning someone else.  Unlearning"
-            self.servio.send(["FP-UNPERSIST", id])
-
-    def gotLearnDone(self, FPServVL, fpidr, result, exinfo, message):
-        if self.anon or not self.fp_learn_in_progress:
-            return
-
-        if int(fpidr) == 0:
-            print "Error Learning"
-            self.ui.fpLearnFail(self, 
-                                self.fp_learn_count, 
-                                exinfo + " " + message)
-        else:
-            self.FPCtrl.doDisable()
-
-            self.servio.send(["FP-UNPERSIST", self.login])
-            # XXX Silly name for a finger
-            self.servio.send(["FP-PERSIST", fpidr, self.login, "bob"])
-
-            print "Persisiting " + self.login + " with " + str(fpidr)
-
-            self.ui.fpLearnSuccess(self, "")
-            self.fp_learn_in_progress = False
-
-        self.fp_list = []
-        self.resetTTL()
