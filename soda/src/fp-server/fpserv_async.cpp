@@ -7,7 +7,7 @@
 #include "fpserv_async.h"
 
 // Notes: you cannot call a Start function from a callback. I don't know why;
-// libfprint throws an error
+// libfprint throws an error.
 
 FPReader::FPReader(fp_dev* device_) {
   device = device_;
@@ -20,7 +20,7 @@ FPReader::FPReader(fp_dev* device_) {
 
 // This marks a new state that we hope to be in.
 // Eventually, FPReader will swing itself around to be in this state.
-// Try calling UpdateState a few times...?
+// Try calling UpdateState a few times.
 void FPReader::ChangeState(SingleState newstate) {
   next = newstate;
 }
@@ -28,21 +28,24 @@ void FPReader::ChangeState(SingleState newstate) {
 // Effects a state change.
 // If called with NONE, will look at the next instance variable
 void FPReader::UpdateState() {
-  // NOT FULLY IMPLEMENTED
-
+  //printf("Updating: %d %d ", state, next);
   if(state == NONE && next == IDENTIFYING) {
     StartIdentify();
+    state = IDENTIFYING;
+    next = NONE;
   }
   if(state == NONE && next == ENROLLING) {
     StartEnroll();
+    state = ENROLLING;
+    next = NONE;
   }
 
-  if(state == IDENTIFYING && next == IDENTIFYING) {
-    next = NONE;
-  }
-  if(state == ENROLLING && next == ENROLLING) {
-    next = NONE;
-  }
+  //if(state == IDENTIFYING && next == IDENTIFYING) {
+  //  next = NONE;
+  //}
+  //if(state == ENROLLING && next == ENROLLING) {
+  //  next = NONE;
+  //}
 
   if(state == ENROLLING && next == IDENTIFYING) {
     // We need this handler to finish before we can call StartIdentify.
@@ -54,6 +57,8 @@ void FPReader::UpdateState() {
     state = NONE;
     StopIdentify();
   }
+
+  //printf("%d %d\n", state, next);
 }
 
 void FPReader::AddUser(User* u) {
@@ -135,6 +140,9 @@ void FPReader::IdentifyCallback(int result, size_t match_offset, struct fp_img *
   // If we don't immediately stop, the driver gets all excited.
   // In our StopIdentify handler, we'll start identifying again
   StopIdentify();
+
+  // Mark down that we want to continue identifying
+  next = IDENTIFYING;
 
   switch(result) {
     case FP_VERIFY_NO_MATCH:
@@ -256,6 +264,8 @@ int main(int argc, char** argv) {
 
   while(true) {
     fp_handle_events();
+
+    //printf("%d %d\n", fp.state, fp.next);
     fp.UpdateState();
   }
 

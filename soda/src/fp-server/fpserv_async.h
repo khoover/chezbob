@@ -8,14 +8,9 @@
 #include <libfprint/fprint.h>
 
 typedef enum {
-  START_ENROLLING,
-  STOP_ENROLLING
-} Action;
-
-typedef enum {
-  ENROLLING,
-  IDENTIFYING,
-  NONE
+  NONE = 0,
+  ENROLLING = 1,
+  IDENTIFYING = 2
 } SingleState;
 
 class User;
@@ -39,7 +34,7 @@ class FPReader {
   int StartIdentify();
   int StopIdentify();
 
- private:
+ //private:
   void AddUser(User*);
 
   SingleState state;
