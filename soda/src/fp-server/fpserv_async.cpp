@@ -18,14 +18,8 @@ void dev_open_cb(struct fp_dev* dev, int status, void *user_data) {
   printf("starting enroll...\n");
 
   fp_async_enroll_start(dev, &enroll_stage_cb, NULL);
-
-  //printf("stopping enroll...\n");
-  //fp_async_enroll_stop(dev, &enroll_stop_cb, NULL);
-
   printf("done.\n");
 }
-//int fp_async_dev_open(struct fp_dscv_dev *ddev, fp_dev_open_cb callback,
-//   void *user_data);
 
 void enroll_stage_cb(struct fp_dev *dev, int result,
                      struct fp_print_data *print, struct fp_img *img, void *user_data) {
