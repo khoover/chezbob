@@ -256,11 +256,11 @@ class SodaBackend:
 
     def handleFpGoodRead(self, data):
         if self.current_user is None:
-            print "GOOD FP: Sending DB Request for " + data[2]
+            print "GOOD FP: Sending DB Request for " + data[1]
             self.querytag = "F" + genTag();
             self.bus.send(["BOBDB-QUERYUSER",
                             self.querytag,
-                            data[2]])
+                            data[1]])
         else:
             self.current_user.gotGoodFpRead(id=data[1], name=data[2])
 
@@ -272,7 +272,7 @@ class SodaBackend:
         else:
             print "Learned fingerprint"
             self.ui.fpLearnSuccess("")
-            self.handleLearnEnd(data) # Lets go end learning 
+            self.handleLearnEnd(data) # Lets go end learning
 
 
         print "fp learn good"
@@ -285,14 +285,14 @@ class SodaBackend:
         else:
             self.ui.fpLearnFail("Unable to read fingerprint r something")
             # TODO: Something with a failed learn attempt, better msg
-            
+
         print "fp learn fail"
 
     def handleLearnStart(self, data):
         if self.current_user is not None:
             self.inLearnMode = True
             self.bus.send(["FP-LEARN-START",
-                           self.current_user.login])                                   
+                           self.current_user.login])
         else:
             print "Unexpected LearnStart, no user"
 
@@ -326,8 +326,8 @@ class SodaBackend:
                 print "Not logging in without balance..."
                 return
 
-            self.current_user = SodaUser(anon=True, 
-                                         servio=self.bus, 
+            self.current_user = SodaUser(anon=True,
+                                         servio=self.bus,
                                          ui=self.ui)
 
         self.current_user.beginEscrow()
@@ -342,8 +342,8 @@ class SodaBackend:
         # XXX This may be redundant with handleEscrow above
         # Anonymous Login
         if self.current_user is None:
-            self.current_user = SodaUser(anon=True, 
-                                         servio=self.bus, 
+            self.current_user = SodaUser(anon=True,
+                                         servio=self.bus,
                                          ui=self.ui)
 
         self.current_user.deposit(amount)

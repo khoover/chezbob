@@ -120,33 +120,35 @@ void FPReader::EnrollStageCallback(int result, struct fp_print_data* print, stru
     printf("result negative: %d\n", result);
   }
 
+  User* u;
+
   switch (result) {
     case FP_ENROLL_COMPLETE:
-      AddUser(new User(print, enrollingUser));
-      printf("<b>Enrollment completed!</b>\n");
+      u = new User(print, enrollingUser);
+      AddUser(u);
+      SendLearnGood(u);
       StopEnroll();
       break;
     case FP_ENROLL_PASS:
-      printf("<b>Step %d of %d</b>\n", 0, 146789);
+      SendLearnBad("Please try again.");
       break;
     case FP_ENROLL_FAIL:
-      printf("<b>Enrollment failed!</b>\n");
+      SendLearnBad("Failed. Please try again.");
       break;
     case FP_ENROLL_RETRY:
-      printf("<b>Bad scan. Please try again.</b>\n");
+      SendLearnBad("Bad scan. Please try again.");
       break;
     case FP_ENROLL_RETRY_TOO_SHORT:
-      printf("<b>Bad scan: swipe was too short. Please try again.</b>\n");
+      SendLearnBad("Swipe too short. Please try again.");
       break;
     case FP_ENROLL_RETRY_CENTER_FINGER:
-      printf("<b>Bad scan: finger was not centered on scanner. Please "
-        "try again.</b>\n");
+      SendLearnBad("Finger not centered. Please try again.");
       break;
     case FP_ENROLL_RETRY_REMOVE_FINGER:
-      printf("<b>Bad scan: please remove finger before retrying.</b>\n");
+      SendLearnBad("Remove your finger and try again.");
       break;
     default:
-      printf("Unknown state!\n");
+      SendLearnBad("Unknown error in enrollment!");
   }
 
   if(img) {
@@ -180,28 +182,35 @@ void FPReader::IdentifyCallback(int result, size_t match_offset, struct fp_img *
     case FP_VERIFY_NO_MATCH:
       // Did not find
       printf("No match found\n");
+      SendBadRead("Fingerprint not recognized.");
       break;
     case FP_VERIFY_MATCH:
       // Found it
-      printf("Match found at %Zu\n", match_offset);
-      printf("%s\n", users[match_offset]->username.c_str());
+      printf("Match found at %Zu: %s\n", match_offset, users[match_offset]->username.c_str());
+      SendGoodRead(users[match_offset]);
       break;
     case FP_VERIFY_RETRY:
       // poor scan quality
       printf("Match failed due to scan quality\n");
+      SendBadRead("Fingerprint failed due to poor scan quality.");
       break;
     case FP_VERIFY_RETRY_TOO_SHORT:
       // swipe too short. Not an issue with this reader.
       printf("Match failed, swipe longer\n");
+      SendBadRead("Fingerprint failed. Try again.");
       break;
     case FP_VERIFY_RETRY_CENTER_FINGER:
       // center finger.
       printf("Match failed, center finger and try again\n");
+      SendBadRead("Fingerprint failed. Center your finger and try again.");
+      break;
     case FP_VERIFY_RETRY_REMOVE_FINGER:
       // pressed too hard
+      SendBadRead("Fingerprint failed. Lift your finger and try again.");
       printf("Match failed, remove finger and try again\n");
       break;
     default:
+      SendBadRead("Fingerprint failed for an uknown reason.");
       printf("Identify returned, no idea what's going on");
       break;
   }
@@ -272,6 +281,27 @@ bool FPReader::OpenDevice() {
   // TODO: if device is null, throw an exception
 
   fp_dscv_devs_free(handle);
+}
+
+void FPReader::SendGoodRead(User* u) {
+  if(u) {
+    printf("Sending good read for %s\n", u->username.c_str());
+    sio_write(SIO_DATA, "FP-GOODREAD\t%s", u->username.c_str());
+  } else {
+    sio_write(SIO_DATA, "FP-GOODREAD\t%s", "bad-user:null-pointer");
+  }
+}
+void FPReader::SendBadRead(std::string message) {
+  printf("Sending bad read: %s\n", message.c_str());
+  sio_write(SIO_DATA, "FP-BADREAD\t%s", message.c_str());
+}
+void FPReader::SendLearnGood(User* u) {
+  printf("Sending learn-good]n");
+  sio_write(SIO_DATA, "FP-LEARN-GOOD");
+}
+void FPReader::SendLearnBad(std::string message) {
+  printf("Sending learn-fail: %s\n", message.c_str());
+  sio_write(SIO_DATA, "FP-LEARN-FAIL\t%s", message.c_str());
 }
 
 //int main(int argc, char** argv) {

@@ -1,8 +1,9 @@
 #ifndef FPSERV_ASYNC_H
 #define FPSERV_ASYNC_H
-
 #include <iostream>
 #include <vector>
+
+#include <servio.h>
 
 #include <libfprint/fprint.h>
 
@@ -33,7 +34,6 @@ class FPReader {
   // Sets the username for the next Enroll phase
   void SetUsername(std::string username);
 
-
   void ChangeState(SingleState newstate);
   void UpdateState();
 
@@ -47,6 +47,12 @@ class FPReader {
   int StopEnroll();
   int StartIdentify();
   int StopIdentify();
+
+  void SendGoodRead(User* u);
+  void SendBadRead(std::string message);
+
+  void SendLearnGood(User* u);
+  void SendLearnBad(std::string message);
 
  //private:
   void AddUser(User*);
