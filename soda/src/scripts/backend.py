@@ -252,7 +252,7 @@ class SodaBackend:
         if self.current_user is None:
             print "BAD FP READ"
         else:
-            self.current_user.gotBadFpRead(data[1])
+            print "Bad FP with a logged-in user. Ignore!"
 
     def handleFpGoodRead(self, data):
         if self.current_user is None:
@@ -262,7 +262,8 @@ class SodaBackend:
                             self.querytag,
                             data[1]])
         else:
-            self.current_user.gotGoodFpRead(id=data[1], name=data[2])
+            # For now, ignore this entirely
+            print "Good FP with a logged-in user. Ignore!"
 
     def handleFpLearnGood(self, data):
         if self.current_user is None:
