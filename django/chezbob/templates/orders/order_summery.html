@@ -131,6 +131,7 @@ $(document).ready(function() {
   }
 });
 
+
 function update_bulk_price(item_id, bulk_id) {
   order_item = order_items[item_id]
   data = { 'ajax'      : 'update_bulk_price',
@@ -359,21 +360,80 @@ function updateCrvTaxable(itemId, newValue) {
   updateItem(itemId)
 }
 
+
+function hide_controls() {
+  $("#controls").attr("class", "controlsClosed");
+  return false;
+}
+
+function show_controls() {
+  $("#controls").attr("class", "controlsOpen");
+  return false;
+}
+
+function gridKeyDown(source, event, rowId, columnName) {
+  // FIXME
+  //   This function only works if all rows are in increasing number by rowid.  
+  //   Thus, it breaks if any rows have been deleted, and will not skip over the
+  //   point where the row was deleted from the table.
+  
+  // Jump out if the key press is irrelevant. 
+  if (event.keyCode < 37) { return; }
+  if (event.keyCode > 40) { return; }
+  
+  newFocusName = source.name;
+  if (event.keyCode == 40) { // down
+    newFocusName = columnName + "." + (rowId + 1);
+  }
+  if (event.keyCode == 38) { // up
+    newFocusName = columnName + "." + (rowId - 1);
+  }
+  
+  /* // Left and right keys move cursor left and right, and do not trigger a KeyDown event.
+  if (event.keyCode == 39) { // right
+    if (columnName == "quantity") {
+      newFocusName == "price." + rowId;
+    }
+    if (columnName == "cases") {
+      newFocusName == "quantity." + rowId;
+    }
+  }
+  if (event.keyCode == 39) { // left
+    if (columnName == "quantity") {
+      newFocusName == "cases." + rowId;
+    }
+    if (columnName == "price") {
+      newFocusName == "quantity." + rowId;
+    }
+  }
+  */
+  
+  // Only try to refocus if we can find the target.  No jumping to who knows where.
+  newFocus = $("input[name=" + newFocusName + "]");
+  if (newFocus.first()) {
+    newFocus.first().focus();
+  }
+  return;
+}
+
 </script>
 
 <script id="orderItemTemplate" type="text/x-jquery-tmpl">
   <tr id="main_row.${id}">
     <td><input type="hidden" name="bulkid.${id}" />
         <input type="text" size="4" name="cases.${id}"
-               onchange="updateNumCases(${id}, this.value)"/></td>
+               onchange="updateNumCases(${id}, this.value)"
+               onKeyDown="gridKeyDown(this, event, ${id}, 'cases')"/></td>
     <td>${find_bulk(bulk_type_id).product_id}</td>
     <td><a href="/admin/django/bobdb/bulkitem/${bulk_type_id}/">
         ${find_bulk(bulk_type_id).description}
       </a></td>
     <td><input type="text" size="4" name="quantity.${id}"
-               onchange="updateCaseSize(${id}, this.value)"/></td>
+               onchange="updateCaseSize(${id}, this.value)"
+               onKeyDown="gridKeyDown(this, event, ${id}, 'quantity')"/></td>
     <td><input type="text" size="6" name="price.${id}"
-               onchange="updateCasePrice(${id}, this.value)"/></td>
+               onchange="updateCasePrice(${id}, this.value)"
+               onKeyDown="gridKeyDown(this, event, ${id}, 'price')"/></td>
     <td><input type="checkbox" name="taxed.${id}"
                onchange="updateTaxable(${id}, this.checked)"/></td>
     <td style="text-align:right;" id="id_amount.${id}"></td>
@@ -389,7 +449,8 @@ function updateCrvTaxable(itemId, newValue) {
     <td>CRV for ${find_bulk(bulk_type_id).description}</td>
     <td></td>
     <td><input type="text" size="6" name="crv.${id}" 
-               onchange="updateCrv(${id}, this.value)"/></td>
+               onchange="updateCrv(${id}, this.value)"
+               onKeyDown="gridKeyDown(this, event, ${id}, 'crv')"/></td>
     <td><input type="checkbox" name="crv_taxed.${id}" 
                onchange="updateCrvTaxable(${id}, this.checked)"/></td>
     <td style="text-align:right;" id="id_crv_amount.${id}"></td>
@@ -417,6 +478,27 @@ function updateCrvTaxable(itemId, newValue) {
     border:5px solid gray;
     background-color: #DDDDDD;
   }
+
+  #controls {
+    position:fixed; 
+    bottom:0px;
+    left:0px;
+    width:100%;
+    background-color:#EEEEEE;
+    margin:0px;
+    padding:20px;
+    padding-top:0px; /* give space for toggle switch */
+    border-top: 3px solid #AAAAAA;
+   
+  }
+
+  .controlsOpen {
+    height:300px;
+  }
+
+  .controlsClosed {
+    height:10px;
+  }
 </style>
 
 <form action="" method="post" {% if order %} onSubmit="return false;" {% endif %} autocomplete="off">
@@ -430,43 +512,49 @@ function updateCrvTaxable(itemId, newValue) {
 
 <iframe name="error_frame" style="width:100%;height:500px;display:none;"></iframe>
 
-<div id="controls" style="position:fixed; bottom:20px; width:100%;">
+<div id="controls" class="controlsClosed">
 
-<div style="float:left;padding-right:15px;">
-Cases: 
-<input type="text" size="4" name="new_count" id="id_new_count" value="1" onKeyDown="casesInputKeyDown(this, event)"/>
-&nbsp;
-Filter: 
-<input type="text" size="30" id="new_description" style="width:210px;" 
-       onKeyDown="filterInputKeyDown(this, event)"
-       onKeyUp="filterSelect(this, event)"/>
-<input type="submit" value="Add" name="add_item"
-	     onClick="new_order_item();"/><br/>
-<select size="15" id="bulkSelect" name="new_item" style="width:400px;" 
-        class="selectMuliOption" onKeyDown="bulkSelectKeyDown(this, event);">		  
-  {% for bi in bulk_items %}
-	  <option value="{{ bi.bulkid }}">{{ bi.description }}</option>
-	{% endfor %}
-</select>
-</div>
+  <div style="height:30px;text-align:center;">
+    <input type="submit" value="Hide" id="hideControls" onClick="hide_controls();"/> 
+    <input type="submit" value="Show" id="showControls" onClick="show_controls();"/>    
+  </div>
 
-<div>
+	<div style="float:left;padding-right:15px;">
+		Cases: 
+		<input type="text" size="4" name="new_count" 
+                       id="id_new_count" value="1" onKeyDown="casesInputKeyDown(this, event)"/>
+		&nbsp;
+		Filter: 
+		<input type="text" size="30" id="new_description" style="width:210px;" 
+		       onKeyDown="filterInputKeyDown(this, event)"
+		       onKeyUp="filterSelect(this, event)"/>
+		<input type="submit" value="Add" name="add_item"
+			     onClick="new_order_item();"/><br/>
+		<select size="15" id="bulkSelect" name="new_item" style="width:400px;" 
+			class="selectMuliOption" onKeyDown="bulkSelectKeyDown(this, event);">		  
+		  {% for bi in bulk_items %}
+			  <option value="{{ bi.bulkid }}">{{ bi.description }}</option>
+			{% endfor %}
+		</select>
+	</div>
 
-<table style="padding:20px;margin:20px;">
-<tr><td>Taxable</td>        <td style="text-align:right" id="total_taxed">{{ total_tax|stringformat:".2f" }}</td></tr>
-<tr><td>Non Taxable</td>    <td style="text-align:right" id="total_nontaxed">{{ total_notax|stringformat:".2f" }}</td></tr>
-<tr><td>Sales Tax</td>      <td style="text-align:right"></td></tr>
-<tr><td>Coupon</td>         <td style="text-align:right"></td></tr>
-<tr><th>TOTAL:</th>         <th style="text-align:right" id="total">{{ total|stringformat:".2f" }}</th></tr>
-<tr><td>Expected Total</td> <td style="text-align:right">{{ order.amount|stringformat:".2f" }}</td></tr>
-</table>
+	<div>
+	  <table style="padding:20px;margin:20px;">
+	    <tr><td>Taxable</td>        <td style="text-align:right" id="total_taxed">
+                                            {{ total_tax|stringformat:".2f" }}</td></tr>
+	    <tr><td>Non Taxable</td>    <td style="text-align:right" id="total_nontaxed">
+                                            {{ total_notax|stringformat:".2f" }}</td></tr>
+	    <tr><td>Sales Tax</td>      <td style="text-align:right"></td></tr>
+	    <tr><td>Coupon</td>         <td style="text-align:right"></td></tr>
+	    <tr><th>TOTAL:</th>         <th style="text-align:right" id="total">
+                                            {{ total|stringformat:".2f" }}</th></tr>
+	    <tr><td>Expected Total</td> <td style="text-align:right">{{ order.amount|stringformat:".2f" }}</td></tr>
+	  </table>
+  </div>
 
 </div>
 
 {% endif %}
-
-
-</div>
 
 <table class="tablesorter" cellspacing="0" id="ordered_items_table" style="margin-bottom:300px;">
 <thead>
@@ -489,16 +577,19 @@ Filter:
              value="{{ item.bulk_type.bulkid }}" />
       <input type="text" size="4"  name="cases.{{ item.id }}" 
              value="{{ item.cases_ordered }}" 
-             onchange="updateNumCases({{ item.id }}, this.value)"/></td>
+             onchange="updateNumCases({{ item.id }}, this.value)"
+             onKeyDown="gridKeyDown(this, event, {{ item.id }}, 'cases')"/></td>
   <td>{{ item.bulk_type.product_id }}</td>
   <td><a href="/admin/django/bobdb/bulkitem/{{ item.bulk_type.bulkid }}/">
          {{ item.bulk_type.description }}</a></td>
     <td><input type="text" size="4" name="quantity.{{ item.id }}" 
                value="{{ item.units_per_case }}"
-               onchange="updateCaseSize({{ item.id }}, this.value)" /></td>
+               onchange="updateCaseSize({{ item.id }}, this.value)" 
+               onKeyDown="gridKeyDown(this, event, {{ item.id }}, 'quantity')"/></td>
     <td><input type="text" size="6" name="price.{{ item.id }}" 
                value="{{ item.case_cost|stringformat:".2f" }}" 
-               onchange="updateCasePrice({{ item.id }}, this.value)"/></td>
+               onchange="updateCasePrice({{ item.id }}, this.value)"
+               onKeyDown="gridKeyDown(this, event, {{ item.id }}, 'price')"/></td>
     <td><input type="checkbox" name="taxed.{{ item.id }}" 
                {{ item.is_cost_taxed|yesno:'checked="checked",,' }}
                onchange="updateTaxable({{ item.id }}, this.checked)" /></td>
@@ -523,7 +614,8 @@ Filter:
   <td></td>
   <td><input type="text" size="6" name="crv.{{ item.id }}" 
              value="{{ item.crv_per_unit|stringformat:".2f" }}"
-             onchange="updateCrv({{ item.id }}, this.value)"/></td>
+             onchange="updateCrv({{ item.id }}, this.value)"
+             onKeyDown="gridKeyDown(this, event, {{ item.id }}, 'crv')" /></td>
   <td><input type="checkbox" name="crv_taxed.{{ item.id }}" 
              {{ item.is_crv_taxed|yesno:'checked="checked",,' }} 
              onchange="updateCrvTaxable({{ item.id }}, this.checked)"/></td>
