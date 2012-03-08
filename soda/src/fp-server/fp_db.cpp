@@ -95,7 +95,9 @@ std::vector<User*> DB::GetUsers() {
   }
 
   if(ret != SQLITE_DONE) {
-    //TODO: ERROR somehow
+    printf("sqlite3 errored somehow! Aborting load.\n");
+    std::vector<User*> v2;
+    return v2;
   }
 
   sqlite3_finalize(statement);

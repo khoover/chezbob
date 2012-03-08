@@ -13,7 +13,8 @@ bool FPReader::fp_initialized = false;
 
 void FPReader::InitializeFP() {
   if(fp_init() != 0) {
-    //TODO: throw an exception
+    printf("ERROR: libfprint failed to initialize\n");
+    exit(0);
   }
   fp_set_debug(1000);
 
