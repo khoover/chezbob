@@ -1,6 +1,6 @@
 include ../sodacom.in
 
-SCRIPTS=controller.pl ctool cprocman stockcount-serv.pl freevend-serv.pl uictrl-serv.pl barcode-serv.pl backend.py sodagui.py bobdb-serv.pl
+SCRIPTS=controller.pl ctool cprocman stockcount-serv.pl freevend-serv.pl uictrl-serv.pl barcode-serv.pl backend.py sodagui.py bobdb-serv.pl invert_touchscreen_axes.sh
 EXTRA=sodagui-bg.png
 
 all:
