@@ -1,10 +1,14 @@
 #ifndef FP_DB_H
 #define FP_DB_H
 
+#include <stdlib.h>
+#include <stdio.h>
+
 #include <sqlite3.h>
 #include <vector>
+#include <libfprint/fprint.h>
 
-// create table fingerprints(username varchar, fingerprint varchar);
+// create table fingerprints(username varchar, fingerprint blob);
 
 class User;
 

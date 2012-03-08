@@ -4,7 +4,6 @@
 #include <vector>
 
 #include <servio.h>
-
 #include <libfprint/fprint.h>
 
 #include "fp_db.h"

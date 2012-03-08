@@ -106,7 +106,11 @@ void FPReader::AddUser(User* u) {
     free(user_array);
   }
   if(db) {
-    db.SaveUser(u);
+    if(db->SaveUser(u)) {
+      printf("User saved\n");
+    } else {
+      printf("User saving failed\n");
+    }
   }
 
   users.push_back(u);
