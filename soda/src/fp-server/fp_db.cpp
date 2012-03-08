@@ -2,7 +2,7 @@
 #include "fpserv_async.h"
 
 // These should be in a config file somewhere. Probably.
-const char* SQLITE_DB = "fingerprints.db";
+const char* SQLITE_DB = "/home/kiosk/fingerprints.db";
 
 DB::DB() {
   db = NULL;
