@@ -26,6 +26,9 @@ all: ${TARGET}
 ${TARGET}: ${OBJS}
 	$(CPP) $(CPPFLAGS) $(LDFLAGS) ${OBJS} -o ${TARGET}
 
+install:
+	cp ${TARGET} ${BIN}
+
 
 clean:
 	rm -f ${OBJS} ${TARGET}
