@@ -45,8 +45,10 @@ class SodaFPPanel(SodaPanel):
         self.CountPrompt = wxStaticText(
                 self,
                 -1,
-                "Please enter your fingerprint "
+                "Please put your finger on the reader below."
                 )
+        # We leave these here just in case they're referenced somewhere. They
+        # aren't added to the sizer, so they'll never show up.
         self.CountNumber = wxStaticText(
                 self,
                 -1,
@@ -60,8 +62,8 @@ class SodaFPPanel(SodaPanel):
 
         self.CountSizer = wxBoxSizer(wxHORIZONTAL)
         self.CountSizer.Add(self.CountPrompt)
-        self.CountSizer.Add(self.CountNumber)
-        self.CountSizer.Add(self.CountPostPrompt)
+        #self.CountSizer.Add(self.CountNumber)
+        #self.CountSizer.Add(self.CountPostPrompt)
 
         self.TimerLabel = wxStaticText(
                 self,
@@ -77,8 +79,9 @@ class SodaFPPanel(SodaPanel):
 
 
     def SetCount(self, count):
-        self.CountNumber.SetLabel(str(count))
-        self.CountSizer.Layout()
+        pass
+        #self.CountNumber.SetLabel(str(count))
+        #self.CountSizer.Layout()
 
     def SetMessage(self, message):
         self.StatusLabel.SetLabel(message)

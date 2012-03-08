@@ -458,7 +458,7 @@ class SodaFrame(wxFrame):
         #if self.state != STATE_FPLEARN:
         #    self.changeState(STATE_FPLEARN)
 
-        self.fpPanel.SetCount(event.count)
+        #self.fpPanel.SetCount(event.count)
         self.fpPanel.SetMessage(event.msg)
 
         if event.complete == "1":

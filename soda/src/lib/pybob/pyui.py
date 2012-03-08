@@ -55,6 +55,13 @@ class PyUI(baseui.BaseUI):
                           "Print Read Successfully",
                           0])
 
+    def fpReadFail(self, msg):
+        print "sending message"
+        self.servio.send(["UI-FP-NOTICE",
+                          0,
+                          msg,
+                          0])
+
     def fpLearnFail(self, msg):
         self.servio.send(["UI-FP-NOTICE",
                           0, #This may be displayed it is no longer used

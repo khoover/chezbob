@@ -7,18 +7,11 @@
 
 #include "fpserv_async.h"
 
-// $ g++ -I../lib fpserv.cpp -c -o fpserv.o
-// $ g++ fpserv.o ../lib/servio.o -lfprint -o fpserv
-
-int state;
-enum{ STATE_READ, STATE_LEARN, STATE_STOPPED };
-
 int main(int argc, char** argv) {
   if (sio_open(argc, argv, "FPSERV", "2.0", "") < 0)
     exit(10);
   sio_write(SIO_DATA, "SYS-ACCEPT\tFP-");
 
-  state = STATE_READ;
   std::string str;
 
   FPReader fp;
@@ -43,15 +36,10 @@ int main(int argc, char** argv) {
       std::string userid = sio_field(str, 1);
 
       if(command == "FP-LEARN-START"){
-        state = STATE_LEARN;
         fp.SetUsername(userid);
         fp.ChangeState(ENROLLING);
-        // TODO: send messages back up when enrolling finishes
-        //       sio_write(SIO_DATA, "FP-LEARN-GOOD");
-        //sio_write(SIO_DATA, "FP-LEARN-FAIL");
       }
       else if(command == "FP-LEARN-STOP"){
-        state = STATE_READ;
         fp.SetUsername("not-a-user:identifying-mode");
         fp.ChangeState(IDENTIFYING);
       }

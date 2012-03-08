@@ -253,6 +253,8 @@ class SodaBackend:
             print "BAD FP READ"
         else:
             print "Bad FP with a logged-in user. Ignore!"
+        self.ui.fpReadFail(data[1])
+
 
     def handleFpGoodRead(self, data):
         if self.current_user is None:
@@ -284,8 +286,7 @@ class SodaBackend:
         elif self.inLearnMode is False:
             print "Didn't expect Learn Fail without being in learn mode"
         else:
-            self.ui.fpLearnFail("Unable to read fingerprint r something")
-            # TODO: Something with a failed learn attempt, better msg
+            self.ui.fpLearnFail(data[1])
 
         print "fp learn fail"
 
@@ -303,6 +304,7 @@ class SodaBackend:
             self.bus.send(["FP-LEARN-STOP"])
         else:
             print "Unexpected LearnEnd, no user"
+            self.bus.send(["FP-LEARN-STOP"])
 
     def handleBarCodeScan(self, data):
         if self.current_user is None:
