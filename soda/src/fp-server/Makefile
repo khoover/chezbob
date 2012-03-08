@@ -1,3 +1,4 @@
+include ../sodacom.in
 
 CPP=g++
 CPPFLAGS=-g -I../lib
