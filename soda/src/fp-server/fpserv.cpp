@@ -129,12 +129,12 @@ public:
 
 
 int stop_num = 0;
-void onsignal(int num) { 
+void onsignal(int num) {
   stop_num = num;
 };
 
 int had_pipe = 0;
-void onpipe(int num) { 
+void onpipe(int num) {
   had_pipe = 1;
 };
 
@@ -153,7 +153,7 @@ int win_image_set(void*, void*) {
     return 0;
   };
   win_image = new Fl_PNG_Image(win_image_name);
-  sio_write(SIO_DEBUG, "Loaded png image, size %dx%d, c=%d d=%d ld=%d, name '%s'", 
+  sio_write(SIO_DEBUG, "Loaded png image, size %dx%d, c=%d d=%d ld=%d, name '%s'",
 	    win_image->w(), win_image->h(), win_image->count(), win_image->d(), win_image->ld(),
 	    win_image_name);
   return 0;
@@ -161,8 +161,8 @@ int win_image_set(void*, void*) {
 
 int winprop_set(void*, void*) {
   if (descale<= 0) descale = 1;
-  fpwinw = int(SCREEN_W / descale); 
-  fpwinh = int(SCREEN_H / descale);  
+  fpwinw = int(SCREEN_W / descale);
+  fpwinh = int(SCREEN_H / descale);
   exwinw = fpwinw+win_bx1+win_bx2;
   exwinh = fpwinh+win_by1+win_by2;
   sio_write(SIO_DEBUG, "Window resized to (%dx%d), fp is (%dx%d)", exwinw, exwinh, fpwinw, fpwinh);
@@ -201,7 +201,7 @@ void idlefunc(void * arg) {
     had_pipe = 0;
     sio_write(SIO_WARN, "Caught and ignored SIG_PIPE");
   };
-  
+
   //
   //       process messages
   //
@@ -210,11 +210,11 @@ void idlefunc(void * arg) {
   while ((rrv = sio_read(str, 0)) > 0) {
     std::string arg = sio_field(str, 0);
     std::string arg1 = sio_field(str, 1);
-    if (arg == "FP-PRETEND") {	  
+    if (arg == "FP-PRETEND") {
       sio_write(SIO_ERROR, "No fake image code implemented");
-    } else if (arg == "FP-PERSIST") {	  
+    } else if (arg == "FP-PERSIST") {
       fpdata_persists(atoi(arg1.c_str()), sio_field(str, 2), sio_field(str, 3));
-    } else if (arg == "FP-LEARN") {	  
+    } else if (arg == "FP-LEARN") {
       int rec[16];
       rec[10] = 0;
 
@@ -236,13 +236,13 @@ void idlefunc(void * arg) {
 		(rv == -1) ? "There was a problem with database" :
 		(rv == -2) ? "There was a problem with data retention" :
 		(rv == -3) ? "There was a problem with fingerprint engine" :
-		"There as an unknown problem"); 
+		"There as an unknown problem");
     } else if (arg == "SYS-SET") {
       // do nothing
-    } else if (arg == "FP-UNPERSIST") {	  
+    } else if (arg == "FP-UNPERSIST") {
       fpdata_unpersist(atoi(arg1.c_str()));
 
-    } else if (arg == "FP-LIST") {	  
+    } else if (arg == "FP-LIST") {
 
       std::string arg2 = sio_field(str, 2);
       std::string arg3 = sio_field(str, 3);
@@ -255,7 +255,7 @@ void idlefunc(void * arg) {
   if (rrv < 0) {
     sio_write(SIO_DEBUG, "server died: %d/%d", rrv, errno);
     stop_num = -100 + rrv; // exit if server dies
-  };  
+  };
 
   if (cycle == 5) {
     sio_write(SIO_DATA, "FP-READY");
@@ -266,10 +266,10 @@ void idlefunc(void * arg) {
     fpdata_db_cleanup();
     next_db_cleanup = time64() + 600 * 1000LL * 1000LL;
   };
-  
+
   //
   //       fetch fingerprint info unless image hold is active
-  //	  
+  //
   if (fpr_idle_callback()) {
     // TODO: request redraw
     window->redraw();
@@ -282,7 +282,7 @@ void idlefunc(void * arg) {
     feat_last_time = time64();
   } else {
     // we went invisible
-    if (auto_hide && visible && feat_last_time) 
+    if (auto_hide && visible && feat_last_time)
       if ((feat_last_time + 1000*auto_hide) < time64()) {
 	visible = 0;
 	feat_last_time = 0;
@@ -346,13 +346,13 @@ int main(int argc, char **argv) {
 
   VFSetParameter(VFP_RETURNED_IMAGE, 2, vfcont); // mangle image? 0=not, 1=yes, 2=outline
 
-  signal(SIGHUP, &onsignal); 
+  signal(SIGHUP, &onsignal);
   signal(SIGINT, &onsignal);
   signal(SIGTERM, &onsignal);
   signal(SIGPIPE, &onpipe);
-  signal(SIGALRM, SIG_IGN); 
-  signal(SIGUSR1, SIG_IGN); 
-  signal(SIGUSR2, SIG_IGN); 
+  signal(SIGALRM, SIG_IGN);
+  signal(SIGUSR1, SIG_IGN);
+  signal(SIGUSR2, SIG_IGN);
 
   if (!fpr_init()) {
     sio_close(1000 + errno, "cannot open fingeprint reader");
@@ -367,8 +367,8 @@ int main(int argc, char **argv) {
   winx = 0;
   winy = 0;
 
-  fpwinw = exwinw = 100; 
-  fpwinw = exwinh = 100; 
+  fpwinw = exwinw = 100;
+  fpwinw = exwinh = 100;
 
 
   sio_getvar("descale",       "DC+:f", winprop_set, &descale);
@@ -380,8 +380,8 @@ int main(int argc, char **argv) {
   sio_getvar("visible",       "D+:d", &visible);
   sio_getvar("win_invert",    "D+:d", &win_invert);
   sio_getvar("win_fpcontr",    "D+:d", &win_fpcontr);
-  sio_getvar("win_colors",    "D+:sssssss", &winc_bg, &winc_fp, 
-	     &winc_brd1, &winc_brd2, 
+  sio_getvar("win_colors",    "D+:sssssss", &winc_bg, &winc_fp,
+	     &winc_brd1, &winc_brd2,
 	     &winc_feat1, &winc_feat2, &winc_feat3);
   sio_getvar("win_msgsmall",   "D+:dsd", &win_ms_findex, &win_ms_color, &win_ms_size);
   sio_getvar("win_msglarge",   "D+:ds", &win_ml_findex, &win_ml_color);
@@ -432,7 +432,7 @@ int main(int argc, char **argv) {
 
   Fl::wait();
   Fl::wait();
-	
+
   Fl::set_font((Fl_Font)16, "-bitstream-lcars-medium-r-normal--0-0-0-0-p-0-iso8859-1");
   int count = Fl::set_fonts(NULL); //");
   sio_write(SIO_DEBUG, "add fonts: total=%d", count);
@@ -470,11 +470,11 @@ void color2comp(unsigned int color, int&r, int&g, int&b, int &a) {
 
 int str2color(char * msg) {
   int p = 0;
-  if (!sscanf(msg, "#%x", &p)) 
-    if (!sscanf(msg, "0x%x", &p)) 
-      if (!sscanf(msg, "%d", &p)) 
+  if (!sscanf(msg, "#%x", &p))
+    if (!sscanf(msg, "0x%x", &p))
+      if (!sscanf(msg, "%d", &p))
 	return 0; // no format
-  return htonl(p); 
+  return htonl(p);
 };
 
 unsigned char * ndat = 0;
@@ -492,8 +492,8 @@ void MyStatusBox::draw() {
   int br, bg, bb, ba;
   color2comp(bgc, br, bg, bb, ba);
   Fl_Color flb = fl_rgb_color(br, bg, bb);
-	
-  
+
+
   if (flb != color()) {
     color(flb);
     ::window->color(flb);
@@ -513,12 +513,12 @@ void MyStatusBox::draw() {
 
     unsigned char * ndat = img->data;
     int depth = 1;
-    
+
     // 'win_invert' means 'apply alt color'
     // so if it is set, we convert image to 3-components
     if (win_invert) {
       int fr, fg, fb, fa;
-      
+
       // allocate color
       color2comp(str2color(winc_fp), fr, fg, fb, fa);
 
@@ -527,7 +527,7 @@ void MyStatusBox::draw() {
       int size = img->width * img->height;
       const unsigned  char * odat = ndat;
       ndat = (unsigned char*)malloc(size * depth + 1);
-      
+
       // get max brightness
       int max = 255 - win_fpcontr;
       if (max > 254) max=254;
@@ -541,7 +541,7 @@ void MyStatusBox::draw() {
       for (int oi=0, ni=0; oi<size; oi++) {
 	unsigned int col = 255 - odat[oi];
 
-	if (col < 0) col = 0; 
+	if (col < 0) col = 0;
 	if (col > max) col = max;
 	ndat[ni+0] = INTERP(col, max, br, fr);
 	ndat[ni+1] = INTERP(col, max, bg, fg);
@@ -579,7 +579,7 @@ void MyStatusBox::draw() {
 	};
 	int x0 = int(img->mindata[i].X / descale) + win_bx1;
 	int y0 = int(img->mindata[i].Y / descale) + win_by1;
-	  
+
 	fl_circle(x0, y0, 3);
 	double len = 10 / descale;
 	double ang = VFDirToRad(img->mindata[i].D);
@@ -588,11 +588,11 @@ void MyStatusBox::draw() {
 	//double ang2 = VFDirToRad(mindata[i].C);
 	int x1 = int(x0 + len*cos(ang));
 	int y1 = int(y0 + len*sin(ang));
-	fl_line_style(FL_SOLID, 3, 0); 
+	fl_line_style(FL_SOLID, 3, 0);
 	fl_line(x0, y0, x1, y1);
 	//len = 0;
-	//fl_line(x1, y1, int(x1 + len*cos(ang2)), int(y1+len*sin(ang2)));	  
-	sprintf(bf, "%d:%d", img->mindata[i].C, 
+	//fl_line(x1, y1, int(x1 + len*cos(ang2)), int(y1+len*sin(ang2)));
+	sprintf(bf, "%d:%d", img->mindata[i].C,
 		img->mindata[i].G);
 	fl_draw(bf, x0+5, y0);
       };
@@ -616,7 +616,7 @@ void MyStatusBox::draw() {
       case 0: sprintf(bf, "%d", cycle&1000); break;
       case 1: sprintf(bf, "%d", img ? img->featG : 0); break;
       case 2: sprintf(bf, "%d", img ? img->state : 0); break;
-      case 3: sprintf(bf, "%d", img ? img->mincount: 0); break;		
+      case 3: sprintf(bf, "%d", img ? img->mincount: 0); break;
       };
       int w=0, h=0;
       fl_measure(bf, w, h);
@@ -624,19 +624,19 @@ void MyStatusBox::draw() {
       fl_draw(bf, x, y);
     };
   };
-  
+
   // if there is no background, do the border
   if (!win_image) {
     if (fpr_get_guistate() >= 5) {
       // thick dashed borden
       fl_color(str2color(winc_brd2));
-      fl_line_style(FL_DASH, 8, 0); 
+      fl_line_style(FL_DASH, 8, 0);
     } else {
       // thin solid border
       fl_color(str2color(winc_brd1));
-      fl_line_style(FL_SOLID, 3, 0); 
+      fl_line_style(FL_SOLID, 3, 0);
     };
-    fl_loop(0,0, 
+    fl_loop(0,0,
 	    exwinw-1, 0,
 	    exwinw-1, exwinh-1,
 	    0,        exwinh-1);

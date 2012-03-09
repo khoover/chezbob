@@ -24,7 +24,7 @@ if (!$name || !$balance) {
     exit 1;
 }
 
-open SSH, "ssh -oBatchMode=yes -l mvrable soda.ucsd.edu '/home/kiosk/sodafw/bin/ctool -send \"LOGIN|$name|$balance\" -monitor LOGIN-' </dev/null |";
+open SSH, "ssh -oBatchMode=yes -l bob soda.ucsd.edu '/home/kiosk/sodafw/bin/ctool -send \"LOGIN|$name|$balance\" -monitor LOGIN-' </dev/null |";
 
 while ($_ = <SSH>) {
     if ($_ =~ m/^LOGIN-SUCCEEDED/) {
