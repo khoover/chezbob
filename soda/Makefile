@@ -6,7 +6,18 @@ BNAME_C=${BNAME}-code.tar.gz
 all:
 	cd src && MAKELEVEL= make all docs
 
+dpfp:
+	cd libs/libdpfp-0.2.2 && ./configure && MAKELEVEL= make
+
+dpfp-install:
+	cd libs/libdpfp-0.2.2 && MAKELEVEL= make install
+
+dpfp-clean:
+	cd libs/libdpfp-0.2.2 && MAKELEVEL= make clean
+
 install:
+	cd stuff-to-copy && MAKELEVEL= make install
+	cd libs/VFinger && MAKELEVEL= make install
 	cd src && MAKELEVEL= make install
 
 docs:

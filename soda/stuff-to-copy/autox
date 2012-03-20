@@ -1,0 +1,105 @@
+#! /bin/sh
+#
+# skeleton	example file to build /etc/init.d/ scripts.
+#		This file should be used to construct scripts for /etc/init.d.
+#
+# Author:	Miquel van Smoorenburg <miquels@cistron.nl>.
+#		Ian Murdock <imurdock@gnu.ai.mit.edu>.
+#
+#		You may remove the "Author" lines above and replace them
+#		with your own name if you copy and modify this script.
+#
+# Version:	@(#)skeleton  1.9.4  21-Mar-2004  miquels@cistron.nl
+#
+
+set -e
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/X11R6/bin
+DAEMON=/usr/bin/startx
+NAME=autox
+DESC="Kiosk Login"
+
+PIDFILE=/var/run/$NAME.pid
+SCRIPTNAME=/etc/init.d/$NAME
+
+# Gracefully exit if the package has been removed.
+test -x $DAEMON || exit 0
+
+# Read config file if it is present.
+#if [ -r /etc/default/$NAME ]
+#then
+#	. /etc/default/$NAME
+#fi
+
+case "$1" in
+  start)
+	echo -n "Starting $DESC: $NAME"
+	HOME=/home/kiosk
+	start-stop-daemon --start --quiet -c kiosk:kiosk --pidfile $PIDFILE \
+		--make-pidfile --background --exec $DAEMON
+	echo "."
+	;;
+  stop)
+	echo -n "Stopping $DESC: $NAME"
+	start-stop-daemon --stop --quiet --pidfile $PIDFILE \
+		--exec $DAEMON
+	echo "."
+	;;
+ inittab)
+	# special setting when run from inittab - start, but do not fork to background
+	# set flags to ensure newline is correct
+        stty inlcr opost onlcr
+	
+	# XXX: commented out to see if it works without them; may need to put one or both back
+        # create ext_mouse fifo if needed
+	# test -r /dev/ext_mouse || mkfifo /dev/ext_mouse
+	# start touchscreen filter
+	# /root/pvbin/ts_filter /dev/input/ev_touchscreen &
+
+        HOME=/home/kiosk
+        start-stop-daemon --start --quiet -c kiosk:kiosk --pidfile $PIDFILE \
+                --make-pidfile --exec $DAEMON
+	#echo restarting Touchscreen Driver
+	#/etc/init.d/tpaneld restart
+	echo
+	echo
+	echo WAITING 10 seconds...
+	echo
+	echo
+	sleep 10
+	;;
+  #reload)
+	#
+	#	If the daemon can reload its config files on the fly
+	#	for example by sending it SIGHUP, do it here.
+	#
+	#	If the daemon responds to changes in its config file
+	#	directly anyway, make this a do-nothing entry.
+	#
+	# echo -n "Reloading $DESC configuration..."
+	# start-stop-daemon --stop --signal 1 --quiet --pidfile \
+	#	$PIDFILE --exec $DAEMON
+	# echo "done."
+  #;;
+  restart|force-reload)
+	#
+	#	If the "reload" option is implemented, move the "force-reload"
+	#	option to the "reload" entry above. If not, "force-reload" is
+	#	just the same as "restart".
+	#
+	echo -n "Restarting $DESC: $NAME"
+	start-stop-daemon --stop --quiet --oknodo --pidfile \
+		$PIDFILE --exec $DAEMON
+	sleep 1
+	start-stop-daemon --start --quiet --pidfile \
+		$PIDFILE --exec $DAEMON
+	echo "."
+	;;
+  *)
+	# echo "Usage: $SCRIPTNAME {start|stop|restart|reload|force-reload}" >&2
+	echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+	exit 1
+	;;
+esac
+
+exit 0

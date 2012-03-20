@@ -1,0 +1,48 @@
+#!/bin/bash
+#disable screen savers
+cd ~
+
+#  for tracking and killing of lost processes
+export SSTART=`date +'%Y-%m-%d %H:%M:%S'`
+
+# 'live' server port - take from /etc/services file
+# do not use
+# export SODACTRL_PORT=`perl -le 'print 0+getservbyname("sodactrl","tcp")'`
+export PATH=$PATH:/home/kiosk/sodafw/bin/
+
+
+# start up the services
+~kiosk/sodafw/bin/cprocman webreset
+
+# screen saver
+xset dpms 0 0 0     
+xset s off
+unclutter -idle 1 -root &
+
+rm -f ~/exit-hold
+
+# run x11vnc for remote troubleshooting...  use storepasswd to change passwd
+(exec x11vnc -many -rfbauth ~/.vnc/passwd -desktop "SODA Machine" -rfbport 5940 -shared -alwaysshared 2>&1 | tee ~/logs/x11vnc.log) &
+
+# clean up the profiles
+rm -rf ~/.firefoxM
+rm -rf ~/.mozilla
+#install default profile
+cp -r /opt/firefoxM/DEFAULT.mozilla ~/.mozilla
+
+# run firefox
+#/opt/firefoxM/bin/firefox -geometry 800x600+0+0 -width 800 -height 600 http://localhost/lh/start
+
+# load up the browser...
+rm -rf  ~/.moz-kiosk
+
+cprocman start moz-kiosk
+
+ctool -monitor ^SYS-RESTART || \
+	xterm -e " dialog --timeout 1800 --msgbox 'Kiosk Web Browser failed to start\n\nContact mafanasyev@ucsd' 10 50"
+
+if [ -f ~/exit-hold ]; then
+	blackbox &
+	xterm
+fi
+
