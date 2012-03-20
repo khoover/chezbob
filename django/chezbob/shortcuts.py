@@ -71,4 +71,6 @@ def redirect_or_error(to_url, messages):
     return error(messages)
   else:
     return HttpResponseRedirect(to_url)
+
+
     

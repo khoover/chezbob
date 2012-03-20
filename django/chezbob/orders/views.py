@@ -8,10 +8,13 @@ from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseRedirect
 from chezbob.bobdb.models import BulkItem
+from chezbob.finance.models import Transaction, Split
 from chezbob.orders.models import Order, OrderItem
 from chezbob.shortcuts import *
 
 from django.core.urlresolvers import reverse
+
+DEFAULT_SALES_TAX = 0.0775
 
 def coerce_boolean(s):
   """Convert a string to a boolean value.
@@ -41,15 +44,11 @@ def order_list(request):
   reverse('chezbob.orders.views.order_summary', args=(167,))
   return render_to_response('orders/order_list.html', mes)
 
-
 class OrderForm(forms.Form):
   date           = forms.DateField(initial=datetime.date.today())
   description    = forms.CharField()
   amount         = forms.DecimalField()
-  sales_tax_rate = forms.DecimalField(initial=0.0875)
-
-
-
+  sales_tax_rate = forms.DecimalField(initial=DEFAULT_SALES_TAX)
 
 @edit_orders_required
 def order_summary(request, order): 
@@ -131,6 +130,58 @@ def order_summary(request, order):
       item.save()
       order_item_expand(item)
       messages['new_order_item'] = simp(item)
+    elif request.POST['ajax'] == 'update_details':
+      order_form = OrderForm(request.POST);
+      if order_form.is_valid():
+        order.date        = order_form.cleaned_data['date'];
+        order.description = order_form.cleaned_data['description'];
+        order.amount      = order_form.cleaned_data['amount'];
+        order.tax_rate    = order_form.cleaned_data['sales_tax_rate']
+        order.save()
+      else:
+        for error_field in order_form.errors:
+          messages.error("Field '%s': %s" % (error_field, order_form[error_field].errors));
+    elif request.POST['ajax'] == 'update_finance_details':
+      print repr(request.POST);
+      order.inventory_adjust = request.POST['inventory_adjust']
+      order.supplies_taxed     = request.POST['supply_taxed']
+      order.supplies_nontaxed  = request.POST['supply_nontaxed']
+      order.supplies_adjust    = request.POST['supply_adjust']
+      order.returns_taxed    = request.POST['refund_taxed']
+      order.returns_nontaxed = request.POST['refund_nontaxed']
+      order.save()
+    elif request.POST['ajax'] == 'get_bulk_items':
+      bulk_items = BulkItem.objects.all().order_by('description');
+      simp_bulk_items = []
+      for item in bulk_items:
+        simp_bulk_items.append(simp(item));
+      messages['bulk_items'] = simp_bulk_items;
+    elif request.POST['ajax'] == 'create_transaction':
+      bank = request.POST['bank']
+      inventory = request.POST['inventory']
+      supplies = request.POST['supplies']
+      newTran = Transaction();
+      newTran.date = order.date;
+      newTran.description = order.description;
+      newTran.save();
+      Split(transaction=newTran, amount=bank,   account_id=1).save(); # bank
+      Split(transaction=newTran, amount=inventory, account_id=5).save(); # inventory
+      Split(transaction=newTran, amount=supplies,  account_id=8).save(); # lounge supplies
+      order.finance_transaction = newTran;
+      
+      messages['new_tran_id'] = newTran.id;
+    elif request.POST['ajax'] == 'sync_transaction':
+      bank = request.POST['bank']
+      inventory = request.POST['inventory']
+      supplies = request.POST['supplies']
+      for split in order.finance_transaction.split_set.all():
+        if split.account_id == 1: # bank
+          split.amount = bank
+        if split.account_id == 5: # inventory
+          split.amount = inventory
+        if split.account_id == 8: # lounge supplies
+          split.amount = supplies
+        split.save()
     else:
       messages.error("unknown ajax command '%s'" % request.POST['ajax'])
     return JsonResponse(messages)
@@ -283,6 +334,28 @@ def order_summary(request, order):
       sbi["description"] = '[inactive] ' + sbi["description"]
     simp_bulk_items.append(sbi)
   
+  messages['transaction'] = False;
+  messages['transaction_complicated'] = False;
+  messages['transaction_bank'] = 0;
+  messages['transaction_inventory'] = 0;
+  messages['transaction_supplies'] = 0;
+  
+  if not (order.finance_transaction_id == None):
+    messages['transaction'] = True;
+    splits = order.finance_transaction.split_set.all()
+    if len(splits) != 3:
+      messages['transaction_complicated'] = True
+    else: 
+      for split in splits:
+        if split.account_id == 1:
+          messages['transaction_bank'] = split.amount
+        elif split.account_id == 5:
+          messages['transaction_inventory'] = split.amount
+        elif split.account_id == 8: 
+          messages['transaction_supplies'] = split.amount
+        else:
+          messages['transaction_complicated'] = True
+  
   messages.extend({'user': request.user,
                    'title': 'Order Summary - ' + str(order.date),
                    'details_form': order_form,
@@ -308,10 +381,11 @@ def new_order(request):
                        tax_rate = order_form.cleaned_data['sales_tax_rate'])
       newOrder.save()
       newId = newOrder.id
-      redirect_or_error(reverse('chezbob.orders.views.order_summary', args=(newId,)), messages)
+      return redirect_or_error(reverse('chezbob.orders.views.order_summary', args=(newId,)), messages)
     else:
       for error_field in order_form.errors:
         messages.error("Field %s: %s" % (error_field, order_form[error_field].errors));
+      return error(messages);
   messages.extend({'user': request.user,
                    'title': 'New Order',
                    'details_form': OrderForm(),
