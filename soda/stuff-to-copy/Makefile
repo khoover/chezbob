@@ -8,8 +8,5 @@ install:
 	chmod 755 /home/kiosk/.xinitrc
 	cp autox /etc/init.d/autox
 	chmod 755 /etc/init.d/autox
-	mkdir /usr/share/fonts/truetype/sodafonts
-	cp lcars.ttf /usr/share/fonts/truetype/sodafonts/
-	defoma-hints -c --no-question truetype /usr/share/fonts/truetype/sodafonts/lcars.ttf > lcars.hints
-	defoma-font register-all lcars.hints
-	defoma-reconfigure
+	./fontinstall.sh
+	./hasp_key_install.sh
