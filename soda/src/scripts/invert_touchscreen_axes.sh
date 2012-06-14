@@ -1,7 +1,7 @@
 #!/bin/bash
 
-XAUTHORITY="/home/kiosk/.Xauthority"
-DISPLAY=":0"
+export XAUTHORITY="/home/kiosk/.Xauthority"
+export DISPLAY=":0"
 
 for device_id in `xinput list | grep eGalax | tr -s ' ' | sed -e 's/=/\t/g' | cut -f 3`
 do
