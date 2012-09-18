@@ -7,7 +7,7 @@ all:
 	make -C mdb-server all
 	make -C snd-server all
 	make -C vmc-server all
-	make -C fp-server all
+#	make -C fp-server all
 	make -C scripts all
 
 install:
@@ -17,7 +17,7 @@ install:
 	make -C mdb-server install
 	make -C snd-server install
 	make -C vmc-server install
-	make -C fp-server install
+#	make -C fp-server install
 	make -C scripts install
 	make -C lib install
 	make -C conf install

@@ -1,0 +1,20 @@
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+allow-hotplug eth0
+
+#iface eth0 inet dhcp
+# The primary network interface
+iface eth0 inet static
+	address 132.239.95.75
+	netmask 255.255.255.0
+	network 132.239.95.0
+	broadcast 132.239.95.255
+	gateway 132.239.95.1
+	# dns-* options are implemented by the resolvconf package, if installed
+	dns-nameservers 132.239.0.252
+	dns-search ucsd.edu

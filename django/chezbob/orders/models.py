@@ -2,6 +2,7 @@ import datetime
 from decimal import Decimal
 from django.db import models, connection, transaction
 from chezbob.bobdb.models import BulkItem
+from chezbob.finance.models import Transaction
 
 # Current tax rate.  This is only used to compute current item prices.  For any
 # historical analysis, the per-order tax rate stored with each order is used
@@ -17,6 +18,16 @@ class Order(models.Model):
     description = models.CharField(max_length=256)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     tax_rate = models.DecimalField(max_digits=6, decimal_places=4)
+    
+    # Keep track of relevant financial gook
+    inventory_adjust = models.DecimalField(max_digits=12, decimal_places=2)
+    supplies_adjust = models.DecimalField(max_digits=12, decimal_places=2)
+    supplies_taxed = models.DecimalField(max_digits=12, decimal_places=2)
+    supplies_nontaxed = models.DecimalField(max_digits=12, decimal_places=2)
+    returns_taxed = models.DecimalField(max_digits=12, decimal_places=2)
+    returns_nontaxed = models.DecimalField(max_digits=12, decimal_places=2)
+    
+    finance_transaction = models.ForeignKey(Transaction)
 
     def __unicode__(self):
         return "%s %s" % (self.date, self.description)

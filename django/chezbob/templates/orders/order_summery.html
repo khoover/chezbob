@@ -3,15 +3,27 @@
 
 {% block content %}
 <script type="text/javascript">
+// Javascript & Python compatability
 var None = null;
 var True = true;
 var False = false;
 
+// // DATA // //
+
+// Bring some Django variables into the javascript state
 var total_taxed    = {{ total_notax|stringformat:".2f" }};
 var total_nontaxed = {{ total_notax|stringformat:".2f" }};
 var total          = {{ total|stringformat:".2f" }};
 var tax_rate       = {{ order.tax_rate|stringformat:".4f"}};
 
+var trans_bank      = {{ transaction_bank|stringformat:".2f" }}
+var trans_inventory = {{ transaction_inventory|stringformat:".2f" }}
+var trans_supplies  = {{ transaction_supplies|stringformat:".2f" }}
+
+var trans_exists      = {{ transaction }}
+var trans_complicated = {{ transaction_complicated }}
+
+// Bring bulk items list from Django into javascipt state
 var bulk_items = [
   {% for bi in bulk_items %}
 	  { 'bulkid'        : {{ bi.bulkid }},
@@ -27,6 +39,7 @@ var bulk_items = [
 	{% endfor %}  
 ];
 
+// Bring existing order items from Django into javascript state
 var order_items = {
   {% for item in items %}
   {{ item.id }} :
@@ -44,81 +57,7 @@ var order_items = {
 	{% endfor %}  
 };
 
-function filterSelect(filterInput, event) {
-  if (event.keyCode == 13) {
-    event.preventDefault();
-    return
-  }
-  selObj = document.getElementById("bulkSelect")
-  description_part = filterInput.value.toLowerCase()
-  for (i = selObj.options.length - 1; i >= 0 ; i--) {
-    selObj.remove(i)
-  }
-  for (i = 0; i < bulk_items.length; i++) {
-    bi = bulk_items[i]
-    if (bi.description.toLowerCase().indexOf(description_part) >= 0) {
-      selObj.add(new Option(bi.description, bi.bulkid), null);
-    }
-  }
-  selObj.selectedIndex = 0
-  if (selObj.options.length == 1) {
-    selObj.className = "selectSingleOption"
-  } else if (selObj.options.length == 0) {
-    selObj.className = "selectNoOption"
-  } else {
-    selObj.className = "selectMuliOption"
-  }
-}
-
-function genericKeyDown(input, event) {
-  if (event.keyCode == 13) {
-    new_order_item();
-    return
-  }
-  var casesInp = $('#id_new_count');
-  if (event.keyCode == 107 || event.keyCode == 187 || event.keyCode == 61) {
-    var cases = parseInt(casesInp.val());
-    cases += 1;
-    casesInp.val(cases);
-    event.preventDefault();
-  }
-  if (event.keyCode == 109 || event.keyCode == 189) {
-    var cases = parseInt(casesInp.val());
-    cases -= 1;
-    casesInp.val(cases);
-    event.preventDefault();
-  }
-}
-
-function filterInputKeyDown(filterInp, event) {
-  genericKeyDown(filterInp, event);
-  if (event.keyCode == 40) {
-    selObj.focus()
-    return
-  }
-}
-
-function casesInputKeyDown(casesInp, event) {
-  genericKeyDown(casesInp, event);
-  if (event.keyCode == 38) {
-    if (selObj.selectedIndex == 0) {
-      filterBox = document.getElementById("new_description")
-      filterBox.focus()
-    }
-    return
-  }
-}
-
-function bulkSelectKeyDown(selObj, event) {
-  genericKeyDown(selObj, event);
-  if (event.keyCode == 38) {
-    if (selObj.selectedIndex == 0) {
-      filterBox = document.getElementById("new_description")
-      filterBox.focus()
-    }
-    return
-  }
-}
+// // ERROR HANDLING // //
 
 $(document).ajaxError(function(e, xhr, settings, exception) {
   $("iframe[name=error_frame]").show() 
@@ -131,77 +70,214 @@ $(document).ready(function() {
   }
 });
 
-function update_bulk_price(item_id, bulk_id) {
-  order_item = order_items[item_id]
-  data = { 'ajax'      : 'update_bulk_price',
-           'bulk_id'   : bulk_id,
-           'new_price' : order_item['case_cost'],
-           'is_taxed'  : order_item['is_crv_taxed'],
-           'date'      : $("#id_date")[0].value }
+// // ORDER ITEM INPUT CONTROLS // //
+
+$(document).ready(function() {
+  // Establish pointers to order-item input contro
+  bulkitemListbox = $("#bulkitemListbox")[0]
+  filterInput     = $("#new_description")[0]
+  casesInput      = $("#id_new_count")[0]
+  // Default State
+  showControls();
+  recomputeTotal();
+  readFinanceDetails();
+  recomputeGrandTotals();
+  // Default State of Finance Tools
+  if ( trans_exists ) {
+    if ( trans_complicated ) {
+      $("#trans_complicated").show()
+    } else {
+      checkTransactionSync();
+    }
+  } else { $("#no_trans").show() }
+});
+
+// Prevent the enter key from updating the order details when selecting a bulk
+// item in the filtered list
+$(document).bind("onkeypress", function(evt) {
+   var evt = (evt) ? evt : ((event) ? event : null);
+   var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null);
+   if ((evt.keyCode == 13) && ((node.type=="select-one") || (node.type=="text"))) {return false;}
+});
+
+// Hide the order-item input controls
+function hideControls() {
+  $("#controls").attr("class", "controlsClosed");
+  $("#showControlsButton").show();
+  $("#hideControlsButton").hide();
+  $("#ordered_items_table").css("margin-bottom","20px");
+  return false;
+}
+
+// Show the order-item input controls
+function showControls() {
+  $("#controls").attr("class", "controlsOpen");
+  $("#showControlsButton").hide();
+  $("#hideControlsButton").show();
+  $("#ordered_items_table").css("margin-bottom","225px");
+  return false;
+}
+
+function refreshBulkItems() {
+  data = { 'ajax'    : 'get_bulk_items' }
   handler = function(data) {
-    $('input[name=ubp.' + item_id + ']').hide()
+    bulk_items = []
+    for (id in data['bulk_items']) {
+      py_item = data['bulk_items'][id];
+      js_item = {
+          'bulkid'        : py_item['bulkid'],
+	        'description'   : py_item['description'],
+	        'units_per_case': py_item['quantity'],
+	        'product_id'    : py_item['product_id'],
+	        'price'         : py_item['price'],
+	        'is_cost_taxed' : py_item['taxable'],
+	        'crv_per_unit'  : py_item['crv_per_unit'],
+	        'is_crv_taxed'  : py_item['crv_taxable'],
+	        'is_active'     : py_item['active']
+	    }
+	    bulk_items.push(js_item);
+    }
+    filterSelect2("");
   }
   $.post('/admin/orders/{{ order.id }}/', data, handler);
   return false;
 }
 
-
-function update_bulk_quantity(item_id, bulk_id) {
-  order_item = order_items[item_id]
-  data = { 'ajax'      : 'update_bulk_quantity',
-           'bulk_id'   : bulk_id,
-           'new_count' : order_item['units_per_case'],
-           'date'      : $("#id_date")[0].value }
-  handler = function(data) {
-    $('input[name=ubq.' + item_id + ']').hide()
+// Called each time a letter is typed into the filter input.  Filters the bulk
+// items listbox by the new value of the filter inpub.
+function filterSelect(filterInput, event) {
+  // Override default behavior of "return" key
+  if (event.keyCode == 13) {
+    event.preventDefault();
+    return
   }
-  $.post('/admin/orders/{{ order.id }}/', data, handler);
-  return false;
+  // Find the bulkitems listbox and filter value.
+  descriptionPart = filterInput.value.toLowerCase()
+  filterSelect2(descriptionPart);
 }
 
-function new_order_item() {
+// Called each time a letter is typed into the filter input.  Filters the bulk
+// items listbox by the new value of the filter inpub.
+function filterSelect2(descriptionPart) {
+  // Remove all bulk items from the box
+  for (i = bulkitemListbox.options.length - 1; i >= 0 ; i--) {
+    bulkitemListbox.remove(i)
+  }
+  // Reinsert only those which satisfy the current filter
+  for (i = 0; i < bulk_items.length; i++) {
+    bi = bulk_items[i]
+    if (bi.description.toLowerCase().indexOf(descriptionPart) >= 0) {
+      bulkitemListbox.add(new Option(bi.description, bi.bulkid), null);
+    }
+  }
+  // Reset the selected item in the listbox to the first item
+  bulkitemListbox.selectedIndex = 0
+  // Change the color of the bulkitem-listbox when there are zero or one items
+  // remaining. 
+  if (bulkitemListbox.options.length == 1) {
+    bulkitemListbox.className = "selectSingleOption"
+  } else if (bulkitemListbox.options.length == 0) {
+    bulkitemListbox.className = "selectNoOption"
+  } else {
+    bulkitemListbox.className = "selectMuliOption"
+  }
+}
+
+// Handle KeyDown event for all order item input widgets. (Common functionality)
+function inputControlsKeyDown(source, event) {
+  // Return key generates a new order item
+  if (event.keyCode == 13) {
+    newOrderItem();
+    return
+  }
+  // Variations of the "+" key increment the number of cases
+  if (event.keyCode == 107 || event.keyCode == 187 || event.keyCode == 61) {
+    var cases = parseInt(casesInput.value);
+    cases += 1;
+    casesInput.value = cases;
+    event.preventDefault();
+  }
+  // Variations of the "-" key decrement the number of cases
+  if (event.keyCode == 109 || event.keyCode == 189) {
+    var cases = parseInt(casesInput.value);
+    cases -= 1;
+    casesInput.value = cases;
+    event.preventDefault();
+  }
+}
+
+// Handle KeyDown event for filterInput
+function filterInputKeyDown(source, event) {
+  inputControlsKeyDown(filterInput, event);
+  // Pressing the "Down Arrow" key moves focus to bulkitem listbox
+  if (event.keyCode == 40) {
+    bulkitemListbox.focus()
+    // Select the next item in the list box and give it focus
+    bulkitemListbox.selectedIndex = bulkitemListbox.selectedIndex + 1
+    return
+  }
+  // Pressing the "Up Arrow" key moves focus to bulkitem listbox
+  if (event.keyCode == 38) {
+    bulkitemListbox.focus()
+    // Select the previous item in the list box and give it focus
+    bulkitemListbox.selectedIndex = bulkitemListbox.selectedIndex - 1
+    return
+  }
+}
+
+// Handle KeyDown event for casesInput
+function casesInputKeyDown(source, event) {
+  inputControlsKeyDown(casesInput, event);
+  // Pressing the "Down Arrow" key moves focus to bulkitem listbox
+  if (event.keyCode == 40) {
+    bulkitemListbox.focus()
+    // Reset the selected item in the listbox to the *SECOND* item
+    // Do this because the functionality of the first item did not require a refocus
+    bulkitemListbox.selectedIndex = 1
+    return
+  }
+  // Pressing the "Up Arrow" key moves focus to filter input
+  if (event.keyCode == 38) {
+    filterInput.focus()
+    return
+  }
+}
+
+// Handle KeyDown event for bulkitemListbox
+function bulkitemListboxKeyDown(bulkitemListbox, event) {
+  inputControlsKeyDown(bulkitemListbox, event);
+  // Pressing the "Up Arrow" when the first item is selected moves focus to filterInput
+  if (event.keyCode == 38) {
+    if (bulkitemListbox.selectedIndex == 0) {
+      filterInput.focus()
+    }
+    return
+  }
+}
+
+// Add a new order item to the order summary. Invoked from input control submission.
+// Order item is added to the database immediatly via async ajax call.
+function newOrderItem() {
   data = { 'ajax'    : 'new_order_item',
-           'bulk_id' : $("#bulkSelect")[0].value,
-           'count'   : $("#id_new_count")[0].value }
+           'bulk_id' : bulkitemListbox.value,
+           'count'   : casesInput.value }
+  // Define a callback function for after the order-item has been added to the database.
   handler = function(data) {
     order_item = data['new_order_item'];
     order_items[order_item.id] = order_item
-    new_template(order_item);
+    // Add a row to the primary order summary table
+    newTemplate(order_item);
     recomputeTotal();
   }
   $.post('/admin/orders/{{ order.id }}/', data, handler);
-  filterBox = document.getElementById("new_description")
-  filterBox.value = ""
-  filterBox.focus()
+  filterInput.value = ""
+  filterInput.focus()
   window.scrollTo(0, document.body.scrollHeight);
   return false;
 }
 
-function update_crv_price(item_id, bulk_id) {
-  alert("update CRV price function is TODO");
-  return false;
-}
-
-function delete_order_item(item_id) {
-  data = { 'ajax'    : 'delete_order_item',
-           'item_id' : item_id }
-  handler = function(data) {
-    delete order_items[item_id]
-    item = data['deleted_order_item'];
-    $("#main_row\\." + item_id).remove();
-    $("#crv_row\\." + item_id).remove();
-    recomputeTotal();
-  }
-  $.post('/admin/orders/{{ order.id }}/', data, handler);
-  return false;
-}
-
-function update_details() {
-  alert("update_detail is TODO");
-  return false;
-}
-
-function new_template(item) {
+// Add a row to the primary order summary table with new order-item information.
+function newTemplate(item) {
   $("#orderItemTemplate").tmpl([item]).appendTo("#orderItemList");
   item_id = item.id;
   main_row        = $("#main_row\\." + item_id)[0];
@@ -243,7 +319,8 @@ function new_template(item) {
   }
 }
 
-function find_bulk(bulk_id) {
+// Helper function for template expansion.  Find a bulk item by ID in the bulk items list.
+function findBulk(bulk_id) {
   for (i in bulk_items) {
     bi = bulk_items[i];
     if (bi.bulkid == bulk_id) {
@@ -252,36 +329,22 @@ function find_bulk(bulk_id) {
   }
 }
 
-function recomputeTotal() {
-  taxed = 0
-  nontaxed = 0
-  for (id in order_items) {
-    order_item = order_items[id]
-    if (order_item.is_cost_taxed) {
-      taxed += parseFloat(order_item.amount);
-    } else {
-      nontaxed += parseFloat(order_item.amount);
-    }
-    if (order_item.is_crv_taxed) {
-      taxed += parseFloat(order_item.crv_amount);
-    } else {
-      nontaxed += parseFloat(order_item.crv_amount);
-    }
-  }
-  total = (taxed * (1+tax_rate)) + nontaxed;
-  $("#total_nontaxed").html(nontaxed.toFixed(2));
-  $("#total_taxed").html(taxed.toFixed(2));
-  $("#total").html(total.toFixed(2));
-}
+// // ORDER ITEM UPDATE CONTROLS // //
 
-// Prevent the enter key from updating the order details when selecting a bulk
-// item in the filtered list
-function stopRKey(evt) {
-   var evt = (evt) ? evt : ((event) ? event : null);
-   var node = (evt.target) ? evt.target : ((evt.srcElement) ? evt.srcElement : null);
-   if ((evt.keyCode == 13) && ((node.type=="select-one") || (node.type=="text"))) {return false;}
+// Deletes an order item from the database and from the order summary table.
+function deleteOrderItem(item_id) {
+  data = { 'ajax'    : 'delete_order_item',
+           'item_id' : item_id }
+  handler = function(data) {
+    delete order_items[item_id]
+    item = data['deleted_order_item'];
+    $("#main_row\\." + item_id).remove();
+    $("#crv_row\\." + item_id).remove();
+    recomputeTotal();
+  }
+  $.post('/admin/orders/{{ order.id }}/', data, handler);
+  return false;
 }
-document.onkeypress = stopRKey; 
 
 function refreshTemplate(item_id) {
   main_row        = $("#main_row\\." + item_id)[0];
@@ -328,7 +391,6 @@ function updateItem(itemId) {
   return false;
 }
 
-
 function updateNumCases(itemId, newValue) {
   order_items[itemId].cases_ordered = newValue
   updateItem(itemId)
@@ -359,42 +421,282 @@ function updateCrvTaxable(itemId, newValue) {
   updateItem(itemId)
 }
 
+// Updates the bulk item in the database to reflect the price on the current
+// order as the permenant bulk item price
+function updateBulkPrice(item_id, bulk_id) {
+  order_item = order_items[item_id]
+  data = { 'ajax'      : 'update_bulk_price',
+           'bulk_id'   : bulk_id,
+           'new_price' : order_item['case_cost'],
+           'is_taxed'  : order_item['is_crv_taxed'],
+           'date'      : $("#id_date")[0].value }
+  handler = function(data) {
+    $('input[name=ubp.' + item_id + ']').hide()
+  }
+  $.post('/admin/orders/{{ order.id }}/', data, handler);
+  return false;
+}
+
+// Updates the bulk item in the database to reflect the quantity on the current
+// order as the permenant bulk item quantity
+function updateBulkQuantity(item_id, bulk_id) {
+  order_item = order_items[item_id]
+  data = { 'ajax'      : 'update_bulk_quantity',
+           'bulk_id'   : bulk_id,
+           'new_count' : order_item['units_per_case'],
+           'date'      : $("#id_date")[0].value }
+  handler = function(data) {
+    $('input[name=ubq.' + item_id + ']').hide()
+  }
+  $.post('/admin/orders/{{ order.id }}/', data, handler);
+  return false;
+}
+
+// Updates the bulk item in the database to reflect the CRV on the current
+// order as the permenant bulk item CRV
+function updateCrvPrice(item_id, bulk_id) {
+  // FIXME
+  alert("update CRV price function is TODO");
+  return false;
+}
+
+// When updating values in the order summary table, enables the "up" and "down" keys
+// to move between rows.  Does not override default behavior of "left" and "right" keys.
+function gridKeyDown(source, event, rowId, columnName) {
+  // FIXME
+  //   This function only works if all rows are in increasing number by rowid.  
+  //   Thus, it breaks if any rows have been deleted, and will not skip over the
+  //   point where the row was deleted from the table.
+  
+  // Jump out if the key press is irrelevant. 
+  if (event.keyCode < 37) { return; }
+  if (event.keyCode > 40) { return; }
+  
+  newFocusName = source.name;
+  if (event.keyCode == 40) { // down
+    newFocusName = columnName + "." + (rowId + 1);
+  }
+  if (event.keyCode == 38) { // up
+    newFocusName = columnName + "." + (rowId - 1);
+  }
+  
+  // Only try to refocus if we can find the target.  No jumping to who knows where.
+  newFocus = $("input[name=" + newFocusName + "]");
+  if (newFocus.first()) {
+    newFocus.first().focus();
+  }
+  return;
+}
+
+
+function update_details() {
+  data = { 'ajax'           : 'update_details',
+           'date'           : $("#id_date").val(),
+           'description'    : $("#id_description").val(),
+           'amount'         : $("#id_amount").val(),
+           'sales_tax_rate' : $("#id_sales_tax_rate").val() }
+  handler = function(data) {
+    if (data.errors.length > 0) {
+      for (id in data.errors) {
+        alert(data.errors[id]);
+      }
+    }
+  }
+  $.post('/admin/orders/{{ order.id }}/', data, handler);
+  return false;
+}
+
+var inventory_nontaxed = 0;
+var inventory_taxed = 0;
+var inventory_tax = 0;
+var inventory_adjust = 0;
+var inventory_total = 0;
+
+var supply_nontaxed = 0;
+var supply_taxed = 0;
+var supply_tax = 0;
+var supply_adjust = 0;
+var supply_total = 0;
+
+var order_total = 0;
+var refund_taxed = 0;
+var refund_nontaxed = 0;
+
+function recomputeTotal() {
+  inventory_taxed = 0
+  inventory_nontaxed = 0
+  for (id in order_items) {
+    order_item = order_items[id]
+    if (order_item.is_cost_taxed) {
+      inventory_taxed += parseFloat(order_item.amount);
+    } else {
+      inventory_nontaxed += parseFloat(order_item.amount);
+    }
+    if (order_item.is_crv_taxed) {
+      inventory_taxed += parseFloat(order_item.crv_amount);
+    } else {
+      inventory_nontaxed += parseFloat(order_item.crv_amount);
+    }
+  }
+  recomputeGrandTotals();
+}
+
+function recomputeGrandTotals() {
+  tax_rate         = parseFloat($("#id_sales_tax_rate").val());
+  
+  // Recompute computed totals
+  inventory_tax = inventory_taxed * tax_rate;
+  supply_tax    = supply_taxed * tax_rate;
+  refund_tax    = refund_taxed * tax_rate;
+  inventory_total = inventory_nontaxed +
+                    inventory_taxed + 
+                    inventory_tax +
+                    inventory_adjust;
+  supply_total = supply_taxed + 
+                 supply_nontaxed + 
+                 supply_tax + 
+                 supply_adjust;
+  order_total = inventory_total + supply_total;
+  reciept_total = order_total + 
+                  refund_taxed + 
+                  refund_nontaxed + 
+                  refund_tax;
+                  
+  notax_total = inventory_nontaxed + supply_nontaxed + refund_nontaxed;
+  taxable_total = inventory_taxed + supply_taxed + refund_taxed; 
+  tax_total = inventory_tax + supply_tax + refund_tax;               
+  
+  inventory_total = Math.round(inventory_total*Math.pow(10,2))/Math.pow(10,2);
+  supply_total = Math.round(supply_total*Math.pow(10,2))/Math.pow(10,2);
+  order_total = Math.round(order_total*Math.pow(10,2))/Math.pow(10,2);
+ 
+  checkTransactionSync();
+  
+  // Populate all data driven totals fields.
+  $("#nontaxed_inventory").html("$" + inventory_nontaxed.toFixed(2))
+  $("#taxed_inventory").html("$" + inventory_taxed.toFixed(2))
+  $("#salestax_inventory").html("$" + inventory_tax.toFixed(2))
+  $("#total_inventory").html("$" + inventory_total.toFixed(2))
+  $("#salestax_supplies").html("$" + supply_tax.toFixed(2))
+  $("#total_supplies").html("$" + supply_total.toFixed(2))
+  $("#order_total").html("$" + order_total.toFixed(2))
+  $("#returns_tax").html("$" + refund_tax.toFixed(2))
+  $("#reciept_total").html("$" + reciept_total.toFixed(2))
+  $("#notax_total").html("$" + notax_total.toFixed(2))
+  $("#taxable_total").html("$" + taxable_total.toFixed(2))
+  $("#tax_total").html("$" + tax_total.toFixed(2))
+  
+}
+
+function readFinanceDetails() {
+  // Read all finance details from text boxes
+  inventory_adjust = parseFloat($("#adjust_inventory").val());
+  supply_taxed     = parseFloat($("#taxed_supplies").val());
+  supply_nontaxed  = parseFloat($("#nontaxed_supplies").val());
+  supply_adjust    = parseFloat($("#adjust_supplies").val());
+  refund_taxed     = parseFloat($("#taxed_returns").val());
+  refund_nontaxed  = parseFloat($("#nontaxed_returns").val());
+}
+
+function updateFinanceDetails() {
+  readFinanceDetails();
+  recomputeGrandTotals();
+  
+  // Those values already read need to be updated to the database here...
+  data = {'ajax'             : 'update_finance_details',
+          'inventory_adjust' : inventory_adjust,
+          'supply_taxed'     : supply_taxed,
+          'supply_nontaxed'  : supply_nontaxed,
+          'supply_adjust'    : supply_adjust,
+          'refund_taxed'     : refund_taxed,
+          'refund_nontaxed'  : refund_nontaxed }
+  handler = function(data) { }
+  $.post('/admin/orders/{{ order.id }}/', data, handler);
+}
+
+function checkTransactionSync() {
+  if (trans_exists && !trans_complicated) {
+    if (trans_bank == (-1 * order_total) && trans_inventory == inventory_total && trans_supplies == supply_total) {
+      $("#trans_synced").show()
+      $("#trans_nosync").hide() 
+    } else { 
+      $("#trans_nosync").show() 
+      $("#trans_synced").hide()
+    }
+  }
+}
+
+function createTransaction() {
+  data = { 'ajax'       : 'create_transaction',
+           'bank'       : -1*order_total,
+           'inventory'  : inventory_total,
+           'supplies'   : supply_total }
+  handler = function(data) {
+    trans_exists = true;
+    trans_bank = -1*order_total;
+    trans_inventory = inventory_total;
+    trans_supplies = supply_total;
+    
+    checkTransactionSync();
+  }
+  $.post('/admin/orders/{{ order.id }}/', data, handler);
+}
+
+function syncTransaction() {
+  data = { 'ajax'       : 'sync_transaction',
+           'bank'       : -1*order_total,
+           'inventory'  : inventory_total,
+           'supplies'   : supply_total }
+  handler = function(data) {
+    trans_bank = -1*order_total;
+    trans_inventory = inventory_total;
+    trans_supplies = supply_total;
+    
+    checkTransactionSync();
+  }
+  $.post('/admin/orders/{{ order.id }}/', data, handler);
+}
+
 </script>
 
 <script id="orderItemTemplate" type="text/x-jquery-tmpl">
   <tr id="main_row.${id}">
     <td><input type="hidden" name="bulkid.${id}" />
         <input type="text" size="4" name="cases.${id}"
-               onchange="updateNumCases(${id}, this.value)"/></td>
-    <td>${find_bulk(bulk_type_id).product_id}</td>
+               onchange="updateNumCases(${id}, this.value)"
+               onKeyDown="gridKeyDown(this, event, ${id}, 'cases')"/></td>
+    <td>${findBulk(bulk_type_id).product_id}</td>
     <td><a href="/admin/django/bobdb/bulkitem/${bulk_type_id}/">
-        ${find_bulk(bulk_type_id).description}
+        ${findBulk(bulk_type_id).description}
       </a></td>
     <td><input type="text" size="4" name="quantity.${id}"
-               onchange="updateCaseSize(${id}, this.value)"/></td>
+               onchange="updateCaseSize(${id}, this.value)"
+               onKeyDown="gridKeyDown(this, event, ${id}, 'quantity')"/></td>
     <td><input type="text" size="6" name="price.${id}"
-               onchange="updateCasePrice(${id}, this.value)"/></td>
+               onchange="updateCasePrice(${id}, this.value)"
+               onKeyDown="gridKeyDown(this, event, ${id}, 'price')"/></td>
     <td><input type="checkbox" name="taxed.${id}"
                onchange="updateTaxable(${id}, this.checked)"/></td>
     <td style="text-align:right;" id="id_amount.${id}"></td>
     <td><input type="submit" value="Delete" name="del.${id}"
-		           onClick="delete_order_item(${id});"/>
+		           onClick="deleteOrderItem(${id});"/>
 		    <input type="submit" value="Update Bulk Price" name="ubp.${id}"
-		           onClick="update_bulk_price(${id}, ${bulk_type_id});"
-		    <input type="submit" value="Update Bulk Quantity"
-		           name="ubq.${id}"/></td></tr>
+		           onClick="updateBulkPrice(${id}, ${bulk_type_id});"
+		    <input type="submit" value="Update Bulk Quantity" name="ubq.${id}"
+		           onClick="updateBulkQuantity(${id}, ${bulk_type_id});"/></td></tr>
   <tr id="crv_row.${id}">
     <td></td>
     <td></td>
-    <td>CRV for ${find_bulk(bulk_type_id).description}</td>
+    <td>CRV for ${findBulk(bulk_type_id).description}</td>
     <td></td>
     <td><input type="text" size="6" name="crv.${id}" 
-               onchange="updateCrv(${id}, this.value)"/></td>
+               onchange="updateCrv(${id}, this.value)"
+               onKeyDown="gridKeyDown(this, event, ${id}, 'crv')"/></td>
     <td><input type="checkbox" name="crv_taxed.${id}" 
                onchange="updateCrvTaxable(${id}, this.checked)"/></td>
     <td style="text-align:right;" id="id_crv_amount.${id}"></td>
     <td><input type="submit" value="Update Bulk CRV" name="ubc.${id}"
-	             onClick="update_crv_price(${id}, ${bulk_id});"/></td></tr>
+	             onClick="updateCrvPrice(${id}, ${bulk_id});"/></td></tr>
 </script>
 
 <style>
@@ -417,6 +719,36 @@ function updateCrvTaxable(itemId, newValue) {
     border:5px solid gray;
     background-color: #DDDDDD;
   }
+
+  #controls {
+    position:fixed; 
+    bottom:0px;
+    left:0px;
+    width:100%;
+    background-color:#EEEEEE;
+    margin:0px;
+    padding:20px;
+    padding-top:0px; /* give space for toggle switch */
+    border-top: 3px solid #AAAAAA;
+   
+  }
+
+  .controlsOpen {
+    height:200px;
+  }
+
+  .controlsClosed {
+    height:10px;
+  }
+  
+  .inlineInput {
+    width:40px;
+    text-align:right;
+    margin-right:0px;
+    margin-top:-4pt;
+    margin-bottom:-3pt;
+    height:1em;
+  }
 </style>
 
 <form action="" method="post" {% if order %} onSubmit="return false;" {% endif %} autocomplete="off">
@@ -428,47 +760,110 @@ function updateCrvTaxable(itemId, newValue) {
 {% if order %}
 <h2>Ordered Items</h2>
 
+<!-- This iframe is used for debugging ajax calls -->
 <iframe name="error_frame" style="width:100%;height:500px;display:none;"></iframe>
 
-<div id="controls" style="position:fixed; bottom:20px; width:100%;">
+<div id="controls" class="controlsClosed">
 
-<div style="float:left;padding-right:15px;">
-Cases: 
-<input type="text" size="4" name="new_count" id="id_new_count" value="1" onKeyDown="casesInputKeyDown(this, event)"/>
-&nbsp;
-Filter: 
-<input type="text" size="30" id="new_description" style="width:210px;" 
-       onKeyDown="filterInputKeyDown(this, event)"
-       onKeyUp="filterSelect(this, event)"/>
-<input type="submit" value="Add" name="add_item"
-	     onClick="new_order_item();"/><br/>
-<select size="15" id="bulkSelect" name="new_item" style="width:400px;" 
-        class="selectMuliOption" onKeyDown="bulkSelectKeyDown(this, event);">		  
-  {% for bi in bulk_items %}
-	  <option value="{{ bi.bulkid }}">{{ bi.description }}</option>
-	{% endfor %}
-</select>
+  <div style="height:30px;text-align:center;">
+    <input type="submit" value="Hide Tools" id="hideControlsButton" onClick="hideControls();"/> 
+    <input type="submit" value="Show Tools" id="showControlsButton" onClick="showControls();"/>    
+  </div>
+
+  <table style="padding-right:15px;">
+  <tr><td rowspan="2">
+		Cases: 
+		<input type="text" size="4" name="new_count" 
+                       id="id_new_count" value="1" onKeyDown="casesInputKeyDown(this, event)"/>
+		&nbsp;
+		Filter: 
+		<input type="text" size="30" id="new_description" style="width:135px;" 
+		       onKeyDown="filterInputKeyDown(this, event)"
+		       onKeyUp="filterSelect(this, event)"/>
+		<input type="submit" value="Add" name="add_item" onClick="newOrderItem();"/>
+		<input type="submit" value="New" name="new_item" onClick="window.open('/admin/django/bobdb/bulkitem/add/');return false;"/>
+		<input type="submit" value="Refresh" name="refresh_items" onClick="refreshBulkItems();return false;"/><br/>
+		<select size="10" id="bulkitemListbox" name="new_item" style="width:400px;" 
+			class="selectMuliOption" onKeyDown="bulkitemListboxKeyDown(this, event);">		  
+		  {% for bi in bulk_items %}
+			  <option value="{{ bi.bulkid }}">{{ bi.description }}</option>
+			{% endfor %}
+		</select>
+	</td><td>
+	    <h3 style="margin:0px">Inventory Totals</h3>
+	    <table style="padding-left:20px;margin-left:20px;">
+	      <tr><td>Non Taxable</td> 
+	          <td style="text-align:right" id="nontaxed_inventory">...</td></tr>
+	      <tr><td>Taxable</td>
+	        <td style="text-align:right" id="taxed_inventory">...</td></tr>
+	      <tr><td>Sales Tax</td>
+	        <td style="text-align:right" id="salestax_inventory">...</td></tr>
+	      <tr><td>Adjust/Coupon</td>
+	          <td style="text-align:right">
+	            $<input type="text" class="inlineInput" id="adjust_inventory" value="{{ order.inventory_adjust }}" onchange="updateFinanceDetails()"/></td></tr>
+	      <tr><th>Total:</th>
+	          <th style="text-align:right" id="total_inventory">...</th></tr>
+	    </table>
+	</td><td>
+	    <h3 style="margin:0px">Lounge Supply Totals</h3>
+	    <table style="padding-left:20px;margin-left:20px;">
+	      <tr><td>Non Taxable</td> 
+	          <td style="text-align:right">
+	            $<input type="text" class="inlineInput" id="nontaxed_supplies" value="{{ order.supplies_nontaxed }}" onchange="updateFinanceDetails()"/></td></tr>
+	      <tr><td>Taxable</td>
+	        <td style="text-align:right">
+	          $<input type="text" class="inlineInput" id="taxed_supplies" value="{{ order.supplies_taxed }}" onchange="updateFinanceDetails()"/></td></tr>
+	      <tr><td>Sales Tax</td>
+	        <td style="text-align:right" id="salestax_supplies">...</td></tr>
+	      <tr><td>Adjust/Coupon</td>
+	          <td style="text-align:right">
+	            $<input type="text" class="inlineInput" id="adjust_supplies" value="{{ order.supplies_adjust }}" onchange="updateFinanceDetails()"/></td></tr>
+	      <tr><th>Total:</th>
+	          <th style="text-align:right" id="total_supplies">...</th></tr>
+	    </table>
+	</td><td>
+	    <h3 style="margin:0px">Returns Totals</h3>
+	    <table style="padding-left:20px;margin-left:20px;">
+	      <tr><td>Non Taxable Returns:</td>
+	        <td style="text-align:right">
+	          $<input type="text" class="inlineInput" id="nontaxed_returns" value="{{ order.returns_nontaxed }}" onchange="updateFinanceDetails()"/></td></tr>
+	      <tr><td>Taxable Returns</td>
+	        <td style="text-align:right">
+	          $<input type="text" class="inlineInput" id="taxed_returns" value="{{ order.returns_taxed }}" onchange="updateFinanceDetails()"/></td></tr>
+	      <tr><td>Sales Tax Returns</td>
+	          <td style="text-align:right" id="returns_tax">...</td></tr>
+	    </table>
+	</td><td>
+	    <h3 style="margin:0px">Invoice Totals</h3>
+	    <table style="padding-left:20px;margin-left:20px;">
+	      <tr><td>Non Taxable Total:</td>
+	        <td style="text-align:right" id="notax_total">...</td></tr>
+	      <tr><td>Taxable Total</td>
+	        <td style="text-align:right" id="taxable_total">...</td></tr>
+	      <tr><td>Sales Tax Total</td>
+	          <td style="text-align:right" id="tax_total">...</td></tr>
+	      <tr><th>Invoice Total:</th>
+	          <th style="text-align:right" id="reciept_total">...</th></tr>
+	      <tr><th>Order Total:</th> 
+	          <th style="text-align:right" id="order_total">...</th></tr>
+	    </table>
+	</td></tr>
+	<tr><td colspan="4">
+	    <h3 style="display:inline">Finance Tools</h3>
+	    <div id="no_trans" style="display:none;">No associated finance transaction.
+	        <input type="submit" value="Create Transaction" onClick="createTransaction();return false;"/></div>
+	    <div id="trans_synced" style="display:none;">Finance transaction syncronized.
+	        <a href="/admin/finance/transaction/{{ order.finance_transaction_id }}/">[view]</a></div>
+	    <div id="trans_nosync" style="display:none;">Finance transaction out-of-sync.
+	        <input type="submit" value="Update Transaction" onClick="syncTransaction();return false;"/></div>
+	    <div id="trans_complicated" style="display:none;">Finance transaction is non syncronizable. Manual update may be required.
+	        <a href="/admin/finance/transaction/{{ order.finance_transaction_id }}/">[view]</a></div>
+  </td></tr>
+  </table>
+
 </div>
 
-<div>
-
-<table style="padding:20px;margin:20px;">
-<tr><td>Taxable</td>        <td style="text-align:right" id="total_taxed">{{ total_tax|stringformat:".2f" }}</td></tr>
-<tr><td>Non Taxable</td>    <td style="text-align:right" id="total_nontaxed">{{ total_notax|stringformat:".2f" }}</td></tr>
-<tr><td>Sales Tax</td>      <td style="text-align:right"></td></tr>
-<tr><td>Coupon</td>         <td style="text-align:right"></td></tr>
-<tr><th>TOTAL:</th>         <th style="text-align:right" id="total">{{ total|stringformat:".2f" }}</th></tr>
-<tr><td>Expected Total</td> <td style="text-align:right">{{ order.amount|stringformat:".2f" }}</td></tr>
-</table>
-
-</div>
-
-{% endif %}
-
-
-</div>
-
-<table class="tablesorter" cellspacing="0" id="ordered_items_table" style="margin-bottom:300px;">
+<table class="tablesorter" cellspacing="0" id="ordered_items_table">
 <thead>
 <tr>
     <th>Ordered</th>
@@ -489,16 +884,19 @@ Filter:
              value="{{ item.bulk_type.bulkid }}" />
       <input type="text" size="4"  name="cases.{{ item.id }}" 
              value="{{ item.cases_ordered }}" 
-             onchange="updateNumCases({{ item.id }}, this.value)"/></td>
+             onchange="updateNumCases({{ item.id }}, this.value)"
+             onKeyDown="gridKeyDown(this, event, {{ item.id }}, 'cases')"/></td>
   <td>{{ item.bulk_type.product_id }}</td>
   <td><a href="/admin/django/bobdb/bulkitem/{{ item.bulk_type.bulkid }}/">
          {{ item.bulk_type.description }}</a></td>
     <td><input type="text" size="4" name="quantity.{{ item.id }}" 
                value="{{ item.units_per_case }}"
-               onchange="updateCaseSize({{ item.id }}, this.value)" /></td>
+               onchange="updateCaseSize({{ item.id }}, this.value)" 
+               onKeyDown="gridKeyDown(this, event, {{ item.id }}, 'quantity')"/></td>
     <td><input type="text" size="6" name="price.{{ item.id }}" 
                value="{{ item.case_cost|stringformat:".2f" }}" 
-               onchange="updateCasePrice({{ item.id }}, this.value)"/></td>
+               onchange="updateCasePrice({{ item.id }}, this.value)"
+               onKeyDown="gridKeyDown(this, event, {{ item.id }}, 'price')"/></td>
     <td><input type="checkbox" name="taxed.{{ item.id }}" 
                {{ item.is_cost_taxed|yesno:'checked="checked",,' }}
                onchange="updateTaxable({{ item.id }}, this.checked)" /></td>
@@ -507,12 +905,12 @@ Filter:
     <td><input type="submit" value="Save" name="save.{{ item.id }}"
 		           onClick="save_order_item({{ item.id }});"/>
         <input type="submit" value="Delete" name="del.{{ item.id }}"
-		           onClick="delete_order_item({{ item.id }});"/>
+		           onClick="deleteOrderItem({{ item.id }});"/>
 		    <input type="submit" value="Update Bulk Price"  name="ubp.{{ item.id }}"
-		           onClick="update_bulk_price({{ item.id }}, {{ item.bulk_type.bulkid }});"
+		           onClick="updateBulkPrice({{ item.id }}, {{ item.bulk_type.bulkid }});"
 		           style="{{ item.price_differs|yesno:',display:none;,' }}" />
 		    <input type="submit" value="Update Bulk Quantity" name="ubq.{{ item.id }}"
-		           onClick="update_bulk_quantity({{ item.id }}, {{ item.bulk_type.bulkid }});"
+		           onClick="updateBulkQuantity({{ item.id }}, {{ item.bulk_type.bulkid }});"
 		           style="{{ item.quantity_differs|yesno:',display:none;,' }}"/>
     </td></tr>
 {% if item.crv_per_unit %} 
@@ -523,7 +921,8 @@ Filter:
   <td></td>
   <td><input type="text" size="6" name="crv.{{ item.id }}" 
              value="{{ item.crv_per_unit|stringformat:".2f" }}"
-             onchange="updateCrv({{ item.id }}, this.value)"/></td>
+             onchange="updateCrv({{ item.id }}, this.value)"
+             onKeyDown="gridKeyDown(this, event, {{ item.id }}, 'crv')" /></td>
   <td><input type="checkbox" name="crv_taxed.{{ item.id }}" 
              {{ item.is_crv_taxed|yesno:'checked="checked",,' }} 
              onchange="updateCrvTaxable({{ item.id }}, this.checked)"/></td>
@@ -531,11 +930,13 @@ Filter:
       id="id_crv_amount.{{ item.id }}">${{ item.crv_amount }}</td>
   <td>
     <input type="submit" value="Update Bulk CRV" name="ubc.{{ item.id }}"
-           onClick="update_crv_price({{ item.id }}, {{ item.bulk_type.bulkid }});"
+           onClick="updateCrvPrice({{ item.id }}, {{ item.bulk_type.bulkid }});"
 	         style="{{ item.crv_differs|yesno:',display:none;,' }}"/>
   </td></tr>
-{% endif %}
+{% endif %} <!-- end if item.crv_per_unit -->
 {% endfor %}
+
+{% endif %} <!-- end if order --> 
 </tbody>
 </table>
 

@@ -1,0 +1,4 @@
+SUBSYSTEM=="usb",				OWNER="kiosk", GROUP="kiosk"
+
+KERNEL=="ttyUSB*", KERNELS=="[0-9]-1.[1-2].1", SYMLINK="ttyUSB_MDB%n"
+KERNEL=="ttyUSB*", KERNELS=="[0-9]-1.[1-2].2", SYMLINK="ttyUSB_PRO%n"
