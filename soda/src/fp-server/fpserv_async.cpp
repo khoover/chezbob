@@ -290,6 +290,9 @@ bool FPReader::OpenDevice() {
   }
 
   // TODO: if device is null, throw an exception
+  if(!device) {
+    printf("DEVICE NOT OPEN. CRASH IMMINENT\n");
+  }
 
   fp_dscv_devs_free(handle);
 }
