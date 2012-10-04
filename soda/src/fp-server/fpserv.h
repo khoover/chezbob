@@ -56,7 +56,7 @@ class CFPImage {
   int stride; // could be same or bigger than width
   int dpi;
   unsigned char * data;
-  
+
   // fingerprint recognition data
   unsigned char featdata[VF_MAX_FEATURES_SIZE];
   int featsize;
@@ -65,7 +65,7 @@ class CFPImage {
   int featG;
   int mincount;
   int contrast;
-  VFMinutia mindata[VF_MAX_MINUTIA_COUNT];  
+  VFMinutia mindata[VF_MAX_MINUTIA_COUNT];
 
   CFPImage();
   ~CFPImage();
@@ -78,7 +78,7 @@ class CFPImage {
   int fprel;
   std::string uid;
   std::string finger;
-  
+
 
   // acquire image from scanner; true = success
   bool acquire();
@@ -136,7 +136,7 @@ int fpdata_save(unsigned char * featdata, int  featsize, int life);
 //         match reliability
 // RV:     match fpid (from database)
 //         0 not found, -1 error
-int  fpdata_match(unsigned char * featdata, int featsize, 
+int  fpdata_match(unsigned char * featdata, int featsize,
 				  std::string & uid, std::string & finger, int & rel);
 
 
