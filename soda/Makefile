@@ -17,7 +17,6 @@ dpfp-clean:
 
 install:
 	cd stuff-to-copy && MAKELEVEL= make install
-	cd libs/VFinger && MAKELEVEL= make install
 	cd src && MAKELEVEL= make install
 
 docs:
