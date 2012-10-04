@@ -1,0 +1,11 @@
+category truetype
+begin /usr/share/fonts/truetype/sodafonts/lcars.ttf
+  Family = LCARS
+  FontName = LCARS-Regular
+  Encoding = Unicode
+  GeneralFamily = Roman
+  Weight = Medium
+  Width = Variable
+  Shape = Normal Upright
+  Priority = 20
+end
