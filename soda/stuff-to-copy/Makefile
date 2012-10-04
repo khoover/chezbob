@@ -9,4 +9,3 @@ install:
 	cp autox /etc/init.d/autox
 	chmod 755 /etc/init.d/autox
 	./fontinstall.sh
-	./hasp_key_install.sh
