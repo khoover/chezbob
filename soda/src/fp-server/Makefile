@@ -15,9 +15,6 @@ OBJS=$(SRCS:.cpp=.o)
 
 all: ${TARGET}
 
-#install: ${APPNAME}
-#	cp ${APPNAME} ${BIN}
-
 #run: all
 #	DISPLAY=:0 XAUTHORITY=~kiosk/.Xauthority SERVIO_DEBUG=48 SERVIO_COMMDUMP=3 ./fpserv
 
