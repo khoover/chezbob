@@ -16,7 +16,7 @@ void FPReader::InitializeFP() {
     printf("ERROR: libfprint failed to initialize\n");
     exit(0);
   }
-  fp_set_debug(1000);
+  //fp_set_debug(1000);
 
   fp_initialized = true;
 }
