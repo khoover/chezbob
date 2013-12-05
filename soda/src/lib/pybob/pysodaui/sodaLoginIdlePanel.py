@@ -29,15 +29,14 @@ class SodaLoginIdlePanel(SodaPanel):
             self.statsPanel.Destroy()
 
         try:
-            r = self.random.choice([0])
+            r = self.random.choice([0,1])
 
             if r == 0:
                 self.statsPanel = SodaIdleSodaStatsPanel(self, -1,
                         wxDefaultPosition, wxSize(self.GetContentWidth(), -1))
-            # disabled
-            #elif r == 1:
-            #    self.statsPanel = SodaIdleWallOfShamePanel(self, -1,
-            #            wxDefaultPosition, wxSize(self.GetContentWidth(), -1))
+            elif r == 1:
+                self.statsPanel = SodaIdleWallOfShamePanel(self, -1,
+                        wxDefaultPosition, wxSize(self.GetContentWidth(), -1))
             else:
                 raise "Invalid Choice"
 

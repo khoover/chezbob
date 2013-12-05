@@ -2,6 +2,7 @@ from wxPython.wx import *
 from config import *
 import PHPUnserialize
 import fcntl # for flock
+import random
 
 
 class SodaIdleStatsPanel(wxPanel):
@@ -102,18 +103,19 @@ class SodaIdleWallOfShamePanel(SodaIdleStatsPanel):
         SodaIdleStatsPanel.__init__(self, parent, ID, pos, size)
         self.parent = parent
 
-        self.wall_of_shame = self.parent.parent.getWallOfShame()
-
-        stats_list = map(lambda x: [x['balance'],x['username']], 
-                         self.wall_of_shame[0:10])
-
         font = self.GetFont()
         font.SetPointSize(SodaStatsFontSize)
 
+        columns = 3
+
         self.sizer = wxBoxSizer(wxVERTICAL)
+
+        self.statsSizers = []
+        for c in range(columns):
+          self.statsSizers.append(wxBoxSizer(wxVERTICAL))
+
         self.columnSizer = wxBoxSizer(wxHORIZONTAL)
-        self.statsSizerA = wxBoxSizer(wxVERTICAL)
-        self.statsSizerB = wxBoxSizer(wxVERTICAL)
+
         self.SetSizer(self.sizer)
         self.SetBackgroundColour(parent.GetBackgroundColour())
 
@@ -144,36 +146,39 @@ class SodaIdleWallOfShamePanel(SodaIdleStatsPanel):
             label = wxStaticText(self,
                                        -1,
                                        e['username'],
+
                                        wxDefaultPosition,
                                        wxSize(cw * 0.35, -1))
 
             label.SetForegroundColour(SodaOrange)
             label.SetFont(font)
 
-            number = wxStaticText(self,
-                                       -1,
-                                       str('-$%0.2f' % (-e['balance'],)),
-                                       wxDefaultPosition,
-                                       wxSize(cw * 0.15, -1),
-                                       style=wxALIGN_RIGHT)
+            #number = wxStaticText(self,
+            #                           -1,
+            #                           str('-$%0.2f' % (-e['balance'],)),
+            #                           wxDefaultPosition,
+            #                           wxSize(cw * 0.15, -1),
+            #                           style=wxALIGN_RIGHT)
 
-            number.SetForegroundColour(SodaOrange)
-            number.SetFont(font)
+            #number.SetForegroundColour(SodaOrange)
+            #number.SetFont(font)
 
             sizer.Add(label)
-            sizer.Add(number)
+            #sizer.Add(number)
 
             s.Add(sizer)
 
-        for e in self.wall_of_shame[0:entries_per_column]:
-            add_to_sizer(self.statsSizerA, e)
+        self.wall_of_shame = self.parent.parent.getWallOfShame()
+        total_entries = columns * entries_per_column
 
-        for e in self.wall_of_shame[entries_per_column:2*entries_per_column]:
-            add_to_sizer(self.statsSizerB, e)
+        if total_entries < len(self.wall_of_shame):
+          self.wall_of_shame = random.sample(self.wall_of_shame, total_entries)
 
-        self.columnSizer.AddSpacer(wxSize(padding, -1))
-        self.columnSizer.Add(self.statsSizerA)
-        self.columnSizer.AddSpacer(wxSize(padding, -1))
-        self.columnSizer.Add(self.statsSizerB)
+        for i,e in enumerate(self.wall_of_shame):
+          add_to_sizer(self.statsSizers[int(i/entries_per_column)], e)
+
+        for sizer in self.statsSizers:
+            self.columnSizer.AddSpacer(wxSize(padding, -1))
+            self.columnSizer.Add(sizer)
         self.columnSizer.AddSpacer(wxSize(padding, -1))
         self.sizer.Add(self.columnSizer)
