@@ -38,7 +38,7 @@ if ($hg_id =~ /^([[:xdigit:]]{12}\S*)/) {
 
 print "rev is $REVISION\n";
 &bob_db_connect;
-&speech_startup;
+#&speech_startup;
 
 # If a username was specified on the command-line, directly log into that
 # account, bypassing password checks.  This is used for administrative access.
