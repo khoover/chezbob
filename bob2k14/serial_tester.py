@@ -5,7 +5,7 @@
 This script is used to test the soda machine serial interfaces.
 
 Usage:
-  serial_tester.py test --soda-port=<soda-port> [(-v|--verbose)]
+  serial_tester.py test [--soda-port=<soda-port>] [(-v|--verbose)]
   serial_tester.py (-h | --help)
   serial_tester.py --version
 
@@ -31,10 +31,11 @@ def mdb_command(port, command):
 if __name__ == '__main__':
     arguments = docopt(__doc__, version=get_git_revision_hash())
 
-    if arguments['-v']:
+    if arguments['--verbose']:
+        print("Launched with arguments:")
         print(arguments)
 
-    if arguments['-v']:
+    if arguments['--verbose']:
         print("Opening serial port: " + arguments["--soda-port"])
 
     sodaport = serial.Serial(arguments["--soda-port"], 9600, 8, "N", 1, 3)
