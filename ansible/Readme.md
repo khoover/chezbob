@@ -4,5 +4,13 @@ Ansible is used to configure machines. We currently use it to setup soda, althou
 
 #Setup
 
-Make sure the 'externals/ansible' submodule is checked out. Then run source configure_ansible.
+Make sure the 'externals/ansible' submodule is checked out. Then run:
+
+'''
+$ source configure_ansible
+$ ansible-playbook site.yml -kK
+'''
+
+To deploy/update the machines.
+
 
