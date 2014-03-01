@@ -2,10 +2,14 @@
 
 # this playbook deploys the chezbob site
 - hosts: all
+  sudo: True
+  sudo_user: root
   roles:
   - common
 
 - hosts: soda-machines
+  sudo: True
+  sudo_user: root
   roles:
   - soda-machines
 

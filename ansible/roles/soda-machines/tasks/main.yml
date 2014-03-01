@@ -1,0 +1,7 @@
+---
+
+- name: Install soda machine packages
+  apt: pkg={{item}} state=present
+  with_items:
+   - screen
+

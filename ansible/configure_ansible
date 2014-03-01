@@ -1,3 +1,4 @@
 #!/bin/bash
 
+export ANSIBLE_HOSTS=$(readlink -m hosts)
 source ../externals/ansible/hacking/env-setup
