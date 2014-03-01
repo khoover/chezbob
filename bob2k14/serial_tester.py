@@ -5,7 +5,8 @@
 This script is used to test the soda machine serial interfaces.
 
 Usage:
- serial_tester.py mdb <command> [--port=<soda-port>] [(-v|--verbose)]
+  serial_tester.py mdb <command> [--port=<soda-port>] [(-v|--verbose)]
+  serial_tester.py scan-barcode [--barcode-port=<port>] [(-v|--verbose)]
   serial_tester.py (-h | --help)
   serial_tester.py --version
 
@@ -13,6 +14,7 @@ Options:
   -h --help                 Show this screen.
   --version                 Show version.
   --port=<soda-port>   	    MDB serial port. [default: /dev/ttyUSB0]
+  --barcode-port=<port>     Barcode serial port. [default: /dev/ttyUSB1]
   -v --verbose      	    Verbose debug output.
 """
 
@@ -36,13 +38,19 @@ if __name__ == '__main__':
         print("Launched with arguments:")
         print(arguments)
 
-    if arguments['--verbose']:
-        print("Opening serial port: " + arguments["--port"])
-
-    sodaport = serial.Serial(arguments["--port"], 9600, 8, "N", 1, 3)
-    sodawrapper = io.TextIOWrapper(io.BufferedRWPair(sodaport,sodaport,1), encoding='ascii', errors=None, newline=None)
-    if arguments['--verbose']:
-        print("Command:" + arguments["<command>"])
-
-    print(mdb_command(sodawrapper, arguments["<command>"]))
-
+    if arguments["scan-barcode"]:
+        barcodeport = serial.Serial(arguments["--barcode-port"], 9600, 8, "N", 1)
+        barcodewrapper = io.TextIOWrapper(io.BufferedRWPair(barcodeport,barcodeport,1), encoding='ascii')
+        print(barcodewrapper.readline())
+        barcodewrapper.close()
+        barcodeport.close()
+    elif arguments["mdb"]:
+        if arguments['--verbose']:
+            print("Opening serial port: " + arguments["--port"])
+        sodaport = serial.Serial(arguments["--port"], 9600, 8, "N", 1, 3)
+        sodawrapper = io.TextIOWrapper(io.BufferedRWPair(sodaport,sodaport,1), encoding='ascii', errors=None, newline=None)
+        if arguments['--verbose']:
+            print("Command:" + arguments["<command>"])
+        print(mdb_command(sodawrapper, arguments["<command>"]))
+        sodawrapper.close()
+        sodaport.close()
