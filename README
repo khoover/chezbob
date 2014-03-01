@@ -6,6 +6,8 @@ files in this repository is:
         recently updated or used.
     barcodes/
         Data and code for generating extra UPC barcodes for products.
+    bob2k14/
+        Source code for the re-implemented python-based JSONRPC soda machine engine.
     bobmenu/
         Source code for the Chez Bob text interface.
     django/
