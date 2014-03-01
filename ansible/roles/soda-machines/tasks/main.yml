@@ -5,3 +5,8 @@
   with_items:
    - screen
 
+- name: Install required python packages
+  pip: executable=pip3 name={{item}}
+  with_items:
+   - pyserial
+
