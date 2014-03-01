@@ -2,6 +2,8 @@
 
 """serial_tester, the Soda Machine serial interface tester.
 
+This script is used to test the soda machine serial interfaces.
+
 Usage:
   serial_tester.py test --soda-port=<soda-port> [(-v|--verbose)]
   serial_tester.py (-h | --help)
