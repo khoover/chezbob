@@ -1,0 +1,3 @@
+#!/bin/bash
+
+source ../externals/ansible/hacking/env-setup
