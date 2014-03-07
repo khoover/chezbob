@@ -22,6 +22,8 @@ from docopt import docopt
 import subprocess
 import serial
 import io
+import struct
+import binascii
 
 def get_git_revision_hash():
     return str(subprocess.check_output(['git', 'rev-parse', 'HEAD']))
@@ -33,24 +35,41 @@ def mdb_command(port, command):
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version=get_git_revision_hash())
-
-    if arguments['--verbose']:
-        print("Launched with arguments:")
-        print(arguments)
-
-    if arguments["scan-barcode"]:
-        barcodeport = serial.Serial(arguments["--barcode-port"], 9600, 8, "N", 1)
-        barcodewrapper = io.TextIOWrapper(io.BufferedRWPair(barcodeport,barcodeport,1), encoding='ascii')
-        print(barcodewrapper.readline())
-        barcodewrapper.close()
-        barcodeport.close()
-    elif arguments["mdb"]:
+    try:
         if arguments['--verbose']:
-            print("Opening serial port: " + arguments["--port"])
-        sodaport = serial.Serial(arguments["--port"], 9600, 8, "N", 1, 3)
-        sodawrapper = io.TextIOWrapper(io.BufferedRWPair(sodaport,sodaport,1), encoding='ascii', errors=None, newline=None)
-        if arguments['--verbose']:
-            print("Command:" + arguments["<command>"])
-        print(mdb_command(sodawrapper, arguments["<command>"]))
-        sodawrapper.close()
-        sodaport.close()
+             print("Launched with arguments:")
+             print(arguments)
+    
+        if arguments["scan-barcode"]:
+            barcodeport = serial.Serial(arguments["--barcode-port"], 9600, 8, "N", 1)
+            while True:
+                  length = struct.unpack('B', barcodeport.read())[0]
+                  if arguments['--verbose']:
+                      print("Length: " + str(length))
+                  opcode = barcodeport.read()
+                  if arguments['--verbose']:
+                      print("Opcode:" + str(binascii.hexlify(opcode), 'ascii'))
+                  data = barcodeport.read(length - 2)
+                  if arguments['--verbose']:
+                      print("Data:" + str(binascii.hexlify(data), 'ascii'))
+                  checksum = barcodeport.read(2)		
+                  if arguments['--verbose']:
+                      print("Checksum:" + str(binascii.hexlify(checksum), 'ascii'))
+                  emptyframe = barcodeport.read(1)
+                  if arguments['--verbose']:
+                      print("Empty:" + str(binascii.hexlify(emptyframe), 'ascii'))
+                  if opcode == b'\xf3':
+                      print(data[3:].decode('ascii'))
+        elif arguments["mdb"]:
+             if arguments['--verbose']:
+                  print("Opening serial port: " + arguments["--port"])
+             sodaport = serial.Serial(arguments["--port"], 9600, 8, "N", 1, 3)
+             sodawrapper = io.TextIOWrapper(io.BufferedRWPair(sodaport,sodaport,1), encoding='ascii', errors=None, newline=None)
+             if arguments['--verbose']:
+                 print("Command:" + arguments["<command>"])
+             print(mdb_command(sodawrapper, arguments["<command>"]))
+             sodawrapper.close()
+             sodaport.close()
+    except KeyboardInterrupt:
+         if barcodeport != None:
+              barcodeport.close()
