@@ -46,6 +46,13 @@ if __name__ == '__main__':
                   length = struct.unpack('B', barcodeport.read())[0]
                   if arguments['--verbose']:
                       print("Length: " + str(length))
+		  if length == 0:
+                      #Raw ASCII
+                      code = ""
+                      curcode = b'\x0d'
+                      while (curcode = barcodeport.read()) != b'\x0d':
+                           code += curcode.decode('ascii')
+                      print(code)
                   opcode = barcodeport.read()
                   if arguments['--verbose']:
                       print("Opcode:" + str(binascii.hexlify(opcode), 'ascii'))
@@ -55,9 +62,6 @@ if __name__ == '__main__':
                   checksum = barcodeport.read(2)		
                   if arguments['--verbose']:
                       print("Checksum:" + str(binascii.hexlify(checksum), 'ascii'))
-                  emptyframe = barcodeport.read(1)
-                  if arguments['--verbose']:
-                      print("Empty:" + str(binascii.hexlify(emptyframe), 'ascii'))
                   if opcode == b'\xf3':
                       print(data[3:].decode('ascii'))
         elif arguments["mdb"]:
