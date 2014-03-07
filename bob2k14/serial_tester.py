@@ -5,20 +5,21 @@
 This script is used to test the soda machine serial interfaces.
 
 Usage:
-  serial_tester.py test [--soda-port=<soda-port>] [(-v|--verbose)]
+ serial_tester.py mdb <command> [--port=<soda-port>] [(-v|--verbose)]
   serial_tester.py (-h | --help)
   serial_tester.py --version
 
 Options:
   -h --help                 Show this screen.
   --version                 Show version.
-  --soda-port=<soda-port>   Soda machine serial port. [default: /dev/ttyUSB0]
-  -v --verbose      Verbose debug output.
+  --port=<soda-port>   	    MDB serial port. [default: /dev/ttyUSB0]
+  -v --verbose      	    Verbose debug output.
 """
 
 from docopt import docopt
 import subprocess
 import serial
+import io
 
 def get_git_revision_hash():
     return str(subprocess.check_output(['git', 'rev-parse', 'HEAD']))
@@ -26,7 +27,7 @@ def get_git_revision_hash():
 def mdb_command(port, command):
     port.write(command + "\r")
     port.readline()
-    return port.readline(None, '\r')
+    return port.readline()
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version=get_git_revision_hash())
@@ -36,8 +37,12 @@ if __name__ == '__main__':
         print(arguments)
 
     if arguments['--verbose']:
-        print("Opening serial port: " + arguments["--soda-port"])
+        print("Opening serial port: " + arguments["--port"])
 
-    sodaport = serial.Serial(arguments["--soda-port"], 9600, 8, "N", 1, 3)
-    print(mdb_command(sodaport, "T2"))
+    sodaport = serial.Serial(arguments["--port"], 9600, 8, "N", 1, 3)
+    sodawrapper = io.TextIOWrapper(io.BufferedRWPair(sodaport,sodaport,1), encoding='ascii', errors=None, newline=None)
+    if arguments['--verbose']:
+        print("Command:" + arguments["<command>"])
+
+    print(mdb_command(sodawrapper, arguments["<command>"]))
 
