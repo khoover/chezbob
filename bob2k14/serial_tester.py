@@ -24,6 +24,7 @@ import serial
 import io
 import struct
 import binascii
+import functools
 
 def get_git_revision_hash():
     return str(subprocess.check_output(['git', 'rev-parse', 'HEAD']))
@@ -46,24 +47,25 @@ if __name__ == '__main__':
                   length = struct.unpack('B', barcodeport.read())[0]
                   if arguments['--verbose']:
                       print("Length: " + str(length))
-		  if length == 0:
+                  if length == 0:
                       #Raw ASCII
                       code = ""
                       curcode = b'\x0d'
-                      while (curcode = barcodeport.read()) != b'\x0d':
-                           code += curcode.decode('ascii')
+                      for i in iter(functools.partial(barcodeport.read,1), b'\x0d'):
+                           code += i.decode('ascii')
                       print(code)
-                  opcode = barcodeport.read()
-                  if arguments['--verbose']:
-                      print("Opcode:" + str(binascii.hexlify(opcode), 'ascii'))
-                  data = barcodeport.read(length - 2)
-                  if arguments['--verbose']:
-                      print("Data:" + str(binascii.hexlify(data), 'ascii'))
-                  checksum = barcodeport.read(2)		
-                  if arguments['--verbose']:
-                      print("Checksum:" + str(binascii.hexlify(checksum), 'ascii'))
-                  if opcode == b'\xf3':
-                      print(data[3:].decode('ascii'))
+                  else:
+                      opcode = barcodeport.read()
+                      if arguments['--verbose']:
+                           print("Opcode:" + str(binascii.hexlify(opcode), 'ascii'))
+                      data = barcodeport.read(length - 2)
+                      if arguments['--verbose']:
+                           print("Data:" + str(binascii.hexlify(data), 'ascii'))
+                      checksum = barcodeport.read(2)		
+                      if arguments['--verbose']:
+                           print("Checksum:" + str(binascii.hexlify(checksum), 'ascii'))
+                      if opcode == b'\xf3':
+                           print(data[3:].decode('ascii'))
         elif arguments["mdb"]:
              if arguments['--verbose']:
                   print("Opening serial port: " + arguments["--port"])
