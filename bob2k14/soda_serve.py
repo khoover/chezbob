@@ -60,7 +60,7 @@ class products(db.Model):
   coffee = db.Column(db.Boolean())
 
 # Flask-JSONRPC
-jsonrpc = JSONRPC(app, '/api')
+jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
 
 @jsonrpc.method('Soda.index')
 def json_index():
