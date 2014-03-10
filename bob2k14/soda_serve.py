@@ -83,7 +83,7 @@ def bob_json_index():
 
 @jsonrpc.method('Bob.passwordlogin')
 def bob_passwordlogin(username, password):
-    user = User(db)
+    user = User()
     user.login_password(username,password)
     sessionmanager.registerSession(SessionLocation.computer, user)
     return sessionmanager.sessions[SessionLocation.computer]

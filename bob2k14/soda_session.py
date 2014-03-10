@@ -1,7 +1,13 @@
 import datetime
 import crypt
 from enum import Enum
+
+from flask import Flask, jsonify
+from flask_jsonrpc import JSONRPC
+from flask_cors import cross_origin
 from flask.ext.sqlalchemy import SQLAlchemy
+
+db = SQLAlchemy(app)
 
 class SessionLocation(Enum):
     soda = 0
@@ -76,8 +82,7 @@ class users(db.Model):
 class User:
     """Authenticates users"""
     salt = "cB"
-    def __init__(self, db):
-        self.db = db
+    def __init__(self):
         self.authenticated = False
     def login_password(self, username, password):
         self.username = username
