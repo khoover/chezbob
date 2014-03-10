@@ -78,11 +78,11 @@ class User:
     salt = "cB"
     def __init__(self, db):
         self.db = db
-	self.authenticated = False
+        self.authenticated = False
     def login_password(self, username, password):
         self.username = username
-	user = users.query.filter(users.username==username).first()
-	if user is not None:
+        user = users.query.filter(users.username==username).first()
+        if user is not None:
 	     password == user.pwd:
 	           self.user = user
                    self.authenticated = True
