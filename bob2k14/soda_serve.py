@@ -21,6 +21,11 @@ from flask import Flask, jsonify
 from flask_jsonrpc import JSONRPC
 from flask_cors import cross_origin
 from flask.ext.sqlalchemy import SQLAlchemy
+from soda_session import SessionLocation, SessionManager, Session, User
+import subprocess
+
+def get_git_revision_hash():
+    return str(subprocess.check_output(['git', 'rev-parse', 'HEAD']))
 
 def to_jsonify_ready(model):
     """ Returns a JSON representation of an SQLAlchemy-backed object.
@@ -64,16 +69,31 @@ jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
 
 @jsonrpc.method('Soda.index')
 def json_index():
-    return 'SodaServe 1.0'
+    return 'SodaServe ' + get_git_revision_hash()
 
 @jsonrpc.method('Soda.products')
 def product(barcode):
     return to_jsonify_ready(products.query.filter(products.barcode==barcode).first())
 
+
+#bob tasks
+@jsonrpc.method('Bob.index')
+def bob_json_index():
+    return 'SodaServe (Bob) ' + get_git_revision_hash()
+
+@jsonrpc.method('Bob.passwordlogin')
+def bob_passwordlogin(username, password):
+    user = new User(db)
+    user.login_password(username,password)
+    sessionmanager.registerSession(SessionLocation.computer, user)
+    return sessionmanager.sessions[SessionLocation.computer]
+
 @app.route("/")
 @cross_origin()
 def index():
      return jsonify(to_jsonify_ready(products.query.first()))
+
+sessionmanager = SessionManager()
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='SodaServe 1.0')
