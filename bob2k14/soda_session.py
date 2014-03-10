@@ -75,7 +75,7 @@ class users(db.Model):
   pref_skip_purchase_confirm = db.Column(db.Boolean())
   notes = db.Column(db.String())
   created_time = db.Column(db.DateTime())
-  fradulent = db.Column(db.Boolean())
+  fraudulent = db.Column(db.Boolean())
 
 class User:
     """Authenticates users"""
