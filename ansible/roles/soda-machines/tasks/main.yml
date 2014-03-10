@@ -4,6 +4,9 @@
   apt: pkg={{item}} state=present
   with_items:
    - screen
+   - postgresql
+   - libpq-dev
+   - python3.4-dev
 
 - name: Install required python packages
   pip: executable=pip3.4 name={{item}}
@@ -14,3 +17,4 @@
    - flask-cors
    - sqlalchemy
    - flask-sqlalchemy
+   - psycopg2
