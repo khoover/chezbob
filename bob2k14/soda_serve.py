@@ -88,7 +88,7 @@ def bob_passwordlogin(username, password):
     user = User()
     user.login_password(username,password)
     sessionmanager.registerSession(SessionLocation.computer, user)
-    return json.dumps(sessionmanager.sessions[SessionLocation.computer])
+    return jsonify(to_jsonify_ready(sessionmanager.sessions[SessionLocation.computer].user))
 
 @app.route("/")
 @cross_origin()
