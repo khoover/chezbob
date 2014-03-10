@@ -30,7 +30,7 @@ app = soda_app.app
 db = soda_app.db
 
 def get_git_revision_hash():
-    return str(subprocess.check_output(['git', 'rev-parse', 'HEAD', '--work-tree=/git' ,'--gir-dir=/git']))
+    return str(subprocess.check_output(['git', 'rev-parse', 'HEAD', '--work-tree=/git' ,'--git-dir=/git']))
 
 def to_jsonify_ready(model):
     """ Returns a JSON representation of an SQLAlchemy-backed object.
