@@ -6,7 +6,7 @@
    - screen
 
 - name: Install required python packages
-  pip: executable=pip3 name={{item}}
+  pip: executable=pip3.4 name={{item}}
   with_items:
    - pyserial
    - flask

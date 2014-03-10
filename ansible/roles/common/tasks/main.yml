@@ -1,5 +1,11 @@
 ---
 
+- name: install pycurl
+  apt: pkg=python-pycurl state=present
+
+- name: Add deadsnakes repo
+  apt_repository: repo=ppa:fkrull/deadsnakes update_cache=yes state=present
+
 - name: Install common packages
   apt: pkg={{ item }} state=present
   with_items:
@@ -7,12 +13,13 @@
    - python-pip
    - python3-setuptools
    - git
+   - python3.4
 
 - name: Easyinstall to get pip-3.2
-  easy_install: executable=easy_install3 name=pip
+  easy_install: executable=easy_install3.4 name=pip
 
 - name: Install common packages with pip
-  pip: executable=pip3 name={{item}}
+  pip: executable=pip3.4 name={{item}}
   with_items:
    - docopt
 

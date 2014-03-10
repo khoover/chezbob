@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.4
 
 """SodaServe, The ChezBob JSON-RPC Database Server.
 
