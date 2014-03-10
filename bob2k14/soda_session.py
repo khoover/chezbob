@@ -68,7 +68,7 @@ class users(db.Model):
   balance = db.Column(db.Numeric(12,2))
   disabled = db.Column(db.Boolean())
   last_purchase_time = db.Column(db.DateTime())
-  last_depost_time = db.Column(db.DateTime())
+  last_deposit_time = db.Column(db.DateTime())
   pref_auto_logout = db.Column(db.Boolean())
   pref_speech = db.Column(db.Boolean())
   pref_forget_which_product = db.Column(db.Boolean())
