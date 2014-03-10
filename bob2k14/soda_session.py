@@ -15,9 +15,9 @@ class SessionManager:
     """Manages sessions"""
     def __init__(self):
         self.sessions = {}
-    def registerSession(self, location, userid):
+    def registerSession(self, location, user):
         if location not in self.sessions:
-            self.sessions[location] = Session(userid)
+            self.sessions[location] = Session(user)
         else:
             #is the previous session valid? if not, log the session out
             if self.sessions[location].isvalid():
@@ -29,8 +29,8 @@ class SessionManager:
 
 class Session:
     """Captures sessions"""
-    def __init__(self, userid):
-        self.userid = userid
+    def __init__(self, user):
+        self.user = user
         self.logintime = datetime.datetime.now()
     def isvalid(self):
         return False
@@ -89,6 +89,7 @@ class User:
              if password == user.pwd:
                    self.user = user
                    self.authenticated = True
+                   return True
              else:
                    raise Exception("Authentication Failure")
         raise Exception("Nonexistent User")
