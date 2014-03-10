@@ -1,13 +1,11 @@
 import datetime
 import crypt
 from enum import Enum
+import soda_app
 
-from flask import Flask, jsonify
-from flask_jsonrpc import JSONRPC
-from flask_cors import cross_origin
-from flask.ext.sqlalchemy import SQLAlchemy
+app = soda_app.app
+db = soda_app.db
 
-db = SQLAlchemy(app)
 
 class SessionLocation(Enum):
     soda = 0

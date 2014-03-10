@@ -23,6 +23,10 @@ from flask_cors import cross_origin
 from flask.ext.sqlalchemy import SQLAlchemy
 from soda_session import SessionLocation, SessionManager, Session, User
 import subprocess
+import soda_app
+
+app = soda_app.app
+db = soda_app.db
 
 def get_git_revision_hash():
     return str(subprocess.check_output(['git', 'rev-parse', 'HEAD']))
@@ -37,9 +41,6 @@ def to_jsonify_ready(model):
 
     return json
 
-# Flask application
-app = Flask(__name__)
-db = SQLAlchemy(app)
 
 #db models - todo: move this into models.py or similar
 
