@@ -23,13 +23,14 @@ from flask_cors import cross_origin
 from flask.ext.sqlalchemy import SQLAlchemy
 from soda_session import SessionLocation, SessionManager, Session, User
 import subprocess
+import json
 import soda_app
 
 app = soda_app.app
 db = soda_app.db
 
 def get_git_revision_hash():
-    return str(subprocess.check_output(['git', 'rev-parse', 'HEAD']))
+    return str(subprocess.check_output(['git', 'rev-parse', 'HEAD', '--work-tree=/git' ,'--gir-dir=/git']))
 
 def to_jsonify_ready(model):
     """ Returns a JSON representation of an SQLAlchemy-backed object.
@@ -87,7 +88,7 @@ def bob_passwordlogin(username, password):
     user = User()
     user.login_password(username,password)
     sessionmanager.registerSession(SessionLocation.computer, user)
-    return sessionmanager.sessions[SessionLocation.computer]
+    return json.dumps(sessionmanager.sessions[SessionLocation.computer])
 
 @app.route("/")
 @cross_origin()
