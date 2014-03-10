@@ -3,9 +3,9 @@
 """SodaServe, The ChezBob JSON-RPC Database Server.
 
 Usage:
-  soda-serve.py serve <dburl> [--address=<listen-address>] [--port=<port>] [--debug]
-  sdoa-serve.py (-h | --help)
-  soda-serve.py --version
+  soda_serve.py serve <dburl> [--address=<listen-address>] [--port=<port>] [--debug]
+  soda_serve.py (-h | --help)
+  soda_serve.py --version
 
 Options:
   -h --help                     Show this screen.

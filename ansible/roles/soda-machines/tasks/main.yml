@@ -11,4 +11,6 @@
    - pyserial
    - flask
    - flask-jsonrpc
-
+   - flask-cors
+   - sqlalchemy
+   - flask-sqlalchemy
