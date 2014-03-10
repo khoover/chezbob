@@ -83,7 +83,7 @@ class User:
         self.username = username
         user = users.query.filter(users.username==username).first()
         if user is not None:
-             password == user.pwd:
+             if password == user.pwd:
                    self.user = user
                    self.authenticated = True
              else:
