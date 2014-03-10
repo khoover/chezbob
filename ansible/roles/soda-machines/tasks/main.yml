@@ -9,4 +9,6 @@
   pip: executable=pip3 name={{item}}
   with_items:
    - pyserial
+   - flask
+   - flask-jsonrpc
 
