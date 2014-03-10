@@ -72,7 +72,7 @@ class users(db.Model):
   pref_auto_logout = db.Column(db.Boolean())
   pref_speech = db.Column(db.Boolean())
   pref_forget_which_product = db.Column(db.Boolean())
-  pref_skip_puchase_confirm = db.Column(db.Boolean())
+  pref_skip_purchase_confirm = db.Column(db.Boolean())
   notes = db.Column(db.String())
   created_time = db.Column(db.DateTime())
   fradulent = db.Column(db.Boolean())
