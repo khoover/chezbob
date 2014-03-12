@@ -21,10 +21,10 @@ class SessionManager:
         else:
             #is the previous session valid? if not, log the session out
             if self.sessions[location] is None:
-                self.sessions[location] = Sessions(userid)
+                self.sessions[location] = Session(userid)
             if self.sessions[location].isvalid():
                 self.sessions[location].logout()
-                self.sessions[location] = Sessions(userid)
+                self.sessions[location] = Session(userid)
             else:
                 #session is valid, raise an exception
                 raise Exception("User currently logged in")
