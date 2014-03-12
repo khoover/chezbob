@@ -155,7 +155,11 @@ def bob_getbarcodeinfo(barcode):
 @jsonrpc.method('Bob.transactions')
 def bob_transactions():
     userid = sessionmanager.sessions[SessionLocation.computer].user.user.userid
-    return to_jsonify_ready(transactions.query.filter(transactions.userid==userid).order_by(transactions.xacttime.desc()).limit(10))
+    query = transactions.query.filter(transactions.userid==userid).order_by(transactions.xacttime.desc()).limit(10)
+    results = []
+    for q in query:
+    results.append(to_jsonify_ready(q))
+    return results
 
 @jsonrpc.method('Bob.logout')
 def bob_logout():
