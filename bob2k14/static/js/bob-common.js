@@ -75,6 +75,7 @@ function extra_items()
 {
 	rpc.call('Bob.getextras', [], function (result) {
 			$("#extraitemmenu").empty();
+			$("#extratitle").text("Purchase extra items");
 			extrafunctions = [];
 			extraIndex = 0;
 			//re-populate the menu
@@ -117,8 +118,35 @@ function message()
 
 function transactions()
 {
-     $("#actions").hide();
-	 $("#transactions").show();
+	rpc.call('Bob.transactions', [], function (result) {
+			$("#extraitemmenu").empty();
+			$("#extratitle").text("Last 10 transactions");
+			extrafunctions = [];
+			extraIndex = 0;
+			//re-populate the menu
+			$.each(result, function(i,item){
+				var extrafunction = function () {
+					purchase_item(item['id']);};
+				extrafunctions[i] = extrafunction;
+				var menuitem = $("#extraitemmenu").append('<a href="#" class="list-group-item">' + item['xacttype'] + '<span class="badge pull-right">' + item['xactvalue'] + '</span></a>');
+				menuitem.on('click', extrafunction);
+			});
+			
+			var closefunction = function()
+			{
+				$("#extra-actions").hide();
+				$("#actions").show();
+			};
+			extrafunctions.push(closefunction);
+			$("#extraitemmenu").append('<a href="#" class="list-group-item">Done</a>').on('click',closefunction);
+			$($("#extraitemmenu").get(0)).addClass("active");
+			$("#actions").hide();
+			$("#extra-actions").show();
+		},
+		function (error)
+		{
+			notify_error(error);
+		});
 }
 
 function my_chez_bob()

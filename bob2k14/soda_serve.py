@@ -68,6 +68,30 @@ class products(db.Model):
   bulkid = db.Column(db.Integer())
   coffee = db.Column(db.Boolean())
 
+ """
+                                                   Table "public.transactions"
+      Column      |           Type           |                         Modifiers                         | Storage  | Description 
+------------------+--------------------------+-----------------------------------------------------------+----------+-------------
+ xacttime         | timestamp with time zone | not null                                                  | plain    | 
+ userid           | integer                  | not null                                                  | plain    | 
+ xactvalue        | numeric(12,2)            | not null                                                  | main     | 
+ xacttype         | character varying        | not null                                                  | extended | 
+ barcode          | character varying        |                                                           | extended | 
+ source           | character varying        |                                                           | extended | 
+ id               | integer                  | not null default nextval('transactions_id_seq'::regclass) | plain    | 
+ finance_trans_id | integer                  |                                                           | plain    | 
+ """
+ class transactions(db.Model):
+  __tablename__ = 'transactions'
+  xacttime = db.Column(db.DateTime(True))
+  userid = db.Column(db.Integer())
+  xactvalue = db.Column(db.String())
+  xacttype = db.Column(db.String())
+  barcode = db.Column(db.String())
+  source = db.Column(db.String())
+  id = db.Column(db.Integer(), primary_key = True)
+  finance_trans_id = db.Column(db.Integer())
+
 # Flask-JSONRPC
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
 
@@ -127,6 +151,11 @@ def bob_getextras():
 @jsonrpc.method('Bob.getbarcodeinfo')
 def bob_getbarcodeinfo(barcode):
     return to_jsonify_ready(products.query.filter(products.barcode==barcode).first())
+
+@jsonrpc.method('Bob.transactions')
+def bob_transactions():
+    userid = sessionmanager.sessions[SessionLocation.computer].user.user.userid
+    return to_jsonify_ready(transactions.query.filter(transactions.userid==userid).order_by(transactions.xacttime.desc()).limit(10))
 
 @jsonrpc.method('Bob.logout')
 def bob_logout():
