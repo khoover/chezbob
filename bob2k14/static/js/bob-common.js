@@ -74,6 +74,12 @@ function add_money()
 function purchase_item(barcode)
 {
 	rpc.call('Bob.getbarcodeinfo', [barcode], function (result) {
+			if(result['name'] === undefined)
+			{
+				bootbox.alert("Unrecognized barcode" + barcode + ".");
+			}
+			else
+			{
 			bootbox.confirm("Really purchase item " + result['name'] + " for " + result['price'] + "?", function (res) {
 				if (res)
 				{
@@ -95,6 +101,7 @@ function purchase_item(barcode)
 						});
 				}
 			});
+			}
 		},
 		function (error)
 		{
