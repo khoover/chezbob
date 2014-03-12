@@ -5,7 +5,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 import os
 
 # Flask application
-app = Flask(__name__, static_url_path='static')
+app = Flask(__name__, static_url_path='/static')
 db = SQLAlchemy(app)
 
 @app.route('/static/js/<path:path>')
