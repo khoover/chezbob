@@ -166,6 +166,7 @@ $(document).ready(function() {
 					{
 						notify_error(error);
 					});
+			    $("#mainmenu > a").removeClass("active");
 				$($("#mainmenu > a").get(0)).addClass("active");
 				$("#loginbox").hide();
 			break;
