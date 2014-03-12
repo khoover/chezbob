@@ -29,9 +29,9 @@ class SessionManager:
                 #session is valid, raise an exception
                 raise Exception("User currently logged in")
         soda_app.add_event("login")
-        def deregisterSession(self, location):
-             self.sessions[location] = None
-             soda_app.add_event("logout")
+    def deregisterSession(self, location):
+        self.sessions[location] = None
+        soda_app.add_event("logout")
 
 class Session:
     """Captures sessions"""

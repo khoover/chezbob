@@ -95,7 +95,10 @@ def bob_passwordlogin(username, password):
 
 @jsonrpc.method('Bob.getusername')
 def bob_getusername(): 
-    return sessionmanager.sessions[SessionLocation.computer].user.user.nickname
+    if sessionmanager.sessions[SessionLocation.computer].user.user.nickname == "null":
+         return sessionmanager.sessions[SessionLocation.computer].user.user.username
+    else:
+         return sessionmanager.sessions[SessionLocation.computer].user.user.nickname
 
 @jsonrpc.method('Bob.getbalance')
 def bob_getusername(): 
