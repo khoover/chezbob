@@ -91,7 +91,7 @@ class transactions(db.Model):
   source = db.Column(db.String(), nullable = True)
   id = db.Column(db.Integer(), primary_key = True)
   finance_trans_id = db.Column(db.Integer(), nullable = True)
-  def __init__(self, userid, xactvalue, xacttype, barcode, source, finance_trans_id = None)
+  def __init__(self, userid, xactvalue, xacttype, barcode, source, finance_trans_id = None):
         self.userid = userid
         self.xactvalue = xactvalue
         self.xacttype = xacttype
