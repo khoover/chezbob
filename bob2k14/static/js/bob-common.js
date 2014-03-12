@@ -334,7 +334,7 @@ $(document).ready(function() {
 				}
 			}
 			
-			if (e.keyCode >= 48 && e.keycode < 57)
+			if (e.keyCode >= 48 && e.keyCode <= 57)
 			{
 				//number
 				if (!bcodeinput) {bcodeinput = true; bcodebuffer = "";}
