@@ -107,7 +107,8 @@ function extra_items()
 				$("#actions").show();
 			};
 			extrafunctions.push(closefunction);
-			$("#extraitemmenu").append('<a href="#" class="list-group-item">Done</a>').on('click',closefunction);
+			$("#extraitemmenu").append('<a href="#" class="list-group-item">Done</a>')
+            $($("#extraitemmenu > a").get($("#extraitemmenu > a").length - 1)).on('click',closefunction);
 			$($("#extraitemmenu > a").get(0)).addClass("active");
 			$("#actions").hide();
 			$("#extra-actions").show();

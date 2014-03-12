@@ -173,7 +173,7 @@ def bob_purchasebarcode(barcode):
          description = "BUY"
          barcode = ""
     #now create a matching record in transactions
-    transact = transaction(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
+    transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
     db.session.add(transact)
     db.session.commit()
     return True
