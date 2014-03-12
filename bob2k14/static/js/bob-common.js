@@ -45,8 +45,23 @@ function add_money()
 			  if (result === null) {                                             
 				bootbox.alert("Deposit cancelled.");                             
 			  } else {
-				//do some error-checking here.
-				//call rpc
+						//make sure the result is a money type
+		//do purchase here.
+					rpc.call('Bob.deposit', [result], function (result) {
+							//grab new balance
+							rpc.call('Bob.getbalance', [], function (result) {
+									$("#balance").text(result)
+								},
+								function (error)
+								{
+									notify_error(error);
+								});
+							bootbox.alert("Deposit successful.");
+						},
+						function (error)
+						{
+							bootbox.alert("An error occured while making the deposit");
+						});
 			  }
 			});
 		  }
@@ -176,6 +191,7 @@ function transactions()
 			};
 			extrafunctions.push(closefunction);
 			$("#extraitemmenu").append('<a href="#" class="list-group-item">Done</a>');
+            $($("#extraitemmenu > a").get($("#extraitemmenu > a").length - 1)).on('click',closefunction);
 			$($("#extraitemmenu > a").get(0)).addClass("active");
 			$("#actions").hide();
 			$("#extra-actions").show();
