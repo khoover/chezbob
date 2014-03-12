@@ -27,6 +27,7 @@ import subprocess
 import json
 import soda_app
 import os
+import datetime
 
 app = soda_app.app
 db = soda_app.db
@@ -98,7 +99,7 @@ class transactions(db.Model):
         self.barcode = barcode
         self.source = source
         self.finance_trans_id = finance_trans_id
-        self.xacttime = sqlalchemy.func.now()
+        self.xacttime = datetime.datetime.now()
 
 # Flask-JSONRPC
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
