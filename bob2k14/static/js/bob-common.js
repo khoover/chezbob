@@ -58,7 +58,17 @@ function add_money()
 
 function purchase_item(barcode)
 {
-	bootbox.alert("Really purchase item " + barcode + "?");
+	rpc.call('Bob.getbarcodeinfo', [barcode], function (result) {
+			bootbox.confirm("Really purchase item " + result['name'] + " for " + result['price'] + "?", function (res) {
+				if (res)
+				{
+					//do purchase here.
+				}
+			});
+		},
+		function (error)
+		{
+		});
 }
 
 function extra_items()
@@ -66,6 +76,7 @@ function extra_items()
 	rpc.call('Bob.getextras', [], function (result) {
 			$("#extraitemmenu").empty();
 			extrafunctions = [];
+			extraIndex = 0;
 			//re-populate the menu
 			$.each(result, function(i,item){
 				var extrafunction = function () {
@@ -229,7 +240,7 @@ $(document).ready(function() {
 			}
 			else if (e.keyCode === 40) {
 				//down
-				if (menuIndex < $("#mainmenu > a").length)
+				if (menuIndex < $("#mainmenu > a").length - 1)
 				{
 					menuIndex++;
 					$("#mainmenu > a").removeClass("active");
@@ -255,7 +266,7 @@ $(document).ready(function() {
 			}
 			else if (e.keyCode === 40) {
 				//down
-				if (extraIndex < $("#extraitemmenu > a").length)
+				if (extraIndex < $("#extraitemmenu > a").length -1)
 				{
 					extraIndex++;
 					$("#extraitemmenu > a").removeClass("active");

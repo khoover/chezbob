@@ -124,6 +124,10 @@ def bob_getextras():
          extras.append(to_jsonify_ready(products.query.filter(products.barcode==extra["barcode"]).first()))
     return extras
 
+@jsonrpc.method('Bob.getbarcodeinfo')
+def bob_getbarcodeinfo(barcode):
+    return to_jsonify_ready(products.query.filter(products.barcode==barcode).first())
+
 @jsonrpc.method('Bob.logout')
 def bob_logout():
     sessionmanager.deregisterSession(SessionLocation.computer)
