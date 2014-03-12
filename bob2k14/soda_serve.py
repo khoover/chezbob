@@ -102,7 +102,8 @@ def index():
      return jsonify(to_jsonify_ready(products.query.first()))
 
 def event_stream():
-    for message in soda_app.event_queue.get()
+	event_queue = soda_app.event_queue
+    for message in event_queue.get()
         yield 'data: %s\n\n' % message
 		
 @app.route('/stream')
