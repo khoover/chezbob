@@ -121,7 +121,7 @@ def bob_getcrypt(username):
 def bob_getextras():
     extras = []
     for extra in configdata["extraitems"]:
-         extras.append(to_jsonify_ready(products.query.filter(products.barcode==extra.barcode).first()))
+         extras.append(to_jsonify_ready(products.query.filter(products.barcode==extra["barcode"]).first()))
     return extras
 
 @jsonrpc.method('Bob.logout')
