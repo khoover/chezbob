@@ -1,6 +1,8 @@
 
 var rpc = new $.JsonRpcClient({ajaxUrl: '/api'});
 var menuIndex = 0;
+var extraIndex = 0;
+var extrafunctions = [];
 var menufunctions = [soda_login, add_money, extra_items, buy_other, message, logout, transactions, my_chez_bob, transfer, barcode_id, nickname, password];
 
 function soda_login()
@@ -58,12 +60,24 @@ function extra_items()
 {
 	rpc.call('Bob.getextras', [], function (result) {
 			$("#extraitemmenu").empty();
+			extrafunctions = [];
 			//re-populate the menu
 			$.each(result, function(i,item){
-				$("#extraitemmenu").append('<a href="#" class="list-group-item">' + item['name'] + '<span class="badge pull-right">' + item['price'] + '</span></a>');
+				var extrafunction = function () {
+					purchase_item(item['barcode']);};
+				extrafunctions[i] = extrafunction;
+				var menuitem = $("#extraitemmenu").append('<a href="#" class="list-group-item">' + item['name'] + '<span class="badge pull-right">' + item['price'] + '</span></a>');
+				menuitem.on('click', extrafunction);
 			});
 			
-			$("#extraitemmenu").append('<a href="#" class="list-group-item">Cancel</a>');
+			var closefunction = function()
+			{
+				$("#extra-actions").hide();
+				$("#actions").show();
+			};
+			extrafunctions.append(closefunction);
+			$("#extraitemmenu").append('<a href="#" class="list-group-item">Done</a>').on('click',closefunction);
+			$($("#extraitemmenu").get(0)).addClass("active");
 			$("#actions").hide();
 			$("#extra-actions").show();
 		},
@@ -191,7 +205,7 @@ $(document).ready(function() {
 	});
 	
 	$("body").on("keydown", function(e)
-	{
+	{	
 		if ($("#mainmenu").is(':visible') && !$(".bootbox").is(':visible'))
 		{
 			if (e.keyCode === 13) {
@@ -215,6 +229,32 @@ $(document).ready(function() {
 					menuIndex++;
 					$("#mainmenu > a").removeClass("active");
 					$($("#mainmenu > a").get(menuIndex)).addClass("active");
+				}
+			}
+		}
+		else if ($("#extraitemmenu").is(':visible') && !$(".bootbox").is(':visible'))
+		{
+			if (e.keyCode === 13) {
+				//enter
+				extrafunctions[extraIndex]();
+			}
+			
+			if (e.keyCode === 38) {
+				//up
+				if (extraIndex != 0)
+				{
+					extraIndex--;
+					$("#extraitemmenu > a").removeClass("active");
+					$($("#extraitemmenu > a").get(extraIndex)).addClass("active");
+				}
+			}
+			else if (e.keyCode === 40) {
+				//down
+				if (extraIndex < $("#extraitemmenu > a").length)
+				{
+					extraIndex++;
+					$("#extraitemmenu > a").removeClass("active");
+					$($("#extraitemmenu > a").get(extraIndex)).addClass("active");
 				}
 			}
 		}
