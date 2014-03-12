@@ -98,6 +98,7 @@ function purchase_item(barcode)
 		},
 		function (error)
 		{
+			bootbox.alert("Unrecognized barcode" + barcode + ".");
 		});
 }
 
@@ -260,6 +261,9 @@ function handle_login()
 	);
 }
 
+var bcodeinput = false;
+var bcodebuffer = "";
+
 $(document).ready(function() {
 	$("#btn-login").on("click", handle_login);
 	$("#login-username").focus();
@@ -318,8 +322,23 @@ $(document).ready(function() {
 		if ($("#mainmenu").is(':visible') && !$(".bootbox").is(':visible'))
 		{
 			if (e.keyCode === 13) {
-				//enter
-				menufunctions[menuIndex]();
+				if (bcodeinput)
+				{
+					purchase_item(bcodebuffer);
+					bcodeinput = false;
+				}
+				else
+				{
+					//enter
+					menufunctions[menuIndex]();
+				}
+			}
+			
+			if (e.keyCode >= 48 && e.keycode < 57)
+			{
+				//number
+				if (!bcodeinput) {bcodeinput = true; bcodebuffer = "";}
+				bcodebuffer += parseInt(e.keyCode - 48); //keycode to number conversion
 			}
 			
 			if (e.keyCode === 38) {
