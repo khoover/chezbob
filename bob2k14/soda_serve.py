@@ -169,7 +169,7 @@ def bob_purchasebarcode(barcode):
     user.balance -= value
     description = "BUY " + product.name.upper()
     barcode = product.barcode
-    if user.privacy:
+    if sessionmanager.sessions[SessionLocation.computer].user.privacy:
          description = "BUY"
          barcode = ""
     #now create a matching record in transactions
