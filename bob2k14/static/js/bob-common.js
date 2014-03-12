@@ -1,8 +1,11 @@
 
-bob_login = new easyXDM.Rpc({
-	remote: 
-}, {
-});
+var rpc = new $.JsonRpcClient({ajaxUrl: '/api'});
+
+function notify_error(error)
+{
+
+}
+
 function handle_login()
 {
 	//capture username and password
@@ -11,8 +14,16 @@ function handle_login()
 	
 	//silly crypt will require that we get the crypted password first for a salt.
 	var salt = ""
-	var cryptedPassword = unixCryptTD(password, salt)
-	
+	rpc.call('Bob.getcrypt', [], function (result) {
+		alert(result);
+		var cryptedPassword = unixCryptTD(password, result)
+		alert(cryptedPassword);
+	},
+	function (error)
+	{
+		notify_error(error);
+	}
+	);
 }
 
 $(document).ready(function() {

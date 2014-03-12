@@ -21,7 +21,7 @@ from flask import Flask, jsonify
 from flask_jsonrpc import JSONRPC
 from flask_cors import cross_origin
 from flask.ext.sqlalchemy import SQLAlchemy
-from soda_session import SessionLocation, SessionManager, Session, User
+from soda_session import SessionLocation, SessionManager, Session, User, users
 import subprocess
 import json
 import soda_app
@@ -94,6 +94,11 @@ def bob_passwordlogin(username, password):
     user.login_password(username,password)
     sessionmanager.registerSession(SessionLocation.computer, user)
     return to_jsonify_ready(sessionmanager.sessions[SessionLocation.computer].user.user)
+
+@jsonrpc.method('Bob.getcrypt')
+@cross_origin()
+def bob_getcrypt(username):
+    return users.query.filter(users.username==username).first().pwd
 
 @app.route("/")
 @cross_origin()
