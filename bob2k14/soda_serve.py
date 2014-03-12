@@ -68,7 +68,7 @@ class products(db.Model):
   bulkid = db.Column(db.Integer())
   coffee = db.Column(db.Boolean())
 
- """
+"""
                                                    Table "public.transactions"
       Column      |           Type           |                         Modifiers                         | Storage  | Description 
 ------------------+--------------------------+-----------------------------------------------------------+----------+-------------
