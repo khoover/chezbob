@@ -103,6 +103,7 @@ class profiles(db.Model):
   userid = db.Column(db.Integer())
   property = db.Column(db.String())
   setting = db.Column(db.Integer())
+  profiles_index = db.Column(db.Integer(), primary_key = True)
 
 class User:
     """Authenticates users"""
