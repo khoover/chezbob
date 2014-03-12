@@ -248,6 +248,11 @@ function handle_login()
 		},
 		function (error)
 		{
+			bootbox.alert("Authentication error.");
+		});
+	},
+	function (error)
+	{
 			if (error.message.contains("NoneType"))
 			{
 				bootbox.alert("It appears that you are trying to create a new user. This feature will be enabled soon.");
@@ -256,11 +261,6 @@ function handle_login()
 			{
 				bootbox.alert("Authentication error.");
 			}
-		});
-	},
-	function (error)
-	{
-		notify_error(error);
 	}
 	);
 }
