@@ -87,10 +87,18 @@ class transactions(db.Model):
   userid = db.Column(db.Integer())
   xactvalue = db.Column(db.String())
   xacttype = db.Column(db.String())
-  barcode = db.Column(db.String())
-  source = db.Column(db.String())
+  barcode = db.Column(db.String(), nullable = True)
+  source = db.Column(db.String(), nullable = True)
   id = db.Column(db.Integer(), primary_key = True)
-  finance_trans_id = db.Column(db.Integer())
+  finance_trans_id = db.Column(db.Integer(), nullable = True)
+  def __init__(self, userid, xactvalue, xacttype, barcode, source, finance_trans_id = None)
+        self.userid = userid
+        self.xactvalue = xactvalue
+        self.xacttype = xacttype
+        self.barcode = barcode
+        self.source = source
+        self.finance_trans_id = finance_trans_id
+        self.xacttime = sqlalchemy.func.now()
 
 # Flask-JSONRPC
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
@@ -151,6 +159,24 @@ def bob_getextras():
 @jsonrpc.method('Bob.getbarcodeinfo')
 def bob_getbarcodeinfo(barcode):
     return to_jsonify_ready(products.query.filter(products.barcode==barcode).first())
+
+@jsonrpc.method('Bob.purchasebarcode')
+def bob_purchasebarcode(barcode):
+    #ok, we're supposed to subtract the balance from the user first, 
+    product = products.query.filter(products.barcode==barcode).first()
+    value = product.price
+    user = sessionmanager.sessions[SessionLocation.computer].user.user
+    user.balance -= value
+    description = "BUY " + product.name.upper()
+    barcode = product.barcode
+    if user.privacy:
+         description = "BUY"
+         barcode = ""
+    #now create a matching record in transactions
+    transact = transaction(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
+    db.session.add(transact)
+    db.session.commit()
+    return True
 
 @jsonrpc.method('Bob.transactions')
 def bob_transactions():

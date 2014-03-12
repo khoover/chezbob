@@ -89,6 +89,21 @@ class users(db.Model):
   created_time = db.Column(db.DateTime())
   fraudulent = db.Column(db.Boolean())
 
+"""
+                      Table "public.profiles"
+  Column  |       Type        | Modifiers | Storage  | Description 
+----------+-------------------+-----------+----------+-------------
+ userid   | integer           | not null  | plain    | 
+ property | character varying | not null  | extended | 
+ setting  | integer           | not null  | plain    | 
+"""
+
+class profiles(db.Model)
+  __tablename__ = 'profiles'
+  userid = db.Column(db.Integer())
+  property = db.Column(db.String())
+  setting = db.Column(db.Integer())
+
 class User:
     """Authenticates users"""
     salt = "cB"
@@ -101,6 +116,11 @@ class User:
              if password == user.pwd:
                    self.user = user
                    self.authenticated = True
+                   self.privacy = False
+                   privacy = profiles.query.filter(profiles.userid==user.userid).filter(profiles.property=="privacy").first()
+                   if privacy is not None:
+                          if privacy.setting == 1:
+                          self.privacy = True
                    return True
              else:
                    raise Exception("Authentication Failure")
