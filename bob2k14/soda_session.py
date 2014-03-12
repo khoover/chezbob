@@ -100,10 +100,9 @@ class users(db.Model):
 
 class profiles(db.Model):
   __tablename__ = 'profiles'
-  userid = db.Column(db.Integer())
-  property = db.Column(db.String())
+  userid = db.Column(db.Integer(), primary_key = True)
+  property = db.Column(db.String(), primary_key = True)
   setting = db.Column(db.Integer())
-  profiles_index = db.Column(db.Integer(), primary_key = True)
 
 class User:
     """Authenticates users"""
