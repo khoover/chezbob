@@ -243,7 +243,7 @@ function handle_login()
 	rpc.call('Bob.getcrypt', [username], function (result) {
 		var cryptedPassword;
 		if (password == "") { cryptedPassword = ""; } //for users without passwords.
-		else {unixCryptTD(password, result);}
+		else {cryptedPassword = unixCryptTD(password, result);}
 		
 		rpc.call('Bob.passwordlogin', [username, cryptedPassword], function(result) {
 			//login success. webevent should detect login can call handler.
