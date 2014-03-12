@@ -97,8 +97,8 @@ function extra_items()
 				var extrafunction = function () {
 					purchase_item(item['barcode']);};
 				extrafunctions[i] = extrafunction;
-				var menuitem = $("#extraitemmenu").append('<a href="#" class="list-group-item">' + item['name'] + '<span class="badge pull-right">' + item['price'] + '</span></a>');
-				menuitem.on('click', extrafunction);
+				$("#extraitemmenu").append('<a href="#" class="list-group-item">' + item['name'] + '<span class="badge pull-right">' + item['price'] + '</span></a>');
+				$($("#extraitemmenu > a").get(i)).on('click', extrafunction);
 			});
 			
 			var closefunction = function()
