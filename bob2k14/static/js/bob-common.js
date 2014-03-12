@@ -75,7 +75,7 @@ function extra_items()
 				$("#extra-actions").hide();
 				$("#actions").show();
 			};
-			extrafunctions.append(closefunction);
+			extrafunctions.push(closefunction);
 			$("#extraitemmenu").append('<a href="#" class="list-group-item">Done</a>').on('click',closefunction);
 			$($("#extraitemmenu").get(0)).addClass("active");
 			$("#actions").hide();
