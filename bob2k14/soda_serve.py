@@ -95,11 +95,11 @@ def bob_passwordlogin(username, password):
 
 @jsonrpc.method('Bob.getusername')
 def bob_getusername(): 
-    return sessionmanager.sessions[SessionLocation.computer].user.nickname
+    return sessionmanager.sessions[SessionLocation.computer].user.user.nickname
 
 @jsonrpc.method('Bob.getbalance')
 def bob_getusername(): 
-    return str(sessionmanager.sessions[SessionLocation.computer].user.balance)
+    return str(sessionmanager.sessions[SessionLocation.computer].user.user.balance)
 
 @jsonrpc.method('Bob.getcrypt')
 def bob_getcrypt(username):
