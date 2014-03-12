@@ -33,4 +33,9 @@ function handle_login()
 
 $(document).ready(function() {
 	$("#btn-login").on("click", handle_login);
+	
+    var source = new EventSource('/stream');
+	source.onmessage = function(e) {
+		bootbox.alert(e.data);
+	}
 });
