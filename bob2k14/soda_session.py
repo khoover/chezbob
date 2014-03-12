@@ -20,6 +20,8 @@ class SessionManager:
             self.sessions[location] = Session(user)
         else:
             #is the previous session valid? if not, log the session out
+            if self.sessions[location] is None
+                self.sessions[location] = Sessions(userid)
             if self.sessions[location].isvalid():
                 self.sessions[location].logout()
                 self.sessions[location] = Sessions(userid)
@@ -27,6 +29,9 @@ class SessionManager:
                 #session is valid, raise an exception
                 raise Exception("User currently logged in")
         soda_app.add_event("login")
+        def deregisterSession(self, location):
+             self.sessions[location] = None
+             soda_app.add_event("logout")
 
 class Session:
     """Captures sessions"""

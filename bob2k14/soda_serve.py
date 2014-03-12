@@ -93,9 +93,22 @@ def bob_passwordlogin(username, password):
     sessionmanager.registerSession(SessionLocation.computer, user)
     return to_jsonify_ready(sessionmanager.sessions[SessionLocation.computer].user.user)
 
+@jsonrpc.method('Bob.getusername')
+def bob_getusername(): 
+    return sessionmanager.sessions[SessionLocation.computer].user.nickname
+
+@jsonrpc.method('Bob.getbalance')
+def bob_getusername(): 
+    return str(sessionmanager.sessions[SessionLocation.computer].user.balance)
+
 @jsonrpc.method('Bob.getcrypt')
 def bob_getcrypt(username):
     return users.query.filter(users.username==username).first().pwd
+
+@jsonrpc.method('Bob.logout')
+def bob_logout():
+    sessionmanager.deregisterSession(SessionLocation.computer)
+    return ""
 
 @app.route("/")
 def index():
