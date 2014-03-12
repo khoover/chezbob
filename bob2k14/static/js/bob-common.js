@@ -267,6 +267,9 @@ $(document).ready(function() {
 	source.onmessage = function(e) {
 		switch(e.data)
 		{
+			case "refresh":
+				window.location.reload();
+				break;
 			case "logout":
 				$("#actions").hide();
 				$("#login-username").val("");

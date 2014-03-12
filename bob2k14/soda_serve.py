@@ -222,6 +222,11 @@ def bob_logout():
     sessionmanager.deregisterSession(SessionLocation.computer)
     return ""
 
+@jsonrpc.method('Util.force_refresh')
+def util_force_refresh():
+    soda_app.add_event("refresh")
+    return ""
+
 @app.route("/")
 def index():
      return jsonify(to_jsonify_ready(products.query.first()))
