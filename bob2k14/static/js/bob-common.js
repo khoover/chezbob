@@ -56,8 +56,21 @@ function add_money()
 
 function extra_items()
 {
-     $("#actions").hide();
-	 $("#extraitems").show();
+	rpc.call('Bob.getextras', [], function (result) {
+			$("#extraitemmenu").empty();
+			//re-populate the menu
+			result.each(function(i,item){
+				$("#extraitemmenu").append('<a href="#" class="list-group-item">' + item['name'] + '<span class="badge pull-right">' + item['price'] + '</span></a>');
+			});
+			
+			$("#extraitemmenu").append('<a href="#" class="list-group-item">Cancel</a>');
+			$("#actions").hide();
+			$("#extra-actions").show();
+		},
+		function (error)
+		{
+			notify_error(error);
+		});
 }
 
 function buy_other()
@@ -174,7 +187,7 @@ $(document).ready(function() {
 	}
 	
 	$('#mainmenu > a').each(function(i,j){
-	 $(this).on('click', menufunctions[menuIndex]);
+	 $(this).on('click', menufunctions[i]);
 	});
 	
 	$("body").on("keydown", function(e)
