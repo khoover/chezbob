@@ -158,7 +158,7 @@ def bob_transactions():
     query = transactions.query.filter(transactions.userid==userid).order_by(transactions.xacttime.desc()).limit(10)
     results = []
     for q in query:
-    results.append(to_jsonify_ready(q))
+         results.append(to_jsonify_ready(q))
     return results
 
 @jsonrpc.method('Bob.logout')
