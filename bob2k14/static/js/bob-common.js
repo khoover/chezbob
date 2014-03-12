@@ -59,7 +59,7 @@ function extra_items()
 	rpc.call('Bob.getextras', [], function (result) {
 			$("#extraitemmenu").empty();
 			//re-populate the menu
-			result.each(function(i,item){
+			$.each(result, function(i,item){
 				$("#extraitemmenu").append('<a href="#" class="list-group-item">' + item['name'] + '<span class="badge pull-right">' + item['price'] + '</span></a>');
 			});
 			
