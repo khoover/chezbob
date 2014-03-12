@@ -255,14 +255,14 @@ function handle_login()
 	},
 	function (error)
 	{
-		bootbox.alert("It appears that you are trying to create a new user. This feature will be enabled soon.");
+		bootbox.alert("Authentication error.");
 	}
 	);
 }
 
 $(document).ready(function() {
 	$("#btn-login").on("click", handle_login);
-	
+	$("#login-username").focus();
     var source = new EventSource('/stream');
 	source.onmessage = function(e) {
 		switch(e.data)
@@ -275,6 +275,7 @@ $(document).ready(function() {
 				$("#login-username").val("");
 				$("#login-password").val("");
 				$("#loginbox").show();
+				$("#login-username").focus();
 			break;
 			case "login":
 				menuIndex = 0;
@@ -306,6 +307,14 @@ $(document).ready(function() {
 	
 	$("body").on("keydown", function(e)
 	{	
+		if ($("#loginbox").is(':visible') && !$(".bootbox").is(':visible'))
+		{
+			if (e.keyCode === 13) {
+				//enter
+				handle_login();
+			}
+		}
+		
 		if ($("#mainmenu").is(':visible') && !$(".bootbox").is(':visible'))
 		{
 			if (e.keyCode === 13) {
