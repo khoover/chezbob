@@ -15,16 +15,14 @@ function handle_login()
 	//silly crypt will require that we get the crypted password first for a salt.
 	var salt = ""
 	rpc.call('Bob.getcrypt', [username], function (result) {
-		bootbox.alert(result);
 		var cryptedPassword = unixCryptTD(password, result)
-		bootbox.alert(cryptedPassword);
 		rpc.call('Bob.passwordlogin', [username, cryptedPassword], function(result) {
 			//login success. webevent should detect login can call handler.
 		},
 		function (error)
 		{
 			notify_error(error);
-		}
+		});
 	},
 	function (error)
 	{
