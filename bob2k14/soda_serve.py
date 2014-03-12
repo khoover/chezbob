@@ -80,8 +80,8 @@ class products(db.Model):
  source           | character varying        |                                                           | extended | 
  id               | integer                  | not null default nextval('transactions_id_seq'::regclass) | plain    | 
  finance_trans_id | integer                  |                                                           | plain    | 
- """
- class transactions(db.Model):
+"""
+class transactions(db.Model):
   __tablename__ = 'transactions'
   xacttime = db.Column(db.DateTime(True))
   userid = db.Column(db.Integer())
