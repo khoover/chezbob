@@ -253,14 +253,7 @@ function handle_login()
 	},
 	function (error)
 	{
-			if (error.message.contains("NoneType"))
-			{
-				bootbox.alert("It appears that you are trying to create a new user. This feature will be enabled soon.");
-			}
-			else
-			{
-				bootbox.alert("Authentication error.");
-			}
+		bootbox.alert("It appears that you are trying to create a new user. This feature will be enabled soon.");
 	}
 	);
 }
