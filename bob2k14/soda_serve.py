@@ -101,6 +101,15 @@ def bob_getcrypt(username):
 def index():
      return jsonify(to_jsonify_ready(products.query.first()))
 
+def event_stream():
+    for message in soda_app.event_queue.get()
+        yield 'data: %s\n\n' % message
+		
+@app.route('/stream')
+def stream():
+    return flask.Response(event_stream(),
+                          mimetype="text/event-stream")
+						  
 sessionmanager = SessionManager()
 
 if __name__ == '__main__':
@@ -111,5 +120,5 @@ if __name__ == '__main__':
         app.config["SQLALCHEMY_ECHO"] = True
     if arguments['serve']:
         app.config["SQLALCHEMY_DATABASE_URI"] = arguments["<dburl>"]
-        app.run(host=arguments['--address'], port=int(arguments['--port']), debug=arguments['--debug'])
+        app.run(host=arguments['--address'], port=int(arguments['--port']), debug=arguments['--debug'],threaded=True)
 

@@ -18,6 +18,13 @@ function handle_login()
 		bootbox.alert(result);
 		var cryptedPassword = unixCryptTD(password, result)
 		bootbox.alert(cryptedPassword);
+		rpc.call('Bob.passwordlogin', [username, cryptedPassword], function(result) {
+			//login success. webevent should detect login can call handler.
+		},
+		function (error)
+		{
+			notify_error(error);
+		}
 	},
 	function (error)
 	{
