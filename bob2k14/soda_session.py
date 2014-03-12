@@ -109,6 +109,7 @@ class User:
     salt = "cB"
     def __init__(self):
         self.authenticated = False
+        self.privacy = False
     def login_password(self, username, password):
         self.username = username
         user = users.query.filter(users.username==username).first()
