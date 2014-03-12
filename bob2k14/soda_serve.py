@@ -103,7 +103,7 @@ def index():
 
 def event_stream():
 	event_queue = soda_app.event_queue
-    for message in event_queue.get()
+    for message in event_queue.get():
         yield 'data: %s\n\n' % message
 		
 @app.route('/stream')
