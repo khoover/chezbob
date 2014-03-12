@@ -129,7 +129,7 @@ function buy_other()
 	{
 		//make sure the result is a money type
 		//do purchase here.
-					rpc.call('Bob.purchaseother', [barcode], function (result) {
+					rpc.call('Bob.purchaseother', [result], function (result) {
 							//grab new balance
 							rpc.call('Bob.getbalance', [], function (result) {
 									$("#balance").text(result)
