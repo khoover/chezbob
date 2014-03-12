@@ -63,6 +63,20 @@ function purchase_item(barcode)
 				if (res)
 				{
 					//do purchase here.
+					rpc.call('Bob.purchasebarcode', [barcode], function (result) {
+							//grab new balance
+							rpc.call('Bob.getbalance', [], function (result) {
+									$("#balance").text(result)
+								},
+								function (error)
+								{
+									notify_error(error);
+								});
+							bootbox.alert("Purchase successful.");
+						},
+						function (error)
+						{
+						});
 				}
 			});
 		},
@@ -94,7 +108,7 @@ function extra_items()
 			};
 			extrafunctions.push(closefunction);
 			$("#extraitemmenu").append('<a href="#" class="list-group-item">Done</a>').on('click',closefunction);
-			$($("#extraitemmenu").get(0)).addClass("active");
+			$($("#extraitemmenu > a").get(0)).addClass("active");
 			$("#actions").hide();
 			$("#extra-actions").show();
 		},
@@ -139,7 +153,7 @@ function transactions()
 			};
 			extrafunctions.push(closefunction);
 			$("#extraitemmenu").append('<a href="#" class="list-group-item">Done</a>').on('click',closefunction);
-			$($("#extraitemmenu").get(0)).addClass("active");
+			$($("#extraitemmenu > a").get(0)).addClass("active");
 			$("#actions").hide();
 			$("#extra-actions").show();
 		},
