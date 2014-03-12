@@ -25,6 +25,7 @@ from soda_session import SessionLocation, SessionManager, Session, User
 import subprocess
 import json
 import soda_app
+import os
 
 app = soda_app.app
 db = soda_app.db
@@ -70,20 +71,24 @@ class products(db.Model):
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
 
 @jsonrpc.method('Soda.index')
+@cross_origin()
 def json_index():
     return 'SodaServe ' + get_git_revision_hash()
 
 @jsonrpc.method('Soda.products')
+@cross_origin()
 def product(barcode):
     return to_jsonify_ready(products.query.filter(products.barcode==barcode).first())
 
 
 #bob tasks
 @jsonrpc.method('Bob.index')
+@cross_origin()
 def bob_json_index():
     return 'SodaServe (Bob) ' + get_git_revision_hash()
 
 @jsonrpc.method('Bob.passwordlogin')
+@cross_origin()
 def bob_passwordlogin(username, password):
     user = User()
     user.login_password(username,password)
