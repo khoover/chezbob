@@ -190,6 +190,8 @@ $(document).ready(function() {
 		{
 			case "logout":
 				$("#actions").hide();
+				$("#login-username").val("");
+				$("#login-password").val("");
 				$("#loginbox").show();
 			break;
 			case "login":
