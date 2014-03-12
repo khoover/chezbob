@@ -108,9 +108,9 @@ def event_stream():
 
 @app.route('/stream')
 def stream():
-    return flask.Response(event_stream(),
-                          mimetype="text/event-stream")
-						  
+    return flask.Response(event_stream(), mimetype="text/event-stream")
+
+
 sessionmanager = SessionManager()
 
 if __name__ == '__main__':

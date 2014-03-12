@@ -26,7 +26,7 @@ class SessionManager:
             else:
                 #session is valid, raise an exception
                 raise Exception("User currently logged in")
-		soda_app.event_queue.put("login")
+        soda_app.event_queue.put("login")
 
 class Session:
     """Captures sessions"""
