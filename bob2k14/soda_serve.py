@@ -83,12 +83,10 @@ def product(barcode):
 
 #bob tasks
 @jsonrpc.method('Bob.index')
-@cross_origin()
 def bob_json_index():
     return 'SodaServe (Bob) ' + get_git_revision_hash()
 
 @jsonrpc.method('Bob.passwordlogin')
-@cross_origin()
 def bob_passwordlogin(username, password):
     user = User()
     user.login_password(username,password)
@@ -96,12 +94,10 @@ def bob_passwordlogin(username, password):
     return to_jsonify_ready(sessionmanager.sessions[SessionLocation.computer].user.user)
 
 @jsonrpc.method('Bob.getcrypt')
-@cross_origin()
 def bob_getcrypt(username):
     return users.query.filter(users.username==username).first().pwd
 
 @app.route("/")
-@cross_origin()
 def index():
      return jsonify(to_jsonify_ready(products.query.first()))
 
