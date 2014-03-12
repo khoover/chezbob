@@ -95,7 +95,7 @@ def bob_passwordlogin(username, password):
 
 @jsonrpc.method('Bob.getusername')
 def bob_getusername(): 
-    if sessionmanager.sessions[SessionLocation.computer].user.user.nickname == "null":
+    if sessionmanager.sessions[SessionLocation.computer].user.user.nickname == None:
          return sessionmanager.sessions[SessionLocation.computer].user.user.username
     else:
          return sessionmanager.sessions[SessionLocation.computer].user.user.nickname
@@ -103,6 +103,12 @@ def bob_getusername():
 @jsonrpc.method('Bob.getbalance')
 def bob_getusername(): 
     return str(sessionmanager.sessions[SessionLocation.computer].user.user.balance)
+
+@jsonrpc.method('Bob.sodalogin')
+def bob_sodalogin(): 
+    sessionmanager.registerSession(SessionLocation.soda, sessionmanager.sessions[SessionLocation.computer].user)
+    sessionmanager.deregisterSession(SessionLocation.computer)
+    return to_jsonify_ready(sessionmanager.sessions[SessionLocation.soda].user.user)
 
 @jsonrpc.method('Bob.getcrypt')
 def bob_getcrypt(username):

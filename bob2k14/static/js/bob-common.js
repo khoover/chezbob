@@ -5,9 +5,12 @@ var menufunctions = [soda_login, add_money, extra_items, buy_other, message, log
 
 function soda_login()
 {
-     //rpc goes here. we autologout after.
-     $("#actions").hide();
-	 $("#loginbox").show();
+	rpc.call('Bob.sodalogin', [], function (result) {
+		},
+		function (error)
+		{
+			bootbox.alert("There was a problem logging into the soda machine. It looks like someone is already logged in there, so try again after they have logged out.");
+		});
 }
 
 function logout()

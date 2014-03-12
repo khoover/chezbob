@@ -28,10 +28,16 @@ class SessionManager:
             else:
                 #session is valid, raise an exception
                 raise Exception("User currently logged in")
-        soda_app.add_event("login")
+        if location == SessionLocation.computer:
+             soda_app.add_event("login")
+        elif location == SessionLocation.soda:
+             soda_app.add_event("slogin")
     def deregisterSession(self, location):
         self.sessions[location] = None
-        soda_app.add_event("logout")
+        if location == SessionLocation.computer:
+             soda_app.add_event("logout")
+        elif location == SessionLocation.soda:
+             soda_app.add_event("slogout")
 
 class Session:
     """Captures sessions"""
@@ -69,7 +75,7 @@ class users(db.Model):
   userid = db.Column(db.Integer(), primary_key = True)
   username = db.Column(db.String())
   email = db.Column(db.String())
-  nickname = db.Column(db.String())
+  nickname = db.Column(db.String(), nullable = True)
   pwd = db.Column(db.String())
   balance = db.Column(db.Numeric(12,2))
   disabled = db.Column(db.Boolean())
