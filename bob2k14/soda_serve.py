@@ -23,6 +23,7 @@ from flask_jsonrpc import JSONRPC
 from flask_cors import cross_origin
 from flask.ext.sqlalchemy import SQLAlchemy
 from soda_session import SessionLocation, SessionManager, Session, User, users
+from decimal import Decimal
 import subprocess
 import json
 import soda_app
@@ -173,6 +174,20 @@ def bob_purchasebarcode(barcode):
     if sessionmanager.sessions[SessionLocation.computer].user.privacy:
          description = "BUY"
          barcode = ""
+    #now create a matching record in transactions
+    transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
+    db.session.add(transact)
+    db.session.commit()
+    return True
+
+@jsonrpc.method('Bob.purchaseother')
+def bob_purchaseother(amount):
+    #ok, we're supposed to subtract the balance from the user first, 
+    value = Decimal(amount.strip(' "'))
+    user = sessionmanager.sessions[SessionLocation.computer].user.user
+    user.balance -= value
+    description = "BUY OTHER"
+    barcode = None
     #now create a matching record in transactions
     transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
     db.session.add(transact)

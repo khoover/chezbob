@@ -76,6 +76,7 @@ function purchase_item(barcode)
 						},
 						function (error)
 						{
+							bootbox.alert("An error occured while making the purchase.");
 						});
 				}
 			});
@@ -121,14 +122,36 @@ function extra_items()
 
 function buy_other()
 {
-     $("#actions").hide();
-	 $("#buyother").show();
+     bootbox.prompt("What is the purchase price of the item?", function (result)
+{
+	if (result === null) {}
+	else
+	{
+		//make sure the result is a money type
+		//do purchase here.
+					rpc.call('Bob.purchaseother', [barcode], function (result) {
+							//grab new balance
+							rpc.call('Bob.getbalance', [], function (result) {
+									$("#balance").text(result)
+								},
+								function (error)
+								{
+									notify_error(error);
+								});
+							bootbox.alert("Purchase successful.");
+						},
+						function (error)
+						{
+							bootbox.alert("An error occured while making the purchase.");
+						});
+	}
+}
+);
 }
 
 function message()
 {
-     $("#actions").hide();
-	 $("#message").show();
+     bootbox.alert("This function will be restored soon!");
 }
 
 function transactions()
@@ -141,10 +164,9 @@ function transactions()
 			//re-populate the menu
 			$.each(result, function(i,item){
 				var extrafunction = function () {
-					purchase_item(item['id']);};
+					};
 				extrafunctions[i] = extrafunction;
-				var menuitem = $("#extraitemmenu").append('<a href="#" class="list-group-item">' + item['xacttype'] + '<span class="badge pull-right">' + item['xactvalue'] + '</span></a>');
-				menuitem.on('click', extrafunction);
+				$("#extraitemmenu").append('<a href="#" class="list-group-item">' + item['xacttype'] + '<span class="badge pull-right">' + item['xactvalue'] + '</span></a>');
 			});
 			
 			var closefunction = function()
@@ -153,7 +175,7 @@ function transactions()
 				$("#actions").show();
 			};
 			extrafunctions.push(closefunction);
-			$("#extraitemmenu").append('<a href="#" class="list-group-item">Done</a>').on('click',closefunction);
+			$("#extraitemmenu").append('<a href="#" class="list-group-item">Done</a>');
 			$($("#extraitemmenu > a").get(0)).addClass("active");
 			$("#actions").hide();
 			$("#extra-actions").show();
@@ -166,32 +188,27 @@ function transactions()
 
 function my_chez_bob()
 {
-     $("#actions").hide();
-	 $("#mychezbob").show();
+     bootbox.alert("This function will be restored soon!");
 }
 
 function transfer()
 {
-     $("#actions").hide();
-	 $("#transfer").show();
+     bootbox.alert("This function will be restored soon!");
 }
 
 function barcode_id()
 {
-     $("#actions").hide();
-	 $("#barcodeid").show();
+     bootbox.alert("This function will be restored soon!");
 }
 
 function nickname()
 {
-     $("#actions").hide();
-	 $("#nickname").show();
+     bootbox.alert("This function will be restored soon!");
 }
 
 function password()
 {
-     $("#actions").hide();
-	 $("#passwordchange").show();
+     bootbox.alert("This function will be restored soon!");
 }
 
 function notify_error(error)
