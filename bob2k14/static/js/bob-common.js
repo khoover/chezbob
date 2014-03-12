@@ -242,12 +242,20 @@ function handle_login()
 	var salt = ""
 	rpc.call('Bob.getcrypt', [username], function (result) {
 		var cryptedPassword = unixCryptTD(password, result)
+		if (password == "") { cryptedPassword = ""; } //for users without passwords.
 		rpc.call('Bob.passwordlogin', [username, cryptedPassword], function(result) {
 			//login success. webevent should detect login can call handler.
 		},
 		function (error)
 		{
-			notify_error(error);
+			if (error.message.contains("NoneType")
+			{
+				bootbox.alert("It appears that you are trying to create a new user. This feature will be enabled soon.");
+			}
+			else
+			{
+				bootbox.alert("Authentication error.");
+			}
 		});
 	},
 	function (error)
