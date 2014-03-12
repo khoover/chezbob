@@ -98,7 +98,7 @@ class users(db.Model):
  setting  | integer           | not null  | plain    | 
 """
 
-class profiles(db.Model)
+class profiles(db.Model):
   __tablename__ = 'profiles'
   userid = db.Column(db.Integer())
   property = db.Column(db.String())
