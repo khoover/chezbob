@@ -17,7 +17,7 @@ Options:
 """
 from docopt import docopt
 
-from flask import Flask, jsonify
+from flask import Flask, Response, jsonify
 from flask_jsonrpc import JSONRPC
 from flask_cors import cross_origin
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -108,7 +108,7 @@ def event_stream():
 
 @app.route('/stream')
 def stream():
-    return Flask.Response(event_stream(), mimetype="text/event-stream")
+    return Response(event_stream(), mimetype="text/event-stream")
 
 
 sessionmanager = SessionManager()
