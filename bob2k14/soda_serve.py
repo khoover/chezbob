@@ -3,13 +3,14 @@
 """SodaServe, The ChezBob JSON-RPC Database Server.
 
 Usage:
-  soda_serve.py serve <dburl> [--address=<listen-address>] [--port=<port>] [--debug]
+  soda_serve.py serve <dburl> [--config=<config-file>] [--address=<listen-address>] [--port=<port>] [--debug]
   soda_serve.py (-h | --help)
   soda_serve.py --version
 
 Options:
   -h --help                     Show this screen.
   --version                     Show version.
+  --config=<config-file>        Use alternate config file. [default: config.json]
   --address=<listen-address>    Address to listen on. [default: 0.0.0.0]
   --port=<port>                 Port to listen on. [default: 8080]
   --debug                       Verbose debug output.
@@ -116,6 +117,13 @@ def bob_sodalogin():
 def bob_getcrypt(username):
     return users.query.filter(users.username==username).first().pwd
 
+@jsonrpc.method('Bob.getextras')
+def bob_getextras():
+    extras = []
+    for extra in configdata["extraitems"]:
+         extras.append(to_jsonify_ready(products.query.filter(products.barcode==extra.barcode).first()))
+    return extras
+
 @jsonrpc.method('Bob.logout')
 def bob_logout():
     sessionmanager.deregisterSession(SessionLocation.computer)
@@ -140,9 +148,12 @@ def stream():
 
 
 sessionmanager = SessionManager()
+configdata = []
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='SodaServe 1.0')
+    with open(os.path.dirname(os.path.realpath(__file__)) + "/" +  arguments["--config"]) as json_data:
+         configdata = json.load(json_data)
     if arguments['--debug']:
         print(arguments)
         app.config["SQLALCHEMY_RECORD_QUERIES"] = True
