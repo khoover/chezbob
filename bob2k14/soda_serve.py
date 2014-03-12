@@ -194,6 +194,20 @@ def bob_purchaseother(amount):
     db.session.commit()
     return True
 
+@jsonrpc.method('Bob.deposit')
+def bob_purchaseother(amount):
+    #ok, we're supposed to subtract the balance from the user first, 
+    value = Decimal(amount.strip(' "'))
+    user = sessionmanager.sessions[SessionLocation.computer].user.user
+    user.balance += value
+    description = "ADD"
+    barcode = None
+    #now create a matching record in transactions
+    transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
+    db.session.add(transact)
+    db.session.commit()
+    return True
+
 @jsonrpc.method('Bob.transactions')
 def bob_transactions():
     userid = sessionmanager.sessions[SessionLocation.computer].user.user.userid
