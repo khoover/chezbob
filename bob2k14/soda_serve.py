@@ -102,9 +102,13 @@ def index():
      return jsonify(to_jsonify_ready(products.query.first()))
 
 def event_stream():
-    event_queue = soda_app.event_queue
-    for message in event_queue.get():
-         yield 'data: %s\n\n' % message
+    subscription = soda_app.add_subscription()
+    try:
+         while True:
+              result = subscription.queue.get()
+              yield 'data: %s\n\n' % str(result)
+    except GeneratorExit as ge:
+         soda_app.remove_subscription(subscription)
 
 @app.route('/stream')
 def stream():
