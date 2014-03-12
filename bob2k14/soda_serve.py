@@ -90,6 +90,8 @@ def bob_json_index():
 def bob_passwordlogin(username, password):
     user = User()
     user.login_password(username,password)
+    #logout any existing session
+    sessionmanager.deregisterSession(SessionLocation.computer)
     sessionmanager.registerSession(SessionLocation.computer, user)
     return to_jsonify_ready(sessionmanager.sessions[SessionLocation.computer].user.user)
 
