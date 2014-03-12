@@ -56,6 +56,11 @@ function add_money()
 	 
 }
 
+function purchase_item(barcode)
+{
+	bootbox.alert("Really purchase item " + barcode + "?");
+}
+
 function extra_items()
 {
 	rpc.call('Bob.getextras', [], function (result) {
