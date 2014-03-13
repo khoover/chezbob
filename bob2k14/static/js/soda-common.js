@@ -146,7 +146,7 @@ $(document).ready(function() {
 	
 	$("#login").on('click', function()
 	{
-		sdoa_login();
+		soda_login();
 	});
 	
 	$("#logout").on('click', function() {
