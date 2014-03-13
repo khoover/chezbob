@@ -133,6 +133,7 @@ def remotebarcode(type, barcode):
          #now create a matching record in transactions
          transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="soda")
          db.session.add(transact)
+         db.session.merge(user)
          db.session.commit()
          soda_app.add_event("sbc" + barcode)
     else:
