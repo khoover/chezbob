@@ -364,6 +364,11 @@ $(document).ready(function() {
 				$($("#mainmenu > a").get(menuIndex)).addClass("active");
 			}
 			
+			if (e.keyCode === 81) {
+				//logout
+				logout();
+			}
+			
 			if (e.keyCode === 13) {
 				if (bcodeinput)
 				{
