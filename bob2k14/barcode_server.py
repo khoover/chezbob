@@ -54,7 +54,8 @@ if __name__ == '__main__':
                       curcode = b'\x0d'
                       for i in iter(functools.partial(barcodeport.read,1), b'\x0d'):
                            code += i.decode('ascii')
-                      #print(code)
+                      if arguments['--verbose']:
+                           print(code)
                       #here's where we do the jsonrpc.
                       payload = {
                           "method": "soda.remotebarcode",
