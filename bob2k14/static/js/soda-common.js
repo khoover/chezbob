@@ -33,35 +33,58 @@ function configureEventSource()
 {
     var source = new EventSource('/stream');
 	source.onmessage = function(e) {
-		switch(e.data)
+		if (e.data.substring(0,3) == "sbc")
 		{
-			case "refresh":
-				window.location.reload();
+			//this is a barcode that was purchased
+			var code = e.data.substring(3);
+			
+			rpc.call('Bob.getbarcodeinfo', [barcode], function (result) {
+			if(result['name'] === undefined)
+			{
+				bootbox.alert("Unrecognized barcode " + barcode + ".");
+			}
+			else
+			{
+				$("#transaction tbody").append("<tr><td>" +  result['name']  + "</td><td>" + result['price'] + "</td></tr>");
+			}
+		}
+		else
+		{
+			switch(e.data)
+			{
+				case "refresh":
+					window.location.reload();
+					break;
+				case "slogout":
+					$("#loggedin-sidebar").hide();
+					$("#maindisplay").show();
+					$("#transaction").hide();
+					$("#login-sidebar").show();
+					$("#userdisplay").hide();
 				break;
-			case "slogout":
-				$("#loggedin-sidebar").hide();
-				$("#login-sidebar").show();
-				$("#userdisplay").hide();
-			break;
-			case "slogin":
-				$("#loggedin-sidebar").show();
-				$("#login-sidebar").hide();
-				$("#userdisplay").show();
-				rpc.call('Soda.getusername', [], function (result) {
-						$("#user-nick").text(result)
-					},
-					function (error)
-					{
-						notify_error(error);
-					});
-				rpc.call('Soda.getbalance', [], function (result) {
-						$("#user-balance").text(result)
-					},
-					function (error)
-					{
-						notify_error(error);
-					});
-			break;
+				case "slogin":
+					$("#transaction tbody").empty();
+					$("#transaction").show();
+					$("#maindisplay").hide();
+					$("#loggedin-sidebar").show();
+					$("#login-sidebar").hide();
+					$("#userdisplay").show();
+					rpc.call('Soda.getusername', [], function (result) {
+							$("#user-nick").text(result)
+						},
+						function (error)
+						{
+							notify_error(error);
+						});
+					rpc.call('Soda.getbalance', [], function (result) {
+							$("#user-balance").text(result)
+						},
+						function (error)
+						{
+							notify_error(error);
+						});
+				break;
+			}
 		}
 	}
 }
