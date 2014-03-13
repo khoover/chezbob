@@ -155,9 +155,9 @@ def soda_getusername():
 @jsonrpc.method('Soda.getbalance')
 def soda_getbalance():
     #force the balance to update
-    db.session.merge(sessionmanager.sessions[SessionLocation.soda].user.user)
-    db.session.refresh(sessionmanager.sessions[SessionLocation.soda].user.user)
-    return str(sessionmanager.sessions[SessionLocation.soda].user.user.balance)
+    userid = sessionmanager.sessions[SessionLocation.soda].user.user.userid
+    user = users.query.filter(users.userid == userid).first()
+    return str(user.balance)
 
 @jsonrpc.method('Soda.logout')
 def bob_logout():
