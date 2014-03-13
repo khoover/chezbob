@@ -120,6 +120,7 @@ def remotebarcode(type, barcode):
     #several things to check here. first, if there is anyone logged in, we're probably buying something, so check that.
     if sessionmanager.checkSession(SessionLocation.soda):
          #do a purchase
+         print("todo - purchases")
     else:
          #do a login
          user = User()
