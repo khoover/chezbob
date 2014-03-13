@@ -47,6 +47,7 @@ function configureEventSource()
 			{
 				$("#transaction tbody").append("<tr><td>" +  result['name']  + "</td><td>" + result['price'] + "</td></tr>");
 			}
+			}, function(error){});
 		}
 		else
 		{
