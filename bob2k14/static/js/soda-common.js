@@ -48,14 +48,14 @@ function soda_login()
 							{
 								var cryptedPassword = result;
 								bootbox.dialog({
-								  message: "First name:<input type='Password' name='password' id='password'></input>",
+								  message: "Password: <input type='Password' name='password' id='password'></input>",
 								  title: "Password",
 								  buttons: {
 									main: {
 									  label: "Login",
 									  className: "btn-primary",
 									  callback: function() {
-									resultcryptedPassword = unixCryptTD(result, cryptedPassword);
+									resultcryptedPassword = unixCryptTD($("#password"), cryptedPassword);
 									rpc.call('Soda.passwordlogin', [username, resultcryptedPassword], function (result){}, function (error){});}
 									  }
 									}
