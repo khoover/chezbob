@@ -137,7 +137,7 @@ def soda_getusername():
     else:
          return sessionmanager.sessions[SessionLocation.soda].user.user.nickname
 		 
-@jsonrpc.method('Bob.getbalance')
+@jsonrpc.method('Soda.getbalance')
 def soda_getbalance(): 
     return str(sessionmanager.sessions[SessionLocation.soda].user.user.balance)
 
