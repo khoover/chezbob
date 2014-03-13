@@ -5,6 +5,20 @@ var extraIndex = 0;
 var extrafunctions = [];
 var menufunctions = [soda_login, add_money, extra_items, buy_other, message, logout, transactions, my_chez_bob, transfer, barcode_id, nickname, password];
 
+var shortcutmap = {
+	"83": 0, //s
+	"65": 1, //a
+	"69": 2, //e
+	"66": 3, //b
+	"77": 4, //m
+	"76": 5, //l
+	"84": 6, //t
+	"89": 7, //y
+	"82": 8, //r
+	"67": 9, //c
+	"73": 10, //i
+	"80": 11 //p
+};
 function soda_login()
 {
 	rpc.call('Bob.sodalogin', [], function (result) {
