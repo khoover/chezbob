@@ -59,9 +59,7 @@ function soda_login()
 									rpc.call('Soda.passwordlogin', [username, resultcryptedPassword], function (result){}, function (error){});}
 									  }
 									}
-								  }
-								});
-								
+								  });
 							}
 						},
 						function (error)
