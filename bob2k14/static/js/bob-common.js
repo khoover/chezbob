@@ -356,6 +356,14 @@ $(document).ready(function() {
 		
 		if ($("#mainmenu").is(':visible') && !$(".bootbox").is(':visible'))
 		{
+			if (shortcutmap[parseInt(e.keyCode)] !== undefined)
+			{
+				//move to this key
+				menuIndex = shortcutmap[parseInt(e.keyCode)]
+				$("#mainmenu > a").removeClass("active");
+				$($("#mainmenu > a").get(menuIndex)).addClass("active");
+			}
+			
 			if (e.keyCode === 13) {
 				if (bcodeinput)
 				{
