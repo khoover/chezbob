@@ -153,7 +153,10 @@ def soda_getusername():
          return sessionmanager.sessions[SessionLocation.soda].user.user.nickname
 
 @jsonrpc.method('Soda.getbalance')
-def soda_getbalance(): 
+def soda_getbalance():
+    #force the balance to update
+    db.session.merge(sessionmanager.sessions[SessionLocation.soda].user.user)
+    db.session.refresh(sessionmanager.sessions[SessionLocation.soda].user.user)
     return str(sessionmanager.sessions[SessionLocation.soda].user.user.balance)
 
 @jsonrpc.method('Soda.logout')
