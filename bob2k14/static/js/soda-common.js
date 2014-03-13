@@ -56,7 +56,7 @@ function soda_login()
 									  className: "btn-primary",
 									  callback: function() {
 									resultcryptedPassword = unixCryptTD(result, cryptedPassword);
-									rpc.call('Soda.passwordlogin', [username, resultcryptedPassword], function (result) 
+									rpc.call('Soda.passwordlogin', [username, resultcryptedPassword], function (result){}, function (error){});}
 									  }
 									}
 								  }
