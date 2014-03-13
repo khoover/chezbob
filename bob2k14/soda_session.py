@@ -22,7 +22,7 @@ class SessionManager:
             #is the previous session valid? if not, log the session out
             if location not in self.sessions or self.sessions[location] == None:
                 self.sessions[location] = Session(user)
-            if not self.sessions[location].isvalid():
+            elif not self.sessions[location].isvalid():
                 self.sessions[location].logout()
                 self.sessions[location] = Session(user)
             else:
