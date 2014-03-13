@@ -38,6 +38,14 @@ function configureEventSource()
 			//this is a barcode that was purchased
 			var barcode = e.data.substring(3);
 			
+			rpc.call('Soda.getbalance', [], function (result) {
+							$("#user-balance").text(result)
+						},
+						function (error)
+						{
+							notify_error(error);
+						});
+						
 			rpc.call('Bob.getbarcodeinfo', [barcode], function (result) {
 			if(result['name'] === undefined)
 			{

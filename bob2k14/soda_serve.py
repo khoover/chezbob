@@ -120,6 +120,20 @@ def remotebarcode(type, barcode):
     #several things to check here. first, if there is anyone logged in, we're probably buying something, so check that.
     if sessionmanager.checkSession(SessionLocation.soda):
          #do a purchase
+         #ok, we're supposed to subtract the balance from the user first, 
+         product = products.query.filter(products.barcode==barcode).first()
+         value = product.price
+         user = sessionmanager.sessions[SessionLocation.soda].user.user
+         user.balance -= value
+         description = "BUY " + product.name.upper()
+         barcode = product.barcode
+         if sessionmanager.sessions[SessionLocation.soda].user.privacy:
+              description = "BUY"
+              barcode = ""
+         #now create a matching record in transactions
+         transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="soda")
+         db.session.add(transact)
+         db.session.commit()
          soda_app.add_event("sbc" + barcode)
     else:
          #do a login
