@@ -131,12 +131,17 @@ def remotebarcode(type, barcode):
     return ""
 
 @jsonrpc.method('Soda.getusername')
-def bob_sodausername(): 
+def soda_getusername(): 
     if sessionmanager.sessions[SessionLocation.soda].user.user.nickname == None:
          return sessionmanager.sessions[SessionLocation.soda].user.user.username
     else:
          return sessionmanager.sessions[SessionLocation.soda].user.user.nickname
+		 
+@jsonrpc.method('Bob.getbalance')
+def soda_getbalance(): 
+    return str(sessionmanager.sessions[SessionLocation.soda].user.user.balance)
 
+	
 #bob tasks
 @jsonrpc.method('Bob.index')
 def bob_json_index():
