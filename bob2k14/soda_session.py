@@ -148,7 +148,7 @@ class User:
              privacy = profiles.query.filter(profiles.userid==userid).filter(profiles.property=="privacy").first()
              if privacy is not None:
                   if privacy.setting == 1:
-                  self.privacy = True
+                       self.privacy = True
              return True
         else:
              raise Exception("Authentication Failure")
