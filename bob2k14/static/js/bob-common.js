@@ -246,26 +246,40 @@ function handle_login()
 	var username = $("#login-username").val();
 	var password = $("#login-password").val();
 	
-	//silly crypt will require that we get the crypted password first for a salt.
-	var salt = ""
-	rpc.call('Bob.getcrypt', [username], function (result) {
-		var cryptedPassword;
-		if (password == "") { cryptedPassword = ""; } //for users without passwords.
-		else {cryptedPassword = unixCryptTD(password, result);}
-		
-		rpc.call('Bob.passwordlogin', [username, cryptedPassword], function(result) {
+	//was the username all numbers
+	if (!isNaN(username))
+	{
+	rpc.call('Bob.barcodelogin', [username], function(result) {
 			//login success. webevent should detect login can call handler.
 		},
 		function (error)
 		{
 			bootbox.alert("Authentication error.");
 		});
-	},
-	function (error)
-	{
-		bootbox.alert("Authentication error.");
 	}
-	);
+	else
+	{
+		//silly crypt will require that we get the crypted password first for a salt.
+		var salt = ""
+		rpc.call('Bob.getcrypt', [username], function (result) {
+			var cryptedPassword;
+			if (password == "") { cryptedPassword = ""; } //for users without passwords.
+			else {cryptedPassword = unixCryptTD(password, result);}
+			
+			rpc.call('Bob.passwordlogin', [username, cryptedPassword], function(result) {
+				//login success. webevent should detect login can call handler.
+			},
+			function (error)
+			{
+				bootbox.alert("Authentication error.");
+			});
+		},
+		function (error)
+		{
+			bootbox.alert("Authentication error.");
+		}
+		);
+	}
 }
 
 var bcodeinput = false;
@@ -321,29 +335,11 @@ $(document).ready(function() {
 		if ($("#loginbox").is(':visible') && !$(".bootbox").is(':visible'))
 		{
 			if (e.keyCode === 13) {
-				if (bcodeinput)
-				{
-					bodeinput = false;
-							rpc.call('Bob.barcodelogin', [bcodebuffer], function(result) {
-			//login success. webevent should detect login can call handler.
-		},
-		function (error)
-		{
-			bootbox.alert("Authentication error.");
-		});
-				}
 				else
 				{
 					//enter
 					handle_login();
 				}
-			}
-			
-			if (($("#login-username").val() == "") && e.keyCode >= 48 && e.keyCode <= 57)
-			{
-				//number
-				if (!bcodeinput) {bcodeinput = true; bcodebuffer = "";}
-				bcodebuffer += parseInt(e.keyCode - 48); //keycode to number conversion
 			}
 		}
 		
