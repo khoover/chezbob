@@ -113,7 +113,7 @@ class profiles(db.Model):
 """
 
 class userbarcodes(db.Model):
-  __tablename__ = 'profiles'
+  __tablename__ = 'userbarcodes'
   userid = db.Column(db.Integer())
   barcode = db.Column(db.String(), primary_key = True)
   
