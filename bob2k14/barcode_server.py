@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.4
 
 """barcode_server, the Soda Machine serial barcode server.
 
@@ -24,6 +24,8 @@ import io
 import struct
 import binascii
 import functools
+import requests
+import json
 
 def get_git_revision_hash():
     return str(subprocess.check_output(['git', 'rev-parse', 'HEAD']))
@@ -52,7 +54,15 @@ if __name__ == '__main__':
                       curcode = b'\x0d'
                       for i in iter(functools.partial(barcodeport.read,1), b'\x0d'):
                            code += i.decode('ascii')
-                      print(code)
+                      #print(code)
+                      #here's where we do the jsonrpc.
+                      payload = {
+                          "method": "soda.remotebarcode",
+                          "params": [ code[0], code[1:]],
+                          "jsonrpc": "2.0",
+                           "id": 0
+                      }
+                      requests.post(arguments['--endpoint'], data=json.dumps(payload), headers={'content-type': 'application/json'}).json()
                   else:
                       opcode = barcodeport.read()
                       if arguments['--verbose']:
@@ -64,7 +74,7 @@ if __name__ == '__main__':
                       if arguments['--verbose']:
                            print("Checksum:" + str(binascii.hexlify(checksum), 'ascii'))
                       if opcode == b'\xf3':
-                           print(data[3:].decode('ascii'))
+                           #print(data[3:].decode('ascii'))
  
     except KeyboardInterrupt:
          if barcodeport != None:

@@ -115,6 +115,26 @@ def json_index():
 def product(barcode):
     return to_jsonify_ready(products.query.filter(products.barcode==barcode).first())
 
+@jsonrpc.method('Soda.remotebarcode')
+def remotebarcode(type, barcode):
+    #several things to check here. first, if there is anyone logged in, we're probably buying something, so check that.
+    if sessionmanager.checkSession(SessionLocation.soda):
+         #do a purchase
+    else:
+         #do a login
+         user = User()
+         user.login_barcode(barcode)
+         #logout any existing session
+         sessionmanager.deregisterSession(SessionLocation.soda)
+         sessionmanager.registerSession(SessionLocation.soda, user)
+    return ""
+
+@jsonrpc.method('Soda.getusername')
+def bob_sodausername(): 
+    if sessionmanager.sessions[SessionLocation.soda].user.user.nickname == None:
+         return sessionmanager.sessions[SessionLocation.soda].user.user.username
+    else:
+         return sessionmanager.sessions[SessionLocation.soda].user.user.nickname
 
 #bob tasks
 @jsonrpc.method('Bob.index')

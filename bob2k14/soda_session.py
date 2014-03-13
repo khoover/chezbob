@@ -38,6 +38,12 @@ class SessionManager:
              soda_app.add_event("logout")
         elif location == SessionLocation.soda:
              soda_app.add_event("slogout")
+    def checkSession(self, location):
+        if self.sessions[location] is None:
+            return False
+        if not self.sessions[location].isvalid():
+            return False
+        return True
 
 class Session:
     """Captures sessions"""
