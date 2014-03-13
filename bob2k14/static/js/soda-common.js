@@ -39,7 +39,7 @@ function soda_login()
 			var username = result;
 			//check if it exists.
 						rpc.call('Bob.getcrypt', [username], function (result) {
-							if (result == "") 
+							if (result === null) 
 							{
 								//user has no password
 								rpc.call('Soda.passwordlogin', [username, ""], function (result) {}, function (error){});
@@ -47,9 +47,19 @@ function soda_login()
 							else
 							{
 								var cryptedPassword = result;
-								bootbox.prompt("Password?", function(result) {
+								bootbox.dialog({
+								  message: "First name:<input type='Password' name='password' id='password'></input>",
+								  title: "Password",
+								  buttons: {
+									main: {
+									  label: "Login",
+									  className: "btn-primary",
+									  callback: function() {
 									resultcryptedPassword = unixCryptTD(result, cryptedPassword);
-									rpc.call('Soda.passwordlogin', [username, resultcryptedPassword], function (result) {}, function (error){});
+									rpc.call('Soda.passwordlogin', [username, resultcryptedPassword], function (result) 
+									  }
+									}
+								  }
 								});
 								
 							}
