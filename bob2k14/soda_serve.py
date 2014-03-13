@@ -136,12 +136,16 @@ def soda_getusername():
          return sessionmanager.sessions[SessionLocation.soda].user.user.username
     else:
          return sessionmanager.sessions[SessionLocation.soda].user.user.nickname
-		 
+
 @jsonrpc.method('Soda.getbalance')
 def soda_getbalance(): 
     return str(sessionmanager.sessions[SessionLocation.soda].user.user.balance)
 
-	
+@jsonrpc.method('Soda.logout')
+def bob_logout():
+    sessionmanager.deregisterSession(SessionLocation.soda)
+    return ""
+
 #bob tasks
 @jsonrpc.method('Bob.index')
 def bob_json_index():

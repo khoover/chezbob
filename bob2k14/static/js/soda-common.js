@@ -39,10 +39,13 @@ function configureEventSource()
 				window.location.reload();
 				break;
 			case "slogout":
+				$("#loggedin-sidebar").hide();
+				$("#login-sidebar").show();
 				$("#userdisplay").hide();
 			break;
 			case "slogin":
-				menuIndex = 0;
+				$("#loggedin-sidebar").show();
+				$("#login-sidebar").hide();
 				$("#userdisplay").show();
 				rpc.call('Soda.getusername', [], function (result) {
 						$("#user-nick").text(result)
@@ -62,7 +65,22 @@ function configureEventSource()
 		}
 	}
 }
+
+function logout()
+{
+	rpc.call('Soda.logout', [], function (result) {
+		},
+		function (error)
+		{
+			notify_error(error);
+		});
+}
+
 $(document).ready(function() {
 	toggleFullScreen();
+	
+	$("#logout").on('click', function() {
+		logout();
+	});
 	configureEventSource();
 });
