@@ -29,6 +29,39 @@ function notify_error()
 {
 }
 
+function soda_login()
+{
+	 bootbox.prompt("Username?", function(result) {
+		if (result === null) { //dismissed
+		}
+		else
+		{
+			var username = result;
+			//check if it exists.
+						rpc.call('Soda.getcrypt', [username], function (result) {
+							if (result == "") 
+							{
+								//user has no password
+								rpc.call('Soda.passwordlogin', [username, ""], function (result) {}, function (error){});
+							}
+							else
+							{
+								var cryptedPassword = result;
+								bootbox.prompt("Password?", function(result) {
+									resultcryptedPassword = unixCryptTD(result, cryptedPassword);
+									rpc.call('Soda.passwordlogin', [username, resultcryptedPassword], function (result) {}, function (error){});
+								}
+								
+							}
+						},
+						function (error)
+						{
+							bootbox.alert("User "+ username + " not found.");
+						});
+		}
+	 });
+}
+
 function configureEventSource()
 {
     var source = new EventSource('/stream');
@@ -110,6 +143,11 @@ function logout()
 
 $(document).ready(function() {
 	toggleFullScreen();
+	
+	$("#login").on('click', function()
+	{
+		login();
+	});
 	
 	$("#logout").on('click', function() {
 		logout();

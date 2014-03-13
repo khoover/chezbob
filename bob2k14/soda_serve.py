@@ -159,6 +159,15 @@ def soda_getbalance():
     user = users.query.filter(users.userid == userid).first()
     return str(user.balance)
 
+@jsonrpc.method('Soda.passwordlogin')
+def soda_passwordlogin(username, password):
+    user = User()
+    user.login_password(username,password)
+    #logout any existing session
+    sessionmanager.deregisterSession(SessionLocation.soda)
+    sessionmanager.registerSession(SessionLocation.soda, user)
+    return to_jsonify_ready(sessionmanager.sessions[SessionLocation.soda].user.user)
+
 @jsonrpc.method('Soda.logout')
 def bob_logout():
     sessionmanager.deregisterSession(SessionLocation.soda)
