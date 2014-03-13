@@ -51,7 +51,7 @@ class Session:
         self.user = user
         self.logintime = datetime.datetime.now()
     def isvalid(self):
-        return False
+        return True
     def logout(self):
         return True
 """
