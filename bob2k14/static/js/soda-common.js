@@ -1,3 +1,5 @@
+var rpc = new $.JsonRpcClient({ajaxUrl: '/api'});
+
 function toggleFullScreen() {
   if (!document.fullscreenElement &&    // alternative standard method
       !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {  // current working methods
@@ -49,7 +51,7 @@ function configureEventSource()
 					{
 						notify_error(error);
 					});
-						rpc.call('Soda.getbalance', [], function (result) {
+				rpc.call('Soda.getbalance', [], function (result) {
 						$("#user-balance").text(result)
 					},
 					function (error)
