@@ -335,11 +335,8 @@ $(document).ready(function() {
 		if ($("#loginbox").is(':visible') && !$(".bootbox").is(':visible'))
 		{
 			if (e.keyCode === 13) {
-				else
-				{
 					//enter
 					handle_login();
-				}
 			}
 		}
 		
