@@ -50,7 +50,7 @@ function soda_login()
 								bootbox.prompt("Password?", function(result) {
 									resultcryptedPassword = unixCryptTD(result, cryptedPassword);
 									rpc.call('Soda.passwordlogin', [username, resultcryptedPassword], function (result) {}, function (error){});
-								}
+								});
 								
 							}
 						},
