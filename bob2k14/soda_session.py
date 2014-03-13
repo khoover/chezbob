@@ -20,7 +20,7 @@ class SessionManager:
             self.sessions[location] = Session(user)
         else:
             #is the previous session valid? if not, log the session out
-            if location not in self.sessions:
+            if location not in self.sessions or self.sessions[location] == None:
                 self.sessions[location] = Session(user)
             if not self.sessions[location].isvalid():
                 self.sessions[location].logout()
@@ -39,7 +39,7 @@ class SessionManager:
         elif location == SessionLocation.soda:
              soda_app.add_event("slogout")
     def checkSession(self, location):
-        if location not in self.sessions:
+        if location not in self.sessions or self.sessions[location] == None:
             return False
         if not self.sessions[location].isvalid():
             return False
