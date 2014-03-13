@@ -5,7 +5,7 @@
 This script listens for barcodes being scanned and sends them to the JSONrpc endpoint.
 
 Usage:
-  barcode_server.py scan-barcode [--barcode-port=<port>] [(-v|--verbose)]
+  barcode_server.py scan-barcode [--endpoint=<ep>] [--barcode-port=<port>] [(-v|--verbose)]
   barcode_server.py (-h | --help)
   barcode_server.py --version
 
@@ -13,7 +13,7 @@ Options:
   -h --help                 Show this screen.
   --version                 Show version.
   --barcode-port=<port>     Barcode serial port. [default: /dev/ttyUSB1]
-  --endpoint=<port>         JSON RPC endpoint. [default: http://soda.ucsd.edu:8080/api]
+  --endpoint=<ep>           JSON RPC endpoint. [default: http://soda.ucsd.edu:8080/api]
   -v --verbose      	    Verbose debug output.
 """
 
