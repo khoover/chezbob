@@ -74,7 +74,7 @@ if __name__ == '__main__':
                       if arguments['--verbose']:
                            print("Checksum:" + str(binascii.hexlify(checksum), 'ascii'))
                       if opcode == b'\xf3':
-                           #print(data[3:].decode('ascii'))
+                           print(data[3:].decode('ascii'))
     except KeyboardInterrupt:
          if barcodeport != None:
               barcodeport.close()
