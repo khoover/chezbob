@@ -38,7 +38,7 @@ function soda_login()
 		{
 			var username = result;
 			//check if it exists.
-						rpc.call('Soda.getcrypt', [username], function (result) {
+						rpc.call('Bob.getcrypt', [username], function (result) {
 							if (result == "") 
 							{
 								//user has no password
