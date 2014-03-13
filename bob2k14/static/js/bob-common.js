@@ -311,6 +311,7 @@ $(document).ready(function() {
 				break;
 			case "logout":
 				$("#actions").hide();
+				window.scrollTo(0, 0);
 				$("#login-username").val("");
 				$("#login-password").val("");
 				$("#loginbox").show();
