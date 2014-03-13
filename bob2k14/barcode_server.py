@@ -58,7 +58,7 @@ if __name__ == '__main__':
                            print(code)
                       #here's where we do the jsonrpc.
                       payload = {
-                          "method": "soda.remotebarcode",
+                          "method": "Soda.remotebarcode",
                           "params": [ code[0], code[1:]],
                           "jsonrpc": "2.0",
                            "id": 0
