@@ -104,6 +104,19 @@ class profiles(db.Model):
   property = db.Column(db.String(), primary_key = True)
   setting = db.Column(db.Integer())
 
+"""
+              Table "public.userbarcodes"
+ Column  |  Type   | Modifiers | Storage  | Description 
+---------+---------+-----------+----------+-------------
+ userid  | integer | not null  | plain    | 
+ barcode | text    | not null  | extended | 
+"""
+
+class userbarcodes(db.Model):
+  __tablename__ = 'profiles'
+  userid = db.Column(db.Integer())
+  barcode = db.Column(db.String(), primary_key = True)
+  
 class User:
     """Authenticates users"""
     salt = "cB"
@@ -126,6 +139,19 @@ class User:
              else:
                    raise Exception("Authentication Failure")
         raise Exception("Nonexistent User")
+    def login_barcode(self, barcode):
+        userbarcode = userbarcodes.query.filter(userbarcodes.barcode==barcode).first()
+        if userbarcode is not None:
+             userid = userbarcode.userid
+             self.user = users.query.filter(users.userid == userid).first()
+             self.authenticated = True
+             privacy = profiles.query.filter(profiles.userid==userid).filter(profiles.property=="privacy").first()
+             if privacy is not None:
+                  if privacy.setting == 1:
+                  self.privacy = True
+             return True
+        else:
+             raise Exception("Authentication Failure")
     def logout(self):
         return True
 

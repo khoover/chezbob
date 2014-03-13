@@ -321,8 +321,29 @@ $(document).ready(function() {
 		if ($("#loginbox").is(':visible') && !$(".bootbox").is(':visible'))
 		{
 			if (e.keyCode === 13) {
-				//enter
-				handle_login();
+				if (bcodeinput)
+				{
+					bodeinput = false;
+							rpc.call('Bob.barcodelogin', [bcodebuffer], function(result) {
+			//login success. webevent should detect login can call handler.
+		},
+		function (error)
+		{
+			bootbox.alert("Authentication error.");
+		});
+				}
+				else
+				{
+					//enter
+					handle_login();
+				}
+			}
+			
+			if (($("#login-username").val() == "") && e.keyCode >= 48 && e.keyCode <= 57)
+			{
+				//number
+				if (!bcodeinput) {bcodeinput = true; bcodebuffer = "";}
+				bcodebuffer += parseInt(e.keyCode - 48); //keycode to number conversion
 			}
 		}
 		

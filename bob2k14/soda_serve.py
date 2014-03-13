@@ -130,6 +130,15 @@ def bob_passwordlogin(username, password):
     sessionmanager.registerSession(SessionLocation.computer, user)
     return to_jsonify_ready(sessionmanager.sessions[SessionLocation.computer].user.user)
 
+@jsonrpc.method('Bob.barcodelogin')
+def bob_barcodelogin(barcode):
+    user = User()
+    user.login_barcode(barcode)
+    #logout any existing session
+    sessionmanager.deregisterSession(SessionLocation.computer)
+    sessionmanager.registerSession(SessionLocation.computer, user)
+    return to_jsonify_ready(sessionmanager.sessions[SessionLocation.computer].user.user)
+
 @jsonrpc.method('Bob.getusername')
 def bob_getusername(): 
     if sessionmanager.sessions[SessionLocation.computer].user.user.nickname == None:
