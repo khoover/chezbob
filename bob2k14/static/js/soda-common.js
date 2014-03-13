@@ -36,7 +36,7 @@ function configureEventSource()
 		if (e.data.substring(0,3) == "sbc")
 		{
 			//this is a barcode that was purchased
-			var code = e.data.substring(3);
+			var barcode = e.data.substring(3);
 			
 			rpc.call('Bob.getbarcodeinfo', [barcode], function (result) {
 			if(result['name'] === undefined)
