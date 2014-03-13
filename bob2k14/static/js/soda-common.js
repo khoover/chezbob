@@ -23,6 +23,44 @@ function toggleFullScreen() {
   }
 }
 
+function notify_error()
+{
+}
+
+function configureEventSource()
+{
+    var source = new EventSource('/stream');
+	source.onmessage = function(e) {
+		switch(e.data)
+		{
+			case "refresh":
+				window.location.reload();
+				break;
+			case "slogout":
+				$("#userdisplay").hide();
+			break;
+			case "slogin":
+				menuIndex = 0;
+				$("#userdisplay").show();
+				rpc.call('Soda.getusername', [], function (result) {
+						$("#user-nick").text(result)
+					},
+					function (error)
+					{
+						notify_error(error);
+					});
+						rpc.call('Soda.getbalance', [], function (result) {
+						$("#user-balance").text(result)
+					},
+					function (error)
+					{
+						notify_error(error);
+					});
+			break;
+		}
+	}
+}
 $(document).ready(function() {
 	toggleFullScreen();
+	configureEventSource();
 });
