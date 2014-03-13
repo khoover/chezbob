@@ -2,6 +2,7 @@ import datetime
 import crypt
 from enum import Enum
 import soda_app
+from sqlalchemy import func
 
 app = soda_app.app
 db = soda_app.db
@@ -131,7 +132,7 @@ class User:
         self.privacy = False
     def login_password(self, username, password):
         self.username = username
-        user = users.query.filter(users.username==username).first()
+        user = users.query.filter(func.lower(users.username)==func.lower(username)).first()
         if user is not None:
              if user.pwd == None or user.pwd == "" or password == user.pwd:
                    self.user = user
