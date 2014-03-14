@@ -13,7 +13,7 @@ Options:
   --config=<config-file>        Use alternate config file. [default: config.json]
   --address=<listen-address>    Address to listen on. [default: 0.0.0.0]
   --port=<port>                 Port to listen on. [default: 8080]
-  --mdb-server-ep=<ep>          Endpoint of MDB server. [default: http://127.0.0.1:8081]
+  --mdb-server-ep=<ep>          Endpoint of MDB server. [default: http://127.0.0.1:8081/api]
   --debug                       Verbose debug output.
 
 """
