@@ -83,12 +83,13 @@ def send_remote(data):
 def mdb_thread(arguments):
     #1 second timeout.
     mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1, 2)
+    mdbwrapper = io.TextIOWrapper(io.BufferedRWPair(sodaport,sodaport,1), encoding='ascii', errors=None, newline=None)
     mdbbuffer = ""
     try:
          while True:
          # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
               try:
-                   data = mdbport.read()
+                   data = mdbwrapper.read()
                    if data is not None:
                         if data != b'\x0d':
                              mdbbuffer += data.decode('ascii')
@@ -102,7 +103,7 @@ def mdb_thread(arguments):
               #check for enqueued requests.
               try:
                    request = requestqueue.get_nowait()
-                   request.result = mdb_command(mdbport, request.command)
+                   request.result = mdb_command(mdbwrapper, request.command)
                    if arguments['--verbose']:
                         print(request.result)
                    request.event.set()
