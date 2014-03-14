@@ -58,7 +58,7 @@ def mdb_command(port, command):
     port.write((command + "\r").encode())
     port.read()
     readbuffer = ""
-    for i in iter(functools.partial(port.read, 1), '\r'):
+    for i in iter(functools.partial(port.read, 1), b'\0xd'):
          readbuffer += i.decode('ascii')
     return readbuffer
 
@@ -72,7 +72,6 @@ def mdb_thread(arguments):
     try:
          while True:
          # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
-              time.sleep (50.0 / 1000.0);
               data = mdbport.read()
               if data is not None:
                    if len(data) > 0:
