@@ -60,7 +60,6 @@ def mdb_command(port, command):
          iter(functools.partial(port.read,1), b'\x0a')
     except Exception:
          pass
-    time.sleep(1) #500ms delay
     readbuffer = ""
     try:
          for i in iter(functools.partial(port.read, 1), b'\x0d'):
@@ -78,17 +77,17 @@ def send_remote(data):
                 "id": 0
               }
     requests.post(arguments['--remote-endpoint'], data=json.dumps(payload), headers={'content-type': 'application/json'}).json()
+    print("Sent: " + data)
     return ""
 
 def mdb_thread(arguments):
     #1 second timeout.
-    mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1, 0)
+    mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1, 2)
     mdbbuffer = ""
     try:
          while True:
          # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
               try:
-                   time.sleep(1) #500ms delay
                    data = mdbport.read()
                    if data is not None:
                         if data != b'\x0d':
