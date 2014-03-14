@@ -109,7 +109,7 @@ function configureEventSource()
 							notify_error(error);
 						});
 			
-			$("#transaction tbody").append("<tr><td>Deposit <i class='fa fa-usd'></i>" +  e.data.substring(3)  + "</td><td>+" + result['price'] + "</td></tr>");
+			$("#transaction tbody").append("<tr><td>Deposit <i class='fa fa-usd'></i>" +  e.data.substring(3)  + "</td><td>+" + e.data.substring(3) + "</td></tr>");
 		}
 		else
 		{
