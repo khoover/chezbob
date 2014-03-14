@@ -36,6 +36,9 @@ from threading import Event
 from collections import namedtuple
 import types
 
+app = Flask(__name__)
+jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
+
 def get_git_revision_hash():
     return str(subprocess.check_output(['git', 'rev-parse', 'HEAD']))
 
