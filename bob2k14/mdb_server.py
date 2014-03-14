@@ -77,17 +77,16 @@ def mdb_thread(arguments):
                    request.event.set()
               except queue.empty:
                    pass
-    except Exception:
+    except Exception as e:
          if mdbport != None:
               mdbport.close()
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version=get_git_revision_hash())
-    try:
-        if arguments['--verbose']:
-             print("Launched with arguments:")
-             print(arguments)
-        
-        mdb = Thread(target = mdb_thread, args = (arguments))
-        mdb.start()
-        app.run(host=arguments['--address'], port=int(arguments['--port']), debug=arguments['--debug'],threaded=True)
+
+    if arguments['--verbose']:
+        print("Launched with arguments:")
+        print(arguments)
+    mdb = Thread(target = mdb_thread, args = (arguments))
+    mdb.start()
+    app.run(host=arguments['--address'], port=int(arguments['--port']), debug=arguments['--debug'],threaded=True)
