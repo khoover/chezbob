@@ -149,7 +149,7 @@ def remotebarcode(type, barcode):
 @jsonrpc.method('Soda.remotemdb')
 def remotemdb(event):
     #let's figure out what kind of event we're handling. let's deal with bill in escrow.
-    if event[0:1] == "Q1":
+    if event[0:2] == "Q1":
          #let's make sure theres a user logged in. if not, just tell them that guest mode isn't ready yet.
          if sessionmanager.checkSession(SessionLocation.soda):
               #ok, attempt to stack the bill.
@@ -157,9 +157,9 @@ def remotemdb(event):
          else:
               #return the bill.
               result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["K2"])
-    elif event [0:1] == "Q2":
+    elif event [0:2] == "Q2":
          #well, someone better be logged in. the bill was stacked. 
-         billtype = event[2:3]
+         billtype = event[3:5]
          amount = 0
          if billtype == "00":
               amount = 1
