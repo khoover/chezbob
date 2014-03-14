@@ -84,7 +84,7 @@ def mdb_thread(arguments):
               #check for enqueued requests.
               try:
                    request = requestqueue.get_nowait()
-                   request.result = mdb_command(mdbwrapper, request.command)
+                   request.result = mdb_command(mdbport, request.command)
                    request.event.set()
               except queue.Empty:
                    pass
