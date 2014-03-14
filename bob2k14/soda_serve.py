@@ -184,6 +184,34 @@ def remotemdb(event):
          db.session.merge(user)
          db.session.commit()
          soda_app.add_event("deb" + str(amount))
+    elif event [0:2] == "P1":
+         if not sessionmanager.checkSession(SessionLocation.soda):
+              #refund it since we're not logged in.
+              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["G " + event[3:5] + " 01"])
+         else:
+              #coins!
+              cointype = event[3:5]
+              amount = 0
+              if cointype == "00":
+                   amount = 0.5
+              elif cointype == "01":
+                   amount = 0.10
+              elif cointype == "03":
+                   amount = 0.25
+              #now credit to the user.
+              user = sessionmanager.sessions[SessionLocation.soda].user.user
+              user.balance += amount
+              description = "ADD " 
+              barcode = None
+              #now create a matching record in transactions
+              transact = transactions(userid=user.userid, xactvalue=+amount, xacttype=description, barcode=barcode, source="soda")
+              db.session.add(transact)
+              db.session.merge(user)
+              db.session.commit()
+         soda_app.add_event("dec" + str(amount))
+    elif event [0:1] == "W":
+         #logout
+         sessionmanager.deregisterSession(SessionLocation.soda)
     return ""
 
 @jsonrpc.method('Soda.getusername')
