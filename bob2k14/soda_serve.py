@@ -175,11 +175,11 @@ def remotemdb(event):
               amount = 100
          #now credit to the user.
          user = sessionmanager.sessions[SessionLocation.soda].user.user
-         user.balance += value
+         user.balance += amount
          description = "ADD " 
          barcode = None
          #now create a matching record in transactions
-         transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="soda")
+         transact = transactions(userid=user.userid, xactvalue=+amount, xacttype=description, barcode=barcode, source="soda")
          db.session.add(transact)
          db.session.merge(user)
          db.session.commit()
