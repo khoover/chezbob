@@ -122,7 +122,7 @@ function configureEventSource()
 							notify_error(error);
 						});
 			
-			$("#transaction tbody").append("<tr><td>Deposit coins<i class='fa fa-usd'></i>" +  e.data.substring(3)  + "</td><td>+" + e.data.substring(3) + "</td></tr>");
+			$("#transaction tbody").append("<tr><td>Deposit coins <i class='fa fa-usd'></i>" +  e.data.substring(3)  + "</td><td>+" + e.data.substring(3) + "</td></tr>");
 		}
 		else
 		{

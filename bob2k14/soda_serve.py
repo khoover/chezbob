@@ -196,7 +196,7 @@ def remotemdb(event):
                    amount = 0.5
               elif cointype == "01":
                    amount = 0.10
-              elif cointype == "03":
+              elif cointype == "02":
                    amount = 0.25
               #now credit to the user.
               user = sessionmanager.sessions[SessionLocation.soda].user.user
