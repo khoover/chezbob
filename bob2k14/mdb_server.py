@@ -81,7 +81,7 @@ def send_remote(data):
 
 def mdb_thread(arguments):
     #1 second timeout.
-    mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1, 1)
+    mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1, 2)
     mdbbuffer = ""
     try:
          while True:
