@@ -57,16 +57,14 @@ def mdb_command_json(command):
 def mdb_command(port, command):
     port.write((command + "\r").encode())
     try:
-         port.read()
+         iter(functools.partial(port.read,1), b'\x0a')
     except Exception:
          pass
+    time.sleep(1) #500ms delay
     readbuffer = ""
-    while True:
-         try:
-              result = port.read()
-              if result is b'\x0d':
-                   break
-              readbuffer += result.decode('ascii')
+    try:
+         for i in iter(functools.partial(port.read, 1), b'\x0d'):
+              readbuffer += i.decode('ascii')
     except Exception:
          pass
     return readbuffer
@@ -79,24 +77,25 @@ def send_remote(data):
                 "jsonrpc": "2.0",
                 "id": 0
               }
-    requests.post(arguments['--endpoint'], data=json.dumps(payload), headers={'content-type': 'application/json'}).json()
+    requests.post(arguments['--remote-endpoint'], data=json.dumps(payload), headers={'content-type': 'application/json'}).json()
     return ""
 
 def mdb_thread(arguments):
     #1 second timeout.
-    mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1, 2)
+    mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1, 0)
     mdbbuffer = ""
     try:
          while True:
          # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
               try:
+                   time.sleep(1) #500ms delay
                    data = mdbport.read()
                    if data is not None:
                         if data != b'\x0d':
                              mdbbuffer += data.decode('ascii')
                         else:
                              if arguments['--verbose']:
-                                  print("sent: " + mdbbuffer)
+                                  print(mdbbuffer)
                              send_remote(mdbbuffer)
                              mdbbuffer = ""
               except Exception:
@@ -106,7 +105,7 @@ def mdb_thread(arguments):
                    request = requestqueue.get_nowait()
                    request.result = mdb_command(mdbport, request.command)
                    if arguments['--verbose']:
-                        print("result: " + request.result)
+                        print(request.result)
                    request.event.set()
               except Exception:
                    pass
