@@ -183,7 +183,7 @@ def remotemdb(event):
          db.session.add(transact)
          db.session.merge(user)
          db.session.commit()
-         soda_app.add_event("deb" + amount)
+         soda_app.add_event("deb" + str(amount))
     return ""
 
 @jsonrpc.method('Soda.getusername')
