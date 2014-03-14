@@ -54,7 +54,7 @@ def mdb_command_json(command):
     return request.result
 
 def mdb_command(port, command):
-    port.write(command + "\r")
+    port.write((command + "\r").encode())
     port.read()
     readbuffer = ""
     for i in iter(functools.partial(port.read, 1), '\r'):
@@ -89,6 +89,7 @@ def mdb_thread(arguments):
               except queue.Empty:
                    pass
     except Exception as e:
+         print ("Exception in mdbthread:" + str(e))
          if mdbport != None:
               mdbport.close()
 
