@@ -56,10 +56,17 @@ def mdb_command_json(command):
 
 def mdb_command(port, command):
     port.write((command + "\r").encode())
-    port.read()
+    try:
+         iter(functools.partial(port.read,1), b'\x0a')
+    except Exception:
+         pass
+    time.sleep(0.5) #500ms delay
     readbuffer = ""
-    for i in iter(functools.partial(port.read, 1), b'\x0d'):
-         readbuffer += i.decode('ascii')
+    try:
+         for i in iter(functools.partial(port.read, 1), b'\x0d'):
+              readbuffer += i.decode('ascii')
+    except Exception:
+         pass
     return readbuffer
 
 def send_remote(data):
@@ -67,15 +74,14 @@ def send_remote(data):
 
 def mdb_thread(arguments):
     #1 second timeout.
-    mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1, 1)
+    mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1, 0)
     mdbbuffer = ""
     try:
          while True:
          # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
-              time.sleep(1)
-              data = mdbport.read()
-              if data is not None:
-                   if len(data) > 0:
+              try:
+                   data = mdbport.read()
+                   if data is not None:
                         if data != b'\x0d':
                              mdbbuffer += data.decode('ascii')
                         else:
@@ -83,6 +89,8 @@ def mdb_thread(arguments):
                                   print(mdbbuffer)
                              send_remote(mdbbuffer)
                              mdbbuffer = ""
+              except Exception:
+                   pass
               #check for enqueued requests.
               try:
                    request = requestqueue.get_nowait()
@@ -90,10 +98,10 @@ def mdb_thread(arguments):
                    if arguments['--verbose']:
                         print(request.result)
                    request.event.set()
-              except queue.Empty:
+              except Exception:
                    pass
     except Exception as e:
-         print ("Exception in mdbthread:" + str(e))
+         print ("Exception in mdbthread:" + e)
          if mdbport != None:
               mdbport.close()
 
