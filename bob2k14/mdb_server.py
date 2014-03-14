@@ -12,7 +12,7 @@ Usage:
 Options:
   -h --help                 Show this screen.
   --version                 Show version.
-  --mdb-port=<port>         MDB serial port. [default: /dev/ttyUSB2]
+  --mdb-port=<port>         MDB serial port. [default: /dev/ttyUSB0]
   --remote-endpoint=<ep>    JSON RPC endpoint. [default: http://127.0.0.1:8080/api]
   --address=<ep>            Address to listen on. [default: 0.0.0.0]
   --port=<port>             Port to listen on. [default: 8081]
@@ -92,4 +92,4 @@ if __name__ == '__main__':
         print(arguments)
     mdb = Thread(target = mdb_thread, args = [arguments])
     mdb.start()
-    app.run(host=arguments['--address'], port=int(arguments['--port']), debug=arguments['--debug'],threaded=True)
+    app.run(host=arguments['--address'], port=int(arguments['--port']), debug=arguments['--verbose'],threaded=True)
