@@ -36,9 +36,10 @@ def static_proxy(path):
     return app.send_static_file(os.path.join('js', path))
 
 def make_jsonrpc_call(endpoint, call, args):
+    print("making jsonrpc call")
     payload = {
                 "method": call,
-                "params": [ args ],
+                "params": args ,
                 "jsonrpc": "2.0",
                 "id": 0
               }
