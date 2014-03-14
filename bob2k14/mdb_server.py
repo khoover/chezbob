@@ -62,8 +62,8 @@ def send_remote(data):
     return ""
 
 def mdb_thread(arguments):
+    mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1)
     try:
-         mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1)
          mdbwrapper = io.TextIOWrapper(io.BufferedRWPair(mdbport,mdbport,1), encoding='ascii', errors=None, newline=None)
          while True:
          # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
