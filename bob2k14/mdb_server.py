@@ -57,10 +57,9 @@ def mdb_command_json(command):
 def mdb_command(port, command):
     port.write((command + "\r").encode())
     try:
-         iter(functools.partial(port.read,1), b'\x0a')
+         port.read()
     except Exception:
          pass
-    time.sleep(1) #1s delay
     readbuffer = ""
     try:
          for i in iter(functools.partial(port.read, 1), b'\x0d'):
@@ -94,7 +93,7 @@ def mdb_thread(arguments):
                              mdbbuffer += data.decode('ascii')
                         else:
                              if arguments['--verbose']:
-                                  print("sent: " mdbbuffer)
+                                  print("sent: " + mdbbuffer)
                              send_remote(mdbbuffer)
                              mdbbuffer = ""
               except Exception:
