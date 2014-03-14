@@ -61,9 +61,12 @@ def mdb_command(port, command):
     except Exception:
          pass
     readbuffer = ""
-    try:
-         for i in iter(functools.partial(port.read, 1), b'\x0d'):
-              readbuffer += i.decode('ascii')
+    while True:
+         try:
+              result = port.read()
+              if result is b'\x0d':
+                   break
+              readbuffer += result.decode('ascii')
     except Exception:
          pass
     return readbuffer
@@ -103,7 +106,7 @@ def mdb_thread(arguments):
                    request = requestqueue.get_nowait()
                    request.result = mdb_command(mdbport, request.command)
                    if arguments['--verbose']:
-                        print(request.result)
+                        print("result: " + request.result)
                    request.event.set()
               except Exception:
                    pass
