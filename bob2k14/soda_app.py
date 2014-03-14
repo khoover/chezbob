@@ -5,6 +5,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 import os
 import queue
 import requests
+import json
 
 # Flask application
 app = Flask(__name__, static_url_path='/static')
