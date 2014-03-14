@@ -153,10 +153,10 @@ def remotemdb(event):
          #let's make sure theres a user logged in. if not, just tell them that guest mode isn't ready yet.
          if sessionmanager.checkSession(SessionLocation.soda):
               #ok, attempt to stack the bill.
-              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", "K1")
+              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["K1"])
          else:
               #return the bill.
-              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", "K2")
+              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["K2"])
     elif event [0:1] == "Q2":
          #well, someone better be logged in. the bill was stacked. 
          billtype = event[2:3]
