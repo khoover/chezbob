@@ -18,3 +18,5 @@
    - sqlalchemy
    - flask-sqlalchemy
    - psycopg2
+   - json-rpc
+   - requests
