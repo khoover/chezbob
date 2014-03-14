@@ -90,6 +90,6 @@ if __name__ == '__main__':
     if arguments['--verbose']:
         print("Launched with arguments:")
         print(arguments)
-    mdb = Thread(target = mdb_thread, args = (arguments))
+    mdb = Thread(target = mdb_thread, args = [arguments])
     mdb.start()
     app.run(host=arguments['--address'], port=int(arguments['--port']), debug=arguments['--debug'],threaded=True)
