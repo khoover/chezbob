@@ -35,6 +35,7 @@ from threading import Thread
 from threading import Event
 from collections import namedtuple
 import types
+import time
 
 app = Flask(__name__)
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
@@ -71,6 +72,7 @@ def mdb_thread(arguments):
     try:
          while True:
          # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
+              time.sleep (50.0 / 1000.0);
               data = mdbport.read()
               if data is not None:
                    if len(data) > 0:
@@ -85,6 +87,8 @@ def mdb_thread(arguments):
               try:
                    request = requestqueue.get_nowait()
                    request.result = mdb_command(mdbport, request.command)
+                   if arguments['--verbose']:
+                        print(request.result)
                    request.event.set()
               except queue.Empty:
                    pass
