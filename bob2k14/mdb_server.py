@@ -55,24 +55,31 @@ def mdb_command_json(command):
 
 def mdb_command(port, command):
     port.write(command + "\r")
-    port.readline()
-    return port.readline()
+    port.read()
+    readbuffer = ""
+    for i in iter(functools.partial(port.read, 1), '\r'):
+         readbuffer += i
+    return readbuffer
 
 def send_remote(data):
     return ""
 
 def mdb_thread(arguments):
     mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1)
+    mdbbuffer = ""
     try:
-         mdbwrapper = io.TextIOWrapper(io.BufferedRWPair(mdbport,mdbport,1), encoding='ascii', errors=None, newline=None)
          while True:
          # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
-              data = mdbwrapper.readline()
+              data = mdbport.read()
               if data is not None:
                    if len(data) > 0:
-                        if arguments['--verbose']:
-                             print(data)
-                        send_remote(data)
+                        if data != b'\x0d':
+                             mdbbuffer += data
+                        else:
+                             if arguments['--verbose']:
+                                  print(mdbbuffer)
+                             send_remote(mdbbuffer)
+                             mdbbuffer = ""
               #check for enqueued requests.
               try:
                    request = requestqueue.get_nowait()
