@@ -58,7 +58,7 @@ def mdb_command(port, command):
     port.read()
     readbuffer = ""
     for i in iter(functools.partial(port.read, 1), '\r'):
-         readbuffer += i
+         readbuffer += i.decode('ascii')
     return readbuffer
 
 def send_remote(data):
@@ -75,7 +75,7 @@ def mdb_thread(arguments):
               if data is not None:
                    if len(data) > 0:
                         if data != b'\x0d':
-                             mdbbuffer += data
+                             mdbbuffer += data.decode('ascii')
                         else:
                              if arguments['--verbose']:
                                   print(mdbbuffer)
