@@ -1,19 +1,21 @@
 #!/usr/bin/env python3.4
 
-"""barcode_server, the Soda Machine serial barcode server.
+"""mdb_server, the Soda Machine mdb server.
 
-This script listens for barcodes being scanned and sends them to the JSONrpc endpoint.
+This script listens for events on mdb and writes it to and endpoint and also listens for incoming (unsolicited mdb commands).
 
 Usage:
-  barcode_server.py scan-barcode [--endpoint=<ep>] [--barcode-port=<port>] [(-v|--verbose)]
-  barcode_server.py (-h | --help)
-  barcode_server.py --version
+  mdb_server.py serve [--mdb-port=<port>] [--remote-endpoint=<ep>] [--address=<listen-address>] [--port=<port>]  [(-v|--verbose)]
+  mdb_server.py (-h | --help)
+  mdb_server.py --version
 
 Options:
   -h --help                 Show this screen.
   --version                 Show version.
-  --barcode-port=<port>     Barcode serial port. [default: /dev/ttyUSB1]
-  --endpoint=<ep>           JSON RPC endpoint. [default: http://soda.ucsd.edu:8080/api]
+  --mdb-port=<port>         MDB serial port. [default: /dev/ttyUSB2]
+  --remote-endpoint=<ep>    JSON RPC endpoint. [default: http://127.0.0.1:8080/api]
+  --address=<ep>            Address to listen on. [default: 0.0.0.0]
+  --port=<port>             Port to listen on. [default: 8081]
   -v --verbose      	    Verbose debug output.
 """
 
@@ -26,14 +28,58 @@ import binascii
 import functools
 import requests
 import json
+from flask import Flask, Response, jsonify
+from flask_jsonrpc import JSONRPC
+import queue
+from threading import Thread
+from threading import Event
+from collections import namedtuple
+import types
 
 def get_git_revision_hash():
     return str(subprocess.check_output(['git', 'rev-parse', 'HEAD']))
+
+requestqueue = queue.Queue()
+
+@jsonrpc.method('Mdb.command')
+def mdb_command_json(command):
+    request = types.SimpleNamespace()
+    request.event = Event()
+    request.command = command
+    requestqueue.put(request)
+    request.event.wait()
+    return request.result
 
 def mdb_command(port, command):
     port.write(command + "\r")
     port.readline()
     return port.readline()
+
+def send_remote(data):
+    return ""
+
+def mdb_thread(arguments):
+    try:
+         mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1)
+         mdbwrapper = io.TextIOWrapper(io.BufferedRWPair(mdbport,mdbport,1), encoding='ascii', errors=None, newline=None)
+         while True:
+         # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
+              data = mdbwrapper.readline()
+              if data is not None:
+                   if len(data) > 0:
+                        if arguments['--verbose']:
+                             print(data)
+                        send_remote(data)
+              #check for enqueued requests.
+              try:
+                   request = requestqueue.get_nowait()
+                   request.result = mdb_command(mdbwrapper, request.command)
+                   request.event.set()
+              except queue.empty:
+                   pass
+    except Exception:
+         if mdbport != None:
+              mdbport.close()
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version=get_git_revision_hash())
@@ -41,41 +87,7 @@ if __name__ == '__main__':
         if arguments['--verbose']:
              print("Launched with arguments:")
              print(arguments)
-    
-        if arguments["scan-barcode"]:
-            barcodeport = serial.Serial(arguments["--barcode-port"], 9600, 8, "N", 1)
-            while True:
-                  length = struct.unpack('B', barcodeport.read())[0]
-                  if arguments['--verbose']:
-                      print("Length: " + str(length))
-                  if length == 0:
-                      #Raw ASCII
-                      code = ""
-                      curcode = b'\x0d'
-                      for i in iter(functools.partial(barcodeport.read,1), b'\x0d'):
-                           code += i.decode('ascii')
-                      if arguments['--verbose']:
-                           print(code)
-                      #here's where we do the jsonrpc.
-                      payload = {
-                          "method": "Soda.remotebarcode",
-                          "params": [ code[0], code[1:]],
-                          "jsonrpc": "2.0",
-                           "id": 0
-                      }
-                      requests.post(arguments['--endpoint'], data=json.dumps(payload), headers={'content-type': 'application/json'}).json()
-                  else:
-                      opcode = barcodeport.read()
-                      if arguments['--verbose']:
-                           print("Opcode:" + str(binascii.hexlify(opcode), 'ascii'))
-                      data = barcodeport.read(length - 2)
-                      if arguments['--verbose']:
-                           print("Data:" + str(binascii.hexlify(data), 'ascii'))
-                      checksum = barcodeport.read(2)		
-                      if arguments['--verbose']:
-                           print("Checksum:" + str(binascii.hexlify(checksum), 'ascii'))
-                      if opcode == b'\xf3':
-                           print(data[3:].decode('ascii'))
-    except KeyboardInterrupt:
-         if barcodeport != None:
-              barcodeport.close()
+        
+        mdb = Thread(target = mdb_thread, args = (arguments))
+        mdb.start()
+        app.run(host=arguments['--address'], port=int(arguments['--port']), debug=arguments['--debug'],threaded=True)
