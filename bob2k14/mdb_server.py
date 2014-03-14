@@ -70,6 +70,14 @@ def mdb_command(port, command):
     return readbuffer
 
 def send_remote(data):
+    #here's where we do the jsonrpc.
+    payload = {
+                "method": "Soda.remotemdb",
+                "params": [ data ],
+                "jsonrpc": "2.0",
+                "id": 0
+              }
+    requests.post(arguments['--endpoint'], data=json.dumps(payload), headers={'content-type': 'application/json'}).json()
     return ""
 
 def mdb_thread(arguments):

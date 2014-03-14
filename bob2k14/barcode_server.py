@@ -13,7 +13,7 @@ Options:
   -h --help                 Show this screen.
   --version                 Show version.
   --barcode-port=<port>     Barcode serial port. [default: /dev/ttyUSB1]
-  --endpoint=<ep>           JSON RPC endpoint. [default: http://soda.ucsd.edu:8080/api]
+  --endpoint=<ep>           JSON RPC endpoint. [default: http://127.0.0.1:8080/api]
   -v --verbose      	    Verbose debug output.
 """
 

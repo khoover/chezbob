@@ -4,10 +4,12 @@ from flask_cors import cross_origin
 from flask.ext.sqlalchemy import SQLAlchemy
 import os
 import queue
+import requests
 
 # Flask application
 app = Flask(__name__, static_url_path='/static')
 db = SQLAlchemy(app)
+arguments = []
 
 event_subscriptions = []
 
@@ -32,3 +34,12 @@ def add_event(event):
 def static_proxy(path):
     # send_static_file will guess the correct MIME type
     return app.send_static_file(os.path.join('js', path))
+
+def make_jsonrpc_call(endpoint, call, args):
+    payload = {
+                "method": call,
+                "params": [ args ],
+                "jsonrpc": "2.0",
+                "id": 0
+              }
+    return requests.post(endpoint, data=json.dumps(payload), headers={'content-type': 'application/json'}).json()

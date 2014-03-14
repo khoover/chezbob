@@ -3,7 +3,7 @@
 """SodaServe, The ChezBob JSON-RPC Database Server.
 
 Usage:
-  soda_serve.py serve <dburl> [--config=<config-file>] [--address=<listen-address>] [--port=<port>] [--debug]
+  soda_serve.py serve <dburl> [--config=<config-file>] [--mdb-server-ep=<ep>] [--address=<listen-address>] [--port=<port>] [--debug]
   soda_serve.py (-h | --help)
   soda_serve.py --version
 
@@ -13,6 +13,7 @@ Options:
   --config=<config-file>        Use alternate config file. [default: config.json]
   --address=<listen-address>    Address to listen on. [default: 0.0.0.0]
   --port=<port>                 Port to listen on. [default: 8080]
+  --mdb-server-ep=<ep>          Endpoint of MDB server. [default: 127.0.0.1:8081]
   --debug                       Verbose debug output.
 
 """
@@ -29,6 +30,7 @@ import json
 import soda_app
 import os
 import datetime
+import requests
 
 app = soda_app.app
 db = soda_app.db
@@ -45,7 +47,6 @@ def to_jsonify_ready(model):
             json[col.name] = str(getattr(model, col.name))
 
     return json
-
 
 #db models - todo: move this into models.py or similar
 
@@ -143,6 +144,46 @@ def remotebarcode(type, barcode):
          #logout any existing session
          sessionmanager.deregisterSession(SessionLocation.soda)
          sessionmanager.registerSession(SessionLocation.soda, user)
+    return ""
+
+@jsonrpc.method('Soda.remotemdb')
+def remotemdb(event):
+    #let's figure out what kind of event we're handling. let's deal with bill in escrow.
+    if event[0:1] == "Q1":
+         #let's make sure theres a user logged in. if not, just tell them that guest mode isn't ready yet.
+         if sessionmanager.checkSession(SessionLocation.soda):
+              #ok, attempt to stack the bill.
+              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", "K1")
+         else:
+              #return the bill.
+              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", "K2")
+    elif event [0:1] == "Q2":
+         #well, someone better be logged in. the bill was stacked. 
+         billtype = event[2:3]
+         amount = 0
+         if billtype == "00":
+              amount = 1
+         elif billtype == "01":
+              amount = 5
+         elif billtype == "02":
+              amount = 10
+         elif billtype == "03":
+              amount = 20
+         elif billtype == "04":
+              amount = 50
+         elif billtype == "05":
+              amount = 100
+         #now credit to the user.
+         user = sessionmanager.sessions[SessionLocation.soda].user.user
+         user.balance += value
+         description = "ADD " 
+         barcode = None
+         #now create a matching record in transactions
+         transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="soda")
+         db.session.add(transact)
+         db.session.merge(user)
+         db.session.commit()
+         soda_app.add_event("deb" + amount)
     return ""
 
 @jsonrpc.method('Soda.getusername')
@@ -316,6 +357,7 @@ configdata = []
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='SodaServe 1.0')
+    soda_app.arguments = arguments
     with open(os.path.dirname(os.path.realpath(__file__)) + "/" +  arguments["--config"]) as json_data:
          configdata = json.load(json_data)
     if arguments['--debug']:

@@ -98,6 +98,19 @@ function configureEventSource()
 			}
 			}, function(error){});
 		}
+		else if (e.data.substring(0,3) == "deb")
+		{
+			//bill deposit.
+			rpc.call('Soda.getbalance', [], function (result) {
+							$("#user-balance").text(result)
+						},
+						function (error)
+						{
+							notify_error(error);
+						});
+			
+			$("#transaction tbody").append("<tr><td>Deposit <i class='fa fa-usd'></i>" +  e.data.substring(3)  + "</td><td>+" + result['price'] + "</td></tr>");
+		}
 		else
 		{
 			switch(e.data)
