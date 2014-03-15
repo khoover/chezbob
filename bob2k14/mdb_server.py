@@ -55,18 +55,11 @@ def mdb_command_json(command):
     return request.result
 
 def mdb_command(port, command):
-    port.write((command + "\r").encode())
-    try:
-         iter(functools.partial(port.read,1), b'\x0a')
-    except Exception:
-         pass
-    readbuffer = ""
-    try:
-         for i in iter(functools.partial(port.read, 1), b'\x0d'):
-              readbuffer += i.decode('ascii')
-    except Exception:
-         pass
-    return readbuffer
+    port.write((command + "\r"))
+    time.sleep(0.1)
+    port.readline()
+    time.sleep(3)
+    return port.readline().rstrip('\r\n')
 
 def send_remote(data):
     #here's where we do the jsonrpc.
@@ -77,37 +70,42 @@ def send_remote(data):
                 "id": 0
               }
     requests.post(arguments['--remote-endpoint'], data=json.dumps(payload), headers={'content-type': 'application/json'}).json()
-    print("Sent: " + data)
     return ""
 
 def mdb_thread(arguments):
     #1 second timeout.
-    mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1, 2)
-    mdbwrapper = io.TextIOWrapper(io.BufferedRWPair(sodaport,sodaport,1), encoding='ascii', errors=None, newline=None)
+    mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1, 0)
+    mdbwrapper = io.TextIOWrapper(io.BufferedRWPair(mdbport,mdbport, 2), encoding='ascii', errors=None, newline=None)
     mdbbuffer = ""
     try:
          while True:
          # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
               try:
-                   data = mdbwrapper.read()
-                   if data is not None:
-                        if data != b'\x0d':
-                             mdbbuffer += data.decode('ascii')
-                        else:
-                             if arguments['--verbose']:
-                                  print(mdbbuffer)
-                             send_remote(mdbbuffer)
-                             mdbbuffer = ""
-              except Exception:
+                   #data = mdbwrapper.readline().rstrip('\r\n')
+                   time.sleep(1)
+                   data = mdb_command(mdbwrapper, "P1")
+                   if len(data) != 0 and data != 'Z':
+                        if arguments['--verbose']:
+                             print("Sent: " + data)
+                        send_remote(data)
+                   time.sleep(1)
+                   data = mdb_command(mdbwrapper, "P2")
+                   if len(data) != 0 and data != 'Z':
+                        if arguments['--verbose']:
+                              print("Sent: " + data)
+                        send_remote(data)
+              except Exception as e:
                    pass
               #check for enqueued requests.
               try:
                    request = requestqueue.get_nowait()
+                   if arguments['--verbose']:
+                        print("Command: " + request.command)
                    request.result = mdb_command(mdbwrapper, request.command)
                    if arguments['--verbose']:
-                        print(request.result)
+                        print("Result: " + request.result)
                    request.event.set()
-              except Exception:
+              except queue.Empty as e:
                    pass
     except Exception as e:
          print ("Exception in mdbthread:" + e)
