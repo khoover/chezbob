@@ -1,0 +1,2 @@
+#!/bin/bash
+arm-none-eabi-gdb -batch -x update_flash.gdb

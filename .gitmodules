@@ -4,3 +4,6 @@
 [submodule "externals/ChibiOS"]
 	path = externals/ChibiOS
 	url = https://github.com/ChibiOS/ChibiOS-RT.git
+[submodule "externals/jtag-openocd"]
+	path = externals/jtag-openocd
+	url = git://git.code.sf.net/p/openocd/code
