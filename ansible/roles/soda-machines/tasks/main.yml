@@ -8,6 +8,12 @@
    - libpq-dev
    - python3.4-dev
 
+- name: Install GNU ARM repo
+  apt_repository: repo='ppa:terry.guo/gcc-arm-embedded' state=present update-cache=yes
+
+- name: Install GNU ARM toolchain
+  apt: pkg=gcc-arm-none-eabi state=present
+
 - name: Install required python packages
   pip: executable=pip3.4 name={{item}}
   with_items:
