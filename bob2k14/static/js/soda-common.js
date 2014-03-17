@@ -111,6 +111,12 @@ function configureEventSource()
 			$("#denydialog").modal('show');
             setTimeout(function(){$("#denydialog").modal('hide');}, 3000);
 		}
+         else if (e.data.substring(0,3) == "vdf")
+		{
+			//soda vend fail
+			$("#faildialog").modal('show');
+            setTimeout(function(){$("#faildialog").modal('hide');}, 3000);
+		}
         else if (e.data.substring(0,3) == "vds")
 		{
 			//soda vend success
