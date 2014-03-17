@@ -191,6 +191,9 @@ def remotemdb(event):
         db.session.add(transact)
         db.session.commit()
         soda_app.add_event("vds" + configdata["sodamapping"][event[6:8]])
+    elif event[0:2] == "03":
+        #uh oh, vend fail. send out an e-mail!
+        soda_app.add_event("vdf")
 """
     elif event [0:2] == "Q2":
          #well, someone better be logged in. the bill was stacked.
