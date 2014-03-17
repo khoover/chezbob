@@ -109,7 +109,7 @@ function configureEventSource()
 		{
 			//soda vend deny
 			$("#denydialog").modal('show');
-            setTimeout(function(){$("#denydialog").modal('hide'), 3000);
+            setTimeout(function(){$("#denydialog").modal('hide');}, 3000);
 		}
         else if (e.data.substring(0,3) == "vds")
 		{
