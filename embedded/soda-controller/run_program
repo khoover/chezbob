@@ -1,2 +1,2 @@
 #!/bin/bash
-arm-none-eabi-gdb -batch -x run_program.gdb
+arm-none-eabi-gdb -x run_program.gdb

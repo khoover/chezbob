@@ -50,6 +50,7 @@ class Session:
     """Captures sessions"""
     def __init__(self, user):
         self.user = user
+        self.triedsoda = 0
         self.logintime = datetime.datetime.now()
     def isvalid(self):
         return True
@@ -57,24 +58,24 @@ class Session:
         return True
 """
                                              Table "public.users"
-           Column           |            Type             |         Modifiers         | Storage  | Description 
+           Column           |            Type             |         Modifiers         | Storage  | Description
 ----------------------------+-----------------------------+---------------------------+----------+-------------
- userid                     | integer                     | not null                  | plain    | 
- username                   | character varying           | not null                  | extended | 
- email                      | character varying           | not null                  | extended | 
- nickname                   | character varying           |                           | extended | 
- pwd                        | text                        |                           | extended | 
- balance                    | numeric(12,2)               | not null default 0.00     | main     | 
- disabled                   | boolean                     | not null default false    | plain    | 
- last_purchase_time         | timestamp with time zone    |                           | plain    | 
- last_deposit_time          | timestamp with time zone    |                           | plain    | 
- pref_auto_logout           | boolean                     | not null default false    | plain    | 
- pref_speech                | boolean                     | not null default false    | plain    | 
- pref_forget_which_product  | boolean                     | not null default false    | plain    | 
- pref_skip_purchase_confirm | boolean                     | not null default false    | plain    | 
- notes                      | text                        | not null default ''::text | extended | 
- created_time               | timestamp without time zone | default now()             | plain    | 
- fraudulent                 | boolean                     | not null default false    | plain    | 
+ userid                     | integer                     | not null                  | plain    |
+ username                   | character varying           | not null                  | extended |
+ email                      | character varying           | not null                  | extended |
+ nickname                   | character varying           |                           | extended |
+ pwd                        | text                        |                           | extended |
+ balance                    | numeric(12,2)               | not null default 0.00     | main     |
+ disabled                   | boolean                     | not null default false    | plain    |
+ last_purchase_time         | timestamp with time zone    |                           | plain    |
+ last_deposit_time          | timestamp with time zone    |                           | plain    |
+ pref_auto_logout           | boolean                     | not null default false    | plain    |
+ pref_speech                | boolean                     | not null default false    | plain    |
+ pref_forget_which_product  | boolean                     | not null default false    | plain    |
+ pref_skip_purchase_confirm | boolean                     | not null default false    | plain    |
+ notes                      | text                        | not null default ''::text | extended |
+ created_time               | timestamp without time zone | default now()             | plain    |
+ fraudulent                 | boolean                     | not null default false    | plain    |
 """
 
 class users(db.Model):
@@ -98,11 +99,11 @@ class users(db.Model):
 
 """
                       Table "public.profiles"
-  Column  |       Type        | Modifiers | Storage  | Description 
+  Column  |       Type        | Modifiers | Storage  | Description
 ----------+-------------------+-----------+----------+-------------
- userid   | integer           | not null  | plain    | 
- property | character varying | not null  | extended | 
- setting  | integer           | not null  | plain    | 
+ userid   | integer           | not null  | plain    |
+ property | character varying | not null  | extended |
+ setting  | integer           | not null  | plain    |
 """
 
 class profiles(db.Model):
@@ -113,17 +114,17 @@ class profiles(db.Model):
 
 """
               Table "public.userbarcodes"
- Column  |  Type   | Modifiers | Storage  | Description 
+ Column  |  Type   | Modifiers | Storage  | Description
 ---------+---------+-----------+----------+-------------
- userid  | integer | not null  | plain    | 
- barcode | text    | not null  | extended | 
+ userid  | integer | not null  | plain    |
+ barcode | text    | not null  | extended |
 """
 
 class userbarcodes(db.Model):
   __tablename__ = 'userbarcodes'
   userid = db.Column(db.Integer())
   barcode = db.Column(db.String(), primary_key = True)
-  
+
 class User:
     """Authenticates users"""
     salt = "cB"

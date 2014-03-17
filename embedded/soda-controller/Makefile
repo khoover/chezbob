@@ -84,12 +84,13 @@ CSRC = $(PORTSRC) \
        $(TESTSRC) \
        $(HALSRC) \
        $(PLATFORMSRC) \
-       $(BOARDSRC)
+       $(BOARDSRC) \
+	   usbcfg.c \
+       $(CHIBIOS)/os/various/chprintf.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CPPSRC = $(CHCPPSRC) \
-         $(CHIBIOS)/os/fs/fatfs/fatfs_fsimpl.cpp \
          main.cpp
 
 # C sources to be compiled in ARM mode regardless of the global setting.

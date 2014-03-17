@@ -12,7 +12,7 @@ Usage:
 Options:
   -h --help                 Show this screen.
   --version                 Show version.
-  --mdb-port=<port>         MDB serial port. [default: /dev/ttyUSB0]
+  --mdb-port=<port>         MDB serial port. [default: /dev/ttyACM0]
   --remote-endpoint=<ep>    JSON RPC endpoint. [default: http://127.0.0.1:8080/api]
   --address=<ep>            Address to listen on. [default: 0.0.0.0]
   --port=<port>             Port to listen on. [default: 8081]
@@ -74,44 +74,39 @@ def send_remote(data):
 
 def mdb_thread(arguments):
     #1 second timeout.
-    mdbport = serial.Serial(arguments["--mdb-port"], 9600, 8, "N", 1, 0)
-    mdbwrapper = io.TextIOWrapper(io.BufferedRWPair(mdbport,mdbport, 2), encoding='ascii', errors=None, newline=None)
+    mdbport = serial.Serial(arguments["--mdb-port"])
     mdbbuffer = ""
     try:
          while True:
          # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
               try:
-                   #data = mdbwrapper.readline().rstrip('\r\n')
-                   time.sleep(1)
-                   data = mdb_command(mdbwrapper, "P1")
-                   if len(data) != 0 and data != 'Z':
-                        if arguments['--verbose']:
-                             print("Sent: " + data)
-                        send_remote(data)
-                   time.sleep(1)
-                   data = mdb_command(mdbwrapper, "P2")
-                   if len(data) != 0 and data != 'Z':
-                        if arguments['--verbose']:
-                              print("Sent: " + data)
-                        send_remote(data)
+                   data = mdbport.readline().decode('ascii').rstrip('\r\n')
+                   if len(data) != 0:
+                        if data[0:8] == "S2 10 03":
+                            #vending command
+                            if arguments['--verbose']:
+                                  print(data[10:])
+                            send_remote( data[10:])
+
               except Exception as e:
-                   pass
-              #check for enqueued requests.
-              try:
-                   request = requestqueue.get_nowait()
-                   if arguments['--verbose']:
-                        print("Command: " + request.command)
-                   request.result = mdb_command(mdbwrapper, request.command)
-                   if arguments['--verbose']:
-                        print("Result: " + request.result)
-                   request.event.set()
-              except queue.Empty as e:
-                   pass
+                   print(e + "a")
     except Exception as e:
          print ("Exception in mdbthread:" + e)
          if mdbport != None:
               mdbport.close()
 
+def rpc_thread(arguments):
+        #check for enqueued requests.
+          try:
+               request = requestqueue.get_nowait()
+               if arguments['--verbose']:
+                    print("Command: " + request.command)
+               #request.result = mdb_command(mdbwrapper, request.command)
+               if arguments['--verbose']:
+                    print("Result: " + request.result)
+               request.event.set()
+          except queue.Empty as e:
+               pass
 if __name__ == '__main__':
     arguments = docopt(__doc__, version=get_git_revision_hash())
 

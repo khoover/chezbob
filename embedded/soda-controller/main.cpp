@@ -1,153 +1,692 @@
-/*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
-*/
 
 #include "ch.hpp"
 #include "hal.h"
-#include "fs.hpp"
-#include "fatfs_fsimpl.hpp"
-#include "test.h"
+
+#include "string.h"
+#include "usbcfg.h"
+#include "chprintf.h"
+
+#include <stdarg.h>
+#include <string.h>
+#include <stdlib.h>
+#include <memory>
 
 using namespace chibios_rt;
-using namespace chibios_fatfs;
 
-/*
- * LED blink sequences.
- * NOTE: Sequences must always be terminated by a GOTO instruction.
- * NOTE: The sequencer language could be easily improved but this is outside
- *       the scope of this demo.
- */
-#define SLEEP           0
-#define GOTO            1
-#define STOP            2
-#define BITCLEAR        3
-#define BITSET          4
+SerialUSBDriver SDU1;
 
-typedef struct {
-  uint8_t       action;
-  uint32_t      value;
-} seqop_t;
+#define TXDONE_EVENT 2
 
-// Flashing sequence for LED3.
-static const seqop_t LED3_sequence[] =
+static uint16_t txbuffer[32];
+static uint16_t pendingData[32];
+
+uint8_t calculateChecksum(uint16_t* array, size_t length)
 {
-  {BITSET, PAL_PORT_BIT(GPIOD_LED3)},
-  {SLEEP,    800},
-  {BITCLEAR,   PAL_PORT_BIT(GPIOD_LED3)},
-  {SLEEP,    200},
-  {GOTO,     0}
-};
+    uint8_t sum = 0;
 
-// Flashing sequence for LED4.
-static const seqop_t LED4_sequence[] =
-{
-  {BITSET, PAL_PORT_BIT(GPIOD_LED4)},
-  {SLEEP,    600},
-  {BITCLEAR,   PAL_PORT_BIT(GPIOD_LED4)},
-  {SLEEP,    400},
-  {GOTO,     0}
-};
-
-// Flashing sequence for LED5.
-static const seqop_t LED5_sequence[] =
-{
-  {BITSET, PAL_PORT_BIT(GPIOD_LED5)},
-  {SLEEP,    400},
-  {BITCLEAR,   PAL_PORT_BIT(GPIOD_LED5)},
-  {SLEEP,    600},
-  {GOTO,     0}
-};
-
-// Flashing sequence for LED6.
-static const seqop_t LED6_sequence[] =
-{
-  {BITSET, PAL_PORT_BIT(GPIOD_LED6)},
-  {SLEEP,    200},
-  {BITCLEAR,   PAL_PORT_BIT(GPIOD_LED6)},
-  {SLEEP,    800},
-  {GOTO,     0}
-};
-
-/*
- * Sequencer thread class. It can drive LEDs or other output pins.
- * Any sequencer is just an instance of this class, all the details are
- * totally encapsulated and hidden to the application level.
- */
-class SequencerThread : public BaseStaticThread<128> {
-private:
-  const seqop_t *base, *curr;                   // Thread local variables.
-
-protected:
-  virtual msg_t main(void) {
-
-    setName("sequencer");
-
-    while (true) {
-      switch(curr->action) {
-      case SLEEP:
-        sleep(curr->value);
-        break;
-      case GOTO:
-        curr = &base[curr->value];
-        continue;
-      case STOP:
-        return 0;
-      case BITCLEAR:
-        palClearPort(GPIOD, curr->value);
-        break;
-      case BITSET:
-        palSetPort(GPIOD, curr->value);
-        break;
-      }
-      curr++;
+    for (size_t i = 0; i < length; i++)
+    {
+        sum += array[i];
     }
-  }
 
-public:
-  SequencerThread(const seqop_t *sequence) : BaseStaticThread<128>() {
+    return sum;
+}
 
-    base = curr = sequence;
-  }
+#define MDB_CASHLESS0_ADDRESS 0x10
+
+#define MDB_CASHLESS_RESET 0
+#define MDB_CASHLESS_SETUP 1
+#define MDB_CASHLESS_SETUP_CONFIGDATA 0
+#define MDB_CASHLESS_POLL 2
+#define MDB_CASHLESS_VEND 3
+#define MDB_CASHLESS_VEND_REQUEST 0
+#define MDB_CASHLESS_VEND_CANCEL 1
+#define MDB_CASHLESS_VEND_SUCCESS 2
+#define MDB_CASHLESS_VEND_FAIL 3
+#define MDB_CASHLESS_VEND_COMPLETE 4
+#define MDB_CASHLESS_READER 4
+#define MDB_CASHLESS_READER_DISABLE 0
+#define MDB_CASHLESS_READER_ENABLE 1
+#define MDB_CASHLESS_READER_CANCEL 2
+#define MDB_CASHLESS_REVALUE 5
+#define MDB_CASHLESS_EXPANSION 7
+#define MDB_CASHLESS_EXPANSION_REQUESTID 0
+
+#define CASHLESS0_STATE 0
+#define VMC_CASHLESS_STATE_RESET    0
+#define VMC_CASHLESS_STATE_ENABLED  1
+#define VMC_CASHLESS_STATE_VSESSION 2
+#define VMC_CASHLESS_STATE_VSESSIONIDLE 3
+#define VMC_CASHLESS_STATE_CONFIGURED 4
+#define VMC_CASHLESS_STATE_VAPPROVED 5
+#define VMC_CASHLESS_STATE_VDENIED 6
+#define VMC_CASHLESS_STATE_VSESSIONEND 7
+#define VMC_CASHLESS_STATE_DISABLED 8
+#define VMC_CASHLESS_STATE_CANCEL 9
+
+#define MDB_CASHLESS_POLLRESPONSE_JUSTRESET 0x0
+#define MDB_CASHLESS_POLLRESPONSE_CONFIGDATA 0x1
+#define MDB_CASHLESS_POLLRESPONSE_BEGINSESSION 0x3
+#define MDB_CASHLESS_POLLRESPONSE_VAPPROVED 0x5
+#define MDB_CASHLESS_POLLRESPONSE_VDENIED 0x6
+#define MDB_CASHLESS_POLLRESPONSE_ENDSESSION 0x7
+#define MDB_CASHLESS_POLLRESPONSE_CANCELLED 0x8
+
+class VMCThread : public BaseStaticThread<8192> {
+    protected:
+        Semaphore sendSem;
+        uint8_t state[2];
+        
+        char toReceive;
+        char pendingCmd;
+        char pendingDevice;
+        uint16_t pendingSubcommand;
+        char pendingDataSize;
+        char pendingDataCounter;
+
+        void SynchornousVMCSend(uint16_t* array, size_t length)
+        {
+            array[length] = calculateChecksum(array, length);
+            array[length] |= 0x100;
+            
+            //take a tx lock
+            chSemWait(&this->sendSem);
+            uint16_t c;
+            do {
+                uartStartSend(&UARTD2, length+1, array);
+                //wait until the uart send completes.
+                chEvtWaitAny((eventmask_t) TXDONE_EVENT);
+            //release the tx lock
+                 
+                c = chIQGetTimeout(&this->inputQueue, TIME_INFINITE) << 8;
+                c |= chIQGetTimeout(&this->inputQueue, TIME_INFINITE);
+                } while (c == 0xAA); //resend if requested.
+            chSemSignal(&this->sendSem);
+            
+        }
+
+        virtual msg_t main(void)
+        {
+            setName("VMCThread");
+            
+            //init required structures.
+            chSemInit(&this->sendSem, 1);
+            this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_RESET;
+            this->pendingDataSize = 0;
+            this->pendingDataCounter = 0;
+            toReceive = 0;
+            
+            while (TRUE) {
+
+                uint16_t c;
+                c = chIQGetTimeout(&this->inputQueue, TIME_INFINITE) << 8;
+                c |= chIQGetTimeout(&this->inputQueue, TIME_INFINITE);
+                   //is this a command? if so, get the specifics and start a read op
+                if (c & 0x100)
+                {
+                    this->pendingDevice = c & 0xF8;
+                    this->pendingCmd = c & 0x7;
+                    this->pendingSubcommand = 0x100; //this indicates we don't have it yet
+                    this->pendingDataSize = 0;
+                    this->pendingDataCounter = 0;
+
+                    toReceive = 0;
+
+                    switch (pendingDevice)
+                    {
+                        case 0x8: //coin changer
+                            switch (pendingCmd)
+                            {
+                                case 0x0:
+                                case 0x1:
+                                case 0x2:
+                                case 0x3:
+                                case 0x4:
+                                case 0x7:
+                                    toReceive = 1;
+                                    break;
+                                case 0x5:
+                                    toReceive = 2;
+                                    break;
+                            }
+                        break;
+                        case 0x30: //bill validator
+                            switch (pendingCmd)
+                            {
+                                case 0x0:
+                                case 0x1:
+                                case 0x3:
+                                case 0x7:
+                                    toReceive = 1;
+                                    break;
+                                case 0x2:
+                                case 0x6:
+                                    toReceive = 3;
+                                    break;
+                                case 0x4:
+                                    toReceive = 4;
+                                    break;
+                                case 0x5:
+                                    toReceive = 1;
+                                    break;
+                            }
+                        break;
+                        case 0x10: //cashless #1
+                        case 0x60: //cashless #2
+                            switch (pendingCmd)
+                            {
+                                case 0x0:
+                                case 0x2:
+                                    toReceive = 1;
+                                    break;
+                                case 0x1:
+                                case 0x3:
+                                case 0x4:
+                                case 0x5:
+                                case 0x6:
+                                case 0x7:
+                                    toReceive = 2;
+                                    break;
+                            }
+                        break;
+                    }
+                }
+                else
+                {
+                    if (toReceive == 0) { //nothing to read.
+                    }
+                    else
+                    {
+                    toReceive--;
+                    if (pendingDataSize > 0)
+                    {
+                        if (pendingDataCounter > 31)
+                        {
+                            chprintf((BaseSequentialStream*)&SDU1, "ER BUFFER OVERFLOW\r\n");
+                        }
+                        else
+                        {
+                            pendingData[pendingDataCounter] = c;
+                            pendingDataCounter++;
+                        }
+                    }
+
+                    if (toReceive == 0)
+                    {
+                    if (this->pendingDevice == MDB_CASHLESS0_ADDRESS)
+                    {
+                        switch (this->pendingCmd)
+                        {
+                            case MDB_CASHLESS_RESET:
+                                this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_RESET;
+                                this->SynchornousVMCSend(txbuffer, 0);
+                                break;
+                            case MDB_CASHLESS_SETUP:
+                                switch (this->pendingSubcommand)
+                                {
+                                    case MDB_CASHLESS_SETUP_CONFIGDATA:
+                                        txbuffer[0] = 0x1;
+                                        txbuffer[1] = 0x2;
+                                        txbuffer[2] = 0x0;
+                                        txbuffer[3] = 0x1;
+                                        txbuffer[4] = 0x1;
+                                        txbuffer[5] = 0x2;
+                                        txbuffer[6] = 0x10;
+                                        txbuffer[7] = 0x7;
+                                        this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_CONFIGURED;
+                                        this->SynchornousVMCSend(txbuffer, 8);
+                                        break;
+                                    default:
+                                        this->SynchornousVMCSend(txbuffer, 0); //ack
+                                        break;
+                                }
+                                break;
+                            case MDB_CASHLESS_POLL:
+                                switch (this->state[CASHLESS0_STATE])
+                                {
+                                    case VMC_CASHLESS_STATE_RESET:
+                                        txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_JUSTRESET;
+                                        this->SynchornousVMCSend(txbuffer, 1);
+                                    break;
+                                    case VMC_CASHLESS_STATE_CONFIGURED:
+                                        txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_CONFIGDATA;
+                                        txbuffer[1] = 0x2;
+                                        txbuffer[2] = 0x0;
+                                        txbuffer[3] = 0x1;
+                                        txbuffer[4] = 0x1;
+                                        txbuffer[5] = 0x2;
+                                        txbuffer[6] = 0x10;
+                                        txbuffer[7] = 0x7;
+                                        this->SynchornousVMCSend(txbuffer, 8);
+                                    break;
+                                    case VMC_CASHLESS_STATE_VSESSION:
+                                        txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_BEGINSESSION;
+                                        txbuffer[1] = 0xFF;
+                                        txbuffer[2] = 0xFF;
+                                        txbuffer[3] = 0xFF;
+                                        txbuffer[4] = 0xFF;
+                                        txbuffer[5] = 0xFF;
+                                        txbuffer[6] = 0xFF;
+                                        txbuffer[7] = 0x01;
+                                        txbuffer[8] = 0x01;
+                                        txbuffer[9] = 0;
+                                        this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_VSESSIONIDLE;
+                                        this->SynchornousVMCSend(txbuffer, 10);
+                                    break;
+                                     case VMC_CASHLESS_STATE_VDENIED:
+                                        txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_VDENIED;
+                                        this->SynchornousVMCSend(txbuffer, 1);
+                                        this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_VSESSION;
+                                    break;
+                                    case VMC_CASHLESS_STATE_VAPPROVED:
+                                        txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_VAPPROVED;
+                                        txbuffer[1] = 0xFF;
+                                        txbuffer[2] = 0xFF;
+                                        this->SynchornousVMCSend(txbuffer, 3);
+                                    break;
+                                    case VMC_CASHLESS_STATE_VSESSIONEND:
+                                        txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_ENDSESSION;
+                                        this->SynchornousVMCSend(txbuffer, 1);
+                                        this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_VSESSION;
+                                    break;
+                                    case VMC_CASHLESS_STATE_CANCEL:
+                                        txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_CANCELLED;
+                                        this->SynchornousVMCSend(txbuffer, 3);
+                                    break;
+                                    default:
+                                        this->SynchornousVMCSend(txbuffer, 0); //ack
+                                    break;
+                                }
+                                break;
+                            case MDB_CASHLESS_VEND:
+                                    switch (this->pendingSubcommand)
+                                    {
+                                        case MDB_CASHLESS_VEND_REQUEST:
+                                            this->SynchornousVMCSend(txbuffer, 0); //ack
+                                            break;
+                                        case MDB_CASHLESS_VEND_COMPLETE:
+                                            this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_VSESSIONEND;
+                                            this->SynchornousVMCSend(txbuffer, 0); //ack
+                                            break;
+                                        case MDB_CASHLESS_VEND_SUCCESS:
+                                            this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_VSESSIONIDLE;
+                                            this->SynchornousVMCSend(txbuffer, 0); //ack
+                                            break;
+                                        default:
+                                            this->SynchornousVMCSend(txbuffer, 0); //ack
+                                    }
+                                break;
+                            case MDB_CASHLESS_READER:
+                                    switch (this->pendingSubcommand)
+                                    {
+                                        case MDB_CASHLESS_READER_ENABLE:
+                                            this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_VSESSION; //jump to a session.
+                                            this->SynchornousVMCSend(txbuffer, 0); //ack
+                                            break;
+                                        case MDB_CASHLESS_READER_DISABLE:
+                                            this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_DISABLED;
+                                            this->SynchornousVMCSend(txbuffer, 0); //ack
+                                            break;
+                                        case MDB_CASHLESS_READER_CANCEL:
+                                            this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_CANCEL;
+                                            this->SynchornousVMCSend(txbuffer, 0); //ack
+                                            break;
+                                        default:
+                                            this->SynchornousVMCSend(txbuffer, 0); //ack
+                                    }
+                                break;
+                            case MDB_CASHLESS_EXPANSION:
+                                    switch (this->pendingSubcommand)
+                                    {
+                                        case MDB_CASHLESS_EXPANSION_REQUESTID:
+                                            memset(txbuffer, 0, 32);
+                                            txbuffer[0] = 0x9;
+                                            txbuffer[28] = 0x03;
+                                            txbuffer[29] = 0;
+                                            this->SynchornousVMCSend(txbuffer, 30);
+                                            break;
+                                        default:
+                                            this->SynchornousVMCSend(txbuffer, 0); //ack
+                                            break;
+                                    }
+                                break;
+                            default:
+                                this->SynchornousVMCSend(txbuffer, 0); //ack
+                                break;
+                        }
+                    }
+
+                if (SDU1.config->usbp->state == USB_ACTIVE)
+                {
+                    if (pendingSubcommand >= 0x100)
+                    {
+                        chprintf((BaseSequentialStream*)&SDU1, "S2 %02x %02x\r\n", pendingDevice, pendingCmd);
+                    }
+                    else
+                    {
+                        if (pendingDataSize == 0)
+                        {
+                            chprintf((BaseSequentialStream*)&SDU1, "S2 %02x %02x %02x\r\n", pendingDevice, pendingCmd, pendingSubcommand);
+                        }
+                        else
+                        {
+                            chprintf((BaseSequentialStream*)&SDU1, "S2 %02x %02x %02x", pendingDevice, pendingCmd, pendingSubcommand);
+                            for (int i =0 ; i < pendingDataSize; i++)
+                            {
+                                chprintf((BaseSequentialStream*)&SDU1, " %02x", pendingData[i]);
+                            }
+                            chprintf((BaseSequentialStream*) &SDU1, "\r\n");
+                        }
+                    }
+                }
+                    }
+                    else if (toReceive == 1 && pendingSubcommand == 0x100)
+                    {
+                        pendingSubcommand = c;
+
+                        //evaluate subcommand size here
+                        switch (pendingDevice)
+                        {
+                            case 0x10:
+                            case 0x60:
+                                switch (pendingCmd)
+                                {
+                                    case 0x0:
+                                    break;
+                                    case 0x1:
+                                        switch(pendingSubcommand)
+                                        {
+                                            case 0x0:
+                                            pendingDataSize = (toReceive = 5) - 1;
+                                            break;
+                                            case 0x1:
+                                            pendingDataSize = (toReceive = 5) - 1;
+                                            break;
+                                        }
+                                    break;
+                                    case 0x3:
+                                        switch(pendingSubcommand)
+                                        {
+                                            case 0x0: //vendrequest
+                                                pendingDataSize = (toReceive = 5) - 1;
+                                            break;
+                                            case 0x2: //success
+                                                pendingDataSize = (toReceive = 3) - 1;
+                                            break;
+                                            case 0x5: //cash sale
+                                                pendingDataSize = (toReceive = 5) - 1;
+                                            break;
+                                        }
+                                    case 0x4:
+                                        switch(pendingSubcommand)
+                                        {
+                                            case 0x0: //disabled
+                                            break;
+                                            case 0x1: //enabled
+                                            break;
+                                            case 0x2: //cancel
+                                            break;
+                                        }
+                                    break;
+                                    case 0x7:
+                                        switch(pendingSubcommand)
+                                        {
+                                            case 0x0:
+                                                pendingDataSize = (toReceive = 30) - 1;
+                                            break;
+                                        }
+                                    break;
+                                }
+                                break;
+                        }
+                    }
+                    }
+                }
+
+            }
+        }
+    public:
+        uint8_t queueBuffer[8];
+        INPUTQUEUE_DECL(inputQueue, &queueBuffer, 8, NULL, NULL);
+        
+        uint8_t getState(uint8_t device)
+        {
+            return this->state[CASHLESS0_STATE];
+        }
+        
+        void setState(uint8_t device, uint8_t state)
+        {
+            this->state[CASHLESS0_STATE] = state;
+        }
+        VMCThread(void) : BaseStaticThread<8192> () {
+
+        }
 };
 
-/*
- * Tester thread class. This thread executes the test suite.
- */
-class TesterThread : public BaseStaticThread<256> {
+static VMCThread vmcThread;
+
+static void txend1 (UARTDriver *uartp)
+{
+
+}
+
+static void txend2 (UARTDriver *uartp)
+{
+    chSysLockFromIsr();
+        vmcThread.signalEventsI((eventmask_t) TXDONE_EVENT);
+    chSysUnlockFromIsr();
+}
+
+static void rxerr(UARTDriver *uartp, uartflags_t e)
+{
+}
+
+static void rxchar(UARTDriver *uartp, uint16_t c)
+{
+    chSysLockFromIsr();
+        //MSB first into the input queue.
+        chIQPutI(&vmcThread.inputQueue, (c >> 8) & 0xFF);
+        chIQPutI(&vmcThread.inputQueue, c & 0xFF);
+    chSysUnlockFromIsr();
+
+}
+
+static void rxend(UARTDriver *uartp)
+{
+}
+
+static UARTConfig uart_cfg_2 = {
+  txend1,
+  txend2,
+  rxend,
+  rxchar,
+  rxerr,
+  9600,
+  USART_CR1_M, //9 data bits
+  0,
+  0
+};
+
+
+uint16_t testbuffer[4];
+class MDBThread : public BaseStaticThread<8192> {
 
 protected:
   virtual msg_t main(void) {
 
-    setName("tester");
+    setName("MDBThread");
 
-    return TestThread(&SD2);
-  }
+while (true)
+{
 
+    chEvtWaitAny((eventmask_t) TXDONE_EVENT);
+    testbuffer[0] = 0x108;
+    testbuffer[1] = 0x008;
+    uartStartSend(&UARTD3, 2, testbuffer);
+
+    uint16_t c;
+    c = chIQGetTimeout(&this->inputQueue, TIME_INFINITE) << 8;
+    c |= chIQGetTimeout(&this->inputQueue, TIME_INFINITE);
+    
+    chprintf((BaseSequentialStream*)&SDU1, "S3 %02x\r\n", c);
+}
+
+}
 public:
-  TesterThread(void) : BaseStaticThread<256>() {
-  }
+    uint8_t queueBuffer[8];
+    INPUTQUEUE_DECL(inputQueue, &queueBuffer, 8, NULL, NULL);
+    MDBThread(void) : BaseStaticThread<8192>() {
+      }
 };
 
-/* Static threads instances.*/
-static TesterThread tester;
-static SequencerThread blinker1(LED3_sequence);
-static SequencerThread blinker2(LED4_sequence);
-static SequencerThread blinker3(LED5_sequence);
-static SequencerThread blinker4(LED6_sequence);
+static MDBThread mdbThread;
 
-static FatFSWrapper fs;
+static void tx3end1 (UARTDriver *uartp)
+{
+
+}
+
+static void tx3end2 (UARTDriver *uartp)
+{
+     chSysLockFromIsr();
+     mdbThread.signalEventsI((eventmask_t) TXDONE_EVENT);
+     chSysUnlockFromIsr();
+
+}
+
+static void rx3err(UARTDriver *uartp, uartflags_t e)
+{
+
+}
+
+static void rx3char(UARTDriver *uartp, uint16_t c)
+{
+    chSysLockFromIsr();
+        //MSB first into the input queue.
+        chIQPutI(&vmcThread.inputQueue, (c >> 8) & 0xFF);
+        chIQPutI(&vmcThread.inputQueue, c & 0xFF);
+    chSysUnlockFromIsr();
+}
+
+static void rx3end(UARTDriver *uartp)
+{
+
+}
+
+static UARTConfig uart_cfg_3 = {
+  tx3end1,
+  tx3end2,
+  rx3end,
+  rx3char,
+  rx3err,
+  9600,
+  USART_CR1_M, //9 data bits
+  0,
+  0
+};
+
+class ShellThread : public BaseStaticThread<8192> {
+
+protected:
+  char inputBuf[16];
+  
+  void exec(char* cmd, int argc, char** argv)
+  {
+        //todo - seperate this out into functions
+        if (strcmp(cmd, "S2?") == 0)
+        {
+            //just indicate that the current state is
+            chprintf((BaseSequentialStream*)&SDU1, "S2? %02x\r\n", vmcThread.getState(CASHLESS0_STATE));
+        }
+        else if (strcmp(cmd, "S2S") == 0)
+        {
+            //sets the current state of the vmc
+            uint8_t state = atoi(argv[1]);
+            vmcThread.setState(CASHLESS0_STATE, state);
+            chprintf((BaseSequentialStream*)&SDU1, "S2S %02x\r\n", state);
+        }
+  }
+  
+  unsigned short readline()
+  {
+    unsigned short bufPointer = 0;
+    do
+    {
+        char in = chSequentialStreamGet((BaseSequentialStream*)&SDU1);
+        
+        switch (in)
+        {
+            case 0: //ignore NULL
+                break;
+            case '\r':
+            case '\n':
+                inputBuf[bufPointer] = 0; // NULL terminated
+                return bufPointer;
+            case 0x8:
+            case 0x7F:
+                if (bufPointer != 0) {
+                    inputBuf[bufPointer - 1] = 0;
+                    bufPointer--;
+                }
+                break;
+            default:
+                if (bufPointer < 14)
+                {
+                    inputBuf[bufPointer] = in;
+                    bufPointer++;
+                }
+        } 
+        
+    } while (TRUE);
+  }
+  
+  virtual msg_t main(void) {
+        setName("Shell");
+
+        chprintf((BaseSequentialStream*)&SDU1, "ChezBob Vending Machine Shell\r\n");
+        
+        while (true)
+        {
+            if (readline())
+            {
+                //echo the command.
+                chprintf((BaseSequentialStream*)&SDU1, "UE %s\r\n", inputBuf);
+                
+                unsigned short argc = 0;
+                char* argv[9];
+                char* pch = (char*) inputBuf;
+                char* end = (char*) inputBuf + 16;
+                
+                while (pch < end)
+                {
+                    argv[argc] = pch;
+                    argc++;
+                    
+                    while (pch < end)
+                    {
+                        pch++;
+                        if (*pch == 0x20)
+                        {
+                            *pch = 0;
+                            pch++;
+                            break;
+                        }
+                    }
+                }
+                
+                if (argc)
+                {
+                    exec(argv[0], argc, argv);
+                }
+            }
+        }
+    }
+public:
+    ShellThread(void) : BaseStaticThread<8192>() {
+      }
+};
+
+static ShellThread shellThread;
 
 /*
  * Application entry point.
@@ -164,36 +703,31 @@ int main(void) {
   halInit();
   System::init();
 
-  fs.mount();
-  fs.unmount();
+  sduObjectInit(&SDU1);
+  sduStart(&SDU1, &serusbcfg);
 
-  /*
-   * Activates the serial driver 2 using the driver default configuration.
-   * PA2(TX) and PA3(RX) are routed to USART2.
-   */
-  sdStart(&SD2, NULL);
+  usbDisconnectBus(serusbcfg.usbp);
+  chThdSleepMilliseconds(1000);
+  usbStart(serusbcfg.usbp, &usbcfg);
+  usbConnectBus(serusbcfg.usbp);
+
+  uartStart(&UARTD2, &uart_cfg_2);
   palSetPadMode(GPIOA, 2, PAL_MODE_ALTERNATE(7));
   palSetPadMode(GPIOA, 3, PAL_MODE_ALTERNATE(7));
 
-  /*
-   * Starts several instances of the SequencerThread class, each one operating
-   * on a different LED.
-   */
-  blinker1.start(NORMALPRIO + 10);
-  blinker2.start(NORMALPRIO + 10);
-  blinker3.start(NORMALPRIO + 10);
-  blinker4.start(NORMALPRIO + 10);
+  uartStart(&UARTD3, &uart_cfg_3);
+  palSetPadMode(GPIOD, 8, PAL_MODE_ALTERNATE(7));
+  palSetPadMode(GPIOD, 9, PAL_MODE_ALTERNATE(7));
 
-  /*
-   * Serves timer events.
-   */
-  while (true) {
-    if (palReadPad(GPIOA, GPIOA_BUTTON)) {
-      tester.start(NORMALPRIO);
-      tester.wait();
-    };
-    BaseThread::sleep(MS2ST(500));
+  shellThread.start(NORMALPRIO);
+  vmcThread.start(NORMALPRIO);
+  mdbThread.start(NORMALPRIO);
+  
+
+  while (TRUE)
+  {
+     chThdSleepMilliseconds (1000);
   }
-
+  
   return 0;
 }

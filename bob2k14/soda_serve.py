@@ -31,9 +31,22 @@ import soda_app
 import os
 import datetime
 import requests
+from enum import Enum
 
 app = soda_app.app
 db = soda_app.db
+
+class vmcstates(Enum):
+    reset = 0
+    enabled = 1
+    vsession = 2
+    vsessionidle =3
+    configured = 4
+    vapproved = 5
+    vdeny = 6
+    vsessionend = 7
+    disabled = 8
+    cancel = 9
 
 def get_git_revision_hash():
     return str(subprocess.check_output(['git', 'rev-parse', 'HEAD', '--work-tree=/git' ,'--git-dir=/git']))
@@ -73,16 +86,16 @@ class products(db.Model):
 
 """
                                                    Table "public.transactions"
-      Column      |           Type           |                         Modifiers                         | Storage  | Description 
+      Column      |           Type           |                         Modifiers                         | Storage  | Description
 ------------------+--------------------------+-----------------------------------------------------------+----------+-------------
- xacttime         | timestamp with time zone | not null                                                  | plain    | 
- userid           | integer                  | not null                                                  | plain    | 
- xactvalue        | numeric(12,2)            | not null                                                  | main     | 
- xacttype         | character varying        | not null                                                  | extended | 
- barcode          | character varying        |                                                           | extended | 
- source           | character varying        |                                                           | extended | 
- id               | integer                  | not null default nextval('transactions_id_seq'::regclass) | plain    | 
- finance_trans_id | integer                  |                                                           | plain    | 
+ xacttime         | timestamp with time zone | not null                                                  | plain    |
+ userid           | integer                  | not null                                                  | plain    |
+ xactvalue        | numeric(12,2)            | not null                                                  | main     |
+ xacttype         | character varying        | not null                                                  | extended |
+ barcode          | character varying        |                                                           | extended |
+ source           | character varying        |                                                           | extended |
+ id               | integer                  | not null default nextval('transactions_id_seq'::regclass) | plain    |
+ finance_trans_id | integer                  |                                                           | plain    |
 """
 class transactions(db.Model):
   __tablename__ = 'transactions'
@@ -121,7 +134,7 @@ def remotebarcode(type, barcode):
     #several things to check here. first, if there is anyone logged in, we're probably buying something, so check that.
     if sessionmanager.checkSession(SessionLocation.soda):
          #do a purchase
-         #ok, we're supposed to subtract the balance from the user first, 
+         #ok, we're supposed to subtract the balance from the user first,
          product = products.query.filter(products.barcode==barcode).first()
          value = product.price
          user = sessionmanager.sessions[SessionLocation.soda].user.user
@@ -148,17 +161,39 @@ def remotebarcode(type, barcode):
 
 @jsonrpc.method('Soda.remotemdb')
 def remotemdb(event):
-    #let's figure out what kind of event we're handling. let's deal with bill in escrow.
-    if event[0:2] == "Q1":
-         #let's make sure theres a user logged in. if not, just tell them that guest mode isn't ready yet.
+     #let's make sure theres a user logged in. if not, just tell them that guest mode isn't ready yet.
+     if event[0:2] == "00":
          if sessionmanager.checkSession(SessionLocation.soda):
-              #ok, attempt to stack the bill.
-              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["K1"])
+              #since we don't check if the user has a sufficent balance, approve
+              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["S2S 5"])
+              #eventually we'll get a callback that the vend was successful. but remember what kind of soda
+              #we were trying to vend, since we'll need that if the vend fails.
+              sessionmanager.sessions[SessionLocation.soda].triedsoda = event[12:14]
+              soda_app.add_event("vdr" + configdata["sodamapping"][event[12:14]])
          else:
-              #return the bill.
-              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["K2"])
+              #deny the vend.
+              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["S2S 6"])
+              soda_app.add_event("vdd")
+    elif event[0:2] == "02"
+        # the vend was successful. record this to the users account.
+        product = products.query.filter(products.barcode==configdata["sodamapping"][event[6:8]]).first()
+        value = product.price
+        user = sessionmanager.sessions[SessionLocation.Soda].user.user
+        user.balance -= value
+        description = "BUY " + product.name.upper()
+        barcode = product.barcode
+        if sessionmanager.sessions[SessionLocation.computer].user.privacy:
+             description = "BUY"
+             barcode = ""
+        #now create a matching record in transactions
+        transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
+        db.session.merge(user)
+        db.session.add(transact)
+        db.session.commit()
+        soda_app.add_event("vds" + configdata["sodamapping"][event[6:8]])
+"""
     elif event [0:2] == "Q2":
-         #well, someone better be logged in. the bill was stacked. 
+         #well, someone better be logged in. the bill was stacked.
          billtype = event[3:5]
          amount = 0
          if billtype == "00":
@@ -176,7 +211,7 @@ def remotemdb(event):
          #now credit to the user.
          user = sessionmanager.sessions[SessionLocation.soda].user.user
          user.balance += amount
-         description = "ADD " 
+         description = "ADD "
          barcode = None
          #now create a matching record in transactions
          transact = transactions(userid=user.userid, xactvalue=+amount, xacttype=description, barcode=barcode, source="soda")
@@ -201,7 +236,7 @@ def remotemdb(event):
               #now credit to the user.
               user = sessionmanager.sessions[SessionLocation.soda].user.user
               user.balance += amount
-              description = "ADD " 
+              description = "ADD "
               barcode = None
               #now create a matching record in transactions
               transact = transactions(userid=user.userid, xactvalue=+amount, xacttype=description, barcode=barcode, source="soda")
@@ -213,9 +248,10 @@ def remotemdb(event):
          #logout
          sessionmanager.deregisterSession(SessionLocation.soda)
     return ""
+"""
 
 @jsonrpc.method('Soda.getusername')
-def soda_getusername(): 
+def soda_getusername():
     if sessionmanager.sessions[SessionLocation.soda].user.user.nickname == None:
          return sessionmanager.sessions[SessionLocation.soda].user.user.username
     else:
@@ -266,18 +302,18 @@ def bob_barcodelogin(barcode):
     return to_jsonify_ready(sessionmanager.sessions[SessionLocation.computer].user.user)
 
 @jsonrpc.method('Bob.getusername')
-def bob_getusername(): 
+def bob_getusername():
     if sessionmanager.sessions[SessionLocation.computer].user.user.nickname == None:
          return sessionmanager.sessions[SessionLocation.computer].user.user.username
     else:
          return sessionmanager.sessions[SessionLocation.computer].user.user.nickname
 
 @jsonrpc.method('Bob.getbalance')
-def bob_getusername(): 
+def bob_getusername():
     return str(sessionmanager.sessions[SessionLocation.computer].user.user.balance)
 
 @jsonrpc.method('Bob.sodalogin')
-def bob_sodalogin(): 
+def bob_sodalogin():
     sessionmanager.registerSession(SessionLocation.soda, sessionmanager.sessions[SessionLocation.computer].user)
     sessionmanager.deregisterSession(SessionLocation.computer)
     return to_jsonify_ready(sessionmanager.sessions[SessionLocation.soda].user.user)
@@ -299,7 +335,7 @@ def bob_getbarcodeinfo(barcode):
 
 @jsonrpc.method('Bob.purchasebarcode')
 def bob_purchasebarcode(barcode):
-    #ok, we're supposed to subtract the balance from the user first, 
+    #ok, we're supposed to subtract the balance from the user first,
     product = products.query.filter(products.barcode==barcode).first()
     value = product.price
     user = sessionmanager.sessions[SessionLocation.computer].user.user
@@ -312,12 +348,13 @@ def bob_purchasebarcode(barcode):
     #now create a matching record in transactions
     transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
     db.session.add(transact)
+    db.session.merge(user)
     db.session.commit()
     return True
 
 @jsonrpc.method('Bob.purchaseother')
 def bob_purchaseother(amount):
-    #ok, we're supposed to subtract the balance from the user first, 
+    #ok, we're supposed to subtract the balance from the user first,
     value = Decimal(amount.strip(' "'))
     user = sessionmanager.sessions[SessionLocation.computer].user.user
     user.balance -= value
@@ -326,12 +363,13 @@ def bob_purchaseother(amount):
     #now create a matching record in transactions
     transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
     db.session.add(transact)
+    db.session.merge(user)
     db.session.commit()
     return True
 
 @jsonrpc.method('Bob.deposit')
 def bob_purchaseother(amount):
-    #ok, we're supposed to subtract the balance from the user first, 
+    #ok, we're supposed to subtract the balance from the user first,
     value = Decimal(amount.strip(' "'))
     user = sessionmanager.sessions[SessionLocation.computer].user.user
     user.balance += value
@@ -340,6 +378,7 @@ def bob_purchaseother(amount):
     #now create a matching record in transactions
     transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
     db.session.add(transact)
+    db.session.merge(user)
     db.session.commit()
     return True
 

@@ -2,6 +2,7 @@
 	path = externals/ansible
 	url = https://github.com/ansible/ansible.git
 [submodule "externals/ChibiOS"]
+        branch = stable_2.6.x
 	path = externals/ChibiOS
 	url = https://github.com/ChibiOS/ChibiOS-RT.git
 [submodule "externals/jtag-openocd"]
