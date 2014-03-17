@@ -98,6 +98,27 @@ function configureEventSource()
 			}
 			}, function(error){});
 		}
+        else if (e.data.substring(0,3) == "vdr")
+		{
+			//soda vend request
+			rpc.call('Bob.getbarcodeinfo', [e.data.substring(3)], function (result) {
+			$("#sodaname").text(result['name']);}, function (error) {});
+            $("#dispensingdialog").modal('show');
+		}
+        else if (e.data.substring(0,3) == "vdd")
+		{
+			//soda vend deny
+			$("#denydialog").modal('show');
+            setTimeout(function(){$("#denydialog").modal('hide'), 3000);
+		}
+        else if (e.data.substring(0,3) == "vds")
+		{
+			//soda vend success
+			rpc.call('Bob.getbarcodeinfo', [e.data.substring(3)], function (result) {
+			$("#transaction tbody").append("<tr><td>" +  result['name']  + "</td><td>" + result['price'] + "</td></tr>");
+            $("#dispensingdialog").modal('hide');
+            }, function (error){});
+		}
 		else if (e.data.substring(0,3) == "deb")
 		{
 			//bill deposit.
