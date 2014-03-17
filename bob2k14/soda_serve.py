@@ -174,19 +174,19 @@ def remotemdb(event):
               #deny the vend.
               result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["S2S 6"])
               soda_app.add_event("vdd")
-    elif event[0:2] == "02"
+     elif event[0:2] == "02":
         # the vend was successful. record this to the users account.
         product = products.query.filter(products.barcode==configdata["sodamapping"][event[6:8]]).first()
         value = product.price
-        user = sessionmanager.sessions[SessionLocation.Soda].user.user
+        user = sessionmanager.sessions[SessionLocation.soda].user.user
         user.balance -= value
         description = "BUY " + product.name.upper()
         barcode = product.barcode
-        if sessionmanager.sessions[SessionLocation.computer].user.privacy:
+        if sessionmanager.sessions[SessionLocation.soda].user.privacy:
              description = "BUY"
              barcode = ""
         #now create a matching record in transactions
-        transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
+        transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=configdata["sodamapping"][event[6:8]], source="soda")
         db.session.merge(user)
         db.session.add(transact)
         db.session.commit()
