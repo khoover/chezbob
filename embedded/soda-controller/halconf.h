@@ -309,4 +309,7 @@
 
 #endif /* _HALCONF_H_ */
 
+#if !defined(HAL_USE_IWDG)
+#define HAL_USE_IWDG	TRUE
+#endif
 /** @} */

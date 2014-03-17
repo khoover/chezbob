@@ -36,6 +36,7 @@ from threading import Event
 from collections import namedtuple
 import types
 import time
+import os
 
 app = Flask(__name__)
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
@@ -72,41 +73,54 @@ def send_remote(data):
     requests.post(arguments['--remote-endpoint'], data=json.dumps(payload), headers={'content-type': 'application/json'}).json()
     return ""
 
-def mdb_thread(mdbport, arguments):
-    try:
-         while True:
-         # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
-              try:
-                   data = mdbport.readline().decode('ascii').rstrip('\r\n')
-                   if len(data) != 0:
-                        if data[0:8] == "S2 10 03":
-                            #vending command
+def mdb_thread(arguments):
+    mdbport = None
+    while True:
+        try:
+            if os.path.exists(arguments["--mdb-port"]):
+                mdbport = io.open(arguments["--mdb-port"], 'rt', buffering=8)
+            else:
+                mdbport = io.open("/dev/ttyACM1", 'rt', buffering=8)
+            try:
+                 while True:
+                 # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
+                       data = mdbport.readline().rstrip('\r\n')
+                       if len(data) != 0:
                             if arguments['--verbose']:
-                                  print(data[9:])
-                            send_remote( data[9:])
+                                print(data)
+                            if data[0:8] == "S2 10 03":
+                                #vending command
+                                if arguments['--verbose']:
+                                      print("Sent: " + data[9:])
+                                send_remote( data[9:])
+            except Exception as e:
+                 print ("Exception in mdbthread" + str(e))
+        except Exception as e:
+             print ("Exception in mdbthread" + str(e))
 
-              except Exception as e:
-                   print(e + "a")
-    except Exception as e:
-         print ("Exception in mdbthread:" + e)
-         if mdbport != None:
-              mdbport.close()
-
-def rpc_thread(mdbport, arguments):
-        #check for enqueued requests.
+def rpc_thread(arguments):
+        mdbport = None
         while True:
-              try:
-                   request = requestqueue.get_nowait()
-                   if arguments['--verbose']:
-                        print("Command: " + request.command)
-                   mdbport.write((request.command + '\r\n').encode('ascii'))
-                   request.result = ""
-                   #request.result = mdb_command(mdbwrapper, request.command)
-                   if arguments['--verbose']:
-                        print("Result: " + request.result)
-                   request.event.set()
-              except queue.Empty as e:
-                   pass
+            try:
+                if os.path.exists(arguments["--mdb-port"]):
+                    mdbport = io.open(arguments["--mdb-port"], 'wt')
+                else:
+                    mdbport = io.open("/dev/ttyACM1", 'wt')
+                while True:
+                      try:
+                           request = requestqueue.get_nowait()
+                           if arguments['--verbose']:
+                                print("Command: " + request.command)
+                           mdbport.write((request.command + '\r\n'))
+                           request.result = ""
+                           #request.result = mdb_command(mdbwrapper, request.command)
+                           if arguments['--verbose']:
+                                print("Result: " + request.result)
+                           request.event.set()
+                      except queue.Empty as e:
+                           pass
+            except Exception as e:
+                print ("Exception in rpcthread:" + str(e))
 if __name__ == '__main__':
     arguments = docopt(__doc__, version=get_git_revision_hash())
 
@@ -114,9 +128,9 @@ if __name__ == '__main__':
         print("Launched with arguments:")
         print(arguments)
 
-    mdbport = serial.Serial(arguments["--mdb-port"])
-    mdb = Thread(target = mdb_thread, args = [mdbport, arguments])
+
+    mdb = Thread(target = mdb_thread, args = [arguments])
     mdb.start()
-    rpc = Thread(target = rpc_thread, args = [mdbport, arguments])
+    rpc = Thread(target = rpc_thread, args = [arguments])
     rpc.start()
     app.run(host=arguments['--address'], port=int(arguments['--port']), debug=arguments['--verbose'],threaded=True)

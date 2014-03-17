@@ -86,12 +86,14 @@ CSRC = $(PORTSRC) \
        $(PLATFORMSRC) \
        $(BOARDSRC) \
 	   usbcfg.c \
-       $(CHIBIOS)/os/various/chprintf.c
+       $(CHIBIOS)/os/various/chprintf.c \
+	 iwdg_lld.c \
+         iwdg.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CPPSRC = $(CHCPPSRC) \
-         main.cpp
+         main.cpp 
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler

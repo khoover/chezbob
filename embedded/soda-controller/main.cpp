@@ -6,6 +6,8 @@
 #include "usbcfg.h"
 #include "chprintf.h"
 
+#include "iwdg.h"
+
 #include <stdarg.h>
 #include <string.h>
 #include <stdlib.h>
@@ -115,13 +117,17 @@ class VMCThread : public BaseStaticThread<8192> {
             this->pendingDataSize = 0;
             this->pendingDataCounter = 0;
             toReceive = 0;
+            counter = 0;
             
             while (TRUE) {
-
+                counter++;
                 uint16_t c;
                 c = chIQGetTimeout(&this->inputQueue, TIME_INFINITE) << 8;
                 c |= chIQGetTimeout(&this->inputQueue, TIME_INFINITE);
-                   //is this a command? if so, get the specifics and start a read op
+                //is this a command? if so, get the specifics and start a read op
+                   
+                 iwdgReset( &IWDGD );
+
                 if (c & 0x100)
                 {
                     this->pendingDevice = c & 0xF8;
@@ -356,7 +362,7 @@ class VMCThread : public BaseStaticThread<8192> {
                         }
                     }
 
-                if (SDU1.config->usbp->state == USB_ACTIVE)
+                if (SDU1.config->usbp->state == USB_ACTIVE && pendingCmd != MDB_CASHLESS_POLL)
                 {
                     if (pendingSubcommand >= 0x100)
                     {
@@ -446,8 +452,10 @@ class VMCThread : public BaseStaticThread<8192> {
             }
         }
     public:
-        uint8_t queueBuffer[8];
-        INPUTQUEUE_DECL(inputQueue, &queueBuffer, 8, NULL, NULL);
+        uint8_t queueBuffer[16];
+        INPUTQUEUE_DECL(inputQueue, &queueBuffer, 16, NULL, NULL);
+        
+        uint32_t counter;
         
         uint8_t getState(uint8_t device)
         {
@@ -512,29 +520,52 @@ uint16_t testbuffer[4];
 class MDBThread : public BaseStaticThread<8192> {
 
 protected:
+    Semaphore sendSem;
+    void SynchornousMDBSend(uint16_t* array, size_t length)
+        {
+            array[length] = calculateChecksum(array, length);
+            array[length] |= 0x100;
+            
+            //take a tx lock
+            chSemWait(&this->sendSem);
+                uartStartSend(&UARTD3, length+1, array);
+                //wait until the uart send completes.
+                chEvtWaitAny((eventmask_t) TXDONE_EVENT);
+            chSemSignal(&this->sendSem);
+            
+        }
+        
   virtual msg_t main(void) {
 
     setName("MDBThread");
-
+    chSemInit(&this->sendSem, 1);
+    
+    testbuffer[0] = 0x130;
+    SynchornousMDBSend(testbuffer, 1);
+    
+    testbuffer[0] = 0x133;
+    SynchornousMDBSend(testbuffer, 1);
+    
+    testbuffer[0] = 0x131;
+    SynchornousMDBSend(testbuffer, 1);
+    
 while (true)
 {
-
-    chEvtWaitAny((eventmask_t) TXDONE_EVENT);
-    testbuffer[0] = 0x108;
-    testbuffer[1] = 0x008;
-    uartStartSend(&UARTD3, 2, testbuffer);
-
-    uint16_t c;
-    c = chIQGetTimeout(&this->inputQueue, TIME_INFINITE) << 8;
-    c |= chIQGetTimeout(&this->inputQueue, TIME_INFINITE);
     
-    chprintf((BaseSequentialStream*)&SDU1, "S3 %02x\r\n", c);
+    uint16_t val = chIQGetTimeout(&this->inputQueue, 100);
+    
+    if (val != Q_TIMEOUT) { 
+        val = val << 8;
+        val|= chIQGetTimeout(&this->inputQueue, TIME_INFINITE);
+        chprintf((BaseSequentialStream*)&SDU1, "S3 %02x\r\n", val);
+        }
+    
 }
 
 }
 public:
-    uint8_t queueBuffer[8];
-    INPUTQUEUE_DECL(inputQueue, &queueBuffer, 8, NULL, NULL);
+    uint8_t queueBuffer2[16];
+    INPUTQUEUE_DECL(inputQueue, &queueBuffer2, 16, NULL, NULL);
     MDBThread(void) : BaseStaticThread<8192>() {
       }
 };
@@ -548,10 +579,10 @@ static void tx3end1 (UARTDriver *uartp)
 
 static void tx3end2 (UARTDriver *uartp)
 {
+
      chSysLockFromIsr();
      mdbThread.signalEventsI((eventmask_t) TXDONE_EVENT);
      chSysUnlockFromIsr();
-
 }
 
 static void rx3err(UARTDriver *uartp, uartflags_t e)
@@ -563,8 +594,8 @@ static void rx3char(UARTDriver *uartp, uint16_t c)
 {
     chSysLockFromIsr();
         //MSB first into the input queue.
-        chIQPutI(&vmcThread.inputQueue, (c >> 8) & 0xFF);
-        chIQPutI(&vmcThread.inputQueue, c & 0xFF);
+        chIQPutI(&mdbThread.inputQueue, (c >> 8) & 0xFF);
+        chIQPutI(&mdbThread.inputQueue, c & 0xFF);
     chSysUnlockFromIsr();
 }
 
@@ -583,6 +614,12 @@ static UARTConfig uart_cfg_3 = {
   USART_CR1_M, //9 data bits
   0,
   0
+};
+
+static IWDGConfig iwdg_cfg = 
+{
+    0xFFF,
+    IWDG_DIV_64
 };
 
 class ShellThread : public BaseStaticThread<8192> {
@@ -604,6 +641,11 @@ protected:
             uint8_t state = atoi(argv[1]);
             vmcThread.setState(CASHLESS0_STATE, state);
             chprintf((BaseSequentialStream*)&SDU1, "S2S %02x\r\n", state);
+        }
+        else if (strcmp(cmd, "S2C") == 0)
+        {
+            //print the state of the counter
+            chprintf((BaseSequentialStream*)&SDU1, "S2C %08x\r\n", vmcThread.counter);
         }
   }
   
@@ -702,7 +744,8 @@ int main(void) {
    */
   halInit();
   System::init();
-
+  iwdgInit();
+  iwdgStart(&IWDGD, &iwdg_cfg);
   sduObjectInit(&SDU1);
   sduStart(&SDU1, &serusbcfg);
 
