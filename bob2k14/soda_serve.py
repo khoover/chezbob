@@ -321,7 +321,7 @@ def bob_purchasebarcode(barcode):
          description = "BUY"
          barcode = ""
     #now create a matching record in transactions
-    transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
+    transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob2k14")
     db.session.add(transact)
     db.session.merge(user)
     db.session.commit()
@@ -337,7 +337,7 @@ def bob_purchaseother(amount):
     barcode = None
     if (value < 0):
     #now create a matching record in transactions
-    transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
+    transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob2k14")
     db.session.add(transact)
     db.session.merge(user)
     db.session.commit()
@@ -352,7 +352,7 @@ def bob_purchaseother(amount):
     description = "ADD"
     barcode = None
     #now create a matching record in transactions
-    transact = transactions(userid=user.userid, xactvalue=value, xacttype=description, barcode=barcode, source="chezbob")
+    transact = transactions(userid=user.userid, xactvalue=value, xacttype=description, barcode=barcode, source="chezbob2k14")
     db.session.add(transact)
     db.session.merge(user)
     db.session.commit()
