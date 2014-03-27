@@ -74,8 +74,6 @@ if __name__ == '__main__':
              if arguments['--verbose']:
                  print("Command:" + arguments["<command>"])
              print(mdb_command(sodawrapper, arguments["<command>"]))
-             sodawrapper.close()
-             sodaport.close()
     except KeyboardInterrupt:
          if barcodeport != None:
               barcodeport.close()

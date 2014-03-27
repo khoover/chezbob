@@ -31,6 +31,7 @@ import soda_app
 import os
 import datetime
 import requests
+from decimal import *
 from enum import Enum
 
 app = soda_app.app
@@ -162,39 +163,11 @@ def remotebarcode(type, barcode):
 @jsonrpc.method('Soda.remotemdb')
 def remotemdb(event):
      #let's make sure theres a user logged in. if not, just tell them that guest mode isn't ready yet.
-     if event[0:2] == "00":
+    if event[0:2] == "Q1":
          if sessionmanager.checkSession(SessionLocation.soda):
-              #since we don't check if the user has a sufficent balance, approve
-              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["S2S 5"])
-              #eventually we'll get a callback that the vend was successful. but remember what kind of soda
-              #we were trying to vend, since we'll need that if the vend fails.
-              sessionmanager.sessions[SessionLocation.soda].triedsoda = event[12:14]
-              soda_app.add_event("vdr" + configdata["sodamapping"][event[12:14]])
+              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["K1"])
          else:
-              #deny the vend.
-              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["S2S 6"])
-              soda_app.add_event("vdd")
-     elif event[0:2] == "02":
-        # the vend was successful. record this to the users account.
-        product = products.query.filter(products.barcode==configdata["sodamapping"][event[6:8]]).first()
-        value = product.price
-        user = sessionmanager.sessions[SessionLocation.soda].user.user
-        user.balance -= value
-        description = "BUY " + product.name.upper()
-        barcode = product.barcode
-        if sessionmanager.sessions[SessionLocation.soda].user.privacy:
-             description = "BUY"
-             barcode = ""
-        #now create a matching record in transactions
-        transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=configdata["sodamapping"][event[6:8]], source="soda")
-        db.session.merge(user)
-        db.session.add(transact)
-        db.session.commit()
-        soda_app.add_event("vds" + configdata["sodamapping"][event[6:8]])
-     elif event[0:2] == "03":
-        #uh oh, vend fail. send out an e-mail!
-        soda_app.add_event("vdf")
-"""
+              result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["K2"])
     elif event [0:2] == "Q2":
          #well, someone better be logged in. the bill was stacked.
          billtype = event[3:5]
@@ -238,7 +211,7 @@ def remotemdb(event):
                    amount = 0.25
               #now credit to the user.
               user = sessionmanager.sessions[SessionLocation.soda].user.user
-              user.balance += amount
+              user.balance += Decimal(amount)
               description = "ADD "
               barcode = None
               #now create a matching record in transactions
@@ -251,7 +224,6 @@ def remotemdb(event):
          #logout
          sessionmanager.deregisterSession(SessionLocation.soda)
     return ""
-"""
 
 @jsonrpc.method('Soda.getusername')
 def soda_getusername():
@@ -363,6 +335,7 @@ def bob_purchaseother(amount):
     user.balance -= value
     description = "BUY OTHER"
     barcode = None
+    if (value < 0):
     #now create a matching record in transactions
     transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
     db.session.add(transact)
@@ -379,7 +352,7 @@ def bob_purchaseother(amount):
     description = "ADD"
     barcode = None
     #now create a matching record in transactions
-    transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob")
+    transact = transactions(userid=user.userid, xactvalue=value, xacttype=description, barcode=barcode, source="chezbob")
     db.session.add(transact)
     db.session.merge(user)
     db.session.commit()

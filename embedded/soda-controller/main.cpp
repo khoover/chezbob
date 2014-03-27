@@ -19,8 +19,27 @@ SerialUSBDriver SDU1;
 
 #define TXDONE_EVENT 2
 
-static uint16_t txbuffer[32];
-static uint16_t pendingData[32];
+static uint16_t txbuffer[64];
+static uint16_t pendingData[64];
+
+
+static void txend1 (UARTDriver *uartp);
+static void txend2 (__attribute__((unused)) UARTDriver *uartp);
+static void rxerr(__attribute__((unused)) UARTDriver *uartp, __attribute__((unused)) uartflags_t e);
+static void rxchar(__attribute__((unused)) UARTDriver *uartp, uint16_t c);
+static void rxend(__attribute__((unused)) UARTDriver *uartp);
+
+static UARTConfig uart_cfg_2 = {
+  txend1,
+  txend2,
+  rxend,
+  rxchar,
+  rxerr,
+  9600,
+  USART_CR1_M, //9 data bits
+  0,
+  0
+};
 
 uint8_t calculateChecksum(uint16_t* array, size_t length)
 {
@@ -31,7 +50,7 @@ uint8_t calculateChecksum(uint16_t* array, size_t length)
         sum += array[i];
     }
 
-    return sum;
+    return sum & 0xFF;
 }
 
 #define MDB_CASHLESS0_ADDRESS 0x10
@@ -59,12 +78,13 @@ uint8_t calculateChecksum(uint16_t* array, size_t length)
 #define VMC_CASHLESS_STATE_ENABLED  1
 #define VMC_CASHLESS_STATE_VSESSION 2
 #define VMC_CASHLESS_STATE_VSESSIONIDLE 3
-#define VMC_CASHLESS_STATE_CONFIGURED 4
+#define VMC_CASHLESS_STATE_CONFIGURE 4
 #define VMC_CASHLESS_STATE_VAPPROVED 5
 #define VMC_CASHLESS_STATE_VDENIED 6
 #define VMC_CASHLESS_STATE_VSESSIONEND 7
 #define VMC_CASHLESS_STATE_DISABLED 8
 #define VMC_CASHLESS_STATE_CANCEL 9
+#define VMC_CASHLESS_STATE_CONFIGURED 10
 
 #define MDB_CASHLESS_POLLRESPONSE_JUSTRESET 0x0
 #define MDB_CASHLESS_POLLRESPONSE_CONFIGDATA 0x1
@@ -73,6 +93,10 @@ uint8_t calculateChecksum(uint16_t* array, size_t length)
 #define MDB_CASHLESS_POLLRESPONSE_VDENIED 0x6
 #define MDB_CASHLESS_POLLRESPONSE_ENDSESSION 0x7
 #define MDB_CASHLESS_POLLRESPONSE_CANCELLED 0x8
+
+static Semaphore printSem;
+
+static uartflags_t errors;
 
 class VMCThread : public BaseStaticThread<8192> {
     protected:
@@ -83,28 +107,53 @@ class VMCThread : public BaseStaticThread<8192> {
         char pendingCmd;
         char pendingDevice;
         uint16_t pendingSubcommand;
-        char pendingDataSize;
-        char pendingDataCounter;
+        unsigned char pendingDataSize;
+        unsigned char pendingDataCounter;
 
-        void SynchornousVMCSend(uint16_t* array, size_t length)
+        msg_t SynchornousVMCSend(uint16_t* array, size_t length)
         {
             array[length] = calculateChecksum(array, length);
             array[length] |= 0x100;
             
+            msg_t retval = 1;
+           /* 
+            if (length > 0)
+            {
+                chprintf((BaseSequentialStream*)&SDU1, "S2S ");
+                for (int i =0 ; i < length + 1; i++)
+                {
+                    chprintf((BaseSequentialStream*)&SDU1, " %02x", array[i]);
+                }
+                chprintf((BaseSequentialStream*) &SDU1, "\r\n");
+            }
+*/            
             //take a tx lock
             chSemWait(&this->sendSem);
             uint16_t c;
-            do {
+            UARTD2.txstate = UART_TX_IDLE;
+
                 uartStartSend(&UARTD2, length+1, array);
                 //wait until the uart send completes.
                 chEvtWaitAny((eventmask_t) TXDONE_EVENT);
+            
+   
             //release the tx lock
                  
-                c = chIQGetTimeout(&this->inputQueue, TIME_INFINITE) << 8;
-                c |= chIQGetTimeout(&this->inputQueue, TIME_INFINITE);
-                } while (c == 0xAA); //resend if requested.
+                if (length > 0)
+                {
+                    c = chIQGetTimeout(&this->inputQueue, TIME_INFINITE) << 8;
+                    c |= chIQGetTimeout(&this->inputQueue, TIME_INFINITE);
+                    
+                    if (c == 0xAA)
+                    {
+                        chSemWait(&printSem);
+                        chprintf((BaseSequentialStream*)&SDU1, "S2 ERR\r\n");
+                        chSemSignal(&printSem);
+                        retval = 0;
+                    }
+                }
             chSemSignal(&this->sendSem);
-            
+            return retval;
         }
 
         virtual msg_t main(void)
@@ -118,15 +167,28 @@ class VMCThread : public BaseStaticThread<8192> {
             this->pendingDataCounter = 0;
             toReceive = 0;
             counter = 0;
-            
+            errors = 0;
             while (TRUE) {
                 counter++;
-                uint16_t c;
-                c = chIQGetTimeout(&this->inputQueue, TIME_INFINITE) << 8;
+                msg_t c;
+                c = chIQGetTimeout(&this->inputQueue, 20000);
+                if (c == Q_TIMEOUT)
+                {
+                    chprintf((BaseSequentialStream*)&SDU1, "ER SDU1 fail %d\r\n", errors);
+                   // uartStop(&UARTD2);
+                   // uartStart(&UARTD2, &uart_cfg_2);
+                   // UARTD2.usart->CR2 &= ~USART_CR2_LBDIE;
+                    this->state[CASHLESS0_STATE] =VMC_CASHLESS_STATE_RESET;
+                    this->pendingDataSize = 0;
+                    this->pendingDataCounter = 0;
+                }
+                else
+                {
+                c = c << 8;
                 c |= chIQGetTimeout(&this->inputQueue, TIME_INFINITE);
                 //is this a command? if so, get the specifics and start a read op
                    
-                 iwdgReset( &IWDGD );
+                //iwdgReset( &IWDGD );
 
                 if (c & 0x100)
                 {
@@ -239,7 +301,7 @@ class VMCThread : public BaseStaticThread<8192> {
                                         txbuffer[5] = 0x2;
                                         txbuffer[6] = 0x10;
                                         txbuffer[7] = 0x7;
-                                        this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_CONFIGURED;
+                                        this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_CONFIGURE;
                                         this->SynchornousVMCSend(txbuffer, 8);
                                         break;
                                     default:
@@ -254,7 +316,7 @@ class VMCThread : public BaseStaticThread<8192> {
                                         txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_JUSTRESET;
                                         this->SynchornousVMCSend(txbuffer, 1);
                                     break;
-                                    case VMC_CASHLESS_STATE_CONFIGURED:
+                                    case VMC_CASHLESS_STATE_CONFIGURE:
                                         txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_CONFIGDATA;
                                         txbuffer[1] = 0x2;
                                         txbuffer[2] = 0x0;
@@ -264,6 +326,7 @@ class VMCThread : public BaseStaticThread<8192> {
                                         txbuffer[6] = 0x10;
                                         txbuffer[7] = 0x7;
                                         this->SynchornousVMCSend(txbuffer, 8);
+                                        this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_CONFIGURED;
                                     break;
                                     case VMC_CASHLESS_STATE_VSESSION:
                                         txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_BEGINSESSION;
@@ -276,24 +339,31 @@ class VMCThread : public BaseStaticThread<8192> {
                                         txbuffer[7] = 0x01;
                                         txbuffer[8] = 0x01;
                                         txbuffer[9] = 0;
-                                        this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_VSESSIONIDLE;
-                                        this->SynchornousVMCSend(txbuffer, 10);
+                                        if (this->SynchornousVMCSend(txbuffer, 10))
+                                        {
+                                            this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_VSESSIONIDLE;
+                                        }
                                     break;
                                      case VMC_CASHLESS_STATE_VDENIED:
                                         txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_VDENIED;
-                                        this->SynchornousVMCSend(txbuffer, 1);
-                                        this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_VSESSION;
+                                        if (this->SynchornousVMCSend(txbuffer, 1))
+                                        {
+                                            this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_VSESSION;
+                                        }
                                     break;
                                     case VMC_CASHLESS_STATE_VAPPROVED:
                                         txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_VAPPROVED;
                                         txbuffer[1] = 0xFF;
                                         txbuffer[2] = 0xFF;
                                         this->SynchornousVMCSend(txbuffer, 3);
+                                        this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_VSESSIONIDLE;
                                     break;
                                     case VMC_CASHLESS_STATE_VSESSIONEND:
                                         txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_ENDSESSION;
-                                        this->SynchornousVMCSend(txbuffer, 1);
-                                        this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_VSESSION;
+                                        if (this->SynchornousVMCSend(txbuffer, 1))
+                                        {
+                                            this->state[CASHLESS0_STATE] = VMC_CASHLESS_STATE_VSESSION;
+                                        }
                                     break;
                                     case VMC_CASHLESS_STATE_CANCEL:
                                         txbuffer[0] = MDB_CASHLESS_POLLRESPONSE_CANCELLED;
@@ -362,26 +432,32 @@ class VMCThread : public BaseStaticThread<8192> {
                         }
                     }
 
-                if (SDU1.config->usbp->state == USB_ACTIVE && pendingCmd != MDB_CASHLESS_POLL)
+                if (SDU1.config->usbp->state == USB_ACTIVE && pendingCmd != 0x2)
                 {
                     if (pendingSubcommand >= 0x100)
                     {
+                        //chSemWait(&printSem);
                         chprintf((BaseSequentialStream*)&SDU1, "S2 %02x %02x\r\n", pendingDevice, pendingCmd);
+                        //chSemSignal(&printSem);
                     }
                     else
                     {
                         if (pendingDataSize == 0)
                         {
+                           // chSemWait(&printSem);
                             chprintf((BaseSequentialStream*)&SDU1, "S2 %02x %02x %02x\r\n", pendingDevice, pendingCmd, pendingSubcommand);
+                           // chSemSignal(&printSem);
                         }
                         else
                         {
+                          //  chSemWait(&printSem);
                             chprintf((BaseSequentialStream*)&SDU1, "S2 %02x %02x %02x", pendingDevice, pendingCmd, pendingSubcommand);
                             for (int i =0 ; i < pendingDataSize; i++)
                             {
                                 chprintf((BaseSequentialStream*)&SDU1, " %02x", pendingData[i]);
                             }
                             chprintf((BaseSequentialStream*) &SDU1, "\r\n");
+                            //chSemSignal(&printSem);
                         }
                     }
                 }
@@ -449,11 +525,14 @@ class VMCThread : public BaseStaticThread<8192> {
                     }
                 }
 
+                }
             }
+            
+            return 0;
         }
     public:
-        uint8_t queueBuffer[16];
-        INPUTQUEUE_DECL(inputQueue, &queueBuffer, 16, NULL, NULL);
+        uint8_t queueBuffer[128];
+        INPUTQUEUE_DECL(inputQueue, queueBuffer, 128, NULL, NULL);
         
         uint32_t counter;
         
@@ -478,18 +557,19 @@ static void txend1 (UARTDriver *uartp)
 
 }
 
-static void txend2 (UARTDriver *uartp)
+static void txend2 (__attribute__((unused)) UARTDriver *uartp)
 {
     chSysLockFromIsr();
         vmcThread.signalEventsI((eventmask_t) TXDONE_EVENT);
     chSysUnlockFromIsr();
 }
 
-static void rxerr(UARTDriver *uartp, uartflags_t e)
+static void rxerr(__attribute__((unused)) UARTDriver *uartp, __attribute__((unused)) uartflags_t e)
 {
+errors  = e;
 }
 
-static void rxchar(UARTDriver *uartp, uint16_t c)
+static void rxchar(__attribute__((unused)) UARTDriver *uartp, uint16_t c)
 {
     chSysLockFromIsr();
         //MSB first into the input queue.
@@ -499,129 +579,17 @@ static void rxchar(UARTDriver *uartp, uint16_t c)
 
 }
 
-static void rxend(UARTDriver *uartp)
+static void rxend(__attribute__((unused)) UARTDriver *uartp)
 {
 }
 
-static UARTConfig uart_cfg_2 = {
-  txend1,
-  txend2,
-  rxend,
-  rxchar,
-  rxerr,
-  9600,
-  USART_CR1_M, //9 data bits
-  0,
-  0
-};
-
-
-uint16_t testbuffer[4];
-class MDBThread : public BaseStaticThread<8192> {
-
-protected:
-    Semaphore sendSem;
-    void SynchornousMDBSend(uint16_t* array, size_t length)
-        {
-            array[length] = calculateChecksum(array, length);
-            array[length] |= 0x100;
-            
-            //take a tx lock
-            chSemWait(&this->sendSem);
-                uartStartSend(&UARTD3, length+1, array);
-                //wait until the uart send completes.
-                chEvtWaitAny((eventmask_t) TXDONE_EVENT);
-            chSemSignal(&this->sendSem);
-            
-        }
-        
-  virtual msg_t main(void) {
-
-    setName("MDBThread");
-    chSemInit(&this->sendSem, 1);
-    
-    testbuffer[0] = 0x130;
-    SynchornousMDBSend(testbuffer, 1);
-    
-    testbuffer[0] = 0x133;
-    SynchornousMDBSend(testbuffer, 1);
-    
-    testbuffer[0] = 0x131;
-    SynchornousMDBSend(testbuffer, 1);
-    
-while (true)
-{
-    
-    uint16_t val = chIQGetTimeout(&this->inputQueue, 100);
-    
-    if (val != Q_TIMEOUT) { 
-        val = val << 8;
-        val|= chIQGetTimeout(&this->inputQueue, TIME_INFINITE);
-        chprintf((BaseSequentialStream*)&SDU1, "S3 %02x\r\n", val);
-        }
-    
-}
-
-}
-public:
-    uint8_t queueBuffer2[16];
-    INPUTQUEUE_DECL(inputQueue, &queueBuffer2, 16, NULL, NULL);
-    MDBThread(void) : BaseStaticThread<8192>() {
-      }
-};
-
-static MDBThread mdbThread;
-
-static void tx3end1 (UARTDriver *uartp)
-{
-
-}
-
-static void tx3end2 (UARTDriver *uartp)
-{
-
-     chSysLockFromIsr();
-     mdbThread.signalEventsI((eventmask_t) TXDONE_EVENT);
-     chSysUnlockFromIsr();
-}
-
-static void rx3err(UARTDriver *uartp, uartflags_t e)
-{
-
-}
-
-static void rx3char(UARTDriver *uartp, uint16_t c)
-{
-    chSysLockFromIsr();
-        //MSB first into the input queue.
-        chIQPutI(&mdbThread.inputQueue, (c >> 8) & 0xFF);
-        chIQPutI(&mdbThread.inputQueue, c & 0xFF);
-    chSysUnlockFromIsr();
-}
-
-static void rx3end(UARTDriver *uartp)
-{
-
-}
-
-static UARTConfig uart_cfg_3 = {
-  tx3end1,
-  tx3end2,
-  rx3end,
-  rx3char,
-  rx3err,
-  9600,
-  USART_CR1_M, //9 data bits
-  0,
-  0
-};
-
+/*
 static IWDGConfig iwdg_cfg = 
 {
     0xFFF,
     IWDG_DIV_64
 };
-
+*/
 class ShellThread : public BaseStaticThread<8192> {
 
 protected:
@@ -633,25 +601,32 @@ protected:
         if (strcmp(cmd, "S2?") == 0)
         {
             //just indicate that the current state is
+            //chSemWait(&printSem);
             chprintf((BaseSequentialStream*)&SDU1, "S2? %02x\r\n", vmcThread.getState(CASHLESS0_STATE));
+           // chSemSignal(&printSem);
         }
         else if (strcmp(cmd, "S2S") == 0)
         {
             //sets the current state of the vmc
             uint8_t state = atoi(argv[1]);
             vmcThread.setState(CASHLESS0_STATE, state);
-            chprintf((BaseSequentialStream*)&SDU1, "S2S %02x\r\n", state);
+           // chSemWait(&printSem);
+            //chprintf((BaseSequentialStream*)&SDU1, "S2S %02x\r\n", state);
+            //chSemSignal(&printSem);
         }
         else if (strcmp(cmd, "S2C") == 0)
         {
             //print the state of the counter
+           // chSemWait(&printSem);
             chprintf((BaseSequentialStream*)&SDU1, "S2C %08x\r\n", vmcThread.counter);
+            //chSemSignal(&printSem);
         }
   }
   
   unsigned short readline()
   {
     unsigned short bufPointer = 0;
+    memset(inputBuf,0,16);
     do
     {
         char in = chSequentialStreamGet((BaseSequentialStream*)&SDU1);
@@ -685,14 +660,17 @@ protected:
   virtual msg_t main(void) {
         setName("Shell");
 
+        chSemWait(&printSem);
         chprintf((BaseSequentialStream*)&SDU1, "ChezBob Vending Machine Shell\r\n");
-        
+        chSemSignal(&printSem);
         while (true)
         {
             if (readline())
             {
                 //echo the command.
-                chprintf((BaseSequentialStream*)&SDU1, "UE %s\r\n", inputBuf);
+                //chSemWait(&printSem);
+             //   chprintf((BaseSequentialStream*)&SDU1, "UE %s\r\n", inputBuf);
+               //chSemSignal(&printSem);
                 
                 unsigned short argc = 0;
                 char* argv[9];
@@ -722,9 +700,12 @@ protected:
                 }
             }
         }
+        
+        return 0;
     }
 public:
     ShellThread(void) : BaseStaticThread<8192>() {
+        memset(inputBuf,0,16);
       }
 };
 
@@ -744,27 +725,29 @@ int main(void) {
    */
   halInit();
   System::init();
-  iwdgInit();
-  iwdgStart(&IWDGD, &iwdg_cfg);
+  //iwdgInit();
+  //iwdgStart(&IWDGD, &iwdg_cfg);
   sduObjectInit(&SDU1);
   sduStart(&SDU1, &serusbcfg);
-
+  chSemInit(&printSem, 1);
+   
   usbDisconnectBus(serusbcfg.usbp);
   chThdSleepMilliseconds(1000);
   usbStart(serusbcfg.usbp, &usbcfg);
   usbConnectBus(serusbcfg.usbp);
 
   uartStart(&UARTD2, &uart_cfg_2);
+  UARTD2.usart->CR2 &= ~USART_CR2_LBDIE;
   palSetPadMode(GPIOA, 2, PAL_MODE_ALTERNATE(7));
   palSetPadMode(GPIOA, 3, PAL_MODE_ALTERNATE(7));
 
-  uartStart(&UARTD3, &uart_cfg_3);
-  palSetPadMode(GPIOD, 8, PAL_MODE_ALTERNATE(7));
-  palSetPadMode(GPIOD, 9, PAL_MODE_ALTERNATE(7));
+  //uartStart(&UARTD3, &uart_cfg_3);
+  //palSetPadMode(GPIOD, 8, PAL_MODE_ALTERNATE(7));
+  //palSetPadMode(GPIOD, 9, PAL_MODE_ALTERNATE(7));
 
   shellThread.start(NORMALPRIO);
   vmcThread.start(NORMALPRIO);
-  mdbThread.start(NORMALPRIO);
+ // mdbThread.start(NORMALPRIO);
   
 
   while (TRUE)

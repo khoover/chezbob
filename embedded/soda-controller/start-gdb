@@ -1,3 +1,0 @@
-#!/bin/bash
-screen -S openocd -d -m sh
-screen -r openocd -p 0 -X stuff $'openocd -f /git/externals/jtag-openocd/tcl/board/stm32f4discovery.cfg \n'

@@ -19,6 +19,7 @@ Options:
   -v --verbose      	    Verbose debug output.
 """
 
+
 from docopt import docopt
 import subprocess
 import serial
@@ -75,17 +76,26 @@ def send_remote(data):
 
 def mdb_thread(arguments):
     mdbport = None
+    path = None
     while True:
         try:
             if os.path.exists(arguments["--mdb-port"]):
-                mdbport = io.open(arguments["--mdb-port"], 'rt', buffering=8)
-            else:
-                mdbport = io.open("/dev/ttyACM1", 'rt', buffering=8)
+                mdbport = io.open(arguments["--mdb-port"], 'rt', buffering=8,errors='ignore')
+                path=arguments["--mdb-port"]
+            elif os.path.exists("/dev/ttyACM1"):
+                mdbport = io.open("/dev/ttyACM1", 'rt', buffering=8,errors='ignore')
+                path="/dev/ttyACM1"
+            elif os.path.exists("/dev/ttyACM2"):
+                mdbport = io.open("/dev/ttyACM2", 'rt', buffering=8,errors='ignore')
+                path="/dev/ttyACM2"
+            if (arguments["--verbose"]):
+                print("mdb_thread: opened port " +path+  " for reading.")
             try:
                  while True:
                  # attempt to read data off the mdb port. if there is, send it to the mdb endpoint
-                       data = mdbport.readline().rstrip('\r\n')
+                       data = mdbport.readline()
                        if len(data) != 0:
+                            data = data.rstrip('\r\n')
                             if arguments['--verbose']:
                                 print(data)
                             if data[0:8] == "S2 10 03":
@@ -93,25 +103,44 @@ def mdb_thread(arguments):
                                 if arguments['--verbose']:
                                       print("Sent: " + data[9:])
                                 send_remote( data[9:])
+                       else:
+                            time.sleep(0.01)
+                            if not os.path.exists(path):
+                                 raise Exception("path no longer exists.")
             except Exception as e:
                  print ("Exception in mdbthread" + str(e))
         except Exception as e:
              print ("Exception in mdbthread" + str(e))
+             time.sleep(1)
 
 def rpc_thread(arguments):
         mdbport = None
+        retry = None
+        path = None
         while True:
             try:
                 if os.path.exists(arguments["--mdb-port"]):
                     mdbport = io.open(arguments["--mdb-port"], 'wt')
-                else:
+                    path=arguments["--mdb-port"]
+                elif os.path.exists("/dev/ttyACM1"):
                     mdbport = io.open("/dev/ttyACM1", 'wt')
+                    path="/dev/ttyACM1"
+                elif os.path.exists("/dev/ttyACM2"):
+                    mdbport = io.open("/dev/ttyACM2", 'wt')
+                    path="/dev/ttyACM2"
+                if (arguments['--verbose']):
+                    print("rpc_thread: opened port " +path + " for writing.")
                 while True:
                       try:
-                           request = requestqueue.get_nowait()
+                           if retry is not None:
+                                mdbport.write(retry + '\r\n')
+                           request = requestqueue.get()
                            if arguments['--verbose']:
                                 print("Command: " + request.command)
+                           retry = request.command
                            mdbport.write((request.command + '\r\n'))
+                           mdbport.flush()
+                           retry = None
                            request.result = ""
                            #request.result = mdb_command(mdbwrapper, request.command)
                            if arguments['--verbose']:
@@ -121,6 +150,7 @@ def rpc_thread(arguments):
                            pass
             except Exception as e:
                 print ("Exception in rpcthread:" + str(e))
+                time.sleep(1)
 if __name__ == '__main__':
     arguments = docopt(__doc__, version=get_git_revision_hash())
 
@@ -133,4 +163,4 @@ if __name__ == '__main__':
     mdb.start()
     rpc = Thread(target = rpc_thread, args = [arguments])
     rpc.start()
-    app.run(host=arguments['--address'], port=int(arguments['--port']), debug=arguments['--verbose'],threaded=True)
+    app.run(host=arguments['--address'], port=int(arguments['--port']), debug=False,threaded=True)

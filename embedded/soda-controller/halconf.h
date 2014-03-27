@@ -45,7 +45,7 @@
 #endif
 
 /**
- * @brief   Enables the ADC subsystem.
+  @brief   Enables the ADC subsystem.
  */
 #if !defined(HAL_USE_ADC) || defined(__DOXYGEN__)
 #define HAL_USE_ADC                 FALSE
@@ -310,6 +310,6 @@
 #endif /* _HALCONF_H_ */
 
 #if !defined(HAL_USE_IWDG)
-#define HAL_USE_IWDG	TRUE
+#define HAL_USE_IWDG	FALSE
 #endif
 /** @} */
