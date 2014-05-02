@@ -24,7 +24,7 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'postgresql'
+DATABASE_ENGINE = 'postgresql_psycopg2'
 DATABASE_NAME = 'bob'
 DATABASE_USER = 'django'
 DATABASE_PASSWORD = ''
