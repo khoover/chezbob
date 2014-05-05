@@ -23,19 +23,17 @@ from flask import Flask, Response, jsonify
 from flask_jsonrpc import JSONRPC
 from flask_cors import cross_origin
 from flask.ext.sqlalchemy import SQLAlchemy
-from soda_session import SessionLocation, SessionManager, Session, User, users
-from decimal import Decimal
+
+from soda_session import SessionLocation, SessionManager, Session, User
 import subprocess
 import json
 import soda_app
 import os
 import datetime
 import requests
+from models import app, db, products, transactions, users
 from decimal import *
 from enum import Enum
-
-app = soda_app.app
-db = soda_app.db
 
 class vmcstates(Enum):
     reset = 0
@@ -61,61 +59,6 @@ def to_jsonify_ready(model):
             json[col.name] = str(getattr(model, col.name))
 
     return json
-
-#db models - todo: move this into models.py or similar
-
-"""
-                               Table "public.products"
-    Column     |       Type        |       Modifiers        | Storage  | Description
----------------+-------------------+------------------------+----------+-------------
- barcode       | character varying | not null               | extended |
- name          | character varying | not null               | extended |
- phonetic_name | character varying | not null               | extended |
- price         | numeric(12,2)     | not null               | main     |
- bulkid        | integer           |                        | plain    |
- coffee        | boolean           | not null default false | plain    |
-
-"""
-class products(db.Model):
-  __tablename__ = 'products'
-  barcode = db.Column(db.String(), primary_key = True)
-  name = db.Column(db.String())
-  phonetic_name = db.Column(db.String())
-  price = db.Column(db.Numeric(12,2))
-  bulkid = db.Column(db.Integer())
-  coffee = db.Column(db.Boolean())
-
-"""
-                                                   Table "public.transactions"
-      Column      |           Type           |                         Modifiers                         | Storage  | Description
-------------------+--------------------------+-----------------------------------------------------------+----------+-------------
- xacttime         | timestamp with time zone | not null                                                  | plain    |
- userid           | integer                  | not null                                                  | plain    |
- xactvalue        | numeric(12,2)            | not null                                                  | main     |
- xacttype         | character varying        | not null                                                  | extended |
- barcode          | character varying        |                                                           | extended |
- source           | character varying        |                                                           | extended |
- id               | integer                  | not null default nextval('transactions_id_seq'::regclass) | plain    |
- finance_trans_id | integer                  |                                                           | plain    |
-"""
-class transactions(db.Model):
-  __tablename__ = 'transactions'
-  xacttime = db.Column(db.DateTime(True))
-  userid = db.Column(db.Integer())
-  xactvalue = db.Column(db.String())
-  xacttype = db.Column(db.String())
-  barcode = db.Column(db.String(), nullable = True)
-  source = db.Column(db.String(), nullable = True)
-  id = db.Column(db.Integer(), primary_key = True)
-  finance_trans_id = db.Column(db.Integer(), nullable = True)
-  def __init__(self, userid, xactvalue, xacttype, barcode, source, finance_trans_id = None):
-        self.userid = userid
-        self.xactvalue = xactvalue
-        self.xacttype = xacttype
-        self.barcode = barcode
-        self.source = source
-        self.finance_trans_id = finance_trans_id
-        self.xacttime = datetime.datetime.now()
 
 # Flask-JSONRPC
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
@@ -346,7 +289,7 @@ def bob_purchaseother(amount):
          return True
 
 @jsonrpc.method('Bob.deposit')
-def bob_purchaseother(amount):
+def bob_deposit(amount):
     #ok, we're supposed to subtract the balance from the user first,
     value = Decimal(amount.strip(' "'))
     user = sessionmanager.sessions[SessionLocation.computer].user.user
