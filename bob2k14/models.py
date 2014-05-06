@@ -9,11 +9,36 @@ db = soda_app.db
 # can see these tables as basic python modules through SQLAlchemy.
 
 # Currently included tables are:
+#  aggregate_purchases
 #  products
 #  profiles
 #  transactions
 #  userbarcodes
 #  users
+
+"""
+  Table "public.aggregate_purchases"
+  Column  |     Type      | Modifiers
+----------+---------------+-----------
+ date     | date          | not null
+ barcode  | text          | not null
+ quantity | integer       | not null
+ price    | numeric(12,2) |
+ bulkid   | integer       |
+"""
+class aggregate_purchases(db.Model):
+  __tablename__ = 'aggregate_purchases'
+  date = db.Column(db.Date(True))
+  barcode = db.Column(db.String())
+  quantity = db.Column(db.Integer())
+  price = db.Column(db.Numeric(12,2))
+  bulkid = db.Column(db.Integer())
+  def __init__(self, barcode, price, bulkid):
+        self.date = datetime.date.today()
+        self.barcode = barcode
+        self.quantity = 1
+        self.price = price
+        self.bulkid = bulkid
 
 """
                                Table "public.products"

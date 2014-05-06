@@ -31,7 +31,7 @@ import soda_app
 import os
 import datetime
 import requests
-from models import app, db, products, transactions, users
+from models import app, db, aggregate_purchases, products, transactions, users
 from decimal import *
 from enum import Enum
 
@@ -73,26 +73,65 @@ def json_index():
 def product(barcode):
     return to_jsonify_ready(products.query.filter(products.barcode==barcode).first())
 
+def make_purchase(user, product, location, privacy=False):
+    # Get the purchase price of the item
+    value = product.price
+    # Deduct the balance from the user's account
+    user.balance -= value
+    # Insert into the aggregate_purchases table
+    aggregate = aggregate_purchases(product.barcode, value, product.bulkid)
+    # Insert into the transaction table, respecting the user's privacy settings
+    barcode = product.barcode
+    description = "BUY " + product.name.upper()
+    if privacy:
+        description = "BUY"
+        barcode = ""
+    transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source=location)
+    # Commit our changes
+    db.session.add(aggregate)
+    db.session.add(transact)
+    db.session.merge(user)
+    db.session.commit()
+    return True
+
+def make_purchase_other(user, value, location):
+    # fail if the price doesn't make sense
+    # TODO: do we really want abs(value) here?
+    if (value < 0):
+        return False
+    # update the balance
+    user.balance -= value
+    # now create a matching record in transactions
+    transact = transactions(userid=user.userid, xactvalue=-value, xacttype="BUY OTHER", barcode=None, source="chezbob2k14")
+    # commit our changes
+    db.session.add(transact)
+    db.session.merge(user)
+    db.session.commit()
+    return True
+
+def make_deposit(user, amount, location):
+    # update the user's balance
+    user.balance += amount
+    # make a matching record in transactions
+    transact = transactions(userid=user.userid, xactvalue=amount, xacttype="ADD", barcode=None, source=location)
+    # commit our changes
+    db.session.add(transact)
+    db.session.merge(user)
+    db.session.commit()
+    return True
+
 @jsonrpc.method('Soda.remotebarcode')
 def remotebarcode(type, barcode):
     #several things to check here. first, if there is anyone logged in, we're probably buying something, so check that.
     if sessionmanager.checkSession(SessionLocation.soda):
-         #do a purchase
-         #ok, we're supposed to subtract the balance from the user first,
-         product = products.query.filter(products.barcode==barcode).first()
-         value = product.price
+         # Get the user, product, location, and privacy settings
          user = sessionmanager.sessions[SessionLocation.soda].user.user
-         user.balance -= value
-         description = "BUY " + product.name.upper()
-         barcode = product.barcode
-         if sessionmanager.sessions[SessionLocation.soda].user.privacy:
-              description = "BUY"
-              barcode = ""
-         #now create a matching record in transactions
-         transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="soda")
-         db.session.add(transact)
-         db.session.merge(user)
-         db.session.commit()
+         product = products.query.filter(products.barcode==barcode).first()
+         location = "soda"
+         privacy = sessionmanager.sessions[SessionLocation.soda].user.privacy
+         # make a purchase, which also updates the tb
+         make_purchase(user, product, location, privacy)
+         # TODO: Michael, what does this do?
          soda_app.add_event("sbc" + barcode)
     else:
          #do a login
@@ -129,14 +168,7 @@ def remotemdb(event):
               amount = 100
          #now credit to the user.
          user = sessionmanager.sessions[SessionLocation.soda].user.user
-         user.balance += amount
-         description = "ADD "
-         barcode = None
-         #now create a matching record in transactions
-         transact = transactions(userid=user.userid, xactvalue=+amount, xacttype=description, barcode=barcode, source="soda")
-         db.session.add(transact)
-         db.session.merge(user)
-         db.session.commit()
+         make_deposit(user, amount, "soda")
          soda_app.add_event("deb" + str(amount))
     elif event [0:2] == "P1":
          if not sessionmanager.checkSession(SessionLocation.soda):
@@ -152,16 +184,9 @@ def remotemdb(event):
                    amount = 0.10
               elif cointype == "02":
                    amount = 0.25
-              #now credit to the user.
+              #now credit to the user
               user = sessionmanager.sessions[SessionLocation.soda].user.user
-              user.balance += Decimal(amount)
-              description = "ADD "
-              barcode = None
-              #now create a matching record in transactions
-              transact = transactions(userid=user.userid, xactvalue=+amount, xacttype=description, barcode=barcode, source="soda")
-              db.session.add(transact)
-              db.session.merge(user)
-              db.session.commit()
+              make_deposit(user, amount, "soda")
          soda_app.add_event("dec" + str(amount))
     elif event [0:1] == "W":
          #logout
@@ -254,54 +279,25 @@ def bob_getbarcodeinfo(barcode):
 @jsonrpc.method('Bob.purchasebarcode')
 def bob_purchasebarcode(barcode):
     #ok, we're supposed to subtract the balance from the user first,
-    product = products.query.filter(products.barcode==barcode).first()
-    value = product.price
     user = sessionmanager.sessions[SessionLocation.computer].user.user
-    user.balance -= value
-    description = "BUY " + product.name.upper()
-    barcode = product.barcode
-    if sessionmanager.sessions[SessionLocation.computer].user.privacy:
-         description = "BUY"
-         barcode = ""
-    #now create a matching record in transactions
-    transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob2k14")
-    db.session.add(transact)
-    db.session.merge(user)
-    db.session.commit()
-    return True
+    product = products.query.filter(products.barcode==barcode).first()
+    location = "chezbob2k14"
+    privacy = sessionmanager.sessions[SessionLocation.computer].user.privacy
+    return make_purchase(user, product, location, privacy)
 
 @jsonrpc.method('Bob.purchaseother')
 def bob_purchaseother(amount):
     #ok, we're supposed to subtract the balance from the user first,
-    value = Decimal(amount.strip(' "'))
     user = sessionmanager.sessions[SessionLocation.computer].user.user
-    user.balance -= value
-    description = "BUY OTHER"
-    barcode = None
-    if (value < 0):
-        return False
-    else:
-         #now create a matching record in transactions
-         transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source="chezbob2k14")
-         db.session.add(transact)
-         db.session.merge(user)
-         db.session.commit()
-         return True
+    value = Decimal(amount.strip(' "'))
+    return make_purchase_other(user, value, "chezbob2k14")
 
 @jsonrpc.method('Bob.deposit')
 def bob_deposit(amount):
     #ok, we're supposed to subtract the balance from the user first,
     value = Decimal(amount.strip(' "'))
     user = sessionmanager.sessions[SessionLocation.computer].user.user
-    user.balance += value
-    description = "ADD"
-    barcode = None
-    #now create a matching record in transactions
-    transact = transactions(userid=user.userid, xactvalue=value, xacttype=description, barcode=barcode, source="chezbob2k14")
-    db.session.add(transact)
-    db.session.merge(user)
-    db.session.commit()
-    return True
+    return make_deposit(user, value, "chezbob2k14")
 
 @jsonrpc.method('Bob.transactions')
 def bob_transactions():
