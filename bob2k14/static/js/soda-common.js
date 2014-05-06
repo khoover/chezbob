@@ -1,4 +1,15 @@
 var rpc = new $.JsonRpcClient({ajaxUrl: '/api'});
+var autotime = "20";
+
+function resetTimer(){
+	$("#logouttime").text(autotime);
+	$("body").css('background-color', '#fff');
+}
+
+function clearTimer(){
+	$("#logouttime").text(0);
+	$("body").css('background-color', '#fff');
+}
 
 function toggleFullScreen() {
   if (!document.fullscreenElement &&    // alternative standard method
@@ -29,6 +40,30 @@ function notify_error()
 {
 }
 
+function logout_timer()
+{
+	var time = parseInt($("#logouttime").text());
+	if (time > 0)
+	{
+		time = time -1;
+		$("#logouttime").text(time);
+		
+		if (time == 0)
+		{
+				$("body").css('background-color', '#fff');
+				rpc.call('Soda.logout', [], function (result) {
+				},
+				function (error)
+				{
+					notify_error(error);
+				});
+		}
+		else if (time < 5)
+		{
+			$("body").css('background-color', '#ffaaaa');
+		}
+	}
+}
 function soda_login()
 {
 	 bootbox.prompt("Username?", function(result) {
@@ -77,6 +112,7 @@ function configureEventSource()
 		if (e.data.substring(0,3) == "sbc")
 		{
 			//this is a barcode that was purchased
+			resetTimer();
 			var barcode = e.data.substring(3);
 			
 			rpc.call('Soda.getbalance', [], function (result) {
@@ -101,6 +137,7 @@ function configureEventSource()
         else if (e.data.substring(0,3) == "vdr")
 		{
 			//soda vend request
+			resetTimer();
 			rpc.call('Bob.getbarcodeinfo', [e.data.substring(3)], function (result) {
 			$("#sodaname").text(result['name']);}, function (error) {});
             $("#dispensingdialog").modal('show');
@@ -108,18 +145,21 @@ function configureEventSource()
         else if (e.data.substring(0,3) == "vdd")
 		{
 			//soda vend deny
+			resetTimer();
 			$("#denydialog").modal('show');
             setTimeout(function(){$('.modal').modal('hide');}, 3000);
 		}
          else if (e.data.substring(0,3) == "vdf")
 		{
 			//soda vend fail
+			resetTimer();
 			$("#faildialog").modal('show');
             setTimeout(function(){$('.modal').modal('hide');}, 3000);
 		}
         else if (e.data.substring(0,3) == "vds")
 		{
 			//soda vend success
+			resetTimer();
 			rpc.call('Bob.getbarcodeinfo', [e.data.substring(3)], function (result) {
 			$("#transaction tbody").append("<tr><td>" +  result['name']  + "</td><td>" + result['price'] + "</td></tr>");
             $('.modal').modal('hide');
@@ -128,6 +168,7 @@ function configureEventSource()
 		else if (e.data.substring(0,3) == "deb")
 		{
 			//bill deposit.
+			resetTimer();
 			rpc.call('Soda.getbalance', [], function (result) {
 							$("#user-balance").text(result)
 						},
@@ -141,6 +182,7 @@ function configureEventSource()
 		else if (e.data.substring(0,3) == "dec")
 		{
 			//coin deposit.
+			resetTimer();
 			rpc.call('Soda.getbalance', [], function (result) {
 							$("#user-balance").text(result)
 						},
@@ -164,6 +206,7 @@ function configureEventSource()
 					$("#transaction").hide();
 					$("#login-sidebar").show();
 					$("#userdisplay").hide();
+					clearTimer();
 				break;
 				case "slogin":
 					$("#transaction tbody").empty();
@@ -172,6 +215,8 @@ function configureEventSource()
 					$("#loggedin-sidebar").show();
 					$("#login-sidebar").hide();
 					$("#userdisplay").show();
+					
+					resetTimer();
 					rpc.call('Soda.getusername', [], function (result) {
 							$("#user-nick").text(result)
 						},
@@ -194,6 +239,7 @@ function configureEventSource()
 
 function logout()
 {
+	clearTimer();
 	rpc.call('Soda.logout', [], function (result) {
 		},
 		function (error)
@@ -208,10 +254,18 @@ $(document).ready(function() {
 	$("#login").on('click', function()
 	{
 		soda_login();
+		
 	});
 	
 	$("#logout").on('click', function() {
 		logout();
 	});
 	configureEventSource();
+	/*
+	window.addEventListener('touchstart', function(e){
+		resetTimer();
+	}, false)*/
+
+ 
+	setInterval(logout_timer, 1000);
 });
