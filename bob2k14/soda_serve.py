@@ -3,7 +3,7 @@
 """SodaServe, The ChezBob JSON-RPC Database Server.
 
 Usage:
-  soda_serve.py serve <dburl> [--config=<config-file>] [--mdb-server-ep=<ep>] [--address=<listen-address>] [--port=<port>] [--debug]
+  soda_serve.py serve <dburl> [--config=<config-file>] [--mdb-server-ep=<ep>] [--vdb-server-ep=<ep>] [--address=<listen-address>] [--port=<port>] [--debug]
   soda_serve.py (-h | --help)
   soda_serve.py --version
 
@@ -14,6 +14,7 @@ Options:
   --address=<listen-address>    Address to listen on. [default: 0.0.0.0]
   --port=<port>                 Port to listen on. [default: 8080]
   --mdb-server-ep=<ep>          Endpoint of MDB server. [default: http://127.0.0.1:8081/api]
+  --vdb-server-ep=<ep>          Endpoint of VDB server. [default: http://127.0.0.1:8083/api]
   --debug                       Verbose debug output.
 
 """
@@ -34,6 +35,10 @@ import requests
 from models import app, db, aggregate_purchases, products, transactions, users
 from decimal import *
 from enum import Enum
+
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 class vmcstates(Enum):
     reset = 0
@@ -142,6 +147,34 @@ def remotebarcode(type, barcode):
          sessionmanager.registerSession(SessionLocation.soda, user)
     return ""
 
+#this should be safe since only one can can be vended at once...
+lastsoda = ""
+@jsonrpc.method('Soda.remotevdb')
+def remotevdb(event):
+    if event[0:1] == "R":
+        #someone is trying to buy a soda. if no one is logged in, tell them guest mode isn't ready.
+         if sessionmanager.checkSession(SessionLocation.soda):
+              soda_app.add_event("vdr" + configdata["sodamapping"][event[9:12]])
+              result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["A"])
+              lastsoda = event[9:12]
+         else:
+              soda_app.add_event("vdd")
+              result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["D"])
+    elif event[0:1] == "L":
+        #vend failed, don't charge
+        soda_app.add_event("vdf")
+        result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["X"])
+    elif event[0:1] == "K":
+        #vend success
+        remotebarcode("R", configdata["sodamapping"][event[9:12]])
+        result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["X"])
+    elif event[0:1] == "M":
+        #vend success
+        if sessionmanager.checkSession(SessionLocation.soda):
+            result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["C"])
+        else:
+            result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["X"])
+
 @jsonrpc.method('Soda.remotemdb')
 def remotemdb(event):
      #let's make sure theres a user logged in. if not, just tell them that guest mode isn't ready yet.
@@ -190,6 +223,8 @@ def remotemdb(event):
          soda_app.add_event("dec" + str(amount))
     elif event [0:1] == "W":
          #logout
+         #get rid of bills in escrow (guessing this is what people expect)
+         result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["K2"])
          sessionmanager.deregisterSession(SessionLocation.soda)
     return ""
 
@@ -271,6 +306,35 @@ def bob_getextras():
     for extra in configdata["extraitems"]:
          extras.append(to_jsonify_ready(products.query.filter(products.barcode==extra["barcode"]).first()))
     return extras
+
+@jsonrpc.method('Bob.sendmessage')
+def bob_sendmessage(message, anonymous):
+    username = sessionmanager.sessions[SessionLocation.computer].user.user.username
+    if (anonymous == "1"):
+        username = "anonymous"
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = "New ChezBob E-Mail from User"
+    msg['From'] = "chezbob@cs.ucsd.edu"
+    msg['Cc'] = sessionmanager.sessions[SessionLocation.computer].user.user.email
+    msg['To'] = "chezbob@cs.ucsd.edu"
+    htmlout = """
+        <html>
+            <head></head>
+            <body>
+                Hello,<br/>
+                      <br/>
+                      The user {0} (email: {1})send a message to ChezBob via the ChezBob interface. The message reads:<br/>
+                    <br/>
+                    {2}
+                    <br/>
+                    -eom-
+            </body>
+        </html>
+    """.format(username, msg['Cc'], message)
+    msg.attach(MIMEText(htmlout, 'html'))
+    s = smtplib.SMTP('localhost')
+    s.sendmail(msg['From'], msg['To'] + "," + msg['Cc'], msg.as_string())
+    s.quit()
 
 @jsonrpc.method('Bob.getbarcodeinfo')
 def bob_getbarcodeinfo(barcode):

@@ -55,9 +55,9 @@ function add_money()
 		  label: "Deposit anyway!",
 		  className: "btn-danger",
 		  callback: function() {
-		    bootbox.prompt("How much money was deposited in the Bank of Bob?", function(result) {                
-			  if (result === null) {                                             
-				bootbox.alert("Deposit cancelled.");                             
+		    bootbox.prompt("How much money was deposited in the Bank of Bob?", function(result) {
+			  if (result === null) {
+				bootbox.alert("Deposit cancelled.");
 			  } else {
 						//make sure the result is a money type
 		//do purchase here.
@@ -82,7 +82,7 @@ function add_money()
 		}
 	  }
 	});
-	 
+
 }
 
 function purchase_item(barcode)
@@ -107,7 +107,9 @@ function purchase_item(barcode)
 								{
 									notify_error(error);
 								});
-							bootbox.alert("Purchase successful.");
+							$("#purchase-text").text("Purchase successful.");
+							$("#purchase-success").modal('show');
+							setTimeout(function(){$('.modal').modal('hide');}, 1000);
 						},
 						function (error)
 						{
@@ -138,7 +140,7 @@ function extra_items()
 				$("#extraitemmenu").append('<a href="#" class="list-group-item">' + item['name'] + '<span class="badge pull-right">' + item['price'] + '</span></a>');
 				$($("#extraitemmenu > a").get(i)).on('click', extrafunction);
 			});
-			
+
 			var closefunction = function()
 			{
 				$("#extra-actions").hide();
@@ -175,7 +177,11 @@ function buy_other()
 								{
 									notify_error(error);
 								});
-							bootbox.alert("Purchase successful.");
+								
+							$("#purchase-text").text("Purchase OTHER successful.");
+							$("#purchase-success").modal('show');
+							setTimeout(function(){$('.modal').modal('hide');}, 1000);
+							//bootbox.alert("Purchase successful.");
 						},
 						function (error)
 						{
@@ -188,7 +194,22 @@ function buy_other()
 
 function message()
 {
-     bootbox.alert("This function will be restored soon!");
+    var messagebox = "<form role='form'><label>Message to send:</label><textarea rows='4' cols'50' id='message'></textarea><br/><input type='checkbox' id='anon'>Send anonymously</form>";
+    bootbox.confirm(messagebox, function(result) {
+        if (result)
+            {
+                rpc.call('Bob.sendmessage', [$("#message").val(), $("#anon").is(':checked') ? "1" : "0"],
+                        function(result)
+                        {
+                         bootbox.alert("Message sent.");
+                        },
+                        function(error)
+                        {
+
+                        }
+                        );
+            }
+    })
 }
 
 function transactions()
@@ -205,7 +226,7 @@ function transactions()
 				extrafunctions[i] = extrafunction;
 				$("#extraitemmenu").append('<a href="#" class="list-group-item">' + item['xacttype'] + '<span class="badge pull-right">' + item['xactvalue'] + '</span></a>');
 			});
-			
+
 			var closefunction = function()
 			{
 				$("#extra-actions").hide();
@@ -259,7 +280,7 @@ function handle_login()
 	//capture username and password
 	var username = $("#login-username").val();
 	var password = $("#login-password").val();
-	
+
 	//was the username all numbers
 	if (!isNaN(username))
 	{
@@ -279,7 +300,7 @@ function handle_login()
 			var cryptedPassword;
 			if (password == "") { cryptedPassword = ""; } //for users without passwords.
 			else {cryptedPassword = unixCryptTD(password, result);}
-			
+
 			rpc.call('Bob.passwordlogin', [username, cryptedPassword], function(result) {
 				//login success. webevent should detect login can call handler.
 			},
@@ -340,13 +361,13 @@ $(document).ready(function() {
 			break;
 		}
 	}
-	
+
 	$('#mainmenu > a').each(function(i,j){
 	 $(this).on('click', menufunctions[i]);
 	});
-	
+
 	$("body").on("keydown", function(e)
-	{	
+	{
 		if ($("#loginbox").is(':visible') && !$(".bootbox").is(':visible'))
 		{
 			if (e.keyCode === 13) {
@@ -354,7 +375,7 @@ $(document).ready(function() {
 					handle_login();
 			}
 		}
-		
+
 		if ($("#mainmenu").is(':visible') && !$(".bootbox").is(':visible'))
 		{
 			if (shortcutmap[parseInt(e.keyCode)] !== undefined)
@@ -364,12 +385,12 @@ $(document).ready(function() {
 				$("#mainmenu > a").removeClass("active");
 				$($("#mainmenu > a").get(menuIndex)).addClass("active");
 			}
-			
+
 			if (e.keyCode === 81) {
 				//logout
 				logout();
 			}
-			
+
 			if (e.keyCode === 13) {
 				if (bcodeinput)
 				{
@@ -382,14 +403,14 @@ $(document).ready(function() {
 					menufunctions[menuIndex]();
 				}
 			}
-			
+
 			if (e.keyCode >= 48 && e.keyCode <= 57)
 			{
 				//number
 				if (!bcodeinput) {bcodeinput = true; bcodebuffer = "";}
 				bcodebuffer += parseInt(e.keyCode - 48); //keycode to number conversion
 			}
-			
+
 			if (e.keyCode === 38) {
 				//up
 				if (menuIndex != 0)
@@ -415,7 +436,7 @@ $(document).ready(function() {
 				//enter
 				extrafunctions[extraIndex]();
 			}
-			
+
 			if (e.keyCode === 38) {
 				//up
 				if (extraIndex != 0)
