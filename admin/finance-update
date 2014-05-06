@@ -3,7 +3,7 @@
 # Script that should be run periodically (such as from cron) to synchronize
 # various finance information in the database and to update financial reports.
 
-CHEZBOB="$HOME/chezbob.hg"
+CHEZBOB="/srv/www"
 
 $CHEZBOB/django/chezbob/launch finance_sync
 $CHEZBOB/django/chezbob/launch inventory_sync
