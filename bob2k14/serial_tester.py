@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.4
 
 """serial_tester, the Soda Machine serial interface tester.
 

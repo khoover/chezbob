@@ -1,3 +1,5 @@
+#!/usr/bin/env python3.4
+
 import datetime
 import crypt
 from enum import Enum
