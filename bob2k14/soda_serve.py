@@ -83,20 +83,25 @@ def make_purchase(user, product, location, privacy=False):
     value = product.price
     # Deduct the balance from the user's account
     user.balance -= value
+    print ("deducted value")
     # Insert into the aggregate_purchases table
-    aggregate = aggregate_purchases(product.barcode, value, product.bulkid)
+    #aggregate = aggregate_purchases(product.barcode, value, product.bulkid)
+    print ("made aggregate")
     # Insert into the transaction table, respecting the user's privacy settings
     barcode = product.barcode
     description = "BUY " + product.name.upper()
-    if privacy:
-        description = "BUY"
-        barcode = ""
+    print ("buying %s with barcode %s" % (description, barcode))
+    #if privacy:
+    #    description = "BUY"
+    #    barcode = ""
     transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source=location)
+    print ("made transaction")
     # Commit our changes
-    db.session.add(aggregate)
+    #db.session.add(aggregate)
     db.session.add(transact)
     db.session.merge(user)
     db.session.commit()
+    print ("merged")
     return True
 
 def make_purchase_other(user, value, location):
@@ -106,12 +111,15 @@ def make_purchase_other(user, value, location):
         return False
     # update the balance
     user.balance -= value
+    print ("deducted value")
     # now create a matching record in transactions
     transact = transactions(userid=user.userid, xactvalue=-value, xacttype="BUY OTHER", barcode=None, source="chezbob2k14")
+    print ("made transaction")
     # commit our changes
     db.session.add(transact)
     db.session.merge(user)
     db.session.commit()
+    print ("merged")
     return True
 
 def make_deposit(user, amount, location):

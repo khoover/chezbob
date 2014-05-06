@@ -28,8 +28,8 @@ db = soda_app.db
 """
 class aggregate_purchases(db.Model):
   __tablename__ = 'aggregate_purchases'
-  date = db.Column(db.Date(True))
-  barcode = db.Column(db.String())
+  date = db.Column(db.Date(), primary_key=True)
+  barcode = db.Column(db.String(), primary_key=True)
   quantity = db.Column(db.Integer())
   price = db.Column(db.Numeric(12,2))
   bulkid = db.Column(db.Integer())
