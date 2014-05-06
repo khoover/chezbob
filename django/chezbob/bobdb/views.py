@@ -52,6 +52,8 @@ def products(request):
             p.markup_pct = (float(p.price / p.bulk.unit_price()) - 1.0) * 100
         except ObjectDoesNotExist:
             pass
+        except AttributeError:
+            pass
 
     if request.GET.has_key('short'):
         def filter(p):
