@@ -92,11 +92,18 @@ def handle_local(data):
         return True
     elif (data == "M"):
         print("CLINK: POLL/MONITOR")
-        #request = types.SimpleNamespace()
-        #request.event = Event()
-        #request.command = "C"
-        #requestqueue.put(request)
-        return False
+        request = types.SimpleNamespace()
+        request.event = Event()
+        request.command = "C"
+        requestqueue.put(request)
+        return True
+    elif (data.startswith("R")):
+        print("CLINK: REQUEST")
+        request = types.SimpleNamespace()
+        request.event = Event()
+        request.command = "A"
+        requestqueue.put(request)
+        return True
     return False
 def vdb_thread(arguments):
     #1 second timeout.
