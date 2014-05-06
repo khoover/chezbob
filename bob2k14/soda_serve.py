@@ -142,9 +142,8 @@ def remotebarcode(type, barcode):
          product = products.query.filter(products.barcode==barcode).first()
          location = "soda"
          privacy = sessionmanager.sessions[SessionLocation.soda].user.privacy
-         # make a purchase, which also updates the tb
+         # make a purchase, which also updates the db
          make_purchase(user, product, location, privacy)
-         # TODO: Michael, what does this do?
          soda_app.add_event("sbc" + barcode)
     else:
          #do a login
