@@ -257,7 +257,26 @@ function transfer()
 
 function barcode_id()
 {
-     bootbox.alert("This function will be restored soon!");
+    function handleBarcodeResult (result) {
+        if (result !== null) {
+            function adduserbarcode_success(result) {
+                if (result === True) {
+                    bootbox.alert("User barcode added!");
+                }
+                else {
+                    bootbox.alert("Error: Unable to update user barcode");
+                }
+            }
+
+            function adduserbarcode_fail(error) {
+                notify_error(error);
+            }
+
+            rpc.call('Bob.adduserbarcode', result,
+                     adduserbarcode_success, assuserbarcode_fail);
+        }
+    }
+    bootbox.prompt("Enter your barcode ID:", handleBarcodeResult);
 }
 
 function nickname()

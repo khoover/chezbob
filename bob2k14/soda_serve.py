@@ -128,6 +128,26 @@ def make_deposit(user, amount, location):
     db.session.commit()
     return True
 
+def adduserbarcode(userid, barcode):
+    # Technically, this only makes sense if the user is logged in.
+    # No other function seems to be checking, though, so...
+
+    # AKA if not sessionmanager.checkSession(SessionLocation.computer):
+    #if userid is None:
+    #    return False
+
+    barcode = barcode.strip(' "')
+    ubc = userbarcodes.query.filter(userbarcodes.barcode==barcode).first()
+    if ubc is None:
+        ubc = userbarcodes(userid=userid, barcode=barcode)
+    if ubc.userid != userid:
+        raise Exception("Barcode in use")
+
+    db.session.merge(ubc)
+    db.session.commit()
+
+    return True
+
 @jsonrpc.method('Soda.remotebarcode')
 def remotebarcode(type, barcode):
     #several things to check here. first, if there is anyone logged in, we're probably buying something, so check that.
@@ -257,6 +277,20 @@ def soda_passwordlogin(username, password):
 def bob_logout():
     sessionmanager.deregisterSession(SessionLocation.soda)
     return ""
+
+@jsonrpc.method('Bob.adduserbarcode')
+def bob_adduserbarcode(barcode):
+    userid = sessionmanager.sessions[SessionLocation.computer].user.user.userid
+    return adduserbarcode(userid, barcode)
+
+@jsonrpc.method('Bob.getuserbarcode')
+def bob_getuserbarcode(barcode):
+    userid = sessionmanager.sessions[SessionLocation.computer].user.user.userid
+
+    ubc = userbarcodes.query.filter(userbarcodes.userid==userid).first()
+    if ubc is None:
+        return ""
+    return ubc.barcode
 
 #bob tasks
 @jsonrpc.method('Bob.index')
