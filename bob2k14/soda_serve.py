@@ -325,7 +325,7 @@ def bob_sendmessage(message, anonymous):
             <body>
                 Hello,<br/>
                       <br/>
-                      The user {0} (email: {1})send a message to ChezBob via the ChezBob interface. The message reads:<br/>
+                      The user {0} (email: {1}) sent a message to ChezBob via the ChezBob interface. The message reads:<br/>
                     <br/>
                     {2}
                     <br/>
@@ -333,7 +333,17 @@ def bob_sendmessage(message, anonymous):
             </body>
         </html>
     """.format(username, msg['Cc'], message)
+    plainout = """
+Hello,
+
+The user {0} (email: {1}) sent a message to ChezBob via the ChezBob interface. The message reads:
+
+{2}
+
+-eom-
+    """.format(username, msg['Cc'], message)
     msg.attach(MIMEText(htmlout, 'html'))
+    msg.attach(MIMEText(plainout, 'plain'))
     s = smtplib.SMTP('localhost')
     s.sendmail(msg['From'], msg['To'] + "," + msg['Cc'], msg.as_string())
     s.quit()
