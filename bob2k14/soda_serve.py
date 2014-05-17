@@ -356,7 +356,6 @@ def bob_sendmessage(message, anonymous):
     display_name = "%s (email: %s)" % (username, email)
     if (anonymous == "1"):
         username = "anonymous"
-        email = None
         display_name = username
     else:
         msg['Cc'] = email
@@ -381,16 +380,19 @@ def bob_sendmessage(message, anonymous):
     plainout = """
 Hello,
 
-The user {0} (email: {1}) sent a message to ChezBob via the ChezBob interface. The message reads:
+The user {0} sent a message to ChezBob via the ChezBob interface. The message reads:
 
-{2}
+{1}
 
 -eom-
-    """.format(username, msg['Cc'], message)
+    """.format(display_name, message)
     msg.attach(MIMEText(htmlout, 'html'))
     msg.attach(MIMEText(plainout, 'plain'))
     s = smtplib.SMTP('localhost')
-    s.sendmail(msg['From'], msg['To'] + "," + msg['Cc'], msg.as_string())
+    if (anonymous == "1"):
+        s.sendmail(msg['From'], msg['To'], msg.as_string())
+    else:
+        s.sendmail(msg['From'], msg['To'] + "," + msg['Cc'], msg.as_string())
     s.quit()
 
 @jsonrpc.method('Bob.getbarcodeinfo')
