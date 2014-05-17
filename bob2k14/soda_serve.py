@@ -352,12 +352,17 @@ def bob_getextras():
 @jsonrpc.method('Bob.sendmessage')
 def bob_sendmessage(message, anonymous):
     username = sessionmanager.sessions[SessionLocation.computer].user.user.username
+    email = sessionmanager.sessions[SessionLocation.computer].user.user.email
+    display_name = "%s (email: %s)" % (username, email)
     if (anonymous == "1"):
         username = "anonymous"
+        email = None
+        display_name = username
+    else:
+        msg['Cc'] = email
     msg = MIMEMultipart('alternative')
     msg['Subject'] = "New ChezBob E-Mail from User"
     msg['From'] = "chezbob@cs.ucsd.edu"
-    msg['Cc'] = sessionmanager.sessions[SessionLocation.computer].user.user.email
     msg['To'] = "chezbob@cs.ucsd.edu"
     htmlout = """
         <html>
@@ -365,14 +370,14 @@ def bob_sendmessage(message, anonymous):
             <body>
                 Hello,<br/>
                       <br/>
-                      The user {0} (email: {1}) sent a message to ChezBob via the ChezBob interface. The message reads:<br/>
+                      The user {0} sent a message to ChezBob via the ChezBob interface. The message reads:<br/>
                     <br/>
-                    {2}
+                    {1}
                     <br/>
                     -eom-
             </body>
         </html>
-    """.format(username, msg['Cc'], message)
+    """.format(display_name, message)
     plainout = """
 Hello,
 
