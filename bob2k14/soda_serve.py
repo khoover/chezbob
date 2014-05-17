@@ -363,6 +363,7 @@ def bob_sendmessage(message, anonymous):
     msg['Subject'] = "New ChezBob E-Mail from User"
     msg['From'] = "chezbob@cs.ucsd.edu"
     msg['To'] = "chezbob@cs.ucsd.edu"
+    print("the message is now %s" % msg)
     htmlout = """
         <html>
             <head></head>
@@ -389,6 +390,7 @@ The user {0} sent a message to ChezBob via the ChezBob interface. The message re
     msg.attach(MIMEText(htmlout, 'html'))
     msg.attach(MIMEText(plainout, 'plain'))
     s = smtplib.SMTP('localhost')
+    print("made the message and ready to send it now")
     if (anonymous == "1"):
         s.sendmail(msg['From'], msg['To'], msg.as_string())
     else:
