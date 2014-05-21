@@ -32,6 +32,7 @@ import soda_app
 import os
 import datetime
 import requests
+import sys
 from models import app, db, aggregate_purchases, products, transactions, users
 from decimal import *
 from enum import Enum
@@ -137,11 +138,16 @@ def adduserbarcode(userid, barcode):
     #    return False
 
     barcode = barcode.strip(' "')
+    print("Attempting to process", barcode)
     ubc = userbarcodes.query.filter(userbarcodes.barcode==barcode).first()
     if ubc is None:
         ubc = userbarcodes(userid=userid, barcode=barcode)
-    if ubc.userid != userid:
+        print("Found None ubc")
+    elif ubc.userid != userid:
+        print("UBC in use")
+        sys.stdout.flush()
         raise Exception("Barcode in use")
+    print("Attempting to commit")
 
     db.session.merge(ubc)
     db.session.commit()
