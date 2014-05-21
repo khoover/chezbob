@@ -182,6 +182,7 @@ def remotevdb(event):
     if "CLINK: REQUEST AUTH" in event:
         #someone is trying to buy a soda. if no one is logged in, tell them guest mode isn't ready.
          if sessionmanager.checkSession(SessionLocation.soda):
+              print("purchase: " + event[19:22])
               soda_app.add_event("vdr" + configdata["sodamapping"][event[19:22]])
               result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["A"])
               lastsoda = event[19:22]
