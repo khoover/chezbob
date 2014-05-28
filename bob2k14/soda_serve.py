@@ -145,16 +145,19 @@ def adduserbarcode(userid, barcode):
 
     if ubc is None:
         # We didn't find a barcode like that one, so we can create a new one.
-        ubc = userbarcodes(userid=userid, barcode=barcode)
         print("...barcode is available")
+
+        ubc = userbarcodes(userid=userid, barcode=barcode)
 
         db.session.merge(ubc)
         db.session.commit()
     elif ubc.userid != userid:
         # We found this barcode in use by another user
         print("...barcode in use")
+
         sys.stdout.flush()
         raise Exception("Barcode in use")
+    print("Attempting to commit")
 
     # Implicitly, we may have already found that barcode in use.
     # In which case, we succeed by default.
@@ -186,29 +189,22 @@ def remotebarcode(type, barcode):
 lastsoda = ""
 @jsonrpc.method('Soda.remotevdb')
 def remotevdb(event):
-    if event[0:1] == "R":
+    if "CLINK: REQUEST AUTH" in event:
         #someone is trying to buy a soda. if no one is logged in, tell them guest mode isn't ready.
          if sessionmanager.checkSession(SessionLocation.soda):
-              soda_app.add_event("vdr" + configdata["sodamapping"][event[9:12]])
+              print("purchase: " + event[19:22])
+              soda_app.add_event("vdr" + configdata["sodamapping"][event[19:22]])
               result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["A"])
-              lastsoda = event[9:12]
+              lastsoda = event[19:22]
          else:
               soda_app.add_event("vdd")
               result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["D"])
-    elif event[0:1] == "L":
+    elif "CLINK: VEND FAIL" in event:
         #vend failed, don't charge
         soda_app.add_event("vdf")
-        result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["X"])
-    elif event[0:1] == "K":
+    elif "CLINK: VEND OK" in event:
         #vend success
-        remotebarcode("R", configdata["sodamapping"][event[9:12]])
-        result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["X"])
-    elif event[0:1] == "M":
-        #vend success
-        if sessionmanager.checkSession(SessionLocation.soda):
-            result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["C"])
-        else:
-            result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["X"])
+        remotebarcode("R", configdata["sodamapping"][lastsoda])
 
 @jsonrpc.method('Soda.remotemdb')
 def remotemdb(event):
@@ -359,12 +355,16 @@ def bob_getextras():
 @jsonrpc.method('Bob.sendmessage')
 def bob_sendmessage(message, anonymous):
     username = sessionmanager.sessions[SessionLocation.computer].user.user.username
+    email = sessionmanager.sessions[SessionLocation.computer].user.user.email
+    display_name = "%s (email: %s)" % (username, email)
+    msg = MIMEMultipart('alternative')
     if (anonymous == "1"):
         username = "anonymous"
-    msg = MIMEMultipart('alternative')
+        display_name = username
+    else:
+        msg['Cc'] = email
     msg['Subject'] = "New ChezBob E-Mail from User"
     msg['From'] = "chezbob@cs.ucsd.edu"
-    msg['Cc'] = sessionmanager.sessions[SessionLocation.computer].user.user.email
     msg['To'] = "chezbob@cs.ucsd.edu"
     htmlout = """
         <html>
@@ -372,27 +372,30 @@ def bob_sendmessage(message, anonymous):
             <body>
                 Hello,<br/>
                       <br/>
-                      The user {0} (email: {1}) sent a message to ChezBob via the ChezBob interface. The message reads:<br/>
+                      The user {0} sent a message to ChezBob via the ChezBob interface. The message reads:<br/>
                     <br/>
-                    {2}
+                    {1}
                     <br/>
                     -eom-
             </body>
         </html>
-    """.format(username, msg['Cc'], message)
+    """.format(display_name, message)
     plainout = """
 Hello,
 
-The user {0} (email: {1}) sent a message to ChezBob via the ChezBob interface. The message reads:
+The user {0} sent a message to ChezBob via the ChezBob interface. The message reads:
 
-{2}
+{1}
 
 -eom-
-    """.format(username, msg['Cc'], message)
+    """.format(display_name, message)
     msg.attach(MIMEText(htmlout, 'html'))
     msg.attach(MIMEText(plainout, 'plain'))
     s = smtplib.SMTP('localhost')
-    s.sendmail(msg['From'], msg['To'] + "," + msg['Cc'], msg.as_string())
+    if (anonymous == "1"):
+        s.sendmail(msg['From'], msg['To'], msg.as_string())
+    else:
+        s.sendmail(msg['From'], msg['To'] + "," + msg['Cc'], msg.as_string())
     s.quit()
 
 @jsonrpc.method('Bob.getbarcodeinfo')
