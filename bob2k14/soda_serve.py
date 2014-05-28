@@ -179,13 +179,14 @@ def remotebarcode(type, barcode):
 lastsoda = ""
 @jsonrpc.method('Soda.remotevdb')
 def remotevdb(event):
+    global lastsoda
     if "CLINK: REQUEST AUTH" in event:
         #someone is trying to buy a soda. if no one is logged in, tell them guest mode isn't ready.
          if sessionmanager.checkSession(SessionLocation.soda):
-              print("purchase: " + event[19:22])
-              soda_app.add_event("vdr" + configdata["sodamapping"][event[19:22]])
+              print("purchase: " + event[20:22])
+              soda_app.add_event("vdr" + configdata["sodamapping"][event[20:22]])
               result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["A"])
-              lastsoda = event[19:22]
+              lastsoda = event[20:22]
          else:
               soda_app.add_event("vdd")
               result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["D"])
@@ -194,6 +195,7 @@ def remotevdb(event):
         soda_app.add_event("vdf")
     elif "CLINK: VEND OK" in event:
         #vend success
+        print("vend success: " + lastsoda)
         remotebarcode("R", configdata["sodamapping"][lastsoda])
 
 @jsonrpc.method('Soda.remotemdb')
