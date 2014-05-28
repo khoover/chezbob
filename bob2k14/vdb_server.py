@@ -67,7 +67,10 @@ def send_remote(data):
                 "id": 0
               }
     print("Sending: " + data)
-    requests.post(arguments['--remote-endpoint'], data=json.dumps(payload), headers={'content-type': 'application/json'}).json()
+    try:
+        requests.post(arguments['--remote-endpoint'], data=json.dumps(payload), headers={'content-type': 'application/json'}).json()
+    except:
+        pass
     return ""
 
 def vdb_thread(arguments):
