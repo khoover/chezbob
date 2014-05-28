@@ -3,7 +3,7 @@ var rpc = new $.JsonRpcClient({ajaxUrl: '/api'});
 var menuIndex = 0;
 var extraIndex = 0;
 var extrafunctions = [];
-var menufunctions = [soda_login, add_money, extra_items, buy_other, message, logout, transactions, my_chez_bob, transfer, barcode_id, nickname, password];
+var menufunctions = [soda_login, add_money, extra_items, buy_other, message, logout, transactions, my_chez_bob, transfer, add_user_barcode, nickname, password];
 
 var shortcutmap = {
 	"83": 0, //s
@@ -255,17 +255,25 @@ function transfer()
      bootbox.alert("This function will be restored soon!");
 }
 
-function barcode_id()
+/* Set's user's barcode for logging in with. In theory. */
+function add_user_barcode()
 {
-    // Disabled until time for debugging
-    bootbox.alert("This function will be restored soon!");
-    return;
+    // Lest we need to disable it.
+    //bootbox.alert("This function will be restored soon!");
+    //return;
 
-    function handleBarcodeResult (result) {
-        if (result === null)
+    console.log("add_user_barcode requested");
+
+    function handle_adduserbarcode_response (result) {
+        if (result === null) {
+            console.log("handle_adduserbarcode_response aborted");
             return;
+        }
+
+        console.log("handle_adduserbarcode_response received: " + result);
 
         function adduserbarcode_success(result) {
+            console.log("adduserbarcode_success received: " + result);
             if (result === True) {
                 bootbox.alert("User barcode added!");
             }
@@ -275,6 +283,7 @@ function barcode_id()
         }
 
         function adduserbarcode_fail(error) {
+            console.log("adduserbarcode_fail received an error");
             for (var i in error)
                 notify_error(i + ": " + error.i);
         }
@@ -282,7 +291,7 @@ function barcode_id()
         rpc.call('Bob.adduserbarcode', [result],
                  adduserbarcode_success, adduserbarcode_fail);
     }
-    bootbox.prompt("Enter your barcode ID:", handleBarcodeResult);
+    bootbox.prompt("Enter your barcode ID:", handle_adduserbarcode_response);
 }
 
 function nickname()

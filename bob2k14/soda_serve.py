@@ -32,6 +32,7 @@ import soda_app
 import os
 import datetime
 import requests
+import sys
 from models import app, db, aggregate_purchases, products, transactions, users
 from decimal import *
 from enum import Enum
@@ -132,16 +133,24 @@ def adduserbarcode(userid, barcode):
     # Technically, this only makes sense if the user is logged in.
     # No other function seems to be checking, though, so...
 
-    # AKA if not sessionmanager.checkSession(SessionLocation.computer):
+    #if not sessionmanager.checkSession(SessionLocation.computer):
+    #    return False
+    # -- OR --
     #if userid is None:
     #    return False
 
     barcode = barcode.strip(' "')
+    print("Attempting to add user barcode ", barcode)
     ubc = userbarcodes.query.filter(userbarcodes.barcode==barcode).first()
     if ubc is None:
         ubc = userbarcodes(userid=userid, barcode=barcode)
-    if ubc.userid != userid:
+        print("...barcode is available")
+    elif ubc.userid != userid:
+        print("...barcode in use")
+        sys.stdout.flush()
         raise Exception("Barcode in use")
+
+    print("Attempting to commit")
 
     db.session.merge(ubc)
     db.session.commit()
@@ -323,7 +332,7 @@ def bob_getusername():
          return sessionmanager.sessions[SessionLocation.computer].user.user.nickname
 
 @jsonrpc.method('Bob.getbalance')
-def bob_getusername():
+def bob_getbalance():
     return str(sessionmanager.sessions[SessionLocation.computer].user.user.balance)
 
 @jsonrpc.method('Bob.sodalogin')
