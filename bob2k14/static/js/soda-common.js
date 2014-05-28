@@ -47,7 +47,7 @@ function logout_timer()
 	{
 		time = time -1;
 		$("#logouttime").text(time);
-		
+
 		if (time == 0)
 		{
 				$("body").css('background-color', '#fff');
@@ -74,7 +74,7 @@ function soda_login()
 			var username = result;
 			//check if it exists.
 						rpc.call('Bob.getcrypt', [username], function (result) {
-							if (result === null) 
+							if (result === null)
 							{
 								//user has no password
 								rpc.call('Soda.passwordlogin', [username, ""], function (result) {}, function (error){});
@@ -114,7 +114,7 @@ function configureEventSource()
 			//this is a barcode that was purchased
 			resetTimer();
 			var barcode = e.data.substring(3);
-			
+			$("#dispensingdialog").modal("hide");
 			rpc.call('Soda.getbalance', [], function (result) {
 							$("#user-balance").text(result)
 						},
@@ -122,7 +122,7 @@ function configureEventSource()
 						{
 							notify_error(error);
 						});
-						
+
 			rpc.call('Bob.getbarcodeinfo', [barcode], function (result) {
 			if(result['name'] === undefined)
 			{
@@ -176,7 +176,7 @@ function configureEventSource()
 						{
 							notify_error(error);
 						});
-			
+
 			$("#transaction tbody").append("<tr><td>Deposit <i class='fa fa-usd'></i>" +  e.data.substring(3)  + "</td><td>+" + e.data.substring(3) + "</td></tr>");
 		}
 		else if (e.data.substring(0,3) == "dec")
@@ -190,7 +190,7 @@ function configureEventSource()
 						{
 							notify_error(error);
 						});
-			
+
 			$("#transaction tbody").append("<tr><td>Deposit coins <i class='fa fa-usd'></i>" +  e.data.substring(3)  + "</td><td>+" + e.data.substring(3) + "</td></tr>");
 		}
 		else
@@ -215,7 +215,7 @@ function configureEventSource()
 					$("#loggedin-sidebar").show();
 					$("#login-sidebar").hide();
 					$("#userdisplay").show();
-					
+
 					resetTimer();
 					rpc.call('Soda.getusername', [], function (result) {
 							$("#user-nick").text(result)
@@ -250,13 +250,13 @@ function logout()
 
 $(document).ready(function() {
 	toggleFullScreen();
-	
+
 	$("#login").on('click', function()
 	{
 		soda_login();
-		
+
 	});
-	
+
 	$("#logout").on('click', function() {
 		logout();
 	});
@@ -266,6 +266,6 @@ $(document).ready(function() {
 		resetTimer();
 	}, false)*/
 
- 
+
 	setInterval(logout_timer, 1000);
 });
