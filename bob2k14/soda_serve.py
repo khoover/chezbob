@@ -133,24 +133,34 @@ def adduserbarcode(userid, barcode):
     # Technically, this only makes sense if the user is logged in.
     # No other function seems to be checking, though, so...
 
-    # AKA if not sessionmanager.checkSession(SessionLocation.computer):
+    #if not sessionmanager.checkSession(SessionLocation.computer):
+    #    return False
+    # -- OR --
     #if userid is None:
     #    return False
 
     barcode = barcode.strip(' "')
-    print("Attempting to process", barcode)
+    print("Attempting to add user barcode ", barcode)
     ubc = userbarcodes.query.filter(userbarcodes.barcode==barcode).first()
+
     if ubc is None:
+        # We didn't find a barcode like that one, so we can create a new one.
+        print("...barcode is available")
+
         ubc = userbarcodes(userid=userid, barcode=barcode)
-        print("Found None ubc")
+
+        db.session.merge(ubc)
+        db.session.commit()
     elif ubc.userid != userid:
-        print("UBC in use")
+        # We found this barcode in use by another user
+        print("...barcode in use")
+
         sys.stdout.flush()
         raise Exception("Barcode in use")
     print("Attempting to commit")
 
-    db.session.merge(ubc)
-    db.session.commit()
+    # Implicitly, we may have already found that barcode in use.
+    # In which case, we succeed by default.
 
     return True
 
@@ -324,7 +334,7 @@ def bob_getusername():
          return sessionmanager.sessions[SessionLocation.computer].user.user.nickname
 
 @jsonrpc.method('Bob.getbalance')
-def bob_getusername():
+def bob_getbalance():
     return str(sessionmanager.sessions[SessionLocation.computer].user.user.balance)
 
 @jsonrpc.method('Bob.sodalogin')
