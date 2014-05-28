@@ -142,18 +142,22 @@ def adduserbarcode(userid, barcode):
     barcode = barcode.strip(' "')
     print("Attempting to add user barcode ", barcode)
     ubc = userbarcodes.query.filter(userbarcodes.barcode==barcode).first()
+
     if ubc is None:
+        # We didn't find a barcode like that one, so we can create a new one.
         ubc = userbarcodes(userid=userid, barcode=barcode)
         print("...barcode is available")
+
+        db.session.merge(ubc)
+        db.session.commit()
     elif ubc.userid != userid:
+        # We found this barcode in use by another user
         print("...barcode in use")
         sys.stdout.flush()
         raise Exception("Barcode in use")
 
-    print("Attempting to commit")
-
-    db.session.merge(ubc)
-    db.session.commit()
+    # Implicitly, we may have already found that barcode in use.
+    # In which case, we succeed by default.
 
     return True
 
