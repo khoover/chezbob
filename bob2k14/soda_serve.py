@@ -33,7 +33,7 @@ import os
 import datetime
 import requests
 import sys
-from models import app, db, aggregate_purchases, products, transactions, users
+from models import app, db, aggregate_purchases, products, transactions, users, userbarcodes
 from decimal import *
 from enum import Enum
 
@@ -41,11 +41,14 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+##########
+#from sqlalchemy import func
+
 class vmcstates(Enum):
     reset = 0
     enabled = 1
     vsession = 2
-    vsessionidle =3
+    vsessionidle = 3
     configured = 4
     vapproved = 5
     vdeny = 6
@@ -140,24 +143,27 @@ def adduserbarcode(userid, barcode):
     #    return False
 
     barcode = barcode.strip(' "')
-    print("Attempting to add user barcode ", barcode)
+    print("===== Attempting to add user barcode", barcode)
     ubc = userbarcodes.query.filter(userbarcodes.barcode==barcode).first()
+    print("===== Queried for barcode", barcode)
 
     if ubc is None:
         # We didn't find a barcode like that one, so we can create a new one.
-        print("...barcode is available")
+        print("===== ...barcode is available")
 
         ubc = userbarcodes(userid=userid, barcode=barcode)
+        print("===== ...attempting to commit")
 
         db.session.merge(ubc)
         db.session.commit()
+        return True
     elif ubc.userid != userid:
         # We found this barcode in use by another user
-        print("...barcode in use")
+        print("===== ...barcode in use")
 
         sys.stdout.flush()
         raise Exception("Barcode in use")
-    print("Attempting to commit")
+    print("===== ...barcode trivially satisfied")
 
     # Implicitly, we may have already found that barcode in use.
     # In which case, we succeed by default.
@@ -189,13 +195,14 @@ def remotebarcode(type, barcode):
 lastsoda = ""
 @jsonrpc.method('Soda.remotevdb')
 def remotevdb(event):
+    global lastsoda
     if "CLINK: REQUEST AUTH" in event:
         #someone is trying to buy a soda. if no one is logged in, tell them guest mode isn't ready.
          if sessionmanager.checkSession(SessionLocation.soda):
-              print("purchase: " + event[19:22])
-              soda_app.add_event("vdr" + configdata["sodamapping"][event[19:22]])
+              print("purchase: " + event[20:22])
+              soda_app.add_event("vdr" + configdata["sodamapping"][event[20:22]])
               result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["A"])
-              lastsoda = event[19:22]
+              lastsoda = event[20:22]
          else:
               soda_app.add_event("vdd")
               result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["D"])
@@ -204,6 +211,7 @@ def remotevdb(event):
         soda_app.add_event("vdf")
     elif "CLINK: VEND OK" in event:
         #vend success
+        print("vend success: " + lastsoda)
         remotebarcode("R", configdata["sodamapping"][lastsoda])
 
 @jsonrpc.method('Soda.remotemdb')
@@ -476,5 +484,5 @@ if __name__ == '__main__':
         app.config["SQLALCHEMY_ECHO"] = True
     if arguments['serve']:
         app.config["SQLALCHEMY_DATABASE_URI"] = arguments["<dburl>"]
-        app.run(host=arguments['--address'], port=int(arguments['--port']), debug=arguments['--debug'],threaded=True)
+        app.run(host=arguments['--address'], port=int(arguments['--port']), debug=arguments['--debug'], threaded=True)
 

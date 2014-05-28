@@ -274,7 +274,7 @@ function add_user_barcode()
 
         function adduserbarcode_success(result) {
             console.log("adduserbarcode_success received: " + result);
-            if (result === True) {
+            if (result === true) {
                 bootbox.alert("User barcode added!");
             }
             else {
@@ -284,8 +284,9 @@ function add_user_barcode()
 
         function adduserbarcode_fail(error) {
             console.log("adduserbarcode_fail received an error");
-            for (var i in error)
-                notify_error(i + ": " + error.i);
+            bootbox.alert("Error: Unable to add user barcode (barcode in use?)");
+            //for (var i in error)
+            //    notify_error(i + ": " + error.i);
         }
 
         rpc.call('Bob.adduserbarcode', [result],
