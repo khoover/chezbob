@@ -341,12 +341,12 @@ function handle_login()
 			},
 			function (error)
 			{
-				bootbox.alert("Authentication error.");
+			    bootbox.alert("Authentication error.", $("#login-username").focus());
 			});
 		},
 		function (error)
 		{
-			bootbox.alert("Authentication error.");
+			bootbox.alert("Authentication error.", $("#login-username").focus());
 		}
 		);
 	}
