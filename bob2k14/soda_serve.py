@@ -39,6 +39,7 @@ from models import app, db, aggregate_purchases, products, transactions, users, 
 from decimal import *
 from enum import Enum
 import logging
+import traceback
 
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -86,7 +87,7 @@ def product(barcode):
     return to_jsonify_ready(products.query.filter(products.barcode==barcode).first())
 
 def make_purchase(user, product, location, privacy=False):
-    logging.info("%s purchasing %s from %s" % (user.username, value, location))
+    app.logger.info("%s purchasing %s from %s" % (user.username, product.name, location))
     # Get the purchase price of the item
     value = product.price
     # Deduct the balance from the user's account
@@ -108,25 +109,25 @@ def make_purchase(user, product, location, privacy=False):
     return True
 
 def make_purchase_other(user, value, location):
-    logging.info("%s making other purchase for %s from %s" % (user.username, value, location))
+    app.logger.info("%s making other purchase for %s from %s" % (user.username, value, location))
     # fail if the price doesn't make sense
     if (value < 0):
         return False
     # update the balance
     user.balance -= value
-    logging.debug("deducted value")
+    app.logger.debug("deducted value")
     # now create a matching record in transactions
     transact = transactions(userid=user.userid, xactvalue=-value, xacttype="BUY OTHER", barcode=None, source="chezbob2k14")
-    logging.debug("made transaction")
+    app.logger.debug("made transaction")
     # commit our changes
     db.session.add(transact)
     db.session.merge(user)
     db.session.commit()
-    logging.debug("merged")
+    app.logger.debug("merged")
     return True
 
 def make_deposit(user, amount, location):
-    logging.info("%s is depositing %s from %s" % (user.username, amount, location))
+    app.logger.info("%s is depositing %s from %s" % (user.username, amount, location))
     # update the user's balance
     user.balance += amount
     # make a matching record in transactions
@@ -148,27 +149,27 @@ def adduserbarcode(user, barcode):
     #    return False
 
     barcode = barcode.strip(' "')
-    logging.info("Attempting to add barcode %s to user %s" % (barcode, user.username))
+    app.logger.info("Attempting to add barcode %s to user %s" % (barcode, user.username))
     ubc = userbarcodes.query.filter(userbarcodes.barcode==barcode).first()
-    logging.debug("Queried for barcode %s" % (barcode,))
+    app.logger.debug("Queried for barcode %s" % (barcode,))
 
     if ubc is None:
         # We didn't find a barcode like that one, so we can create a new one.
-        logging.debug("...barcode is available")
+        app.logger.debug("...barcode is available")
 
         ubc = userbarcodes(userid=user.userid, barcode=barcode)
-        logging.debug("...attempting to commit")
+        app.logger.debug("...attempting to commit")
 
         db.session.merge(ubc)
         db.session.commit()
         return True
     elif ubc.userid != user.userid:
         # We found this barcode in use by another user
-        logging.debug("...barcode in use")
+        app.logger.debug("...barcode in use")
 
         sys.stdout.flush()
         raise Exception("Barcode in use")
-    logging.debug("...barcode trivially satisfied")
+    app.logger.debug("...barcode trivially satisfied")
 
     # Implicitly, we may have already found that barcode in use.
     # In which case, we succeed by default.
@@ -179,7 +180,7 @@ def adduserbarcode(user, barcode):
 def remotebarcode(type, barcode):
     #several things to check here. first, if there is anyone logged in, we're probably buying something, so check that.
     if sessionmanager.checkSession(SessionLocation.soda):
-         logging.info("found barcode %s, probably buying something" % (barcode,))
+         app.logger.info("found barcode %s, probably buying something" % (barcode,))
          # Get the user, product, location, and privacy settings
          user = sessionmanager.sessions[SessionLocation.soda].user.user
          product = products.query.filter(products.barcode==barcode).first()
@@ -189,7 +190,7 @@ def remotebarcode(type, barcode):
          make_purchase(user, product, location, privacy)
          soda_app.add_event("sbc" + barcode)
     else:
-         logging.info("found barcode %s, probably trying to log in" % (barcode,))
+         app.logger.info("found barcode %s, probably trying to log in" % (barcode,))
          #do a login
          user = User()
          user.login_barcode(barcode)
@@ -207,7 +208,7 @@ def remotevdb(event):
     if "CLINK: REQUEST AUTH" in event:
         #someone is trying to buy a soda. if no one is logged in, tell them guest mode isn't ready.
          if sessionmanager.checkSession(SessionLocation.soda):
-              logging.debug("purchase: " + event[20:22])
+              app.logger.debug("purchase: " + event[20:22])
               soda_app.add_event("vdr" + configdata["sodamapping"][event[20:22]])
               result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["A"])
               lastsoda = event[20:22]
@@ -219,7 +220,7 @@ def remotevdb(event):
         soda_app.add_event("vdf")
     elif "CLINK: VEND OK" in event:
         #vend success
-        logging.debug("vend success: " + lastsoda)
+        app.logger.debug("vend success: " + lastsoda)
         remotebarcode("R", configdata["sodamapping"][lastsoda])
 
 # TODO: need better logging here as well
@@ -373,9 +374,9 @@ def bob_getextras():
 def bob_setpassword(new_password):
     user = sessionmanager.sessions[SessionLocation.computer].user.user
     if new_password == None or new_password == "":
-        logging.info("removing password for user %s" % (user.username,))
+        app.logger.info("removing password for user %s" % (user.username,))
     else:
-        logging.info("setting new password for user %s" % (user.username,))
+        app.logger.info("setting new password for user %s" % (user.username,))
     user.pwd = new_password
     db.session.merge(user)
     db.session.commit()
@@ -392,7 +393,7 @@ def bob_sendmessage(message, anonymous):
         display_name = username
     else:
         msg['Cc'] = email
-    logging.info("%s is trying tos end a message" % (display_name,))
+    app.logger.info("%s is trying tos end a message" % (display_name,))
     msg['Subject'] = "New ChezBob E-Mail from User"
     msg['From'] = "chezbob@cs.ucsd.edu"
     msg['To'] = "chezbob@cs.ucsd.edu"
@@ -427,7 +428,7 @@ The user {0} sent a message to ChezBob via the ChezBob interface. The message re
     else:
         s.sendmail(msg['From'], msg['To'] + "," + msg['Cc'], msg.as_string())
     s.quit()
-    logging.debug("message properly sent")
+    app.logger.debug("message properly sent")
 
 @jsonrpc.method('Bob.getbarcodeinfo')
 def bob_getbarcodeinfo(barcode):
@@ -494,24 +495,28 @@ def stream():
 def setup_logging(log_level):
     loglevel = logging.DEBUG
     try:
-        loglevel = getattr(logging, lob_level.upper())
+        loglevel = getattr(logging, log_level.upper())
     except:
         pass
     log_format = "%(levelname)s|%(filename)s:%(lineno)d|%(asctime)s|%(message)s"
+    logger = logging.getLogger("soda_serve")
     logging.basicConfig(stream=sys.stdout, level=loglevel)
+    return logger
 
 sessionmanager = SessionManager()
 configdata = []
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='SodaServe 1.0')
+    log_level = "INFO"
+    if 'log_level' in arguments:
+        log_level = arguments['log_level']
+    logger = setup_logging(log_level)
+    arguments['logger'] = logger
+    print(arguments)
     soda_app.arguments = arguments
     with open(os.path.dirname(os.path.realpath(__file__)) + "/" +  arguments["--config"]) as json_data:
          configdata = json.load(json_data)
-    log_level = "DEBUG"
-    if arguments['log_level']:
-        log_level = arguments['log_level']
-    setup_logging(log_level)
     if log_level == "DEBUG":
         app.config["SQLALCHEMY_RECORD_QUERIES"] = True
         app.config["SQLALCHEMY_ECHO"] = True
