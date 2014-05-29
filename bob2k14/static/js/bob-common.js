@@ -324,7 +324,7 @@ function handle_login()
 		},
 		function (error)
 		{
-			bootbox.alert("Authentication error.", $("#login-username").focus);
+			bootbox.alert("Authentication error.");
 		});
 	}
 	else
@@ -341,12 +341,12 @@ function handle_login()
 			},
 			function (error)
 			{
-			    bootbox.alert("Authentication error.", $("#login-username").focus);
+			    bootbox.alert("Authentication error.");
 			});
 		},
 		function (error)
 		{
-			bootbox.alert("Authentication error.", $("#login-username").focus);
+			bootbox.alert("Authentication error.");
 		}
 		);
 	}
