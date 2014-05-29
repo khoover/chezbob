@@ -297,12 +297,54 @@ function add_user_barcode()
 
 function nickname()
 {
-     bootbox.alert("This function will be restored soon!");
+    bootbox.alert("This function will be restored soon!");
 }
 
-function password()
+function set_password()
 {
-     bootbox.alert("This function will be restored soon!");
+    //bootbox.alert("This function will be restored soon!");
+    //return;
+
+    first_password = null;
+    console.log("set_password: user requested password change");
+    function handle_setpassword_response (result) {
+        if (result === null) {
+            console.log("handle_setpassword_response aborted");
+            return;
+        }
+        if (result !== first_password) {
+            console.log("ignoring user's password change request due to inequality");
+            bootbox.alert("Passwords were different, try again.");
+            return;
+        }
+        console.log("handle_setpassword_response received: " + result);
+        salt = "cB";
+        crypted = unixCryptTD(result, salt);
+
+        function setpassword_success(result) {
+            console.log("setpassword_success received: " + result);
+            if (result === true) {
+                bootbox.alert("Password changed!");
+            }
+            else {
+                bootbox.alert("Error: Unable to change or add password.");
+            }
+        }
+
+        function adduserbarcode_fail(error) {
+            console.log("setpassword_fail received an error");
+            bootbox.alert("Error: Unable to set password");
+        }
+
+        rpc.call('Bob.setpassword', [crypted], setpassword_success, setpassword_fail);
+    }
+
+    function handle_setpassword_firstbox (result) {
+        first_password = result;
+        bootbox.prompt("Enter your new password again:", handle_setpassword_response);
+    }
+
+    bootbox.prompt("Enter your new password:", handle_setpassword_firstbox);
 }
 
 function notify_error(error)

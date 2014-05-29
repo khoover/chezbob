@@ -360,6 +360,12 @@ def bob_getextras():
          extras.append(to_jsonify_ready(products.query.filter(products.barcode==extra["barcode"]).first()))
     return extras
 
+@jsonrpc.method('Bob.setpassword')
+def bob_setpassword(new_password):
+    user = sessionmanager.sessions[SessionLocation.computer].user.user.user
+    user.pwd = new_password
+    return True
+
 @jsonrpc.method('Bob.sendmessage')
 def bob_sendmessage(message, anonymous):
     username = sessionmanager.sessions[SessionLocation.computer].user.user.username
