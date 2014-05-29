@@ -3,7 +3,7 @@ var rpc = new $.JsonRpcClient({ajaxUrl: '/api'});
 var menuIndex = 0;
 var extraIndex = 0;
 var extrafunctions = [];
-var menufunctions = [soda_login, add_money, extra_items, buy_other, message, logout, transactions, my_chez_bob, transfer, add_user_barcode, nickname, password];
+var menufunctions = [soda_login, add_money, extra_items, buy_other, message, logout, transactions, my_chez_bob, transfer, add_user_barcode, nickname, set_password];
 
 var shortcutmap = {
 	"83": 0, //s
@@ -317,9 +317,12 @@ function set_password()
             bootbox.alert("Passwords were different, try again.");
             return;
         }
-        console.log("handle_setpassword_response received: " + result);
-        salt = "cB";
-        crypted = unixCryptTD(result, salt);
+        crypted = null;
+        if (result !== "") {
+            console.log("handle_setpassword_response received: " + result);
+            salt = "cB";
+            crypted = unixCryptTD(result, salt);
+        }
 
         function setpassword_success(result) {
             console.log("setpassword_success received: " + result);
@@ -331,7 +334,7 @@ function set_password()
             }
         }
 
-        function adduserbarcode_fail(error) {
+        function stepassword_fail(error) {
             console.log("setpassword_fail received an error");
             bootbox.alert("Error: Unable to set password");
         }

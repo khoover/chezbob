@@ -362,8 +362,10 @@ def bob_getextras():
 
 @jsonrpc.method('Bob.setpassword')
 def bob_setpassword(new_password):
-    user = sessionmanager.sessions[SessionLocation.computer].user.user.user
+    user = sessionmanager.sessions[SessionLocation.computer].user.user
     user.pwd = new_password
+    db.session.merge(user)
+    db.session.commit()
     return True
 
 @jsonrpc.method('Bob.sendmessage')
