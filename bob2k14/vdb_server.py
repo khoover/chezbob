@@ -47,6 +47,7 @@ proc = None
 def get_git_revision_hash():
     pass
 #    return str(subprocess.check_output(['git', 'rev-parse', 'HEAD']))
+message_types = ["CLINK: REQUEST AUTH", "CLINK: VEND FAIL", "CLINK: VEND OK"]
 
 requestqueue = queue.Queue()
 
@@ -77,13 +78,18 @@ def vdb_thread(arguments):
     global proc
     proc = Command(arguments['--serverpath'], stdout=Capture(buffer_size=1))
     proc.run(input=subprocess.PIPE, async=True)
+    last_poll = None
     while True:
         nextline = proc.stdout.readline().decode('utf-8').rstrip()
-        if nextline == '' and proc.poll() != None:
-            break
-        if nextline != '':
-            print(nextline)
-            send_remote(nextline)
+        for message in message_types:
+            if message in nextline:
+                send_remote(nextline)
+                break
+        if last_poll is None or time.time() > last_poll + 3:
+            print("I am polling!")
+            last_poll = time.time()
+            if proc.poll() != None:
+                break
 
     print("Exited.")
     proc.stdout.close()
