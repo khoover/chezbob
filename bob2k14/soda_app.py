@@ -6,7 +6,9 @@ from flask_cors import cross_origin
 from flask.ext.sqlalchemy import SQLAlchemy
 import os
 import queue
+import logging
 import requests
+import sys
 import json
 
 # Flask application

@@ -493,30 +493,35 @@ def event_stream():
 def stream():
     return Response(event_stream(), mimetype="text/event-stream")
 
-def setup_logging(log_level):
+sessionmanager = SessionManager()
+configdata = []
+
+def setup_logging(app, log_level):
+    app.debug = True
+    new_handler = logging.StreamHandler(sys.stdout)
     loglevel = logging.DEBUG
     try:
         loglevel = getattr(logging, log_level.upper())
     except:
         pass
+    new_handler.setLevel(loglevel)
     log_format = "%(levelname)s|%(filename)s:%(lineno)d|%(asctime)s|%(message)s"
-    logger = logging.getLogger("soda_serve")
-    logging.basicConfig(stream=sys.stdout, level=loglevel)
-    return logger
-
-sessionmanager = SessionManager()
-configdata = []
+    new_handler.setFormatter(logging.Formatter(log_format))
+    print(app.logger.handlers)
+    for handler in app.logger.handlers:
+        app.logger.removeHandler(handler)
+    app.logger.addHandler(new_handler)
 
 if __name__ == '__main__':
     arguments = docopt(__doc__, version='SodaServe 1.0')
     log_level = "INFO"
     if 'log_level' in arguments:
         log_level = arguments['log_level']
-    app.logger = setup_logging(log_level)
+    setup_logging(app, log_level)
     print(arguments)
     soda_app.arguments = arguments
     with open(os.path.dirname(os.path.realpath(__file__)) + "/" +  arguments["--config"]) as json_data:
-         configdata = json.load(json_data)
+        configdata = json.load(json_data)
     if log_level == "DEBUG":
         app.config["SQLALCHEMY_RECORD_QUERIES"] = True
         app.config["SQLALCHEMY_ECHO"] = True
