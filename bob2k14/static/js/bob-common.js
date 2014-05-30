@@ -334,7 +334,7 @@ function set_password()
             }
         }
 
-        function stepassword_fail(error) {
+        function setpassword_fail(error) {
             console.log("setpassword_fail received an error");
             bootbox.alert("Error: Unable to set password");
         }

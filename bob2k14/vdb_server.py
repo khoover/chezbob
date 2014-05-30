@@ -78,18 +78,14 @@ def vdb_thread(arguments):
     global proc
     proc = Command(arguments['--serverpath'], stdout=Capture(buffer_size=1))
     proc.run(input=subprocess.PIPE, async=True)
-    last_poll = None
     while True:
         nextline = proc.stdout.readline().decode('utf-8').rstrip()
         for message in message_types:
             if message in nextline:
                 send_remote(nextline)
                 break
-        if last_poll is None or time.time() > last_poll + 3:
-            print("I am polling!")
-            last_poll = time.time()
-            if proc.poll() != None:
-                break
+        if proc.poll() != None:
+            break
 
     print("Exited.")
     proc.stdout.close()

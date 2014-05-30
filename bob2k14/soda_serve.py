@@ -373,10 +373,11 @@ def bob_getextras():
 @jsonrpc.method('Bob.setpassword')
 def bob_setpassword(new_password):
     user = sessionmanager.sessions[SessionLocation.computer].user.user
+    app.logger.info("setpassword called for user %s" % (user.username,))
     if new_password == None or new_password == "":
-        app.logger.info("removing password for user %s" % (user.username,))
+        app.logger.debug("removing password for user %s" % (user.username,))
     else:
-        app.logger.info("setting new password for user %s" % (user.username,))
+        app.logger.debug("setting new password for user %s" % (user.username,))
     user.pwd = new_password
     db.session.merge(user)
     db.session.commit()
@@ -393,7 +394,7 @@ def bob_sendmessage(message, anonymous):
         display_name = username
     else:
         msg['Cc'] = email
-    app.logger.info("%s is trying tos end a message" % (display_name,))
+    app.logger.info("%s is trying to send a message" % (display_name,))
     msg['Subject'] = "New ChezBob E-Mail from User"
     msg['From'] = "chezbob@cs.ucsd.edu"
     msg['To'] = "chezbob@cs.ucsd.edu"
@@ -511,8 +512,7 @@ if __name__ == '__main__':
     log_level = "INFO"
     if 'log_level' in arguments:
         log_level = arguments['log_level']
-    logger = setup_logging(log_level)
-    arguments['logger'] = logger
+    app.logger = setup_logging(log_level)
     print(arguments)
     soda_app.arguments = arguments
     with open(os.path.dirname(os.path.realpath(__file__)) + "/" +  arguments["--config"]) as json_data:
