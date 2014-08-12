@@ -302,9 +302,7 @@ function nickname()
 
 function set_password()
 {
-    //bootbox.alert("This function will be restored soon!");
-    //return;
-
+    /*
     first_password = null;
     console.log("set_password: user requested password change");
     function handle_setpassword_response (result) {
@@ -347,7 +345,79 @@ function set_password()
         bootbox.prompt("Enter your new password again:", handle_setpassword_response);
     }
 
-    bootbox.prompt("Enter your new password:", handle_setpassword_firstbox);
+    bootbox.prompt("Enter your new password:", handle_setpassword_firstbox); 
+    */
+    
+    first_password = null; second_password = null;
+    console.log("set_password: user requested password change");
+	bootbox.dialog({
+		message: "Enter new password: <input type='Password' name='password1' id='password1'></input><br>Re-enter new password: <input type='Password' name='password2' id='password2'></input>",
+	  	title: "Change Password",
+	  	buttons: {
+			main: {
+		  		label: "Change",
+		  		className: "btn-primary",
+		  		callback: function() {
+
+		  			// Get the user input passwords
+		  			first_password = $("#password1").val();
+		  			second_password = $("#password2").val();
+
+		  			// If either password is null, abort
+		  			if ((first_password === null) || (second_password === null)) {
+			            console.log("handle_setpassword_response aborted");
+			            bootbox.alert("Invalid entry, try again.");
+			            return;
+			        }
+
+			        // If the passwords do not match, abort
+			        if (second_password !== first_password) {
+			            console.log("ignoring user's password change request due to inequality");
+			            bootbox.alert("Passwords were different, try again.");
+			            return;
+			        }
+
+			        // Salt, then encrypt, the password
+			        crypted = null;
+			        if (second_password !== "") {
+			            console.log("handle_setpassword_response received: " + second_password);
+			            salt = "cB"; // TODO: OMG it's a static salt
+			            crypted = unixCryptTD(second_password, salt);
+			        }
+
+			        function setpassword_success(result) {
+			            console.log("setpassword_success received: " + result);
+			            if (result === true) {
+			                bootbox.alert("Password changed!");
+			            }
+			            else {
+			                bootbox.alert("Error: Unable to change or add password.");
+			            }
+			        }
+
+			        function setpassword_fail(error) {
+			            console.log("setpassword_fail received an error");
+			            bootbox.alert("Error: Unable to set password");
+			        }
+
+			        // Set the new password
+			        rpc.call('Bob.setpassword', [crypted], setpassword_success, setpassword_fail);
+
+				}
+		  	},
+			cancel: {
+				label: "Cancel",
+				className: "btn-cancel",
+				callback: function() {
+
+					// Log the cancellation, then abort
+					console.log("handle_setpassword_response aborted");
+			        return;
+
+				}
+			}
+		}
+	});
 }
 
 function notify_error(error)
