@@ -351,7 +351,7 @@ function set_password()
     first_password = null; second_password = null;
     console.log("set_password: user requested password change");
 	bootbox.dialog({
-		message: "Enter new password: <input type='Password' name='password1' id='password1'></input><br>Re-enter new password: <input type='Password' name='password2' id='password2'></input>",
+		message: "Enter new password: <input type='Password' name='password1' id='password1'></input><br />Re-enter new password: <input type='Password' name='password2' id='password2'></input>",
 	  	title: "Change Password",
 	  	buttons: {
 			main: {
