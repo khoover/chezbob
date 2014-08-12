@@ -2,8 +2,8 @@
 
 import os
 import sys
-sys.path.append("/srv/www/django")
-sys.path.append("/srv/www/django/chezbob")
+sys.path.append("/git/django")
+sys.path.append("/git/django/chezbob")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "chezbob.settings")
 
 import django.core.handlers.wsgi

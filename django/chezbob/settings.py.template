@@ -82,7 +82,7 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'chezbob.urls'
 
 TEMPLATE_DIRS = (
-    "/srv/www/django/chezbob/templates",
+    "/git/django/chezbob/templates",
 )
 
 INSTALLED_APPS = (
