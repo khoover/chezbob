@@ -108,13 +108,22 @@ function soda_login()
 function configureEventSource()
 {
     var source = new EventSource('/stream');
+    source.onerror = function(e){
+        //display nice error message
+        $("#disconnected").modal('show');
+        setTimeout(function() {
+            configureEventSource();
+            $("#disconnected").modal('hide');
+        }
+        , 15000);
+    }
 	source.onmessage = function(e) {
 		if (e.data.substring(0,3) == "sbc")
 		{
 			//this is a barcode that was purchased
 			resetTimer();
 			var barcode = e.data.substring(3);
-			$("#dispensingdialog").modal("hide");
+            $("#dispensingdialog").modal("hide");
 			rpc.call('Soda.getbalance', [], function (result) {
 							$("#user-balance").text(result)
 						},
