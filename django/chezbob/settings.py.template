@@ -7,7 +7,7 @@
 #     by a pre-existing site, or for a new installation create a random ~50
 #     character string.)
 #   - Edit any paths as necessary based on install location.
-      e.g. TEMPLATE_DIRS
+#     e.g. TEMPLATE_DIRS
 # When running on a testing server (manage.py runserver 8888)
 #   - Comment out SESSION_COOKIE_SECURE
 
@@ -16,10 +16,10 @@ TEMPLATE_DEBUG = DEBUG
 
 DEFAULT_FROM_EMAIL = 'chezbob@cs.ucsd.edu'
 ADMINS = (
-    ('Michael Vrable', 'mvrable@cs.ucsd.edu'),
-    ('John McCullough', 'jmccullo@cs.ucsd.edu'),
-    ('Nathan Bales', 'nbales@cs.ucsd.edu'),
     ('Tristan Halvorson', 'trhalvorson@cs.ucsd.edu'),
+    ('Dimitar Bounov', 'dimo@ucsd.edu'),
+    ('Brown Farinholt', 'bfarinholt@eng.ucsd.edu'),
+    ('Edward Sullivan', 'elsulliv@eng.ucsd.edu'),
 )
 
 MANAGERS = ADMINS
