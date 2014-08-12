@@ -110,12 +110,11 @@ function configureEventSource()
     var source = new EventSource('/stream');
     source.onerror = function(e){
         //display nice error message
-        $("#disconnected").modal('show');
-        setTimeout(function() {
-            configureEventSource();
-            $("#disconnected").modal('hide');
-        }
-        , 15000);
+        $("#disconnected").modal('show').on('shown.bs.modal', function(e) {
+            setTimeout(function() {
+                $("#disconnected").modal('hide').on('hidden.bs.modal', function(e) {configureEventSource();});
+            }
+            , 15000);});
     }
 	source.onmessage = function(e) {
 		if (e.data.substring(0,3) == "sbc")
