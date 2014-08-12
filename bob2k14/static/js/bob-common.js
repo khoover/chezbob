@@ -302,10 +302,8 @@ function nickname()
 
 function set_password()
 {
-    //bootbox.alert("This function will be restored soon!");
-    //return;
-
-    /*first_password = null;
+    /*
+    first_password = null;
     console.log("set_password: user requested password change");
     function handle_setpassword_response (result) {
         if (result === null) {
@@ -347,13 +345,13 @@ function set_password()
         bootbox.prompt("Enter your new password again:", handle_setpassword_response);
     }
 
-    bootbox.prompt("Enter your new password:", handle_setpassword_firstbox); */
+    bootbox.prompt("Enter your new password:", handle_setpassword_firstbox); 
+    */
     
     first_password = null; second_password = null;
     console.log("set_password: user requested password change");
 	bootbox.dialog({
-		message: "Enter new password: <input type='Password' name='password1' id='password1'></input><br>
-	  		   Re-enter new password: <input type='Password' name='password2' id='password2'></input>",
+		message: "Enter new password: <input type='Password' name='password1' id='password1'></input><br>Re-enter new password: <input type='Password' name='password2' id='password2'></input>",
 	  	title: "Change Password",
 	  	buttons: {
 			main: {
