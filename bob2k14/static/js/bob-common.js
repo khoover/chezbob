@@ -297,7 +297,6 @@ function add_user_barcode()
 
 function nickname()
 {
-    nickname = null;
     console.log("set_nickname: user requested nickname change");
     function handle_setnickname_response (result) {
         if (result === null) {
@@ -305,11 +304,8 @@ function nickname()
             return;
         }
         // TODO: how should we cull the length of this nickname?
-        if (result.length > 64) { 
-        	nickname = result.slice(0,64);
-        }
-        else {
-        	nickname = result;
+        if (result.length > 5) { 
+        	result = result.slice(0,5);
         }
 
         console.log("handle_setnickname_response received: " + nickname);
@@ -329,7 +325,7 @@ function nickname()
             bootbox.alert("Error: Unable to set nickname");
         }
 
-        rpc.call('Bob.setnickname', [nickname], setnickname_success, setnickname_fail);
+        rpc.call('Bob.setnickname', [result], setnickname_success, setnickname_fail);
     }
 
     bootbox.prompt("Enter your new nickname:", handle_setnickname_response); 
