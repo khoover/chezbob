@@ -369,6 +369,10 @@ function set_password()
 			            salt = "cB"; // TODO: OMG it's a static salt
 			            crypted = unixCryptTD(second_password, salt);
 			        }
+			        else {
+			        	console.log("handle_setpassword_response received: <empty>");
+			        	crypted = "";
+			        }
 
 			        function setpassword_success(result) {
 			            console.log("setpassword_success received: " + result);
