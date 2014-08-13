@@ -304,10 +304,9 @@ function nickname()
             return;
         }
         // TODO: how should we cull the length of this nickname?
-        if (result.length > 5) { 
-        	result = result.slice(0,5);
-        }
-
+        /*if (result.length > 64) { 
+        	result = result.slice(0,64);
+        }*/
         console.log("handle_setnickname_response received: " + result);
 
         function setnickname_success(result) {
