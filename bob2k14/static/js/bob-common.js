@@ -308,7 +308,7 @@ function nickname()
         	result = result.slice(0,5);
         }
 
-        console.log("handle_setnickname_response received: " + nickname);
+        console.log("handle_setnickname_response received: " + result);
 
         function setnickname_success(result) {
             console.log("setnickname_success received: " + result);
