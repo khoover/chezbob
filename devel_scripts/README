@@ -1,0 +1,36 @@
+- Dependencies
+
+  python3.4
+  pip
+  python-virtualenv
+
+- Instalation
+
+  Once the dependencies are installed, just run (as yourself)
+devel_scripts/setup_devel.sh. This will create a deploy/ directory and install a virtual python environment in
+deploy/. It will then install the needed python packages in the virtual environment.
+
+  Also, you will need a dummy sqlite database file. You can find one at
+ssh://yourself@soda:~dimo/app.db. Just copy that into the deploy/ directory.
+
+- Use
+  To deploy the ChezBob Interface, you need to activate the virtual environment using
+
+source deploy/bin/activate
+
+  At this point you should be able to kick off a version of the front-end by running:
+
+  ./bob2k14/soda_serve.py serve sqlite:////<path-to-deploy>/app.db --log_level=DEBUG
+
+And be able to login using your normal username and password (as of 08/12/2014).
+
+- Notes:
+  We still don't have working mocks for:
+  - Vending Server
+  - Bill Reader Server
+  - Barcode Scanner Server
+  - Any of the admin-relevant tables in the database
+  - The admin interface itself.
+
+  Those are upcoming :)
+
