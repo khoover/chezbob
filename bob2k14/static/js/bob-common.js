@@ -297,57 +297,46 @@ function add_user_barcode()
 
 function nickname()
 {
-    bootbox.alert("This function will be restored soon!");
+    nickname = null;
+    console.log("set_nickname: user requested nickname change");
+    function handle_setnickname_response (result) {
+        if (result === null) {
+            console.log("handle_setnickname_response aborted");
+            return;
+        }
+        // TODO: how should we cull the length of this nickname?
+        if (result.length > 64) { 
+        	nickname = result.slice(0,64);
+        }
+        else {
+        	nickname = result;
+        }
+
+        console.log("handle_setnickname_response received: " + nickname);
+
+        function setnickname_success(result) {
+            console.log("setnickname_success received: " + result);
+            if (result === true) {
+                bootbox.alert("Nickname changed!");
+            }
+            else {
+                bootbox.alert("Error: Unable to change or add nickname.");
+            }
+        }
+
+        function setnickname_fail(error) {
+            console.log("setnickname_fail received an error");
+            bootbox.alert("Error: Unable to set nickname");
+        }
+
+        rpc.call('Bob.setnickname', [nickname], setnickname_success, setnickname_fail);
+    }
+
+    bootbox.prompt("Enter your new nickname:", handle_setnickname_response); 
 }
 
 function set_password()
-{
-    /*
-    first_password = null;
-    console.log("set_password: user requested password change");
-    function handle_setpassword_response (result) {
-        if (result === null) {
-            console.log("handle_setpassword_response aborted");
-            return;
-        }
-        if (result !== first_password) {
-            console.log("ignoring user's password change request due to inequality");
-            bootbox.alert("Passwords were different, try again.");
-            return;
-        }
-        crypted = null;
-        if (result !== "") {
-            console.log("handle_setpassword_response received: " + result);
-            salt = "cB";
-            crypted = unixCryptTD(result, salt);
-        }
-
-        function setpassword_success(result) {
-            console.log("setpassword_success received: " + result);
-            if (result === true) {
-                bootbox.alert("Password changed!");
-            }
-            else {
-                bootbox.alert("Error: Unable to change or add password.");
-            }
-        }
-
-        function setpassword_fail(error) {
-            console.log("setpassword_fail received an error");
-            bootbox.alert("Error: Unable to set password");
-        }
-
-        rpc.call('Bob.setpassword', [crypted], setpassword_success, setpassword_fail);
-    }
-
-    function handle_setpassword_firstbox (result) {
-        first_password = result;
-        bootbox.prompt("Enter your new password again:", handle_setpassword_response);
-    }
-
-    bootbox.prompt("Enter your new password:", handle_setpassword_firstbox); 
-    */
-    
+{    
     first_password = null; second_password = null;
     console.log("set_password: user requested password change");
 	bootbox.dialog({
