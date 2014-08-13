@@ -1,14 +1,14 @@
 # m h  dom mon dow   command
 
 # These next commands should run on the database server machine (currently
-# chezbob) as the bob user, since they write to the db.
-14 */6 * * *      psql -q -f /srv/www/admin/aggregate_maintenance.sql bob
-14 1 * * *        psql -q -f /srv/www/admin/maintenance.sql bob
+# soda) as the bob user, since they write to the db.
+14 */6 * * *      psql -U bob -q -f /git/admin/aggregate_maintenance.sql bob
+14 1 * * *        psql -U bob -q -f /git/admin/maintenance.sql bob
 
-# These commands should run on the web server machine (currently chezbob)
+# These commands should run on the web server machine (currently soda)
 # as the web user, since they write to the web.  They need access to the
 # django settings.py file; rather than replicate it here, let's run them
 # in the real django install.
-*/10 * * * *      /srv/www/reports/wall_of_shame.pl > /srv/www/www/wall_of_shame.html
-19 */6 * * *      /srv/www/admin/finance-update > $HOME/finance-update.log; cp $HOME/finances.pdf /srv/www/www/reports/
-12 0 * * *      /srv/www/django/chezbob/launch update_prices > /srv/www/www/prices.html
+*/10 * * * *      /git/reports/wall_of_shame.pl > /git/www/wall_of_shame.html
+19 */6 * * *      /git/admin/finance-update > $HOME/finance-update.log; cp $HOME/finances.pdf /git/www/reports/
+12 0 * * *      /git/django/chezbob/launch update_prices > /git/www/prices.html

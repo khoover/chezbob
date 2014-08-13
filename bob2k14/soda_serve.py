@@ -383,6 +383,19 @@ def bob_setpassword(new_password):
     db.session.commit()
     return True
 
+@jsonrpc.method('Bob.setnickname')
+def bob_setnickname(new_nickname):
+    user = sessionmanager.sessions[SessionLocation.computer].user.user
+    app.logger.info("setnickname called for user %s" % (user.username,))
+    if new_nickname == None or new_nickname == "":
+        app.logger.debug("removing nickname for user %s" % (user.username,))
+    else:
+        app.logger.debug("setting new nickname for user %s" % (user.username,))
+    user.nickname = new_nickname
+    db.session.merge(user)
+    db.session.commit()
+    return True
+
 @jsonrpc.method('Bob.sendmessage')
 def bob_sendmessage(message, anonymous):
     username = sessionmanager.sessions[SessionLocation.computer].user.user.username
