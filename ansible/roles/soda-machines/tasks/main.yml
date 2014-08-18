@@ -36,3 +36,8 @@
   copy: src=cb_barcoded.conf dest=/etc/init/cb_barcoded.conf
 - name: make sure barcoded is running
   service: name=cb_barcoded state=started
+
+- name: Install mdbd upstart job
+  copy: src=cb_mdbd.conf dest=/etc/init/cb_mdbd.conf
+- name: make sure mdbd is running
+  service: name=cb_mdbd state=started

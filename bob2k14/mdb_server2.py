@@ -100,7 +100,20 @@ def mdb_thread(arguments):
 def rpc_thread(arguments):
      mdbport = io.open(arguments["--mdb-port"], 'wt', buffering=1, errors='ignore')
      try:
-          while True:
+         print("Resetting coin changer...")
+         mdbport.write('R1\r') #Reset the changer
+         mdbport.write('N FFFF\r') #Enable coin acceptance
+         mdbport.write('E1\r') #Enable coin acceptance
+         time.sleep(1)
+         print("Resetting bill validator...")
+         mdbport.write('R2\r') #Reset bill validator
+         time.sleep(1)
+         mdbport.write('P2\r') #Poll for reset OK
+         mdbport.write('L FFFF\r') #Accept all bills
+         mdbport.write('V 0000\r') #Security off
+         mdbport.write('J FFFF\r') #Escrow
+         mdbport.write('E2\r') #Enable bill acceptance
+         while True:
                request = requestqueue.get()
                if (arguments['--verbose']):
                      print("Command: " + request.command)
@@ -117,6 +130,8 @@ if __name__ == '__main__':
     if arguments['--verbose']:
         print("Launched with arguments:")
         print(arguments)
+
+    # init in case everything is not yet
     mdb = Thread(target = mdb_thread, args = [arguments])
     mdb.start()
     rpc = Thread(target = rpc_thread, args = [arguments])

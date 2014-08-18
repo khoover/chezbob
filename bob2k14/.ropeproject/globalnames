@@ -1,8 +1,10 @@
-€}q(U
-mdb_server]q(Usend_remoteqU
-mdb_threadqUrequestqueueqUmdbqU	argumentsqUmdb_command_jsonqUget_git_revision_hashq	Umdb_commandq
-UjsonrpcqUappqeU
-soda_serve]q(Ubob_getusernameqUto_jsonify_readyqUstreamqUadduserbarcodeqUbob_transactionsqUbob_passwordloginqUsoda_getbalanceqUbob_adduserbarcodeqUsoda_getusernameqUbob_getextrasqUindexqUget_git_revision_hashqUevent_streamqU	argumentsqUmake_purchaseqU
-configdataqUremotebarcodeqUbob_sodaloginqU
-bob_logoutq Usoda_passwordloginq!U	vmcstatesq"Ubob_purchaseotherq#Uproductq$Umake_depositq%U
-json_indexq&U	json_dataq'U	remotevdbq(Ubob_getcryptq)U	remotemdbq*Ulastsodaq+Ubob_purchasebarcodeq,Ubob_getbarcodeinfoq-Ujsonrpcq.Ubob_sendmessageq/Umake_purchase_otherq0Ubob_json_indexq1Ubob_barcodeloginq2Uutil_force_refreshq3Usessionmanagerq4Ubob_getuserbarcodeq5Ubob_depositq6eu.
+€}q(Umdb_server2]q(UrpcqUsend_remoteqU
+mdb_threadqUrequestqueueqUmdbqU	argumentsqU
+rpc_threadq	Umdb_command_jsonq
+Uget_git_revision_hashqUmdb_commandqUjsonrpcqUreadcommandqUappqeU
+mdb_server]q(Usend_remoteqU
+mdb_threadqUrequestqueueqUmdbqU	argumentsqUmdb_command_jsonqUget_git_revision_hashqUmdb_commandqUjsonrpcqUappqeU
+soda_serve]q(Ubob_getusernameqUto_jsonify_readyqUstreamqUadduserbarcodeqUbob_transactionsq Ubob_passwordloginq!Usoda_getbalanceq"Ubob_adduserbarcodeq#Usoda_getusernameq$Ubob_getextrasq%Uindexq&Uget_git_revision_hashq'Uevent_streamq(U	argumentsq)Umake_purchaseq*U
+configdataq+Uremotebarcodeq,Ubob_sodaloginq-U
+bob_logoutq.Usoda_passwordloginq/U	vmcstatesq0Ubob_purchaseotherq1Uproductq2Umake_depositq3U
+json_indexq4U	json_dataq5U	remotevdbq6Ubob_getcryptq7U	remotemdbq8Ulastsodaq9Ubob_purchasebarcodeq:Ubob_getbarcodeinfoq;Ujsonrpcq<Ubob_sendmessageq=Umake_purchase_otherq>Ubob_json_indexq?Ubob_barcodeloginq@Uutil_force_refreshqAUsessionmanagerqBUbob_getuserbarcodeqCUbob_depositqDeu.
