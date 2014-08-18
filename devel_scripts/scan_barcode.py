@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     payload = {
       "method": "ds.barcode_scan",
-      "params": [ args['<num>']  ],
+      "params": [ 'A' + args['<num>']  ],
       "jsonrpc": "2.0",
       "id": 0
     }
