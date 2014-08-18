@@ -249,6 +249,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt: pass
 
     done = True
+    writeln_tty(m_master, "BYE.\n")
     debug("Shutting down rpc service")
     requests.post('http://127.0.0.1:{0}/shutdown'.format(args['--port']))
 
