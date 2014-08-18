@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 
-"""vend.py, simulate a barcode being scanned
+"""vend.py, simulate vending events.
 
-This script launches all the neccessary servers for bob (soda_serve, vdb_server, mdb_server, barcode_server) or their mock equivalents. It monitors all of them, and shuts them down when the session is done (Ctrl+C)
+This scripts allows simulating both low-level vending events (request-auth,
+vend-ok, vend-fail), as well as higher-levl combinations of those
+(buy-successful = request-auth; A; vend-ok, buy-failed=request-auth, A;
+vend-fail, buy-denied=request-auth; D;).
+
 
 Usage:
   vend.py request-auth [--mvs-port=port] [(-v|--verbose)] <str>
@@ -10,6 +14,7 @@ Usage:
   vend.py vend-fail [--mvs-port=port] [(-v|--verbose)] 
   vend.py buy-successful [--mvs-port=port] [(-v|--verbose)] <str>
   vend.py buy-failed [--mvs-port=port] [(-v|--verbose)] <str>
+  vend.py buy-denied [--mvs-port=port] [(-v|--verbose)] <str>
   vend.py choices 
   vend.py (-h | --help)
   vend.py --version
@@ -20,6 +25,7 @@ Options:
   vend-fail                 Simulate a vend-fail event
   buy-successful            Simulate a successful purchase. Equivalent to a request-auth event followed by a vend-ok event
   buy-failed                Simulate a failed purchase. Equivalent to a request-auth event followed by a vend-fail event
+  buy-denied                Simulate a vending machine press, and expect a denied response.
   choices                   Print the possible choices for request-auth (and buy-successful, buy-failed)
 
   -h --help                 Show this screen.
@@ -132,6 +138,10 @@ if __name__ == '__main__':
       resp = vend_fail()
       if resp['result'] != '':
         error("Unexpected result for vend-failed: {0}".format(resp))
+    elif args['buy-denied']:
+      resp = req_auth(args['<str>'])
+      if (resp['result'] != 'D\n'):
+        error("Purchase got authorized!")
     elif args['choices']:
       config = json.load(open(BASEDIR + 'bob2k14/config.json'))
       for item in config['sodamapping']:
