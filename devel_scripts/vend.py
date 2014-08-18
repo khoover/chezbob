@@ -3,9 +3,9 @@
 """vend.py, simulate vending events.
 
 This scripts allows simulating both low-level vending events (request-auth,
-vend-ok, vend-fail), as well as higher-levl combinations of those
-(buy-successful = request-auth; A; vend-ok, buy-failed=request-auth, A;
-vend-fail, buy-denied=request-auth; D;).
+vend-ok, vend-fail), as well as higher-level combinations of those
+(buy-successful = request-auth, A, vend-ok; buy-failed=request-auth, A,
+vend-fail; buy-denied=request-auth, D;).
 
 
 Usage:

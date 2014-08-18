@@ -5,7 +5,7 @@
 This script simulates a barcode being scanned on the soda machine scanner.
 
 Usage:
-  barcode.py scan [--barcode-port=port] [(-v|--verbose)] <num>
+  barcode.py scan [--barcode-port=port] [(-v|--verbose)] <barcode>
   barcode.py (-h | --help)
   barcode.py --version
 
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     payload = {
       "method": "ds.barcode_scan",
-      "params": [ 'A' + args['<num>']  ],
+      "params": [ 'A' + args['<barcode>']  ],
       "jsonrpc": "2.0",
       "id": 0
     }

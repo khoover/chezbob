@@ -13,8 +13,8 @@ Usage:
   bills.py --version
 
 Options:
-  put-bill                  Trying simulating a bill being put in. A list of valid bills can be found by running 'bills.py valid-bills'
-  put-coin                  Trying simulating a coin being put in. A list of valid coins can be found by running 'bills.py valid-coins'
+  put-bill                  Simulating a bill of the specified <amount> being put in. A list of valid bills can be found by running 'bills.py valid-bills'
+  put-coin                  Simulating a coin of the specified <amount> being put in. A list of valid coins can be found by running 'bills.py valid-coins'
   valid-bill                Print out valid bill values
   --ds-ep=<ep>              End point for development sever [default: http://127.0.0.1:8084/api]
   -h --help                 Show this screen.
