@@ -17,3 +17,7 @@
 /www/reports/
 __pycache__/
 soda/src/lib/a.out
+*.swp
+*.swo
+deploy/
+devel_scripts/app.db

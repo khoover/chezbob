@@ -15,3 +15,5 @@ pip install flask-sqlalchemy
 pip install flask-cors
 pip install requests
 pip install sqlalchemy-migrate
+pip install pyserial
+pip install sarge

@@ -1,36 +1,91 @@
-- Dependencies
+1. Dependencies
 
   python3.4
   pip
   python-virtualenv
 
-- Instalation
+2. Instalation
 
-  Once the dependencies are installed, just run (as yourself)
-devel_scripts/setup_devel.sh. This will create a deploy/ directory and install a virtual python environment in
-deploy/. It will then install the needed python packages in the virtual environment.
+  Once the dependencies are installed, just run (as yourself):
+
+dimo@fry:~/poke/chezbob/chezbob$ ./devel_scripts/setup_devel.sh 
+
+This will create a deploy/ directory and install a virtual python environment
+under deploy/. It will then install the needed python packages in the virtual
+environment.
 
   Also, you will need a dummy sqlite database file. You can find one at
 ssh://yourself@soda:~dimo/app.db. Just copy that into the deploy/ directory.
 
-- Use
-  To deploy the ChezBob Interface, you need to activate the virtual environment using
+!!!!!!!!!!!!!!!!!!!!!DO NOT COMMIT THAT DB IN GIT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-source deploy/bin/activate
+It's based on a dump of the real database and contains personal information,
+and it hasn't been properly sanitized!!
 
-  At this point you should be able to kick off a version of the front-end by running:
+3. Use
+  To deploy the ChezBob Interface, you need to activate the virtual environment by running: 
 
-  ./bob2k14/soda_serve.py serve sqlite:////<path-to-deploy>/app.db --log_level=DEBUG
+dimo@fry:~/poke/chezbob/chezbob$ source deploy/bin/activate
+(deploy)dimo@fry:~/poke/chezbob/chezbob$ 
 
-And be able to login using your normal username and password (as of 08/12/2014).
+  You can tell you're in the environment by the new prompt. At this point you
+can kick off the development server, which is reponsible for firing up all the
+bob servers, and managing the mock devices (bill reader, barcode scanner,
+vending machine)
+
+(deploy)dimo@fry:~/poke/chezbob/chezbob$ ./devel_scripts/devel_server.py 
+....
+
+
+At this point you should be able to login using your normal username/pass (as
+of 08/12/2014) into the bob ui at http://localhost:8080/static/chezbob.html,
+and in the soda UI at http://localhost:8080/static/chezbob.html. 
+
+You can kill the development server by pressing Ctrl+C. This will gracefully
+shut down all servers
+
+4. Command Line Tools
+
+There are several tools in devel_scripts/ for simulating hardware events. Each of them has a discriptive usage message, so use that for reference.
+
+4.1 barcode.py: simulate barcode scanned events (barcode.py -h for more details)
+
+(deploy)dimo@fry:~/poke/chezbob/chezbob$ ./devel_scripts/barcode.py 
+Usage:
+  barcode.py scan [--barcode-port=port] [(-v|--verbose)] <num>
+  barcode.py (-h | --help)
+  barcode.py --version
+
+4.2 bills.py: simulate bills/coins being put in (bills.py -h for more details)
+
+(deploy)dimo@fry:~/poke/chezbob/chezbob/devel_scripts$ ./bills.py 
+Usage:
+  bills.py put-bill [--ds-ep=<ep>] [(-v|--verbose)] <amount>
+  bills.py put-coin [--ds-ep=<ep>] [(-v|--verbose)] <amount>
+  bills.py valid-bills
+  bills.py valid-coins
+  bills.py (-h | --help)
+  bills.py --version
+
+4.3 vend.py: simulate vending events (vend.py -h for more details)
+
+(deploy)dimo@fry:~/poke/chezbob/chezbob/devel_scripts$ ./vend.py 
+Usage:
+  vend.py request-auth [--mvs-port=port] [(-v|--verbose)] <str>
+  vend.py vend-ok [--mvs-port=port] [(-v|--verbose)] 
+  vend.py vend-fail [--mvs-port=port] [(-v|--verbose)] 
+  vend.py buy-successful [--mvs-port=port] [(-v|--verbose)] <str>
+  vend.py buy-failed [--mvs-port=port] [(-v|--verbose)] <str>
+  vend.py buy-denied [--mvs-port=port] [(-v|--verbose)] <str>
+  vend.py choices 
+  vend.py (-h | --help)
+  vend.py --version
+
 
 - Notes:
-  We still don't have working mocks for:
-  - Vending Server
-  - Bill Reader Server
-  - Barcode Scanner Server
+  We still need
+  - A single bob shell for hw management and events
   - Any of the admin-relevant tables in the database
   - The admin interface itself.
-
-  Those are upcoming :)
-
+  - barcode.py should understand the database and be able to lookup barcodes for users/products based on their names
+  - bills.py - add support for the return change button being pressed
