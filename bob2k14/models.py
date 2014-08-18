@@ -2,8 +2,17 @@
 
 import datetime
 import soda_app
+import os
 app = soda_app.app
 db = soda_app.db
+
+def getNumericType(n1,n2):
+  global db
+
+  if 'CB_DEVEL' in os.environ:
+    return db.Float()
+  else:
+    return db.Numeric(n1, n2)
 
 # This file contains the database models for all of the tables we use in the
 # rest of the interface.  By importing the proper tables, other python modules
@@ -32,7 +41,7 @@ class aggregate_purchases(db.Model):
   date = db.Column(db.Date(), primary_key=True)
   barcode = db.Column(db.String(), primary_key=True)
   quantity = db.Column(db.Integer())
-  price = db.Column(db.Numeric(12,2))
+  price = db.Column(getNumericType(12,2))
   bulkid = db.Column(db.Integer())
   def __init__(self, barcode, price, bulkid):
         self.date = datetime.date.today()
@@ -57,7 +66,7 @@ class products(db.Model):
   barcode = db.Column(db.String(), primary_key = True)
   name = db.Column(db.String())
   phonetic_name = db.Column(db.String())
-  price = db.Column(db.Numeric(12,2))
+  price = db.Column(getNumericType(12,2))
   bulkid = db.Column(db.Integer())
   coffee = db.Column(db.Boolean())
 
@@ -147,7 +156,7 @@ class users(db.Model):
   email = db.Column(db.String())
   nickname = db.Column(db.String(), nullable = True)
   pwd = db.Column(db.String())
-  balance = db.Column(db.Numeric(12,2))
+  balance = db.Column(getNumericType(12,2))
   disabled = db.Column(db.Boolean())
   last_purchase_time = db.Column(db.DateTime(True))
   last_deposit_time = db.Column(db.DateTime(True))

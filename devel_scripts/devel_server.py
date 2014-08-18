@@ -41,6 +41,7 @@ import time
 import os
 from common import BASEDIR, debug
 import pty
+from copy import copy
 
 app = Flask(__name__)
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
@@ -73,6 +74,11 @@ def shutdown():
 def get_git_revision_hash():
     return str(subprocess.check_output(['git', 'rev-parse', 'HEAD']))
 
+def extend(d, k, v):
+    d1 = copy(d)
+    d1[k]=v
+    return d1
+
 if __name__ == '__main__':
     args = docopt(__doc__, version=get_git_revision_hash())
 
@@ -87,7 +93,8 @@ if __name__ == '__main__':
     debug("Starting up soda_serve on port {0} with db {1}".format(\
       soda_port, args['--db-file']))
     sodaProc = subprocess.Popen([BASEDIR + 'bob2k14/soda_serve.py', 'serve',\
-      'sqlite:///' + args['--db-file'], '--port', soda_port])
+      'sqlite:///' + args['--db-file'], '--port', soda_port], \
+       env=extend(os.environ, 'CB_DEVEL', '1'))
     debug("soda_serve.py running as process {0}".format(sodaProc.pid))
 
     # Bring up barcode_server
