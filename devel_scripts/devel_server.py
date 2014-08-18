@@ -30,7 +30,7 @@ import binascii
 import functools
 import requests
 import json
-from flask import Flask, Response, jsonify
+from flask import Flask, Response, jsonify, request
 from flask_jsonrpc import JSONRPC
 import queue
 from threading import Thread
@@ -69,6 +69,7 @@ def shutdown_server():
 @app.route('/shutdown', methods=['POST'])
 def shutdown():
     shutdown_server()
+    debug("Server shutdown request finished")
     return 'Server shutting down...'
 
 def get_git_revision_hash():
@@ -89,11 +90,12 @@ if __name__ == '__main__':
     soda_port = args['--soda-port']
     b_master, b_slave = pty.openpty()
 
+    db_file = os.path.abspath(args['--db-file'])
     # Bring up Soda
     debug("Starting up soda_serve on port {0} with db {1}".format(\
-      soda_port, args['--db-file']))
+      soda_port, db_file))
     sodaProc = subprocess.Popen([BASEDIR + 'bob2k14/soda_serve.py', 'serve',\
-      'sqlite:///' + args['--db-file'], '--port', soda_port], \
+      'sqlite:///' + db_file, '--port', soda_port], \
        env=extend(os.environ, 'CB_DEVEL', '1'))
     debug("soda_serve.py running as process {0}".format(sodaProc.pid))
 
