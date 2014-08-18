@@ -80,6 +80,20 @@ def extend(d, k, v):
     d1[k]=v
     return d1
 
+def startServer(name, port, args, env = None):
+  debug("Starting {0} server on {1}".format(name, port))
+  if (not env):
+    p = subprocess.Popen(args)
+  else:
+    p = subprocess.Popen(args, env=env)
+  debug("{0} server running as process {1}".format(name, p.pid))
+  return p
+
+def stopServer(name, proc):
+  debug("Shutting down {0}".format(name))
+  proc.terminate()
+  proc.wait()
+
 if __name__ == '__main__':
     args = docopt(__doc__, version=get_git_revision_hash())
 
@@ -88,23 +102,29 @@ if __name__ == '__main__':
         print(args)
 
     soda_port = args['--soda-port']
+    vdb_port = args['--vdb-port']
+    soda_ep = "http://127.0.0.1:{0}/api".format(soda_port)
     b_master, b_slave = pty.openpty()
 
     db_file = os.path.abspath(args['--db-file'])
     # Bring up Soda
-    debug("Starting up soda_serve on port {0} with db {1}".format(\
-      soda_port, db_file))
-    sodaProc = subprocess.Popen([BASEDIR + 'bob2k14/soda_serve.py', 'serve',\
-      'sqlite:///' + db_file, '--port', soda_port], \
-       env=extend(os.environ, 'CB_DEVEL', '1'))
-    debug("soda_serve.py running as process {0}".format(sodaProc.pid))
+    sodaProc = startServer("soda_serve", soda_port, \
+      [BASEDIR + 'bob2k14/soda_serve.py', 'serve', 'sqlite:///' + db_file, \
+        '--port', soda_port],
+      extend(os.environ, 'CB_DEVEL', '1'))
 
     # Bring up barcode_server
-    debug("Starting up barcode_serve on pipe {0}".format(os.ttyname(b_slave)))
-    barcodeProc = subprocess.Popen([BASEDIR + 'bob2k14/barcode_server.py', \
+    barcodeTTY = os.ttyname(b_slave)
+    barcodeProc = startServer("barcode_serve", barcodeTTY, \
+      [BASEDIR + 'bob2k14/barcode_server.py', \
       'scan-barcode', '--barcode-port', os.ttyname(b_slave),
-      '--endpoint', "http://127.0.0.1:{0}/api".format(soda_port), '--verbose'])
-    debug("barcode_server.py running as process {0}".format(barcodeProc.pid))
+      '--endpoint', soda_ep, '--verbose'])
+
+    # Bring up vending server
+    vdbProc = startServer("vdb_serve",  vdb_port, [\
+      BASEDIR + 'bob2k14/vdb_server.py', 'serve', \
+      '--remote-endpoint', soda_ep, '--port', vdb_port, \
+      '--serverpath', BASEDIR + 'devel_scripts/mock_vend_server.py'])
 
     # Starting RPC Service
     debug("Starting up rpc service on port {0}".format(args['--port']))
@@ -119,9 +139,6 @@ if __name__ == '__main__':
     debug("Shutting down rpc service")
     requests.post('http://127.0.0.1:{0}/shutdown'.format(args['--port']))
 
-    debug("Shutting down barcode_server")
-    barcodeProc.terminate()
-    barcodeProc.wait()
-    debug("Shutting down soda_serve")
-    sodaProc.terminate()
-    sodaProc.wait()
+    stopServer("vdb_server", vdbProc)
+    stopServer("barcode_server", barcodeProc)
+    stopServer("soda_serve", sodaProc)
