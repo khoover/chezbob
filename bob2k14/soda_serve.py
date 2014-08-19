@@ -233,7 +233,7 @@ def sendvdbfailemail(hopper):
     s.sendmail(msg['From'], msg['To'], msg.as_string())
     s.quit()
 
-@jsonrpc.method('Soda.getsodatstatus')
+@jsonrpc.method('Soda.getsodastatus')
 def getsodastatus(hopper):
     return str(currentsoda[hopper])
 
