@@ -105,6 +105,43 @@ function soda_login()
 	 });
 }
 
+function decimalToHex(d, padding) {
+    var hex = Number(d).toString(16);
+    padding = typeof (padding) === "undefined" || padding === null ? padding = 2 : padding;
+
+    while (hex.length < padding) {
+        hex = "0" + hex;
+    }
+
+    return hex;
+}
+
+function refreshsodastates()
+{
+	//should only be updated when a vend occurs...
+	
+	for (i = 1; i < 11; i++)
+	{
+		rpc.call('Soda.getsodastatus', [decimalToHex(i, 2)], function (result) {
+			var backgroundcolor = "rgb(255,230,80)"
+			switch (result)
+			{
+				case "sodastates.unknown":
+					backgroundcolor = "rgb(255,230,80)";
+				case "sodastates.available":
+					backgroundcolor = "rgb(18,255,9)";
+				case "sodastates.empty":
+					backgroundcolor = "rgb(255,41,0)";
+			}
+			$("#soda" + decimalToHex(i, 2)).css("background-color", backgroundcolor);
+		},
+		function (error)
+		{
+			notify_error(error);
+		});
+	}
+}
+
 function configureEventSource()
 {
     var source = new EventSource('/stream');
@@ -254,6 +291,7 @@ function logout()
 		{
 			notify_error(error);
 		});
+	refreshsodastates();
 }
 
 $(document).ready(function() {
@@ -274,6 +312,6 @@ $(document).ready(function() {
 		resetTimer();
 	}, false)*/
 
-
+	refreshsodastates();
 	setInterval(logout_timer, 1000);
 });
