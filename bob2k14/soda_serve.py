@@ -235,7 +235,7 @@ def sendvdbfailemail(hopper):
 
 @jsonrpc.method('Soda.getsodatstatus')
 def getsodastatus(hopper):
-    return currentsoda[hopper]
+    return str(currentsoda[hopper])
 
 #this should be safe since only one can can be vended at once...
 # TODO: we need better debug messages here but I'm not sold on what it's doing.
