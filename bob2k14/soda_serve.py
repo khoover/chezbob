@@ -60,6 +60,24 @@ class vmcstates(Enum):
     disabled = 8
     cancel = 9
 
+class sodastates(Enum):
+    unknown = 0
+    available = 1
+    empty = 2
+
+currentsoda = {
+    "01" : sodastates.unknown,
+    "02" : sodastates.unknown,
+    "03" : sodastates.unknown,
+    "04" : sodastates.unknown,
+    "05" : sodastates.unknown,
+    "06" : sodastates.unknown,
+    "07" : sodastates.unknown,
+    "08" : sodastates.unknown,
+    "09" : sodastates.unknown,
+    "0A" : sodastates.unknown
+}
+
 def get_git_revision_hash():
     return str(subprocess.check_output(['git', 'rev-parse', 'HEAD', '--work-tree=/git' ,'--git-dir=/git']))
 
@@ -199,12 +217,33 @@ def remotebarcode(type, barcode):
          sessionmanager.registerSession(SessionLocation.soda, user)
     return ""
 
+def sendvdbfailemail(hopper):
+    msg = MIMEMultipart('alternative')
+    #ok useful to fetch the soda name here
+    msg['Subject'] = "Soda is out"
+    msg['From'] = "chezbob@cs.ucsd.edu"
+    msg['To'] = "chezbob@cs.ucsd.edu"
+    htmlout = """
+    """.format()
+    plainout = """
+    """.format()
+    msg.attach(htmlout, 'html')
+    msg.attach(plainout, 'plain')
+    s = smtplib.SMTP('localhost')
+    s.sendmail(msg['From'], msg['To'], msg.as_string())
+    s.quit()
+
+@jsonrpc.method('Soda.getsodatstatus')
+def getsodastatus(hopper):
+    return currentsoda[hopper]
+
 #this should be safe since only one can can be vended at once...
 # TODO: we need better debug messages here but I'm not sold on what it's doing.
 lastsoda = ""
 @jsonrpc.method('Soda.remotevdb')
 def remotevdb(event):
     global lastsoda
+    global currentsoda
     if "CLINK: REQUEST AUTH" in event:
         #someone is trying to buy a soda. if no one is logged in, tell them guest mode isn't ready.
          if sessionmanager.checkSession(SessionLocation.soda):
@@ -217,9 +256,13 @@ def remotevdb(event):
               result = soda_app.make_jsonrpc_call(soda_app.arguments["--vdb-server-ep"], "Vdb.command", ["D"])
     elif "CLINK: VEND FAIL" in event:
         #vend failed, don't charge
+        #also record and let people known that it failed...
+        currentsoda[lastsoda] = sodastates.empty
+        #send the e-mail
         soda_app.add_event("vdf")
     elif "CLINK: VEND OK" in event:
         #vend success
+        currentsoda[lastsoda] = sodastates.available
         app.logger.debug("vend success: " + lastsoda)
         remotebarcode("R", configdata["sodamapping"][lastsoda])
 
