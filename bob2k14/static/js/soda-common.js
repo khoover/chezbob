@@ -119,10 +119,10 @@ function decimalToHex(d, padding) {
 function refreshsodastates()
 {
 	//should only be updated when a vend occurs...
-	
+
 	for (i = 1; i < 11; i++)
 	{
-		rpc.call('Soda.getsodastatus', [decimalToHex(i, 2)], function (result) {
+		rpc.call('Soda.getsodastatus', [decimalToHex(i, 2)], function(i,result) {return function (result) {
 			var backgroundcolor = "rgb(255,230,80)"
 			switch (result)
 			{
@@ -134,7 +134,7 @@ function refreshsodastates()
 					backgroundcolor = "rgb(255,41,0)";
 			}
 			$("#soda" + decimalToHex(i, 2)).css("background-color", backgroundcolor);
-		},
+		}}(i),
 		function (error)
 		{
 			notify_error(error);
