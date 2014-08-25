@@ -1,5 +1,6 @@
 var rpc = new $.JsonRpcClient({ajaxUrl: '/api'});
 var autotime = "20";
+var increment_time = 30;
 
 function resetTimer(){
 	$("#logouttime").text(autotime);
@@ -247,6 +248,7 @@ function configureEventSource()
 					break;
 				case "slogout":
 					$("#loggedin-sidebar").hide();
+					$("#more-time-sidebar").hide();
 					$("#maindisplay").show();
 					$("#transaction").hide();
 					$("#login-sidebar").show();
@@ -258,6 +260,7 @@ function configureEventSource()
 					$("#transaction").show();
 					$("#maindisplay").hide();
 					$("#loggedin-sidebar").show();
+					$("#more-time-sidebar").show();
 					$("#login-sidebar").hide();
 					$("#userdisplay").show();
 
@@ -294,6 +297,22 @@ function logout()
 	refreshsodastates();
 }
 
+function add_more_time()
+{
+  var time = parseInt($("#logouttime").text());
+
+  if (time != 0) {
+    time += increment_time;
+
+    // For now we limit time increases up to 5 minutes
+    if (time > 300)
+      time = 300;
+    $("#logouttime").text(time)
+  }
+
+  refreshsodastates();
+}
+
 $(document).ready(function() {
 	toggleFullScreen();
 
@@ -306,6 +325,11 @@ $(document).ready(function() {
 	$("#logout").on('click', function() {
 		logout();
 	});
+
+	$("#more-time").on('click', function() {
+		add_more_time();
+	});
+
 	configureEventSource();
 	/*
 	window.addEventListener('touchstart', function(e){
