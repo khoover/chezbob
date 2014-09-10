@@ -32,7 +32,7 @@ import subprocess
 import json
 import soda_app
 import os
-import datetime
+import time
 import requests
 import sys
 from models import app, db, aggregate_purchases, products, transactions, users, userbarcodes
@@ -44,6 +44,8 @@ import traceback
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
+isDevel = 'CB_DEVEL' in os.environ
 
 ##########
 #from sqlalchemy import func
@@ -110,8 +112,32 @@ def make_purchase(user, product, location, privacy=False):
     value = product.price
     # Deduct the balance from the user's account
     user.balance -= value
-    # Insert into the aggregate_purchases table
-    aggregate = aggregate_purchases(product.barcode, value, product.bulkid)
+    # Insert into the aggregate_purchases table This horrible cludge is here
+    # due to sqlite not allowing duplicate rows (where as postgres does). This
+    # should be ripped out after we just transition away from
+    # aggregate_purchases
+    if (isDevel):
+      print ("AM DEVEL")
+      today = time.strftime("%Y-%m-%d")
+      aggregates = aggregate_purchases.query.filter(\
+        aggregate_purchases.date == today,\
+        aggregate_purchases.barcode == product.barcode,\
+        aggregate_purchases.price == value,\
+        aggregate_purchases.bulkid == product.bulkid).all()
+      print("FOUND AGGREGATES")
+
+      if (len(aggregates) == 0):
+        aggregate = aggregate_purchases(product.barcode, value, product.bulkid)
+        db.session.add(aggregate)
+      else:
+        assert(len(aggregates) == 1)
+        aggregate = aggregates[0]
+        aggregate.quantity = aggregate.quantity + 1
+        print ("Upgrading aggregates to " + str(aggregate.quantity))
+        db.session.add(aggregate)
+    else:
+      aggregate = aggregate_purchases(product.barcode, value, product.bulkid)
+      db.session.add(aggregate)
     # Insert into the transaction table, respecting the user's privacy settings
     barcode = product.barcode
     description = "BUY " + product.name.upper()
@@ -120,7 +146,6 @@ def make_purchase(user, product, location, privacy=False):
         barcode = ""
     transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source=location)
     # Commit our changes
-    db.session.add(aggregate)
     db.session.add(transact)
     db.session.merge(user)
     db.session.commit()
@@ -205,7 +230,10 @@ def remotebarcode(type, barcode):
          location = "soda"
          privacy = sessionmanager.sessions[SessionLocation.soda].user.privacy
          # make a purchase, which also updates the db
-         make_purchase(user, product, location, privacy)
+         try:
+           make_purchase(user, product, location, privacy)
+         except Exception as e:
+           print(e)
          soda_app.add_event("sbc" + barcode)
     else:
          app.logger.info("found barcode %s, probably trying to log in" % (barcode,))
