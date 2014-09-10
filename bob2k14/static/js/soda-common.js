@@ -143,10 +143,12 @@ function refreshsodastates()
 	}
 }
 
+window.source = null;
+
 function configureEventSource()
 {
-    var source = new EventSource('/stream');
-    source.onerror = function(e){
+    window.source = new EventSource('/stream');
+    window.source.onerror = function(e){
         //display nice error message
         $("#disconnected").modal('show').on('shown.bs.modal', function(e) {
             setTimeout(function() {
@@ -154,7 +156,7 @@ function configureEventSource()
             }
             , 15000);});
     }
-	source.onmessage = function(e) {
+	window.source.onmessage = function(e) {
 		if (e.data.substring(0,3) == "sbc")
 		{
 			//this is a barcode that was purchased
