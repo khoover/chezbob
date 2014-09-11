@@ -45,8 +45,6 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-isDevel = 'CB_DEVEL' in os.environ
-
 ##########
 #from sqlalchemy import func
 
@@ -112,32 +110,22 @@ def make_purchase(user, product, location, privacy=False):
     value = product.price
     # Deduct the balance from the user's account
     user.balance -= value
-    # Insert into the aggregate_purchases table This horrible cludge is here
-    # due to sqlite not allowing duplicate rows (where as postgres does). This
-    # should be ripped out after we just transition away from
-    # aggregate_purchases
-    if (isDevel):
-      print ("AM DEVEL")
-      today = time.strftime("%Y-%m-%d")
-      aggregates = aggregate_purchases.query.filter(\
-        aggregate_purchases.date == today,\
-        aggregate_purchases.barcode == product.barcode,\
-        aggregate_purchases.price == value,\
-        aggregate_purchases.bulkid == product.bulkid).all()
-      print("FOUND AGGREGATES")
 
-      if (len(aggregates) == 0):
-        aggregate = aggregate_purchases(product.barcode, value, product.bulkid)
-        db.session.add(aggregate)
-      else:
-        assert(len(aggregates) == 1)
-        aggregate = aggregates[0]
-        aggregate.quantity = aggregate.quantity + 1
-        print ("Upgrading aggregates to " + str(aggregate.quantity))
-        db.session.add(aggregate)
-    else:
+    today = time.strftime("%Y-%m-%d")
+    aggregates = aggregate_purchases.query.filter(\
+      aggregate_purchases.date == today,\
+      aggregate_purchases.barcode == product.barcode,\
+      aggregate_purchases.price == value,\
+      aggregate_purchases.bulkid == product.bulkid).all()
+
+    if (len(aggregates) == 0):
       aggregate = aggregate_purchases(product.barcode, value, product.bulkid)
       db.session.add(aggregate)
+    else:
+      aggregate = aggregates[0]
+      aggregate.quantity = aggregate.quantity + 1
+      db.session.add(aggregate)
+
     # Insert into the transaction table, respecting the user's privacy settings
     barcode = product.barcode
     description = "BUY " + product.name.upper()
