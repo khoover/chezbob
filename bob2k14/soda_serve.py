@@ -230,10 +230,8 @@ def remotebarcode(type, barcode):
          location = "soda"
          privacy = sessionmanager.sessions[SessionLocation.soda].user.privacy
          # make a purchase, which also updates the db
-         try:
-           make_purchase(user, product, location, privacy)
-         except Exception as e:
-           print(e)
+         if (product):
+              make_purchase(user, product, location, privacy)
          soda_app.add_event("sbc" + barcode)
     else:
          app.logger.info("found barcode %s, probably trying to log in" % (barcode,))
