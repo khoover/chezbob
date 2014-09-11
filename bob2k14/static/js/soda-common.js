@@ -415,6 +415,39 @@ $(document).ready(function() {
     popModal("restockingdialog")
 	});
 
+  function addBoxCallback(buttonId) {
+    $("#re-soda" + buttonId).on('click', function () {
+      bootbox.dialog({
+        title: "Restock", // This could be more specific...
+        message: "<img src='img/logos/" + buttonId + ".jpg' /> " +
+                " <input type='number' id='re-new-" + buttonId + "'></input>",
+        buttons: {
+          cancel: {
+            label: "Cancel",
+            className: "btn-primary",
+            callback: function () {}
+          },
+          update: {
+            label: "Update",
+            className: "btn-primary",
+            callback: function () {}
+          }
+        }
+      });
+    });
+  }
+
+  addBoxCallback("01")
+  addBoxCallback("02")
+ // addBoxCallback("03")
+  addBoxCallback("04")
+  addBoxCallback("05")
+  addBoxCallback("06")
+  addBoxCallback("07")
+  addBoxCallback("08")
+  addBoxCallback("09")
+  addBoxCallback("0A")
+
 	configureEventSource();
 	/*
 	window.addEventListener('touchstart', function(e){
