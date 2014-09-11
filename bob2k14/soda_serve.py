@@ -35,7 +35,7 @@ import os
 import time
 import requests
 import sys
-from models import app, db, aggregate_purchases, products, transactions, users, userbarcodes
+from models import app, db, aggregate_purchases, products, transactions, users, userbarcodes, roles
 from decimal import *
 from enum import Enum
 import logging
@@ -347,6 +347,18 @@ def soda_getbalance():
     userid = sessionmanager.sessions[SessionLocation.soda].user.user.userid
     user = users.query.filter(users.userid == userid).first()
     return str(user.balance)
+
+@jsonrpc.method('Soda.getroles')
+def soda_getroles():
+    #get user roles
+    userid = sessionmanager.sessions[SessionLocation.soda].user.user.userid
+    row = roles.query.filter(roles.userid == userid).first()
+    if (not row):
+      roles_lst = []
+    else:
+      roles_lst = row.roles.split(",")
+
+    return { "userid" : userid, "roles": roles_lst }
 
 @jsonrpc.method('Soda.passwordlogin')
 def soda_passwordlogin(username, password):

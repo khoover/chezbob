@@ -251,6 +251,8 @@ function configureEventSource()
 				case "slogout":
 					$("#loggedin-sidebar").hide();
 					$("#more-time-sidebar").hide();
+					$("#restock-sidebar").hide();
+					$("#restockingdialog").modal("hide");
 					$("#maindisplay").show();
 					$("#transaction").hide();
 					$("#login-sidebar").show();
@@ -265,6 +267,20 @@ function configureEventSource()
 					$("#more-time-sidebar").show();
 					$("#login-sidebar").hide();
 					$("#userdisplay").show();
+
+          roles = rpc.call('Soda.getroles', [], function (result) {
+              for (var i in result.roles) {
+                if (result.roles[i] == "restocker") {
+					        $("#restock-sidebar").show();
+                }
+              }
+						},
+						function (error)
+						{
+              alert("ERRROR:" + error.message + "\n" + error.stack);
+							notify_error(error);
+						});
+          
 
 					resetTimer();
 					rpc.call('Soda.getusername', [], function (result) {
@@ -330,6 +346,14 @@ $(document).ready(function() {
 
 	$("#more-time").on('click', function() {
 		add_more_time();
+	});
+
+	$("#restock").on('click', function() {
+    $("#restockingdialog").modal("show");
+	});
+
+	$("#restockingdialog-done").on('click', function() {
+    $("#restockingdialog").modal("hide");
 	});
 
 	configureEventSource();
