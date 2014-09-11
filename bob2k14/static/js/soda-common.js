@@ -2,6 +2,54 @@ var rpc = new $.JsonRpcClient({ajaxUrl: '/api'});
 var autotime = "20";
 var increment_time = 30;
 
+
+// We maintain modal dialogs in a stack
+var modal_stack= []
+
+function showModal(id, selector, onShowF, onHideF) {
+  if (onShowF != null) {
+    $(selector).modal("show").on("shown.bs.modal", function(e) {onShowF()});
+  } else {
+    $(selector).modal("show");
+  }
+
+  modal_stack.push({'id': id, 'cleanup': function () {
+    if (onHideF != null) {
+      $(selector).modal("hide").on("hidden.bs.modal", function(e) {onHideF()});
+    } else {
+      $(selector).modal("hide");
+    }
+  }});
+}
+
+function popModal(id) {
+  shown = false;
+  for (var i in modal_stack)
+    if (modal_stack[i].id == id) {
+      shown = true;
+      break;
+    }
+
+  if (!shown)
+    return
+
+  while (modal_stack.length > 0) {
+    t = modal_stack.pop()
+
+    t.cleanup()    
+
+    if (t.id == id)
+      break;
+  }
+}
+
+function popAllModals() {
+  while (modal_stack.length > 0) {
+    t = modal_stack.pop()
+    t.cleanup()    
+  }
+}
+
 function resetTimer(){
 	$("#logouttime").text(autotime);
 	$("body").css('background-color', '#fff');
@@ -150,6 +198,8 @@ function configureEventSource()
     window.source = new EventSource('/stream');
     window.source.onerror = function(e){
         //display nice error message
+        //This is one of the few modals we don't want cleaned up on logout, so
+        //we leave it outside the modal stack.
         $("#disconnected").modal('show').on('shown.bs.modal', function(e) {
             setTimeout(function() {
                 $("#disconnected").modal('hide').on('hidden.bs.modal', function(e) {configureEventSource();});
@@ -162,7 +212,8 @@ function configureEventSource()
 			//this is a barcode that was purchased
 			resetTimer();
 			var barcode = e.data.substring(3);
-            $("#dispensingdialog").modal("hide");
+      popModal("dispensingdialog");
+
 			rpc.call('Soda.getbalance', [], function (result) {
 							$("#user-balance").text(result)
 						},
@@ -188,21 +239,29 @@ function configureEventSource()
 			resetTimer();
 			rpc.call('Bob.getbarcodeinfo', [e.data.substring(3)], function (result) {
 			$("#sodaname").text(result['name']);}, function (error) {});
-            $("#dispensingdialog").modal('show');
+      showModal("dispensingdialog", "#dispensingdialog", null, null)
 		}
         else if (e.data.substring(0,3) == "vdd")
 		{
 			//soda vend deny
 			resetTimer();
-			$("#denydialog").modal('show');
-            setTimeout(function(){$('.modal').modal('hide');}, 3000);
+      showModal("denydialog", "#denydialog", function() {
+        setTimeout(function(){
+                      popModal("denydialog");
+                      popModal("dispensingdialog");
+                   }, 3000)
+      }, null)
 		}
          else if (e.data.substring(0,3) == "vdf")
 		{
 			//soda vend fail
 			resetTimer();
-			$("#faildialog").modal('show');
-            setTimeout(function(){$('.modal').modal('hide');}, 3000);
+      showModal("faildialog", "#faildialog", function() {
+        setTimeout(function(){
+                    popModal("faildialog");
+                    popModal("dispensingdialog");
+                   }, 3000)
+      }, null)
 		}
         else if (e.data.substring(0,3) == "vds")
 		{
@@ -210,7 +269,7 @@ function configureEventSource()
 			resetTimer();
 			rpc.call('Bob.getbarcodeinfo', [e.data.substring(3)], function (result) {
 			$("#transaction tbody").append("<tr><td>" +  result['name']  + "</td><td>" + result['price'] + "</td></tr>");
-            $('.modal').modal('hide');
+            popModal("dispensingdialog")
             }, function (error){});
 		}
 		else if (e.data.substring(0,3) == "deb")
@@ -252,11 +311,11 @@ function configureEventSource()
 					$("#loggedin-sidebar").hide();
 					$("#more-time-sidebar").hide();
 					$("#restock-sidebar").hide();
-					$("#restockingdialog").modal("hide");
 					$("#maindisplay").show();
 					$("#transaction").hide();
 					$("#login-sidebar").show();
 					$("#userdisplay").hide();
+          popAllModals();
 					clearTimer();
 				break;
 				case "slogin":
@@ -349,11 +408,11 @@ $(document).ready(function() {
 	});
 
 	$("#restock").on('click', function() {
-    $("#restockingdialog").modal("show");
+    showModal("restockingdialog", "#restockingdialog", null, null)
 	});
 
 	$("#restockingdialog-done").on('click', function() {
-    $("#restockingdialog").modal("hide");
+    popModal("restockingdialog")
 	});
 
 	configureEventSource();
