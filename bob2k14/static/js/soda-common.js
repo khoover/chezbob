@@ -1,6 +1,7 @@
 var rpc = new $.JsonRpcClient({ajaxUrl: '/api'});
 var autotime = "20";
 var increment_time = 30;
+window.paused = false;
 
 
 // We maintain modal dialogs in a stack
@@ -101,7 +102,7 @@ function ignore(result) {}
 function logout_timer()
 {
 	var time = parseInt($("#logouttime").text());
-	if (time > 0)
+	if (time > 0 && !window.paused)
 	{
 		time = time -1;
 		$("#logouttime").text(time);
@@ -415,10 +416,12 @@ $(document).ready(function() {
 	});
 
 	$("#restock").on('click', function() {
+    window.paused = true;
     showModal("restockingdialog", "#restockingdialog", null, null)
 	});
 
 	$("#restockingdialog-done").on('click', function() {
+    window.paused = false;
     popModal("restockingdialog")
 	});
 
