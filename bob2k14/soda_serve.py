@@ -35,7 +35,7 @@ import os
 import time
 import requests
 import sys
-from models import app, db, aggregate_purchases, products, transactions, users, userbarcodes, roles
+from models import app, db, aggregate_purchases, products, transactions, users, userbarcodes, roles, soda_inventory
 from decimal import *
 from enum import Enum
 import logging
@@ -372,6 +372,30 @@ def soda_passwordlogin(username, password):
 @jsonrpc.method('Soda.logout')
 def bob_logout():
     sessionmanager.deregisterSession(SessionLocation.soda)
+    return ""
+
+@jsonrpc.method('Soda.getinventory')
+def soda_getinventory():
+    inv = {}
+    for row in soda_inventory.query.all():
+      inv[row.slot] = row.count
+    return inv
+
+@jsonrpc.method('Soda.updateinventory')
+def soda_updateinventory(slot, count):
+    row = soda_inventory.query.filter(soda_inventory.slot == slot).first();
+
+    if (row == None):
+      raise InvalidParamError("Unknown slot " + slot)
+
+    icount = int(count)
+
+    if (icount < 0):
+      raise InvalidParamError("Invalid count " + str(count))
+
+    row.count = icount
+    db.session.add(row);
+    db.session.commit()
     return ""
 
 @jsonrpc.method('Bob.adduserbarcode')

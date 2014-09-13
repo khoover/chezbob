@@ -85,9 +85,18 @@ function toggleFullScreen() {
   }
 }
 
-function notify_error()
+function notify_error(err)
 {
+  /*
+  if (typeof(err) == 'object') {
+    alert(err.message + ' ' + err.stack)
+  }
+  else
+    alert(err);
+  */
 }
+
+function ignore(result) {}
 
 function logout_timer()
 {
@@ -169,26 +178,21 @@ function refreshsodastates()
 {
 	//should only be updated when a vend occurs...
 
-	for (i = 1; i < 11; i++)
-	{
-		rpc.call('Soda.getsodastatus', [decimalToHex(i, 2)], function(i,result) {return function (result) {
+	rpc.call('Soda.getinventory', [], function(result) {
+    window.sodaStatus = result;
+    for (var slot in result) {
+      var count = result[slot]
 			var backgroundcolor = "rgb(255,230,80)"
-			switch (result)
-			{
-				case "sodastates.unknown":
-					backgroundcolor = "rgb(255,230,80)";
-				case "sodastates.available":
-					backgroundcolor = "rgb(18,255,9)";
-				case "sodastates.empty":
+      if (count == "unknown") // unknown
+		    backgroundcolor = "rgb(255,230,80)";
+      else if (count > 0)
+				backgroundcolor = "rgb(18,255,9)";
+      else // count <=0
 					backgroundcolor = "rgb(255,41,0)";
-			}
-			$("#soda" + decimalToHex(i, 2)).css("background-color", backgroundcolor);
-		}}(i),
-		function (error)
-		{
-			notify_error(error);
-		});
-	}
+      $("#count" + slot).text(count);
+			$("#soda" + slot).css("background-color", backgroundcolor);
+		}
+  }, notify_error);
 }
 
 window.source = null;
@@ -392,7 +396,6 @@ function add_more_time()
 
 $(document).ready(function() {
 	toggleFullScreen();
-
 	$("#login").on('click', function()
 	{
 		soda_login();
@@ -420,7 +423,8 @@ $(document).ready(function() {
       bootbox.dialog({
         title: "Restock", // This could be more specific...
         message: "<img src='img/logos/" + buttonId + ".jpg' /> " +
-                " <input type='number' id='re-new-" + buttonId + "'></input>",
+                " <input type='number' id='re-new-" + buttonId + "' value='" + 
+                window.sodaStatus[buttonId] + "'></input>",
         buttons: {
           cancel: {
             label: "Cancel",
@@ -430,7 +434,12 @@ $(document).ready(function() {
           update: {
             label: "Update",
             className: "btn-primary",
-            callback: function () {}
+            callback: function () {
+              rpc.call("Soda.updateinventory",
+                [buttonId, $("#re-new-" + buttonId).val()], ignore,
+                notify_error);
+              refreshsodastates();
+            }
           }
         }
       });
