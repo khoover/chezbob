@@ -65,19 +65,6 @@ class sodastates(Enum):
     available = 1
     empty = 2
 
-currentsoda = {
-    "01" : sodastates.unknown,
-    "02" : sodastates.unknown,
-    "03" : sodastates.unknown,
-    "04" : sodastates.unknown,
-    "05" : sodastates.unknown,
-    "06" : sodastates.unknown,
-    "07" : sodastates.unknown,
-    "08" : sodastates.unknown,
-    "09" : sodastates.unknown,
-    "0A" : sodastates.unknown
-}
-
 def get_git_revision_hash():
     return str(subprocess.check_output(['git', 'rev-parse', 'HEAD', '--work-tree=/git' ,'--git-dir=/git']))
 
@@ -247,17 +234,12 @@ def sendvdbfailemail(hopper):
     s.sendmail(msg['From'], msg['To'], msg.as_string())
     s.quit()
 
-@jsonrpc.method('Soda.getsodastatus')
-def getsodastatus(hopper):
-    return str(currentsoda[hopper])
-
 #this should be safe since only one can can be vended at once...
 # TODO: we need better debug messages here but I'm not sold on what it's doing.
 lastsoda = ""
 @jsonrpc.method('Soda.remotevdb')
 def remotevdb(event):
     global lastsoda
-    global currentsoda
     if "CLINK: REQUEST AUTH" in event:
         #someone is trying to buy a soda. if no one is logged in, tell them guest mode isn't ready.
          if sessionmanager.checkSession(SessionLocation.soda):
@@ -271,12 +253,13 @@ def remotevdb(event):
     elif "CLINK: VEND FAIL" in event:
         #vend failed, don't charge
         #also record and let people known that it failed...
-        currentsoda[lastsoda] = sodastates.empty
+        #TODO: Log an error if the lastsoda count is not 0!
+        soda_updateinventory(lastsoda, 0)
         #send the e-mail
         soda_app.add_event("vdf")
     elif "CLINK: VEND OK" in event:
         #vend success
-        currentsoda[lastsoda] = sodastates.available
+        soda_updateinventory(lastsoda, soda_getinventory()[lastsoda] - 1)
         app.logger.debug("vend success: " + lastsoda)
         remotebarcode("R", configdata["sodamapping"][lastsoda])
 
@@ -383,6 +366,7 @@ def soda_getinventory():
 
 @jsonrpc.method('Soda.updateinventory')
 def soda_updateinventory(slot, count):
+    app.logger.info("Updating soda slot %s to %s" % (str(slot), str(count)))
     row = soda_inventory.query.filter(soda_inventory.slot == slot).first();
 
     if (row == None):

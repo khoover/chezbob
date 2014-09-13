@@ -233,6 +233,7 @@ function configureEventSource()
 			}
 			else
 			{
+        refreshsodastates();
 				$("#transaction tbody").append("<tr><td>" +  result['name']  + "</td><td>" + result['price'] + "</td></tr>");
 			}
 			}, function(error){});
@@ -249,6 +250,7 @@ function configureEventSource()
 		{
 			//soda vend deny
 			resetTimer();
+      refreshsodastates();
       showModal("denydialog", "#denydialog", function() {
         setTimeout(function(){
                       popModal("denydialog");
@@ -260,6 +262,7 @@ function configureEventSource()
 		{
 			//soda vend fail
 			resetTimer();
+      refreshsodastates();
       showModal("faildialog", "#faildialog", function() {
         setTimeout(function(){
                     popModal("faildialog");
@@ -271,6 +274,7 @@ function configureEventSource()
 		{
 			//soda vend success
 			resetTimer();
+      refreshsodastates();
 			rpc.call('Bob.getbarcodeinfo', [e.data.substring(3)], function (result) {
 			$("#transaction tbody").append("<tr><td>" +  result['name']  + "</td><td>" + result['price'] + "</td></tr>");
             popModal("dispensingdialog")
@@ -436,9 +440,9 @@ $(document).ready(function() {
             className: "btn-primary",
             callback: function () {
               rpc.call("Soda.updateinventory",
-                [buttonId, $("#re-new-" + buttonId).val()], ignore,
-                notify_error);
-              refreshsodastates();
+                [buttonId, $("#re-new-" + buttonId).val()], function(res) {
+                  refreshsodastates();
+                }, notify_error);
             }
           }
         }
