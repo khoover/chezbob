@@ -32,10 +32,10 @@ import subprocess
 import json
 import soda_app
 import os
-import datetime
+import time
 import requests
 import sys
-from models import app, db, aggregate_purchases, products, transactions, users, userbarcodes
+from models import app, db, aggregate_purchases, products, transactions, users, userbarcodes, roles, soda_inventory
 from decimal import *
 from enum import Enum
 import logging
@@ -64,19 +64,6 @@ class sodastates(Enum):
     unknown = 0
     available = 1
     empty = 2
-
-currentsoda = {
-    "01" : sodastates.unknown,
-    "02" : sodastates.unknown,
-    "03" : sodastates.unknown,
-    "04" : sodastates.unknown,
-    "05" : sodastates.unknown,
-    "06" : sodastates.unknown,
-    "07" : sodastates.unknown,
-    "08" : sodastates.unknown,
-    "09" : sodastates.unknown,
-    "0A" : sodastates.unknown
-}
 
 def get_git_revision_hash():
     return str(subprocess.check_output(['git', 'rev-parse', 'HEAD', '--work-tree=/git' ,'--git-dir=/git']))
@@ -110,8 +97,22 @@ def make_purchase(user, product, location, privacy=False):
     value = product.price
     # Deduct the balance from the user's account
     user.balance -= value
-    # Insert into the aggregate_purchases table
-    aggregate = aggregate_purchases(product.barcode, value, product.bulkid)
+
+    today = time.strftime("%Y-%m-%d")
+    aggregates = aggregate_purchases.query.filter(\
+      aggregate_purchases.date == today,\
+      aggregate_purchases.barcode == product.barcode,\
+      aggregate_purchases.price == value,\
+      aggregate_purchases.bulkid == product.bulkid).all()
+
+    if (len(aggregates) == 0):
+      aggregate = aggregate_purchases(product.barcode, value, product.bulkid)
+      db.session.add(aggregate)
+    else:
+      aggregate = aggregates[0]
+      aggregate.quantity = aggregate.quantity + 1
+      db.session.add(aggregate)
+
     # Insert into the transaction table, respecting the user's privacy settings
     barcode = product.barcode
     description = "BUY " + product.name.upper()
@@ -120,7 +121,6 @@ def make_purchase(user, product, location, privacy=False):
         barcode = ""
     transact = transactions(userid=user.userid, xactvalue=-value, xacttype=description, barcode=barcode, source=location)
     # Commit our changes
-    db.session.add(aggregate)
     db.session.add(transact)
     db.session.merge(user)
     db.session.commit()
@@ -205,7 +205,8 @@ def remotebarcode(type, barcode):
          location = "soda"
          privacy = sessionmanager.sessions[SessionLocation.soda].user.privacy
          # make a purchase, which also updates the db
-         make_purchase(user, product, location, privacy)
+         if (product):
+              make_purchase(user, product, location, privacy)
          soda_app.add_event("sbc" + barcode)
     else:
          app.logger.info("found barcode %s, probably trying to log in" % (barcode,))
@@ -233,17 +234,12 @@ def sendvdbfailemail(hopper):
     s.sendmail(msg['From'], msg['To'], msg.as_string())
     s.quit()
 
-@jsonrpc.method('Soda.getsodastatus')
-def getsodastatus(hopper):
-    return str(currentsoda[hopper])
-
 #this should be safe since only one can can be vended at once...
 # TODO: we need better debug messages here but I'm not sold on what it's doing.
 lastsoda = ""
 @jsonrpc.method('Soda.remotevdb')
 def remotevdb(event):
     global lastsoda
-    global currentsoda
     if "CLINK: REQUEST AUTH" in event:
         #someone is trying to buy a soda. if no one is logged in, tell them guest mode isn't ready.
          if sessionmanager.checkSession(SessionLocation.soda):
@@ -257,12 +253,13 @@ def remotevdb(event):
     elif "CLINK: VEND FAIL" in event:
         #vend failed, don't charge
         #also record and let people known that it failed...
-        currentsoda[lastsoda] = sodastates.empty
+        #TODO: Log an error if the lastsoda count is not 0!
+        soda_updateinventory(lastsoda, 0)
         #send the e-mail
         soda_app.add_event("vdf")
     elif "CLINK: VEND OK" in event:
         #vend success
-        currentsoda[lastsoda] = sodastates.available
+        soda_updateinventory(lastsoda, soda_getinventory()[lastsoda] - 1)
         app.logger.debug("vend success: " + lastsoda)
         remotebarcode("R", configdata["sodamapping"][lastsoda])
 
@@ -334,6 +331,18 @@ def soda_getbalance():
     user = users.query.filter(users.userid == userid).first()
     return str(user.balance)
 
+@jsonrpc.method('Soda.getroles')
+def soda_getroles():
+    #get user roles
+    userid = sessionmanager.sessions[SessionLocation.soda].user.user.userid
+    row = roles.query.filter(roles.userid == userid).first()
+    if (not row):
+      roles_lst = []
+    else:
+      roles_lst = row.roles.split(",")
+
+    return { "userid" : userid, "roles": roles_lst }
+
 @jsonrpc.method('Soda.passwordlogin')
 def soda_passwordlogin(username, password):
     user = User()
@@ -346,6 +355,31 @@ def soda_passwordlogin(username, password):
 @jsonrpc.method('Soda.logout')
 def bob_logout():
     sessionmanager.deregisterSession(SessionLocation.soda)
+    return ""
+
+@jsonrpc.method('Soda.getinventory')
+def soda_getinventory():
+    inv = {}
+    for row in soda_inventory.query.all():
+      inv[row.slot] = row.count
+    return inv
+
+@jsonrpc.method('Soda.updateinventory')
+def soda_updateinventory(slot, count):
+    app.logger.info("Updating soda slot %s to %s" % (str(slot), str(count)))
+    row = soda_inventory.query.filter(soda_inventory.slot == slot).first();
+
+    if (row == None):
+      raise InvalidParamError("Unknown slot " + slot)
+
+    icount = int(count)
+
+    if (icount < 0):
+      raise InvalidParamError("Invalid count " + str(count))
+
+    row.count = icount
+    db.session.add(row);
+    db.session.commit()
     return ""
 
 @jsonrpc.method('Bob.adduserbarcode')

@@ -167,3 +167,29 @@ class users(db.Model):
   notes = db.Column(db.String())
   created_time = db.Column(db.DateTime())
   fraudulent = db.Column(db.Boolean())
+
+"""
+              Table "public.roles"
+ Column  |  Type   | Modifiers             | Storage  | Description
+---------+---------+-----------------------+----------+-------------
+ userid  | integer | not null primary key  | plain    |
+ roles   | text    | not null              | extended | comma separated list of roles from {resocker,}
+
+"""
+class roles(db.Model):
+  __tablename__ = 'roles'
+  userid = db.Column(db.Integer(), primary_key = True)
+  roles = db.Column(db.String())
+
+"""
+              Table "public.soda_inventory"
+ Column  |  Type                | Modifiers    | Storage  | Description
+---------+----------------------+--------------+----------+-------------
+ slot    | character varying(2) | primary key  | plain    |
+ count   | int                  | not null     | plain    |
+
+"""
+class soda_inventory(db.Model):
+  __tablename__ = 'soda_inventory'
+  slot = db.Column(db.String(), primary_key = True)
+  count = db.Column(db.Integer())
