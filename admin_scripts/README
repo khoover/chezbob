@@ -1,0 +1,71 @@
+INDEX:
+1. Preparation
+2. Usage
+
+-----------------------
+
+1. Preparation
+
+There are several step required before these scripts will work.
+
+First, you must update your ssh config file. Make sure you replace <your username> with your soda login username.
+
+	you@yourlocalmachine:~$ echo "Host soda\nHostName soda.ucsd.edu\nPort 425\nUser <your username>" >> ~/.ssh/config
+
+Next, you need to add your public key to your authorized user file on soda. If you have not created a public/private key pair on your computer yet, now's the time! Follow the first two steps of this nice link from GitHub.
+
+	https://help.github.com/articles/generating-ssh-keys
+
+Now that you have a public/private key pair, let's add it to your authorized user file on soda. First, cat out your public key and copy it.
+
+	you@yourlocalmachine:~$ cat ~/.ssh/id_rsa.pub
+
+Copy everything that was just returned, and now login to soda - it's simple now that we've modified your config file!
+
+	you@yourlocalmachine:~$ ssh soda
+
+You will have to enter your password this time. Do so, and now it's time to actually add your public key to your home folder on soda. Make sure your replace <your public key> with the key you just copied.
+
+	you@soda:~$ echo "<your public key>" >> ~/.ssh/authorized_keys
+
+From now on you will be able to use "ssh soda" to automatically login to soda. Now you need access to the psql database. To get this, you need the pgpass (from Keaton's home directory). Make sure you replace <your username> with your soda login username as before.
+
+	you@soda:~$ sudo cp /home/kmowery/.pgpass .
+	you@soda:~$ sudo chown <your username> .pgpass
+	
+It's time to test this. Exit out of soda, and then run the following. If nothing fails, then you can use the scripts! If something does fail, try to repeat all the steps, or ask me for assistance: bfarinho@cs.ucsd.edu
+
+	you@yourlocalmachine:~$ ssh soda
+	...
+	you@soda:~$ psql -U bob
+	psql (9.1.13)
+	Type "help" for help.
+	bob=> \q
+	you@soda:~$ exit
+	...
+
+Yay! You're done. Now you can use all the awesome scripts in this directory.
+
+--------------
+
+2. Usage
+
+login:
+
+	Use to login to the soda machine.
+	./login
+
+login_db:
+
+	Use to login to the soda machine, and then the database.
+	./login_db
+
+add_user:
+
+	Use to add a user to chezbob.
+	./add_user username email
+
+rem_user:
+
+	Use to remove a user from chezbob.
+	./rem_user username

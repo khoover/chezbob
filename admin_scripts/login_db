@@ -1,0 +1,7 @@
+#!/usr/bin/expect -f
+
+set timeout 20
+
+spawn ssh soda
+expect "*?soda:" { send "psql -U bob\r" }
+interact

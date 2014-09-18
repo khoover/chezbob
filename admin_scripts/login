@@ -1,0 +1,6 @@
+#!/usr/bin/expect -f
+
+set timeout 20
+
+spawn ssh soda
+interact
