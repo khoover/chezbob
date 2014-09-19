@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+
+set timeout 20
+set rem_user [lindex $argv 0]
+
+if {$rem_user != ""} {
+	spawn ssh soda
+	expect "*?soda:" { send "psql -U bob\r" }
+	expect "bob=>" {send "DELETE FROM users WHERE username = '$rem_user';\r" }
+	expect "bob=>" { send "\\q\r" }
+	expect "*?soda:" { send "exit\r" }
+} else {
+	send "The correct usage is: ./rem_user username\n"
+}

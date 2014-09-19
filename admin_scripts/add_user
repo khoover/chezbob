@@ -1,0 +1,19 @@
+#!/usr/bin/expect -f
+
+set timeout 20
+set new_user [lindex $argv 0]
+set new_email [lindex $argv 1]
+
+if {$new_user != ""} {
+	if {$new_email != ""} {
+		spawn ssh soda
+		expect "*?soda:" { send "psql -U bob\r" }
+		expect "bob=>" {send "insert into users (userid, username, email) values (nextval('userid_seq'), '$new_user', '$new_email');\r" }
+		expect "bob=>" { send "\\q\r" }
+		expect "*?soda:" { send "exit\r" }
+	} else {
+		send "The correct usage is: ./add_user username email\n"
+	}
+} else {
+	send "The correct usage is: ./add_user username email\n"
+}
