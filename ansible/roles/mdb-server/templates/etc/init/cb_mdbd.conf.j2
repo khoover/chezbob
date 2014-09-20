@@ -1,0 +1,43 @@
+#!upstart
+
+# This is an automatically generated script.
+# DO NOT, UNDER ANY CIRCUMSTANCES, MAKE DIRECT CHANGES TO THIS FILE
+# Please make changes to the ansible template instead.
+#
+# Template rendered on {{ template_run_date }} on {{ template_host }}
+
+description "chezBob MDB server"
+
+start on startup
+stop on shutdown
+
+setuid sodasrv
+setgid sodasrv
+
+#forever will fork
+expect fork
+
+#environment
+env NODE_BIN_DIR="/usr/local/bin"
+env NODE_PATH="/usr/local/lib/node_modules"
+env APPLICATION_PATH="/git/bob2k14/mdb_server/app.js"
+env PIDFILE="/var/run/cb_mdbd.pid"
+env LOG="/var/log/cb_mdbd.log"
+env MIN_UPTIME="5000"
+env SPIN_SLEEP_TIME="2000"
+
+script
+    PATH=$NODE_BIN_DIR:$PATH
+    exec forever \
+        --pidFile $PIDFILE \
+        -a \
+        -l $LOG \
+        --minUptime $MIN_UPTIME \
+        --spinSleepTime $SPIN_SLEEP_TIME \
+        start $APPLICATION_PATH
+end script
+
+pre-stop script
+    PATH=$NODE_BIN_DIR:$PATH
+    exec forever stop #APPLICATION_PATH
+end script

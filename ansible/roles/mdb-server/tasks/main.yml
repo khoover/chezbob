@@ -1,0 +1,35 @@
+---
+  - name: Ensure node.js is installed
+    apt: name={{ item }} state=present
+    sudo: yes
+    with_items:
+        - nodejs
+        - npm
+        - git
+
+  - name: Install required npm packages
+    npm: name={{ item }} state=present global=yes
+    sudo: yes
+    with_items:
+        - forever
+        - gulp
+        - typescript
+        - bunyan
+
+  - name: Deploy service template
+    template: src=etc/init/cb_mdbd.conf.j2 dest=/etc/init/cb_mdbd.conf mode=644
+    sudo: yes
+
+  - name: Ensure service is stopped
+    sudo: yes
+    service: name=cb_mdbd state=stopped
+
+  - name: Get package-level npm dependencies
+    sudo: yes
+    npm: path=/git/bob2k14/mdb_server
+
+  - name: Build with gulp
+    shell: gulp clean; gulp chdir=/git/bob2k14/mdb_server
+
+  - name: set service to start on boot and run
+    service: name=cb_mdbd enabled=yes state=started
