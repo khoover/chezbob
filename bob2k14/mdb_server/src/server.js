@@ -58,15 +58,15 @@ var InitData = (function () {
     return InitData;
 })();
 
-var app = (function () {
-    function app() {
+var App = (function () {
+    function App() {
     }
-    app.prototype.main = function (args) {
+    App.prototype.main = function (args) {
         this.initdata = new InitData();
         this.initdata.init(this.initdata, function (err, res) {
             log.info("Hi.");
         });
     };
-    return app;
+    return App;
 })();
-exports.app = app;
+exports.App = App;

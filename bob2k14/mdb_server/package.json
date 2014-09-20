@@ -5,6 +5,7 @@
   "author": "Michael Wei <mwei@cs.ucsd.edu>",
   "main": "app.js",
   "devDependencies": {
+    "async": "^0.9.0",
     "bunyan": "^1.0.1",
     "del": "^0.1.3",
     "git-rev-2": "^0.1.0",

@@ -69,7 +69,7 @@ class InitData {
     }
 }
 
-export class app {
+export class App {
     private initdata : InitData;
 
     main(args: Object[])
