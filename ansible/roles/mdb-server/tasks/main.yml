@@ -4,7 +4,6 @@
     sudo: yes
     with_items:
         - nodejs
-        - npm
         - git
 
   - name: Install required npm packages
@@ -33,3 +32,4 @@
 
   - name: set service to start on boot and run
     service: name=cb_mdbd enabled=yes state=started
+    sudo: yes
