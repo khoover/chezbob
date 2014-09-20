@@ -1,6 +1,6 @@
 # mdb_server daemon
 
-This serve is responsible for running the mdb connection to the 
+This server is responsible for running the mdb connection to the 
 bill reader and the coin collector.
 
 It uses JSON-RPC to talk to the main soda server.
@@ -42,7 +42,7 @@ output, pipe to bunyan:
 
 Most likely you are not running this script directly, but as a service.
 In that case, if you deployed using ansible, the name of the service
-is cb_mdbd, and you should start is as:
+is cb_mdbd, and you should start it as:
 
     service cb_mdbd start
 
