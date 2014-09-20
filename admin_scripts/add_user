@@ -1,19 +1,31 @@
 #!/usr/bin/expect -f
 
-set timeout 20
+set timeout 5
 set new_user [lindex $argv 0]
 set new_email [lindex $argv 1]
+set success 0
 
 if {$new_user != ""} {
 	if {$new_email != ""} {
 		spawn ssh soda
 		expect "*?soda:" { send "psql -U bob\r" }
 		expect "bob=>" {send "insert into users (userid, username, email) values (nextval('userid_seq'), '$new_user', '$new_email');\r" }
+		expect {
+			"ERROR" { set success 2 }
+			"INSERT 0 1" { set success 1}
+		}
 		expect "bob=>" { send "\\q\r" }
 		expect "*?soda:" { send "exit\r" }
+		if {$success == 2} {
+			send_user "\n\n---> FAILED: There was an error.\n\n"
+		} elseif {$success == 1} {
+			send_user "\n\n---> SUCCESS\n\n"
+		} else {
+			send_user "\n\n---> Something weird happened. Check the database.\n\n"
+		}
 	} else {
-		send "The correct usage is: ./add_user username email\n"
+		send_user "The correct usage is: ./add_user username email\n"
 	}
 } else {
-	send "The correct usage is: ./add_user username email\n"
+	send_user "The correct usage is: ./add_user username email\n"
 }
