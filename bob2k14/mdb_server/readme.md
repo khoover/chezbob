@@ -40,6 +40,26 @@ output, pipe to bunyan:
 
     nodejs app.js | bunyan
 
+Most likely you are not running this script directly, but as a service.
+In that case, if you deployed using ansible, the name of the service
+is cb_mdbd, and you should start is as:
+
+    service cb_mdbd start
+
+The logs are stored in /var/log/chezbob/cb_mdbd.log, so to view them
+using bunyan:
+
+    cat /var/log/chezbob/cb_mdbd.log | bunyan
+
+# Interface
+
+The JSON-RPC endpoint exposes one interface, Mdb.command which takes
+a command string that gets sent directly to the P115E MDB adapter.
+The result of the command is returned.
+
+The script takes care of resetting all the devices automatically when
+the service starts.
+
 # References
 
 TODO: a reference to the P115E MDB protocol goes here.

@@ -15,6 +15,14 @@
         - typescript
         - bunyan
 
+  - name: Ensure pid directory exists
+    file: path=/run/chezbob group=sodasrv owner=sodasrv mode=755 state=directory
+    sudo: yes
+
+  - name: Ensure log directory exists
+    file: path=/var/log/chezbob group=sodasrv owner=sodasrv mode=755 state=directory
+    sudo: yes
+
   - name: Deploy service template
     template: src=etc/init/cb_mdbd.conf.j2 dest=/etc/init/cb_mdbd.conf mode=644
     sudo: yes
@@ -29,6 +37,7 @@
 
   - name: Build with gulp
     shell: gulp clean; gulp chdir=/git/bob2k14/mdb_server
+    sudo: yes
 
   - name: set service to start on boot and run
     service: name=cb_mdbd enabled=yes state=started

@@ -21,8 +21,8 @@ expect fork
 env NODE_BIN_DIR="/usr/local/bin"
 env NODE_PATH="/usr/local/lib/node_modules"
 env APPLICATION_PATH="/git/bob2k14/mdb_server/app.js"
-env PIDFILE="/var/run/cb_mdbd.pid"
-env LOG="/var/log/cb_mdbd.log"
+env PIDFILE="/var/run/chezbob/cb_mdbd.pid"
+env LOG="/var/log/chezbob/cb_mdbd.log"
 env MIN_UPTIME="5000"
 env SPIN_SLEEP_TIME="2000"
 
@@ -39,5 +39,5 @@ end script
 
 pre-stop script
     PATH=$NODE_BIN_DIR:$PATH
-    exec forever stop #APPLICATION_PATH
+    exec forever stop $APPLICATION_PATH
 end script
