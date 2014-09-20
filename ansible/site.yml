@@ -13,3 +13,7 @@
   roles:
   - soda-machines
 
+- hosts: soda-machines
+  roles:
+      - mdb-server
+
