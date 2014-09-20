@@ -1,11 +1,0 @@
-€}q(Umdb_server2]q(UrpcqUsend_remoteqU
-mdb_threadqUrequestqueueqUmdbqU	argumentsqU
-rpc_threadq	Umdb_command_jsonq
-Uget_git_revision_hashqUmdb_commandqUjsonrpcqUreadcommandqUappqeU
-mdb_server]q(Usend_remoteqU
-mdb_threadqUrequestqueueqUmdbqU	argumentsqUmdb_command_jsonqUget_git_revision_hashqUmdb_commandqUjsonrpcqUappqeU
-soda_serve]q(Uto_jsonify_readyqUstreamqUbob_depositqUadduserbarcodeqUbob_getextrasq Ubob_transactionsq!Ugetsodastatusq"Ubob_getbalanceq#Ubob_passwordloginq$Usoda_getbalanceq%Ubob_adduserbarcodeq&Usoda_getusernameq'U
-sodastatesq(Uindexq)Uget_git_revision_hashq*U	log_levelq+Usetup_loggingq,Ubob_setpasswordq-U	argumentsq.Umake_purchaseq/U
-configdataq0Uremotebarcodeq1Ubob_sodaloginq2U
-bob_logoutq3Usoda_passwordloginq4U	vmcstatesq5Ubob_purchaseotherq6Uproductq7Uevent_streamq8Umake_depositq9U	json_dataq:U
-json_indexq;U	remotevdbq<Ubob_getcryptq=Ujsonrpcq>Ulastsodaq?Ubob_purchasebarcodeq@UsendvdbfailemailqAUbob_setnicknameqBUbob_getbarcodeinfoqCU	remotemdbqDUbob_sendmessageqEUbob_getusernameqFUmake_purchase_otherqGUcurrentsodaqHUbob_json_indexqIUutil_force_refreshqJUsessionmanagerqKUbob_getuserbarcodeqLUbob_barcodeloginqMeu.
