@@ -86,8 +86,9 @@ def add_header(response):
     """
     Add headers to disable caching
     """
+    print ("HERE")
     response.headers['Cache-Control'] = 'no-cache, no-store'
-    response.headers['Pragma'] = 'no-cache, no-store'
+    response.headers['Pragma'] = 'no-cache'
     return response
 
 @jsonrpc.method('Soda.index')
