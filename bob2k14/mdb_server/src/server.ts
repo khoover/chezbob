@@ -11,6 +11,7 @@ var bunyan = require('bunyan');
 var serialport = require('serialport').SerialPort;
 var jayson = require('jayson');
 import Buffer = require('buffer');
+var jsesc = require('jsesc');
 
 var log;
 
@@ -106,9 +107,11 @@ class mdb_server {
                 // Reset the coin changer
                 function (cb) { mdb.sendread("R1", cb); },
                 function (cb) { mdb.sendread("N FFFF", cb); },
+                function (cb) { mdb.sendread("M FFFF", cb); },
+                function (cb) { mdb.sendread("P1", cb); },
                 function (cb) { mdb.sendread("E1", cb); },
                 // Reset the bill reader
-                function (cb) { mdb.sendread("R1", cb); },
+                function (cb) { mdb.sendread("R2", cb); },
                 function (cb) { mdb.sendread("P2", cb); },
                 function (cb) { mdb.sendread("L FFFF", cb); },
                 function (cb) { mdb.sendread("V 0000", cb); },
