@@ -94,6 +94,7 @@ class vdb_server {
     port; // open port
     rpc_client;
     authorize_vend: boolean;
+    current_vend: string; //currently vending soda
 
     //sends the commands to reset the vdb device
     reset (vdb : vdb_server) {
@@ -223,24 +224,57 @@ class vdb_server {
                                             //CLINK: VMC Session end
                                             vdb.send("X\r", null); //ack
                                             break;
+                                        case "R":
+                                            //CLINK: Request Authorization (timeout=5000)
+                                            vdb.current_vend = vdb.last_buffer.substring(7,9);
+                                            vdb.rpc_client.request("Soda.vdbauth", vdb.current_vend, function (err, response)
+                                                    {
+                                                        if (err)
+                                                        {
+                                                            vdb.send("D", null);
+                                                            log.error("Error requesting authorization for row " + vdb.current_vend +  ": ", err);
+                                                        }
+                                                        else if (response === "true")
+                                                        {
+                                                            vdb.send("A", null);
+                                                            log.info("Authorizing vend for row " + vdb.current_vend);
+                                                        }
+                                                        else
+                                                        {
+                                                            vdb.send("D", null);
+                                                            log.info("Denying vend for row " + vdb.current_vend);
+                                                        }
+                                                    }
+                                                    );
+                                            break;
+                                        case "K":
+                                            //CLINK: Vend OK
+                                            vdb.send("X\r", null); //ack
+                                            vdb.rpc_client.request("Soda.vdbvend", [true, vdb.current_vend], function(err, response)
+                                                    {
+                                                         if (err)
+                                                        {
+                                                            log.error("Error sending vend success result to RPC endpoint!");
+                                                        }
+                                                    });
+                                            log.info("Vend success, row ", vdb.current_vend);
+                                            break;
+                                        case "L":
+                                            //CLINK: Vend FAIL
+                                            vdb.send("X\r", null);
+                                            vdb.rpc_client.request("Soda.vdbvend", [false, vdb.current_vend], function(err,response)
+                                                    {
+                                                        if (err)
+                                                        {
+                                                            log.error("Error sending vend fail result to RPC endpoint!");
+                                                        }
+                                                    }
+                                                    );
+                                            log.info("Vend failure, row", vdb.current_vend);
+                                            break;
                                         default:
                                             log.warn("Unhanded CLINK request " + vdb.last_buffer);
                                     }
-                                   // else
-                                    //{
-                                    //otherwise send to the remote endpoint.
-                                    //vdb.rpc_client.request("Soda.remotevdb", data, function (err, response)
-                                    //        {
-                                     //           if (err)
-                                      //          {
-                                       //             log.error("Error contacting remote endpoint", err);
-                                        //        }
-                                         //       else
-                                          //      {
-                                           //         log.debug("remotevdb successful, response=", response);
-                                            //    }
-                                          //  });
-                                    //}
                                 }
                             }
                         });
