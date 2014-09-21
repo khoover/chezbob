@@ -234,6 +234,28 @@ def sendvdbfailemail(hopper):
     s.sendmail(msg['From'], msg['To'], msg.as_string())
     s.quit()
 
+#simplified authorization logic.
+#TODO: extend a users session until the request finishes... (in UI)
+@jsonrpc.method('Soda.vdbauth')
+def vdbauth(vending_soda):
+    if sessionmanager.checkSession(SessionLocation.soda):
+        #ui should show dispensing...
+        soda_app.add_event("vdr" + configdata["sodamapping"][vending_soda])
+        return True
+    else:
+        soda_app.add_event("vdd")
+        return False
+
+@jsonrpc.method('Soda.vdbvend')
+def vdbvend(result, vending_soda):
+    if result:
+        soda_updateinventory(vending_soda, soda_getinventory()[vending_soda] - 1)
+        remotebarcode("R", configdata["sodamapping"][vending_soda])
+    else:
+        soda_updateinventory(vending_soda, 0)
+        soda_app.add_event("vdf")
+
+### ALERT TODO: This API is now depercated! DO NOT USE IT ANYMORE!
 #this should be safe since only one can can be vended at once...
 # TODO: we need better debug messages here but I'm not sold on what it's doing.
 lastsoda = ""
