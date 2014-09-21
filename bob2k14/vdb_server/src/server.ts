@@ -226,8 +226,8 @@ class vdb_server {
                                             break;
                                         case "R":
                                             //CLINK: Request Authorization (timeout=5000)
-                                            vdb.current_vend = vdb.last_buffer.substring(7,9);
-                                            vdb.rpc_client.request("Soda.vdbauth", vdb.current_vend, function (err, response)
+                                            vdb.current_vend = vdb.last_buffer.substring(9,11);
+                                            vdb.rpc_client.request("Soda.vdbauth", [vdb.current_vend], function (err, response)
                                                     {
                                                         if (err)
                                                         {
