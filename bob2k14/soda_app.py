@@ -26,12 +26,20 @@ class Subscription:
 def add_subscription():
     subscription = Subscription()
     event_subscriptions.append(subscription)
+    app.logger.info("After adding %s subscriptions are:" % ( subscription, )) 
+    for s in event_subscriptions:
+      app.logger.info(str(s))
     return subscription
 
 def remove_subscription(subscription):
     event_subscriptions.remove(subscription)
+    app.logger.info("After removing %s subscriptions are:" % ( subscription, )) 
+    for s in event_subscriptions:
+      app.logger.info(str(s))
 
 def add_event(event):
+    app.logger.info("Sending event %s to %d subscription" % \
+       (event, len(event_subscriptions)))
     for subscriptions in event_subscriptions:
          subscriptions.queue.put(event)
 

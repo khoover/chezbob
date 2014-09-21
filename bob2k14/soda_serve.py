@@ -382,6 +382,31 @@ def soda_updateinventory(slot, count):
     db.session.commit()
     return ""
 
+def strTB():
+    return "".join(traceback.format_stack()[:-1])
+
+def log(level, msg):
+    if (level == "INFO"):
+      app.logger.info(msg)
+    elif (level == "WARN"):
+      app.logger.warn(msg)
+    elif (level == "DEBUG"):
+      app.logger.debug(msg)
+    elif (level == "ERROR"):
+      app.logger.error(msg)
+    elif (level == "FATAL"):
+      app.logger.fatal(msg)
+    elif (level == "CRITICAL"):
+      app.logger.critical(msg)
+    else:
+      app.logger.critical("Bad level %s at:\n %s" % (level, strTB()))
+      app.logger.critical(msg)
+
+@jsonrpc.method('Soda.log')
+def soda_log(level, msg):
+    log(level, "SODA UI SAYS: " + msg)
+    return ""
+
 @jsonrpc.method('Bob.adduserbarcode')
 def bob_adduserbarcode(barcode):
     userid = sessionmanager.sessions[SessionLocation.computer].user.user.userid
