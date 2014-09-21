@@ -26,16 +26,18 @@ class Subscription:
 def add_subscription():
     subscription = Subscription()
     event_subscriptions.append(subscription)
-    app.logger.info("After adding %s subscriptions are:" % ( subscription, )) 
+    msg = "After adding %s subscriptions are:\n" % ( subscription, )
     for s in event_subscriptions:
-      app.logger.info(str(s))
+      msg += str(s) + '\n'
+    app.logger.info(msg) 
     return subscription
 
 def remove_subscription(subscription):
     event_subscriptions.remove(subscription)
-    app.logger.info("After removing %s subscriptions are:" % ( subscription, )) 
+    msg = "After removing %s subscriptions are:\n" % ( subscription, )
     for s in event_subscriptions:
-      app.logger.info(str(s))
+      msg += str(s) + '\n'
+    app.logger.info(msg) 
 
 def add_event(event):
     app.logger.info("Sending event %s to %d subscription" % \
