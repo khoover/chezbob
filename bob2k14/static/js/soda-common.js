@@ -86,18 +86,23 @@ function toggleFullScreen() {
   }
 }
 
-function notify_error(err)
-{
-  /*
-  if (typeof(err) == 'object') {
-    alert(err.message + ' ' + err.stack)
-  }
-  else
-    alert(err);
-  */
+function ignore(result) {}
+
+function log(level, msg) {
+  try {
+    // Do a best effort to log errors in the UI
+    rpc.call('Soda.log', [level, msg], ignore, ignore);
+  } catch (err) { }
 }
 
-function ignore(result) {}
+function log_local_exc(exc) {
+  log("ERROR", "JS Exception: " + exc.message + ' at ' + exc.stack)
+}
+
+function log_remote_exc(err)
+{
+  log('ERROR', "PY Exception: " + err.message + ' ' + err.stack);
+}
 
 function logout_timer()
 {
@@ -111,11 +116,7 @@ function logout_timer()
 		{
 				$("body").css('background-color', '#fff');
 				rpc.call('Soda.logout', [], function (result) {
-				},
-				function (error)
-				{
-					notify_error(error);
-				});
+				}, log_remote_exc);
 		}
 		else if (time < 5)
 		{
@@ -193,13 +194,21 @@ function refreshsodastates()
       $("#count" + slot).text(count);
 			$("#soda" + slot).css("background-color", backgroundcolor);
 		}
-  }, notify_error);
+  }, log_remote_exc);
 }
 
 window.source = null;
 
 function configureEventSource()
 {
+    log("DEBUG", "UI Setting up a new EventSource");
+    if (typeof(window.source) != 'undefined' && window.source != null) {
+      try {
+        window.source.close();
+      } catch (err) {
+        log_local_exc(err);
+      }
+    }
     window.source = new EventSource('/stream');
     window.source.onerror = function(e){
         //display nice error message
@@ -212,6 +221,7 @@ function configureEventSource()
             , 15000);});
     }
 	window.source.onmessage = function(e) {
+    log("DEBUG", "UI Got message: " + e.data);
 		if (e.data.substring(0,3) == "sbc")
 		{
 			//this is a barcode that was purchased
@@ -221,11 +231,7 @@ function configureEventSource()
 
 			rpc.call('Soda.getbalance', [], function (result) {
 							$("#user-balance").text(result)
-						},
-						function (error)
-						{
-							notify_error(error);
-						});
+						}, log_remote_exc);
 
 			rpc.call('Bob.getbarcodeinfo', [barcode], function (result) {
 			if(result['name'] === undefined)
@@ -287,11 +293,7 @@ function configureEventSource()
 			resetTimer();
 			rpc.call('Soda.getbalance', [], function (result) {
 							$("#user-balance").text(result)
-						},
-						function (error)
-						{
-							notify_error(error);
-						});
+						}, log_remote_exc);
 
 			$("#transaction tbody").append("<tr><td>Deposit <i class='fa fa-usd'></i>" +  e.data.substring(3)  + "</td><td>+" + e.data.substring(3) + "</td></tr>");
 		}
@@ -301,11 +303,7 @@ function configureEventSource()
 			resetTimer();
 			rpc.call('Soda.getbalance', [], function (result) {
 							$("#user-balance").text(result)
-						},
-						function (error)
-						{
-							notify_error(error);
-						});
+						}, log_remote_exc);
 
 			$("#transaction tbody").append("<tr><td>Deposit coins <i class='fa fa-usd'></i>" +  e.data.substring(3)  + "</td><td>+" + e.data.substring(3) + "</td></tr>");
 		}
@@ -342,29 +340,16 @@ function configureEventSource()
 					        $("#restock-sidebar").show();
                 }
               }
-						},
-						function (error)
-						{
-              alert("ERRROR:" + error.message + "\n" + error.stack);
-							notify_error(error);
-						});
+						}, log_remote_exc);
           
 
 					resetTimer();
 					rpc.call('Soda.getusername', [], function (result) {
 							$("#user-nick").text(result)
-						},
-						function (error)
-						{
-							notify_error(error);
-						});
+						}, log_remote_exc);
 					rpc.call('Soda.getbalance', [], function (result) {
 							$("#user-balance").text(result)
-						},
-						function (error)
-						{
-							notify_error(error);
-						});
+						}, log_remote_exc);
 				break;
 			}
 		}
@@ -375,11 +360,7 @@ function logout()
 {
 	clearTimer();
 	rpc.call('Soda.logout', [], function (result) {
-		},
-		function (error)
-		{
-			notify_error(error);
-		});
+		}, log_remote_exc);
 	refreshsodastates();
 }
 
@@ -400,6 +381,13 @@ function add_more_time()
 }
 
 $(document).ready(function() {
+  // Lets not let any uncaught exceptions go silent
+  window.onerror = function (msg, url, line) {
+    log_local_exc({'message': msg, 'stack': url + '@' + line})
+    // Allow global error handle to run
+    return false;
+  }
+
 	toggleFullScreen();
 	$("#login").on('click', function()
 	{
@@ -445,7 +433,7 @@ $(document).ready(function() {
               rpc.call("Soda.updateinventory",
                 [buttonId, $("#re-new-" + buttonId).val()], function(res) {
                   refreshsodastates();
-                }, notify_error);
+                }, log_remote_exc);
             }
           }
         }
