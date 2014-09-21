@@ -81,6 +81,16 @@ def to_jsonify_ready(model):
 # Flask-JSONRPC
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
 
+@app.after_request
+def add_header(response):
+    """
+    Add headers to disable caching
+    """
+    print ("HERE")
+    response.headers['Cache-Control'] = 'no-cache, no-store'
+    response.headers['Pragma'] = 'no-cache'
+    return response
+
 @jsonrpc.method('Soda.index')
 @cross_origin()
 def json_index():
