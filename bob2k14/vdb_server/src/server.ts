@@ -229,19 +229,20 @@ class vdb_server {
                                             vdb.current_vend = vdb.last_buffer.substring(9,11);
                                             vdb.rpc_client.request("Soda.vdbauth", [vdb.current_vend], function (err, response)
                                                     {
+                                                        log.debug("Response from cb ", response);
                                                         if (err)
                                                         {
-                                                            vdb.send("D", null);
+                                                            vdb.send("D\r", null);
                                                             log.error("Error requesting authorization for row " + vdb.current_vend +  ": ", err);
                                                         }
-                                                        else if (response === "true")
+                                                        else if (response.result === true)
                                                         {
-                                                            vdb.send("A", null);
+                                                            vdb.send("A\r", null);
                                                             log.info("Authorizing vend for row " + vdb.current_vend);
                                                         }
                                                         else
                                                         {
-                                                            vdb.send("D", null);
+                                                            vdb.send("D\r", null);
                                                             log.info("Denying vend for row " + vdb.current_vend);
                                                         }
                                                     }
