@@ -1,0 +1,44 @@
+---
+  - name: Ensure node.js is installed
+    apt: name={{ item }} state=present
+    sudo: yes
+    with_items:
+        - nodejs
+        - git
+
+  - name: Install required npm packages
+    npm: name={{ item }} state=present global=yes
+    sudo: yes
+    with_items:
+        - forever
+        - gulp
+        - typescript
+        - bunyan
+
+  - name: Ensure pid directory exists
+    file: path=/run/chezbob group=sodasrv owner=sodasrv mode=755 state=directory
+    sudo: yes
+
+  - name: Ensure log directory exists
+    file: path=/var/log/chezbob group=sodasrv owner=sodasrv mode=755 state=directory
+    sudo: yes
+
+  - name: Deploy service template
+    template: src=etc/init/cb_vdbd.conf.j2 dest=/etc/init/cb_vdbd.conf mode=644
+    sudo: yes
+
+  - name: Ensure service is stopped
+    sudo: yes
+    service: name=cb_vdbd state=stopped
+
+  - name: Get package-level npm dependencies
+    sudo: yes
+    npm: path=/git/bob2k14/vdb_server
+
+  - name: Build with gulp
+    shell: gulp clean; gulp chdir=/git/bob2k14/vdb_server
+    sudo: yes
+
+  - name: set service to start on boot and run
+    service: name=cb_vdbd enabled=yes state=started
+    sudo: yes
