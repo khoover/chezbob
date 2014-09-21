@@ -75,8 +75,16 @@ class InitData {
                 ]);
     }
 
-    constructor() {
-        this.vdbport = "/dev/ttyS0";
+    constructor(args: string[]) {
+        if (args.length < 1)
+        {
+            this.vdbport = "/dev/ttyS0";
+        }
+        else
+        {
+            this.vdbport = args[0];
+        }
+
         this.timeout = 10000;
         this.remote_endpoint = "http://127.0.0.1:8080/api";
         this.rpc_port = 8083;
@@ -312,9 +320,9 @@ class vdb_server {
 export class App {
     private initdata : InitData;
 
-    main(args: Object[])
+    main(args: string[])
     {
-        this.initdata = new InitData();
+        this.initdata = new InitData(args);
         this.initdata.init(this.initdata,
                 function (err, res: InitData)
                 {

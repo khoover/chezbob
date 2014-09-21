@@ -14,7 +14,7 @@ var jsesc = require('jsesc');
 var log;
 
 var InitData = (function () {
-    function InitData() {
+    function InitData(args) {
         this.prepareLogs = function (initdata, callback) {
             log = bunyan.createLogger({
                 name: 'vdb-server',
@@ -42,7 +42,12 @@ var InitData = (function () {
                 }
             ]);
         };
-        this.vdbport = "/dev/ttyS0";
+        if (args.length < 1) {
+            this.vdbport = "/dev/ttyS0";
+        } else {
+            this.vdbport = args[0];
+        }
+
         this.timeout = 10000;
         this.remote_endpoint = "http://127.0.0.1:8080/api";
         this.rpc_port = 8083;
@@ -260,7 +265,7 @@ var App = (function () {
     function App() {
     }
     App.prototype.main = function (args) {
-        this.initdata = new InitData();
+        this.initdata = new InitData(args);
         this.initdata.init(this.initdata, function (err, res) {
             var vdb = new vdb_server(res);
             vdb.start();
