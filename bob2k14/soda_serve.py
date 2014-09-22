@@ -298,6 +298,7 @@ def remotevdb(event):
 # TODO: need better logging here as well
 @jsonrpc.method('Soda.remotemdb')
 def remotemdb(event):
+    event = event[0]
     app.logger.info("remotemdb: " + event)
     event = event.ljust(10)
     #let's make sure theres a user logged in. if not, just tell them that guest mode isn't ready yet.
