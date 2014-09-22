@@ -157,7 +157,7 @@ def make_purchase_other(user, value, location):
 def make_deposit(user, amount, location):
     app.logger.info("%s is depositing %s from %s" % (user.username, amount, location))
     # update the user's balance
-    user.balance += amount
+    user.balance += Decimal(amount)
     # make a matching record in transactions
     transact = transactions(userid=user.userid, xactvalue=amount, xacttype="ADD", barcode=None, source=location)
     # commit our changes
@@ -345,6 +345,7 @@ def remotemdb(event):
     elif event [0:1] == "W":
          #logout
          #get rid of bills in escrow (guessing this is what people expect)
+         #TODO: THIS NEEDS TO HAPPEN WHENEVER A LOGOUT OCCURS AND THE BILL IS NT STACKED
          result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["K2"])
          sessionmanager.deregisterSession(SessionLocation.soda)
     return ""
