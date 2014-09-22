@@ -34,10 +34,12 @@
   - name: Get package-level npm dependencies
     sudo: yes
     npm: path=/git/bob2k14/mdb_server
+    sudo_user: sodasrv
 
   - name: Build with gulp
     shell: gulp clean; gulp chdir=/git/bob2k14/mdb_server
     sudo: yes
+    sudo_user: sodasrv
 
   - name: set service to start on boot and run
     service: name=cb_mdbd enabled=yes state=started

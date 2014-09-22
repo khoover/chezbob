@@ -23,8 +23,12 @@
   with_items:
    - docopt
 
-- name: Create git directory 
+- name: Create git directory
+  sudo: yes
+  sudo_user: sodasrv
   file: path=/git state=directory
 
 - name: Clone and update repository
-  git: repo=https://github.com/chezbob/chezbob.git dest=/git update=yes
+  sudo: yes
+  sudo_user: sodasrv
+  git: repo=https://github.com/chezbob/chezbob.git dest=/git
