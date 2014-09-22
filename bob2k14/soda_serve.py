@@ -346,7 +346,7 @@ def remotemdb(event):
          #logout
          #get rid of bills in escrow (guessing this is what people expect)
          #TODO: THIS NEEDS TO HAPPEN WHENEVER A LOGOUT OCCURS AND THE BILL IS NT STACKED
-         result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["K2"])
+         #result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["K2"])
          sessionmanager.deregisterSession(SessionLocation.soda)
     return ""
 
