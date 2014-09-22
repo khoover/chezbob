@@ -216,7 +216,7 @@ class mdb_server {
                                 else
                                 {
                                     //otherwise send to the remote endpoint.
-                                    mdb.rpc_client.request("Soda.remotemdb", data, function (err, response)
+                                    mdb.rpc_client.request("Soda.remotemdb", [data], function (err, response)
                                             {
                                                 if (err)
                                                 {
