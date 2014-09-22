@@ -298,7 +298,9 @@ def remotevdb(event):
 # TODO: need better logging here as well
 @jsonrpc.method('Soda.remotemdb')
 def remotemdb(event):
-     #let's make sure theres a user logged in. if not, just tell them that guest mode isn't ready yet.
+    app.logger.info("remotemdb: " + event)
+    event = event.ljust(10)
+    #let's make sure theres a user logged in. if not, just tell them that guest mode isn't ready yet.
     if event[0:2] == "Q1":
          if sessionmanager.checkSession(SessionLocation.soda):
               result = soda_app.make_jsonrpc_call(soda_app.arguments["--mdb-server-ep"], "Mdb.command", ["K1"])
