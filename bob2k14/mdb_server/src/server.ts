@@ -14,6 +14,7 @@ import Buffer = require('buffer');
 var jsesc = require('jsesc');
 
 var log;
+var ringbuffer;
 
 class InitData {
     version: String;
@@ -47,13 +48,19 @@ class InitData {
 
     prepareLogs = (initdata: InitData, callback: () => void) : void =>
     {
+        ringbuffer = new bunyan.RingBuffer({ limit: 1000 });
         log = bunyan.createLogger(
                 {
                     name: 'mdb-server',
                     streams: [
                     {
                         stream: process.stdout,
-                        level: "debug"
+                        level: "info"
+                    },
+                    {
+                        level: "trace",
+                        type: "raw",
+                        stream: ringbuffer
                     }
                     ]
                 }
@@ -240,7 +247,11 @@ class mdb_server {
                                         {
                                             callback(err, result);
                                         });
-                                }}(mdb)
+                                }}(mdb),
+                                "Mdb.logs": function (callback)
+                                {
+                                    callback(null, ringbuffer.records);
+                                }
                             }
                             )
                     server.http().listen(mdb.initdata.rpc_port);
