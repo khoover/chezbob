@@ -55,7 +55,7 @@ class InitData {
                     streams: [
                     {
                         stream: process.stdout,
-                        level: "debug"
+                        level: "info"
                     },
                     {
                         stream: ringbuffer,
