@@ -14,6 +14,7 @@ var jsesc = require('jsesc');
 import Buffer = require('buffer');
 
 var log;
+var ringbuffer;
 
 class InitData {
     version: String;
@@ -47,6 +48,7 @@ class InitData {
 
     prepareLogs = (initdata: InitData, callback: () => void) : void =>
     {
+        ringbuffer = new bunyan.RingBuffer({ limit: 1000 });
         log = bunyan.createLogger(
                 {
                     name: 'vdb-server',
@@ -54,11 +56,14 @@ class InitData {
                     {
                         stream: process.stdout,
                         level: "debug"
+                    },
+                    {
+                        stream: ringbuffer,
+                        level: "trace"
                     }
                     ]
                 }
                 );
-        log.level("debug");
         log.info("Logging system initialized");
         callback();
     }
@@ -297,7 +302,10 @@ class vdb_server {
                                         {
                                             callback(err, result);
                                         });
-                                }}(vdb)
+                                }}(vdb),
+                                "Vdb.logs": function (callback) {
+                                    callback(null, ringbuffer.records);
+                                }
                             }
                             )
                     server.http().listen(vdb.initdata.rpc_port);

@@ -65,7 +65,6 @@ class InitData {
                     ]
                 }
                 );
-        log.level("debug");
         log.info("Logging system initialized");
         callback();
     }
