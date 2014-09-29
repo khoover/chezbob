@@ -12,9 +12,11 @@ var serialport = require('serialport').SerialPort;
 var jayson = require('jayson');
 var jsesc = require('jsesc');
 import Buffer = require('buffer');
+var bunyanredis = require('bunyan-redis');
 
 var log;
 var ringbuffer;
+var redistransport;
 
 class InitData {
     version: String;
@@ -49,6 +51,13 @@ class InitData {
     prepareLogs = (initdata: InitData, callback: () => void) : void =>
     {
         ringbuffer = new bunyan.RingBuffer({ limit: 1000 });
+        redistransport = new bunyanredis.RedisTransport({
+            container: 'cb_log',
+            host: '127.0.0.1',
+            port: 6379,
+            db: 0,
+            length: 5000
+        })
         log = bunyan.createLogger(
                 {
                     name: 'vdb-server',
@@ -60,6 +69,11 @@ class InitData {
                     {
                         stream: ringbuffer,
                         level: "trace"
+                    },
+                    {
+                        stream: redistransport,
+                        level: "trace",
+                        type: "raw"
                     }
                     ]
                 }
