@@ -51,7 +51,7 @@ class InitData {
     prepareLogs = (initdata: InitData, callback: () => void) : void =>
     {
         ringbuffer = new bunyan.RingBuffer({ limit: 1000 });
-        redistransport = new RedisTransport( {
+        redistransport = new bunyanredis( {
             container: 'cb_log',
             host: '127.0.0.1',
             port: 6379,
