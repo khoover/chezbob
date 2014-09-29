@@ -15,6 +15,7 @@
 
 - hosts: soda-machines
   roles:
+      - redis
       - mdb-server
       - vdb-server
 

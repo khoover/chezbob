@@ -1,0 +1,13 @@
+---
+
+- name: Install Redis
+  apt: name="redis-server" state="present"
+  sudo: yes
+
+- name: Deploy Redis configuration
+  file: src="/etc/redis/redis.conf" dest="/etc/redis/redis.conf"
+  sudo: yes
+
+- name: Start redis server and ensure it runs on boot
+  service: name="redis-server" state="started" enabled="yes"
+  sudo: yes
