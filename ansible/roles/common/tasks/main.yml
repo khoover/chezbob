@@ -32,3 +32,7 @@
   sudo: yes
   sudo_user: sodasrv
   git: repo=https://github.com/chezbob/chezbob.git dest=/git
+
+- name: Deploy chezbob config
+  sudo: yes
+  template: src=etc/chezbob.json.j2 dest=/etc/chezbob.json
