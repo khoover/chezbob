@@ -18,6 +18,8 @@ var tsProject = ts.createProject({
     module: "commonjs"
 });
 
+//uncomment to turn on browserifyshim diags
+//process.env.BROWSERIFYSHIM_DIAGNOSTICS=1;
 
 gulp.task('ts-compile', ['ts-typings'], function () {
     var tsResult = gulp.src(['src/*.ts', 'typings/**/*.ts'])
@@ -38,7 +40,7 @@ gulp.task('ui-ts-compile', ['ts-typings'], function () {
 
     return gulp.src(['ui_src/client.ts'])
                .pipe(browserified)
-               .pipe(uglify())
+//               .pipe(uglify({outSourceMap:true}))
                .pipe(rename({
                    extname: ".js"
                }))
@@ -62,9 +64,14 @@ gulp.task('bower', function()
 gulp.task('icons', ['bower'], function()
           {
             return gulp.src('./bower_components/fontawesome/fonts/**.*')
-                       .pipe(gulp.dest('./build/ui/fonts'))
+                       .pipe(gulp.dest('./build/ui/fonts'));
           });
 
+gulp.task('html', function()
+          {
+              return gulp.src('./ui_src/*.html')
+                         .pipe(gulp.dest('./build/ui'));
+          })
 gulp.task('css', ['bower'], function()
           {
               return gulp.src('./ui_src/style.scss')
@@ -85,7 +92,7 @@ gulp.task('clean', function(cb) {
 });
 
 gulp.task('default', function() {
-    gulp.start('bower', 'icons', 'css', 'ui-ts-compile', 'ts-compile', 'ts-typings');
+    gulp.start('bower', 'html', 'icons', 'css', 'ui-ts-compile', 'ts-compile', 'ts-typings');
 });
 
 gulp.task('watch', ['ts-compile'], function() {

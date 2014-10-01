@@ -13,6 +13,9 @@ var jsesc = require('jsesc');
 import Buffer = require('buffer');
 import express = require('express')
 var bunyanredis = require('bunyan-redis');
+var io = require('socket.io');
+var promise = require('bluebird');
+var rpc = require('socket.io-rpc');
 
 var config = require('/etc/chezbob.json');
 
@@ -98,10 +101,21 @@ class InitData {
     }
 }
 
+enum log_level
+{
+    FATAL = 60,
+    ERROR = 50,
+    WARN = 40,
+    INFO = 30,
+    DEBUG = 20,
+    TRACE = 10
+}
+
 class sodad_server {
     initdata : InitData; //initialization data
     app;
     server;
+    clientloggers;
 
     start = () => {
         log.info("sodad_server starting, listening on " + config.sodad.port);
@@ -118,6 +132,40 @@ class sodad_server {
         this.server = this.app.listen(config.sodad.port, function() {
 
         });
+
+
+        rpc.createServer(io.listen(this.server), this.app);
+        rpc.expose('serverChannel',{
+            log: function(level: log_level, data)
+            {
+                switch(level)
+                {
+                    case log_level.TRACE:
+                        log.trace(data);
+                        break;
+                    case log_level.DEBUG:
+                        log.debug(data);
+                        break;
+                    case log_level.INFO:
+                        log.info(data);
+                        break;
+                    case log_level.WARN:
+                        log.warn(data, {client: this.id});
+                        break;
+                    case log_level.ERROR:
+                        log.error(data);
+                        break;
+                    case log_level.FATAL:
+                        log.fatal(data);
+                }
+            }
+        });
+/*
+        io.listen(this.server).sockets.on('connection', function(socket)
+        {
+            log.info("Connected.");
+        });
+        */
     }
 
     constructor(initdata : InitData) {

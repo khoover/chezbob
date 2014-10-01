@@ -4,9 +4,21 @@
   "version": "0.0.1",
   "author": "Michael Wei <mwei@cs.ucsd.edu>",
   "main": "app.js",
+  "browser": {
+   "rpc" : "./node_modules/socket.io-rpc/socket.io-rpc-client.js",
+   "io": "./node_modules/socket.io/node_modules/socket.io-client/socket.io.js"
+  },
+  "browserify-shim": {
+   "io": "io",
+   "rpc" : { "exports": "RPC", "depends": ["io:io"] }
+  },
+  "browserify": {
+   "transform": ["browserify-shim"]
+  },
   "devDependencies": {
     "async": "^0.9.0",
     "browserify": "^5.12.1",
+    "browserify-shim": "^3.7.0",
     "browserify-typescript": "0.0.1",
     "buffer": "^2.7.0",
     "bunyan": "^1.0.1",
@@ -31,8 +43,12 @@
     "vinyl-transform": "0.0.1"
   },
   "dependencies": {
+    "bluebird": "^2.3.4",
     "bunyan-redis": "^0.1.3",
     "express": "^4.9.5",
-    "express-bunyan-logger": "^1.1.0"
+    "express-bunyan-logger": "^1.1.0",
+    "q": "^1.0.1",
+    "socket.io": "^1.1.0",
+    "socket.io-rpc": "^0.5.4"
   }
 }
