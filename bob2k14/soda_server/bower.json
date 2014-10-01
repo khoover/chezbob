@@ -1,0 +1,26 @@
+{
+  "name": "soda_server",
+  "version": "0.0.1",
+  "homepage": "https://github.com/chezbob/chezbob",
+  "authors": [
+    "Michael Wei <mwei@cs.ucsd.edu>"
+  ],
+  "description": "The ChezBob user interface",
+  "main": "build/ui/ui.html",
+  "keywords": [
+    "chezbob",
+    "ucsd"
+  ],
+  "license": "Apache-2.0",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.2.0"
+  }
+}

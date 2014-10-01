@@ -1,6 +1,4 @@
 /// <reference path="../typings/tsd.d.ts"/>
-/// <reference path="../typings/node/node.d.ts"/>
-/// <reference path="../typings/jquery/jquery.d.ts"/>
 
 import $ = require("jquery");
 
