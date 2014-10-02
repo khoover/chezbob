@@ -1,4 +1,5 @@
 /// <reference path="../typings/tsd.d.ts"/>
+/// <reference path="models.ts"/>
 
 var git = require('git-rev-2');
 import async = require('async');
@@ -16,18 +17,28 @@ var bunyanredis = require('bunyan-redis');
 var io = require('socket.io');
 var promise = require('bluebird');
 var rpc = require('socket.io-rpc');
-
+var sequelize = require('sequelize');
 var config = require('/etc/chezbob.json');
+var pgpass = require('pgpass');
+var Models = require('./models');
+var crypt = require('crypt3');
 
 var log;
+var dblog;
 var ringbuffer;
 var redistransport;
+var sql;
+var models;
 
 class InitData {
     version: String;
     longVersion: String;
 
     timeout: Number;
+
+    dbname;
+    dbuser;
+    dbhost;
 
     loadVersion (initdata: InitData, callback: () => void) : void
     {
@@ -79,9 +90,28 @@ class InitData {
                     }
                     ]
                 }
-                );
+                );4
         log.info("Logging system initialized");
         callback();
+    }
+
+    connectDB = (initdata : InitData, callback: () => void) : void  =>
+    {
+        dblog = log.child({module: 'db'});
+        pgpass({host: this.dbhost,
+                user: this.dbuser}, function (password)
+                {
+                    sql = new sequelize(initdata.dbname, initdata.dbuser, password,  {
+                        host: initdata.dbhost,
+                        dialect: 'postgres',
+                        logging: function(data) {
+                            dblog.debug(data);
+                        }
+                    })
+                    models = new Models.Models(sql);
+                    callback();
+
+        });
     }
 
     init = (initdata : InitData, callback: (err,res) => void) : void =>
@@ -89,6 +119,7 @@ class InitData {
         async.series([
                     function (cb) {initdata.prepareLogs(initdata, cb)},
                     function (cb) {initdata.loadVersion(initdata, cb)},
+                    function (cb) {initdata.connectDB(initdata, cb)},
                     function (err, res)
                     {
                         callback(null, initdata);
@@ -98,6 +129,9 @@ class InitData {
 
     constructor(args: string[]) {
         this.timeout = 10000;
+        this.dbname = "bob";
+        this.dbuser = "bob";
+        this.dbhost = "localhost";
     }
 }
 
@@ -110,6 +144,7 @@ enum log_level
     DEBUG = 20,
     TRACE = 10
 }
+
 
 class sodad_server {
     initdata : InitData; //initialization data
@@ -133,31 +168,80 @@ class sodad_server {
 
         });
 
-
         rpc.createServer(io.listen(this.server), this.app);
         rpc.expose('serverChannel',{
             log: function(level: log_level, data)
             {
+                var clog = log.child({module: 'client', id: this.id});
                 switch(level)
                 {
                     case log_level.TRACE:
-                        log.trace(data);
+                        clog.trace(data);
                         break;
                     case log_level.DEBUG:
-                        log.debug(data);
+                        clog.debug(data);
                         break;
                     case log_level.INFO:
-                        log.info(data);
+                        clog.info(data);
                         break;
                     case log_level.WARN:
-                        log.warn(data, {client: this.id});
+                        clog.warn(data);
                         break;
                     case log_level.ERROR:
-                        log.error(data);
+                        clog.error(data);
                         break;
                     case log_level.FATAL:
-                        log.fatal(data);
+                        clog.fatal(data);
                 }
+            },
+            barcode: function(barcode)
+            {
+                var deferred = promise.defer();
+                models.Products.find(barcode)
+                    .complete(function(err, entry)
+                            {
+                                deferred.resolve(entry.dataValues);
+                            })
+                return deferred.promise;
+            },
+            authenticate: function(type, id, user, password)
+            {
+                var deferred = promise.defer();
+                var client = this.id;
+                models.Users.find(
+                        {
+                            where: {
+                                username: user
+                            }
+                        })
+                            .complete(function (err,entry)
+                            {
+                                if (err) { log.error(err); }
+                                else if (entry == null) { log.warn("Couldn't find user " + user + " for client " + client);}
+                                else
+                                {
+                                    var luser = entry.dataValues;
+                                    if (luser.pwd == null && password == "")
+                                    {
+                                        log.info("Successfully authenticated " + user +
+                                            " (no pass) for client " + client);
+                                    }
+                                    else
+                                    {
+                                        if(crypt(password, "cB") === luser.pwd)
+                                        {
+                                            log.info("Successfully authenticated " + user +
+                                            " (password) for client " + client);
+                                        }
+                                        else
+                                        {
+                                            log.warn("Authentication failure for client " + client);
+                                        }
+                                    }
+                                }
+                            }
+                            );
+                return deferred.promise;
             }
         });
 /*

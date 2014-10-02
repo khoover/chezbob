@@ -1,9 +1,11 @@
 /// <reference path="../typings/tsd.d.ts"/>
 
 import $ = require("jquery");
+jQuery = $;
 import Q = require("q");
 import io = require("socket.io");
 var rpc = require("rpc");
+var bootstrap = require("bootstrap");
 
 export enum ClientType {
     Terminal = 0,
@@ -41,20 +43,43 @@ export class Client
     server_channel;
     log;
 
-    connect = () =>
+    connect(client: Client)
     {
         rpc.connect(window.location.protocol + '//' + window.location.hostname + ':' + window.location.port);
         rpc.loadChannel('serverChannel').then(
                 function (channel)
                 {
-                    this.server_channel = channel;
-                    this.log = new ClientLogger(channel);
-                    this.log.warn("uhoh.");
-                    this.log.warn("mmmmm")
+                    client.server_channel = channel;
+                    client.log = new ClientLogger(channel);
+                    client.log.info("New client connected");
+                    channel.barcode('342450').then(function (val)
+                    {
+                        client.log.info(val.name);
+                    }).catch(function (err)
+                    {
+                        client.log.error(err);
+                    })
+
+
                 }
                 )
     }
 
+    setup_ui(client: Client)
+    {
+        $("#dologin").on("click", function() {
+            client.server_channel.authenticate(0,0, $("#username").val(), $("#password").val()).then(
+                function (val)
+                {
+                    client.log.info(val);
+                }
+                ).catch(function(err)
+                    {
+                        client.log.error(err);
+                    }
+                )
+        });
+    }
     constructor(type: ClientType, id: number) {
 
     }
@@ -62,5 +87,6 @@ export class Client
 
 $(document).ready(function() {
     var client = new Client(ClientType.Soda, 0);
-    client.connect();
+    client.setup_ui(client);
+    client.connect(client);
 })

@@ -5,15 +5,28 @@
   "author": "Michael Wei <mwei@cs.ucsd.edu>",
   "main": "app.js",
   "browser": {
-   "rpc" : "./node_modules/socket.io-rpc/socket.io-rpc-client.js",
-   "io": "./node_modules/socket.io/node_modules/socket.io-client/socket.io.js"
+    "rpc": "./node_modules/socket.io-rpc/socket.io-rpc-client.js",
+    "io": "./node_modules/socket.io/node_modules/socket.io-client/socket.io.js",
+    "bootstrap": "./node_modules/bootstrap/dist/js/bootstrap.js"
   },
   "browserify-shim": {
-   "io": "io",
-   "rpc" : { "exports": "RPC", "depends": ["io:io"] }
+    "io": "io",
+    "rpc": {
+      "exports": "RPC",
+      "depends": [
+        "io:io"
+      ]
+    },
+    "bootstrap": {
+        "depends": [
+        "jquery:$"
+        ]
+    }
   },
   "browserify": {
-   "transform": ["browserify-shim"]
+    "transform": [
+      "browserify-shim"
+    ]
   },
   "devDependencies": {
     "async": "^0.9.0",
@@ -22,6 +35,7 @@
     "browserify-typescript": "0.0.1",
     "buffer": "^2.7.0",
     "bunyan": "^1.0.1",
+    "crypt3": "^0.1.5",
     "del": "^0.1.3",
     "git-rev-2": "^0.1.0",
     "gulp": "^3.8.8",
@@ -44,10 +58,14 @@
   },
   "dependencies": {
     "bluebird": "^2.3.4",
-    "bunyan-redis": "^0.1.3",
+    "bootstrap": "^3.2.0",
+    "bunyan-redis": "^0.1.4",
     "express": "^4.9.5",
     "express-bunyan-logger": "^1.1.0",
+    "pg": "^3.5.0",
+    "pgpass": "0.0.3",
     "q": "^1.0.1",
+    "sequelize": "^2.0.0-rc1",
     "socket.io": "^1.1.0",
     "socket.io-rpc": "^0.5.4"
   }
