@@ -86,7 +86,6 @@ def add_header(response):
     """
     Add headers to disable caching
     """
-    print ("HERE")
     response.headers['Cache-Control'] = 'no-cache, no-store'
     response.headers['Pragma'] = 'no-cache'
     return response
@@ -408,7 +407,7 @@ def soda_updateinventory(slot, count):
     icount = int(count)
 
     if (icount < 0):
-      raise InvalidParamError("Invalid count " + str(count))
+      icount = 0;
 
     row.count = icount
     db.session.add(row);
