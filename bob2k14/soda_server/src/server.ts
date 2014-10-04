@@ -105,6 +105,7 @@ class InitData {
                 {
                     sql = new sequelize(initdata.dbname, initdata.dbuser, password,  {
                         host: initdata.dbhost,
+                        omitNull: true,
                         dialect: 'postgres',
                         logging: function(data) {
                             dblog.debug(data);
@@ -243,12 +244,79 @@ class sodad_server {
             },
             manualpurchase: function(amt)
             {
+                var client = this.id;
                 log.info("Manual purchase of " + amt + " for client " + this.id);
-                server.clientchannels[this.id].addpurchase({
-                    name: 'Manual Purchase',
-                    amount: amt,
-                    newbalance: '5.30'
-                })
+                redisclient.hget("sodads:" + client, "uid", function (err,obj)
+                        {
+                            if (err)
+                            {
+                                log.error("Error retrieving for manual purchase on client " + client);
+                            }
+                            else
+                            {
+                                log.debug("Session resolved to uid " + obj + " on client " + client);
+                                sql.transaction(function (t)
+                                    {
+                                        return models.Users.find({
+                                        where:
+                                            {
+                                                userid: obj
+                                            }
+                                        },
+                                        {
+                                            transaction: t
+                                        }).then(function (user)
+                                            {
+                                                if (user)
+                                                {
+                                                    log.debug("User found in transaction");
+                                                    return user.updateAttributes(
+                                                        {
+                                                            balance: (parseFloat(user.balance) - parseFloat(amt))
+                                                        },
+                                                        {
+                                                            transaction: t
+                                                        }
+                                                        ).then(function (user_updated)
+                                                            {
+                                                                //add the transaction
+                                                                log.debug("User updated in transaction");
+                                                                models.Transactions.create(
+                                                                    {
+                                                                        userid: obj,
+                                                                        xactvalue: "-" + amt,
+                                                                        xacttype: "BUY OTHER",
+                                                                        barcode: null,
+                                                                        source: 'bob2k14.2',
+                                                                        finance_trans_id: null
+                                                                    },
+                                                                    {
+                                                                        transaction: t
+                                                                    }
+                                                                    ).then(function (new_xact)
+                                                                        {
+                                                                            return t.commit().then(function ()
+                                                                                {
+                                                                                    log.info("New transaction successfully inserted for user " + obj + ", client " + client);
+                                                                                    server.clientchannels[client].addpurchase({
+                                                                                        name: 'Manual Purchase',
+                                                                                        amount: amt,
+                                                                                        newbalance: user_updated.balance
+                                                                                    })
+                                                                                });
+                                                                        });
+                                                            })
+                                                }
+                                            }
+                                            , function (err)
+                                                {
+                                                    log.error("Error committing transaction for client " + client + ", rolling back: ", err);
+                                                    t.rollback();
+                                                });
+                                    }
+                                    );
+                            }
+                        })
             },
             authenticate: function(user, password)
             {
@@ -274,7 +342,7 @@ class sodad_server {
                                     else if (luser.pwd == null && password == "")
                                     {
                                         var multi = redisclient.multi();
-                                        multi.hset("sodads:" + client, "uid", luser.id);
+                                        multi.hset("sodads:" + client, "uid", luser.userid);
                                         multi.expire("sodads:" + client, 600);
                                         multi.exec();
                                         log.info("Successfully authenticated " + user +
@@ -286,7 +354,7 @@ class sodad_server {
                                         if(crypt(password, "cB") === luser.pwd)
                                         {
                                             var multi = redisclient.multi();
-                                            multi.hset("sodads:" + client, "uid", luser.id);
+                                            multi.hset("sodads:" + client, "uid", luser.userid);
                                             multi.expire("sodads:" + client, 600);
                                             multi.exec();
                                             log.info("Successfully authenticated " + user +

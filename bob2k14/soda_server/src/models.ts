@@ -5,6 +5,7 @@ var sequelize = require("sequelize");
 export interface SequelizeModel {
     findAll();
     find();
+    create();
 }
 
 export class Models {
@@ -46,14 +47,14 @@ export class Models {
         }, {timestamps: false});
 
         this.Transactions = sql.define('transactions', {
-            xacttime : sequelize.DATE,
+            xacttime : { type: sequelize.DATE, allowNull: false, defaultValue: sequelize.fn('NOW')},
             userid : sequelize.INTEGER,
             xactvalue: sequelize.STRING,
             xacttype: sequelize.STRING,
-            barcode: sequelize.STRING,
+            barcode: { type: sequelize.STRING, allowNull: true},
             source: sequelize.STRING,
             id: { type: sequelize.INTEGER, primaryKey: true},
-            finance_trans_id: sequelize.INTEGER
-        })
+            finance_trans_id: { type: sequelize.INTEGER, allowNull: true}
+        }, {timestamps: false});
     }
 }
