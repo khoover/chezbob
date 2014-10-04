@@ -260,8 +260,8 @@ export class Client
             var paddedcents = "0" + $("#manualpurchase-cents").val();
             paddedcents = paddedcents.slice(-2);
             var amt = $("#manualpurchase-dollars").val() + "." + paddedcents;
-            $("#manualpurchase-cents").val("");
-            $("#manualpurchase-dollars").val("");
+            $("#manualpurchase-cents").val("00");
+            $("#manualpurchase-dollars").val("0");
             client.server_channel.manualpurchase(amt);
         })
 
