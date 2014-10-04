@@ -130,6 +130,20 @@
                     </div>
                     <div class="col-xs-6">
                         <div class="list-group">
+                            <a href="#" class="list-group-item" id="transferbtn">
+                                <i class="fa fa-4x fa-compress pull-left"></i>
+                                <div class="buttontextgroup">
+                                    <h3>Transfer</h3>
+                                    Transfer money between accounts.
+                                </div>
+                            </a>
+                            <a href="#" class="list-group-item" id="messagebtn">
+                                <i class="fa fa-4x fa-envelope pull-left"></i>
+                                <div class="buttontextgroup">
+                                    <h3>Message</h3>
+                                    Send a message to ChezBob.
+                                </div>
+                            </a>
                             <a href="#" class="list-group-item" id="optionsexitbtn">
                                 <i class="fa fa-4x fa-sign-out pull-left"></i>
                                 <div class="buttontextgroup">
@@ -223,8 +237,9 @@
                             </form>
                         </p>
                 </div>
-
             </div>
+            @@include('screens/transfer.html')
+
         </div>
         <div class="footer">
             <div class="container">

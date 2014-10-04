@@ -11,6 +11,8 @@ var sass = require('gulp-ruby-sass');
 var autoprefix = require('gulp-autoprefixer');
 var notify = require('gulp-notify');
 var bower = require('gulp-bower');
+var fileinclude = require('gulp-file-include');
+
 var tsProject = ts.createProject({
     declarationFiles: true,
     noExternalResolve: true,
@@ -76,6 +78,10 @@ gulp.task('images', ['bower'], function()
 gulp.task('html', function()
           {
               return gulp.src('./ui_src/*.html')
+                         .pipe(fileinclude({
+                             prefix: '@@',
+                             basepath: './ui_src/htinclude/'
+                         }))
                          .pipe(gulp.dest('./build/ui'));
           })
 gulp.task('css', ['bower'], function()

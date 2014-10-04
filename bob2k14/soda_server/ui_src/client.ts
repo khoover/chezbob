@@ -289,6 +289,16 @@ export class Client
             client.server_channel.manualdeposit(amt);
         })
 
+        //transfers
+        $("#transferbtn").on('click', function() {
+            client.setUIscreen(client, "transfer");
+        });
+        $("#transferexitbtn").on('click', function() {
+            client.setUIscreen(client, "options");
+        });
+        $("#transferbtn").on('click', function() {
+        });
+
         $("#mainCarousel").on('slide.bs.carousel', function (e)
                 {
                     if ($(e.relatedTarget).attr('id') === 'chart')
