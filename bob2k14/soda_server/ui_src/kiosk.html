@@ -61,24 +61,21 @@
             <div id="mainpurchase" class="ui-screen">
                 <div class="row">
                     <div class="col-xs-5">
-                        <div class="list-group">
-                            <a href="#" class="list-group-item sidebutton">
-                                <i class="fa-4x fa fa-plus-square"></i>
-                                <h1> Other Items</h1>
-                            </a>
-                        </div>
-                        <div class="list-group">
-                            <a href="#" class="list-group-item sidebutton hidden" id="moretimebtn">
-                                <i class="fa-4x fa fa-clock-o"></i>
-                                <h1> + 30s</h1>
-                            </a>
-                        </div>
-                        <div class="list-group sidebutton">
-                            <a href="#" class="list-group-item sidebutton" id="optionsbtn">
-                                <i class="fa-4x fa fa-gears"></i>
-                                <h1> Options</h1>
-                            </a>
-                        </div>
+                        @@include('snippets/sidebutton.html', {
+                            "id" : "otheritemsbtn",
+                            "fa" : "fa-plus-square",
+                            "text" : "Other Items"
+                        })
+                        @@include('snippets/sidebutton.html', {
+                            "id" : "moretimebtn",
+                            "fa" : "fa-clock-o",
+                            "text" : "+ 30s"
+                        })
+                        @@include('snippets/sidebutton.html', {
+                            "id" : "optionsbtn",
+                            "fa" : "fa-gears",
+                            "text" : "Options"
+                        })
                     </div>
                     <div class="col-xs-7">
                         <div id="purchases">
