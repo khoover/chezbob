@@ -54,7 +54,6 @@ mdb_bill_to_type = { 1: "00", 5: "01", 10: "02", 20: "03", 50: "04", 100: "05" }
 mdb_type_to_bill = { v:k for k, v in mdb_bill_to_type.items() }
 mdb_coin_to_type = { 0.5: "00", .10: "01", .25: "02" }
 mdb_type_to_coin = { v:k for k, v in mdb_coin_to_type.items() }
-mdb_cmd_str = "S2 10 03 "
 mdb_coins = { k:0 for k in mdb_coin_to_type.values() }
 bill_in_escrow = None
 done = False
@@ -71,31 +70,29 @@ def readline(fd):
       c = bytes.decode(b, "ascii") 
       res += c
 
-      if (c == '\n'):
+      if (c == '\r'):
         return res
 
 def ds_MDBThread(fd):
-    global done, mdb_cmd_str, bill_in_escrow
+    global done, bill_in_escrow
     debug("ds_MDBThread: Starting ...")
     while (not done):
       cmd = readline(fd).strip()
-
-      if (cmd.startswith(mdb_cmd_str)):
-        debug("ds_MDBThread: Echoed command {0}".format(cmd))
-        continue
+      # Send Ack
+      writeln_tty(m_master, "");
 
       if (cmd == "K1"):
         assert (bill_in_escrow != None)
-        writeln_tty(m_master, mdb_cmd_str + "Q2 " + bill_in_escrow)
+        writeln_tty(m_master, "Q2 " + bill_in_escrow)
         debug("ds_MDBThread: Accepted bill {0}".format(\
           mdb_type_to_bill[bill_in_escrow]))
         bill_in_escrow = None
       elif (cmd == "K2"):
         assert (bill_in_escrow != None)
-        writeln_tty(m_master, mdb_cmd_str + "Q3 " + bill_in_escrow)
-        bill_in_escrow = None
+        writeln_tty(m_master, "Q3 " + bill_in_escrow)
         debug("ds_MDBThread: Returned bill {0}".format(\
           mdb_type_to_bill[bill_in_escrow]))
+        bill_in_escrow = None
       elif (cmd.startswith("G ")):
         coin_type = cmd[2:4]
         amount = int(cmd[5:7])
@@ -115,7 +112,7 @@ def writestr(fd, s):
 # We read a line immediately after,  since the master seems to echo the command
 # we just wrote 
 def writeln_tty(fd, s):
-  os.write(fd, bytes(s + '\n', "ascii"))
+  os.write(fd, bytes(s + '\r', "ascii"))
 
 @jsonrpc.method('ds.barcode_scan')
 def ds_barcode_scan(barcode):
@@ -127,7 +124,7 @@ def ds_barcode_scan(barcode):
 
 @jsonrpc.method('ds.put_bill')
 def ds_put_bill(amount):
-    global bill_in_escrow, mdb_cmd_str
+    global bill_in_escrow
     iamount = int(amount)
     print ("Got request to put a {0} dolla bill y'all.".format(iamount))
     global m_master, mdb_bill_to_type
@@ -137,12 +134,12 @@ def ds_put_bill(amount):
 
     bill_type = mdb_bill_to_type[iamount] 
     bill_in_escrow = bill_type
-    writeln_tty(m_master, mdb_cmd_str + 'Q1 ' + bill_type)
+    writeln_tty(m_master, 'Q1 ' + bill_type)
     return "Bill {0} in escrow".format(iamount)
 
 @jsonrpc.method('ds.put_coin')
 def ds_put_coin(amount):
-    global mdb_cmd_str, mdb_coins
+    global mdb_coins
     famount = float(amount)
     print ("Got request to put a {0} coin y'all.".format(famount))
     global m_master, mdb_coin_to_type
@@ -152,7 +149,7 @@ def ds_put_coin(amount):
 
     coin_type = mdb_coin_to_type[famount] 
     mdb_coins[coin_type] += 1
-    writeln_tty(m_master, mdb_cmd_str + 'P1 ' + coin_type)
+    writeln_tty(m_master, 'P1 ' + coin_type)
     return "Put a {0} coin.".format(famount)
 
 def shutdown_server():
@@ -185,7 +182,7 @@ def startServer(name, port, args, env = None):
   return p
 
 def stopServer(name, proc):
-  debug("Shutting down {0}".format(name))
+  debug("Shutting down {0}(Process {1})".format(name, proc.pid))
   proc.terminate()
   proc.wait()
 
@@ -205,14 +202,16 @@ if __name__ == '__main__':
 
     b_master, b_slave = pty.openpty()
     m_master, m_slave = pty.openpty()
+    v_master, v_slave = pty.openpty()
 
     db_file = os.path.abspath(args['--db-file'])
+    env = os.environ
     # Bring up Soda
     sodaProc = startServer("soda_serve", soda_port, \
       [BASEDIR + 'bob2k14/soda_serve.py', 'serve', 'sqlite:///' + db_file, \
         '--port', soda_port, '--mdb-server-ep', mdb_ep, '--vdb-server-ep', \
         vdb_ep],
-      extend(os.environ, 'CB_DEVEL', '1'))
+      extend(env, 'CB_DEVEL', '1'))
 
     # Bring up barcode_server
     barcodeTTY = os.ttyname(b_slave)
@@ -223,16 +222,31 @@ if __name__ == '__main__':
 
     # Bring up mdb_server
     mdbTTY = os.ttyname(m_slave)
-    mdbProc = startServer("mdb_server", mdbTTY, \
-      [BASEDIR + 'bob2k14/mdb_server.py', 'serve',\
-      '--remote-endpoint', soda_ep, '--port', mdb_port, \
-      '--mdb-port', mdbTTY, '--verbose'])
+    deployDir = BASEDIR + '/deploy/'
+    npmModDir = BASEDIR + '/node_modules/.bin/'
+    npmEnv = extend(env, 'PATH', npmModDir + ':' + env['PATH'])
+    mdbProc = startServer("mdb_server", mdb_port, \
+      ['forever',\
+       '--pidFile', deployDir + '/cb_mdbd.pid',\
+       '-a',\
+       '-l', deployDir + '/cb_mdbd.log',\
+       '--minUptime', '5000',\
+       '--spinSleepTime', '2000',\
+       'start', BASEDIR + '/bob2k14/mdb_server/app.js', mdbTTY], npmEnv)
 
     # Start mdb thread
     mdbThread = Thread(target = ds_MDBThread, args = [ m_master ])
     mdbThread.start()
 
     # Bring up vending server
+    vdbProc = startServer("vdb_server", vdb_port, \
+      ['forever',\
+       '--pidFile', deployDir + '/cb_vdbd.pid',\
+       '-a',\
+       '-l', deployDir + '/cb_vdbd.log',\
+       '--minUptime', '5000',\
+       '--spinSleepTime', '2000',\
+       'start', BASEDIR + '/bob2k14/vdb_server/app.js', mdbTTY], npmEnv)
     vdbProc = startServer("vdb_serve",  vdb_port, [\
       BASEDIR + 'bob2k14/vdb_server.py', 'serve', \
       '--remote-endpoint', soda_ep, '--port', vdb_port, \
