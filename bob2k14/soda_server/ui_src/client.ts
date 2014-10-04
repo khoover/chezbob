@@ -265,6 +265,28 @@ export class Client
             client.server_channel.manualpurchase(amt);
         })
 
+        //manual deposits
+        $("#manualdepositbtn").on('click', function() {
+            client.setUIscreen(client, "manualdeposit");
+        });
+        $("#manualdepositexitbtn").on('click', function() {
+            client.setUIscreen(client, "options");
+        });
+        $("#domanualdepositbtn").on('click', function() {
+            //do a manual purchase for this session
+            //probably should prevent autologout
+            if (!(<any>$("#domanualdepositbtn").closest('form')[0]).checkValidity())
+            {
+                return;
+            }
+            var paddedcents = "0" + $("#manualdeposit-cents").val();
+            paddedcents = paddedcents.slice(-2);
+            var amt = $("#manualdeposit-dollars").val() + "." + paddedcents;
+            $("#manualdeposit-cents").val("00");
+            $("#manualdeposit-dollars").val("0");
+            client.server_channel.manualdeposit(amt);
+        })
+
         $("#mainCarousel").on('slide.bs.carousel', function (e)
                 {
                     if ($(e.relatedTarget).attr('id') === 'chart')

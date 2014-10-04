@@ -172,6 +172,69 @@ class sodad_server {
 
     iochannel;
 
+    balance_transaction (server: sodad_server, client: string, type: string,
+            purchase_description: string, barcode: string, amt: string)
+    {
+        redisclient.hget("sodads:" + client, "uid", function (err,uid)
+        {
+            if (err)
+            {
+                log.error("Error retrieving for manual purchase on client " + client);
+            }
+            else
+            {
+                log.trace("Session resolved to uid " + uid + " on client " + client);
+                sql.transaction(function (t)
+                {
+                    return models.Users.find({ where: { userid: uid }},{ transaction: t })
+                        .then(function (user)
+                            {
+                                if (user)
+                                {
+                                    log.debug("User found in transaction");
+                                    return user.updateAttributes(
+                                        {
+                                            balance: (parseFloat(user.balance) + parseFloat(amt))
+                                        }, { transaction: t }
+                                        );
+                                }
+                                throw "User " + uid + " not found!"
+                            })
+                        .then(function (user_updated)
+                            {
+                                //add the transaction
+                                log.debug("User updated in transaction");
+                                return models.Transactions.create(
+                                {
+                                    userid: uid,
+                                    xactvalue: + amt,
+                                    xacttype: type,
+                                    barcode: barcode,
+                                    source: 'bob2k14.2',
+                                    finance_trans_id: null
+                                }, { transaction: t } )
+                                .then(function (new_xact)
+                                {
+                                    return t.commit().then(function ()
+                                    {
+                                        log.info("New balance transaction successfully inserted for user " + uid + ", client " + client);
+                                        server.clientchannels[client].addpurchase({
+                                            name: purchase_description,
+                                            amount: amt,
+                                            newbalance: user_updated.balance
+                                        })
+                                    });
+                                });
+                             })
+                        .catch(function (err)
+                            {
+                                log.error("Error committing transaction for client " + client + ", rolling back: ", err);
+                                t.rollback();
+                            });
+                });
+            }
+        });
+    }
     start = () => {
         var server = this;
         log.info("sodad_server starting, listening on " + config.sodad.port);
@@ -246,77 +309,6 @@ class sodad_server {
             {
                 var client = this.id;
                 log.info("Manual purchase of " + amt + " for client " + this.id);
-                redisclient.hget("sodads:" + client, "uid", function (err,obj)
-                        {
-                            if (err)
-                            {
-                                log.error("Error retrieving for manual purchase on client " + client);
-                            }
-                            else
-                            {
-                                log.debug("Session resolved to uid " + obj + " on client " + client);
-                                sql.transaction(function (t)
-                                    {
-                                        return models.Users.find({
-                                        where:
-                                            {
-                                                userid: obj
-                                            }
-                                        },
-                                        {
-                                            transaction: t
-                                        }).then(function (user)
-                                            {
-                                                if (user)
-                                                {
-                                                    log.debug("User found in transaction");
-                                                    return user.updateAttributes(
-                                                        {
-                                                            balance: (parseFloat(user.balance) - parseFloat(amt))
-                                                        },
-                                                        {
-                                                            transaction: t
-                                                        }
-                                                        ).then(function (user_updated)
-                                                            {
-                                                                //add the transaction
-                                                                log.debug("User updated in transaction");
-                                                                models.Transactions.create(
-                                                                    {
-                                                                        userid: obj,
-                                                                        xactvalue: "-" + amt,
-                                                                        xacttype: "BUY OTHER",
-                                                                        barcode: null,
-                                                                        source: 'bob2k14.2',
-                                                                        finance_trans_id: null
-                                                                    },
-                                                                    {
-                                                                        transaction: t
-                                                                    }
-                                                                    ).then(function (new_xact)
-                                                                        {
-                                                                            return t.commit().then(function ()
-                                                                                {
-                                                                                    log.info("New transaction successfully inserted for user " + obj + ", client " + client);
-                                                                                    server.clientchannels[client].addpurchase({
-                                                                                        name: 'Manual Purchase',
-                                                                                        amount: amt,
-                                                                                        newbalance: user_updated.balance
-                                                                                    })
-                                                                                });
-                                                                        });
-                                                            })
-                                                }
-                                            }
-                                            , function (err)
-                                                {
-                                                    log.error("Error committing transaction for client " + client + ", rolling back: ", err);
-                                                    t.rollback();
-                                                });
-                                    }
-                                    );
-                            }
-                        })
             },
             authenticate: function(user, password)
             {
