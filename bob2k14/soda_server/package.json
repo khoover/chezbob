@@ -18,9 +18,9 @@
       ]
     },
     "bootstrap": {
-        "depends": [
+      "depends": [
         "jquery:$"
-        ]
+      ]
     }
   },
   "browserify": {
@@ -60,11 +60,13 @@
     "bluebird": "^2.3.4",
     "bootstrap": "^3.2.0",
     "bunyan-redis": "^0.1.4",
+    "d3-browserify": "^3.4.11",
     "express": "^4.9.5",
     "express-bunyan-logger": "^1.1.0",
     "pg": "^3.5.0",
     "pgpass": "0.0.3",
     "q": "^1.0.1",
+    "redis": "^0.12.1",
     "sequelize": "^2.0.0-rc1",
     "socket.io": "^1.1.0",
     "socket.io-rpc": "^0.5.4"

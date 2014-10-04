@@ -22,6 +22,7 @@ var config = require('/etc/chezbob.json');
 var pgpass = require('pgpass');
 var Models = require('./models');
 var crypt = require('crypt3');
+var redis = require('redis');
 
 var log;
 var dblog;
@@ -29,6 +30,7 @@ var ringbuffer;
 var redistransport;
 var sql;
 var models;
+var redisclient;
 
 class InitData {
     version: String;
@@ -109,9 +111,16 @@ class InitData {
                         }
                     })
                     models = new Models.Models(sql);
+                    log.info("Sequelize database initialized.")
                     callback();
 
         });
+    }
+
+    initSessions = (initdata: InitData, callback: () => void) : void =>
+    {
+        redisclient = redis.createClient();
+        callback();
     }
 
     init = (initdata : InitData, callback: (err,res) => void) : void =>
@@ -120,6 +129,7 @@ class InitData {
                     function (cb) {initdata.prepareLogs(initdata, cb)},
                     function (cb) {initdata.loadVersion(initdata, cb)},
                     function (cb) {initdata.connectDB(initdata, cb)},
+                    function (cb) {initdata.initSessions(initdata, cb)},
                     function (err, res)
                     {
                         callback(null, initdata);
@@ -145,14 +155,24 @@ enum log_level
     TRACE = 10
 }
 
+//TODO: this needs to be sync'd with client code
+enum ClientType {
+    Terminal = 0,
+    Soda = 1
+}
 
 class sodad_server {
     initdata : InitData; //initialization data
     app;
     server;
     clientloggers;
+    clientchannels;
+    clientmap;
+
+    iochannel;
 
     start = () => {
+        var server = this;
         log.info("sodad_server starting, listening on " + config.sodad.port);
         this.app = express();
 
@@ -168,7 +188,13 @@ class sodad_server {
 
         });
 
-        rpc.createServer(io.listen(this.server), this.app);
+        this.clientchannels = {};
+        this.clientmap = {};
+        this.clientmap[ClientType.Terminal] = {};
+        this.clientmap[ClientType.Soda] = {};
+
+        this.iochannel = io.listen(this.server);
+        rpc.createServer(this.iochannel, this.app);
         rpc.expose('serverChannel',{
             log: function(level: log_level, data)
             {
@@ -194,6 +220,10 @@ class sodad_server {
                         clog.fatal(data);
                 }
             },
+            barcodestats: function(barcode)
+            {
+                return models.Transactions.count( { where:  { barcode : barcode } } );
+            },
             barcode: function(barcode)
             {
                 var deferred = promise.defer();
@@ -204,7 +234,23 @@ class sodad_server {
                             })
                 return deferred.promise;
             },
-            authenticate: function(type, id, user, password)
+            logout: function()
+            {
+                redisclient.del("sodads:" + this.id);
+                log.info("Logging out session for client " + this.id);
+                server.clientchannels[this.id].logout();
+                return true;
+            },
+            manualpurchase: function(amt)
+            {
+                log.info("Manual purchase of " + amt + " for client " + this.id);
+                server.clientchannels[this.id].addpurchase({
+                    name: 'Manual Purchase',
+                    amount: amt,
+                    newbalance: '5.30'
+                })
+            },
+            authenticate: function(user, password)
             {
                 var deferred = promise.defer();
                 var client = this.id;
@@ -221,17 +267,31 @@ class sodad_server {
                                 else
                                 {
                                     var luser = entry.dataValues;
-                                    if (luser.pwd == null && password == "")
+                                    if (luser.disabled)
                                     {
+                                        log.warn("Disabled user " + user + " attempted login from client " + client);
+                                    }
+                                    else if (luser.pwd == null && password == "")
+                                    {
+                                        var multi = redisclient.multi();
+                                        multi.hset("sodads:" + client, "uid", luser.id);
+                                        multi.expire("sodads:" + client, 600);
+                                        multi.exec();
                                         log.info("Successfully authenticated " + user +
                                             " (no pass) for client " + client);
+                                        server.clientchannels[client].login(luser);
                                     }
                                     else
                                     {
                                         if(crypt(password, "cB") === luser.pwd)
                                         {
+                                            var multi = redisclient.multi();
+                                            multi.hset("sodads:" + client, "uid", luser.id);
+                                            multi.expire("sodads:" + client, 600);
+                                            multi.exec();
                                             log.info("Successfully authenticated " + user +
                                             " (password) for client " + client);
+                                            server.clientchannels[client].login(luser);
                                         }
                                         else
                                         {
@@ -239,17 +299,36 @@ class sodad_server {
                                         }
                                     }
                                 }
+
+                            deferred.resolve(true);
                             }
                             );
                 return deferred.promise;
             }
         });
-/*
-        io.listen(this.server).sockets.on('connection', function(socket)
+
+        this.iochannel.sockets.on('connection', function (server: sodad_server){
+        return function(socket)
         {
-            log.info("Connected.");
-        });
-        */
+            rpc.loadClientChannel(socket, 'clientChannel').then(function (fns)
+                {
+                    server.clientchannels[socket.id] = fns;
+                    fns.gettype().then(function (typedata){
+                        server.clientmap[typedata.type][typedata.id] = fns;
+                        log.info("Registered client channel type (" + ClientType[typedata.type] + "/"
+                            + typedata.id + ") for client " + socket.id);
+                    });
+                }
+                )
+        }} (this));
+
+        this.iochannel.sockets.on('disconnect', function (server: sodad_server){
+            return function(socket)
+            {
+                delete server.clientchannels[socket.id];
+                log.info("Deregistered client channel for client " + socket.id);
+            }
+        })
     }
 
     constructor(initdata : InitData) {

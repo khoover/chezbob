@@ -4,19 +4,190 @@
     <head>
     <title>ChezBob UI</title>
     <script src="scripts/client.js"></script>
+    <link href="css/style.css" rel="stylesheet" type="text/css">
     <meta charset="utf-8"/>
     <meta name="mobile-web-app-capable" content="yes"/>
     <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0"/>
     </head>
-    <body>
-        <div class="container">
-            <div class="row">
-                <a class="btn btn-primary" data-toggle="modal" href="#login">Login</a>
+    <body class="body-padded">
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">ChezBob2k14.2</a>
             </div>
-            <div class="modal-body">
-                <p><input type="text" class="span3" name="username" id="username" placeholder="Username"></p>
-                <p><input type="password" class="span3" name="password" id="password" placeholder="Password (if set)"></p>
-                <a class="btn btn-primary" id="dologin">Login</a>
+            <ul class="nav pull-right navbar-nav">
+                <li id="timeoutpanel" class="hidden"><a><i class="fa fa-clock-o"></i> Timeout in <span id="timeout"></span></a></li>
+                <li id="balancepanel" class="hidden"><a><i class="fa fa-money"></i> <i class="fa fa-warning hidden" id="balancewarn"></i> Balance <i class="fa fa-dollar"></i><span class="balance"></span></a></li>
+                <li id="loginpanel" class="hidden"><a><i class="fa fa-user"></i> Logged in as <span class="username"></span></a></li>
+                <li class="hidden" id="logout"><a href="#" id="logoutbtn">Logout</a></li>
+                <li class="dropdown" id="login">
+                <a class="dropdown-toggle" href="#" data-toggle="dropdown">Login <strong class="caret"></strong></a>
+                <div class="dropdown-menu pull-right" style="padding:10px;min-width:240px">
+                    <form id="loginform" method="POST" role="form" class="form-horizontal">
+                        <input class="form-control" style="margin-bottom:.5em" name="username" id="username" type="text" placeholder="Username"/>
+                        <input class="form-control" style="margin-bottom:.5em" name="password" id="password" type="password" placeholder="Password (if set)"/>
+                        <input type="submit" id="login" class="btn btn-primary" style="margin-top:.75em;width:100%;height:32px;font-size:13px" value="Login"/>
+                    </form>
+                </div>
+                </li>
+            </ul>
+        </div>
+        <div class="container" id="carousel">
+            <div id="mainCarousel" class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner">
+                    <div class="item active">
+                        <div class="container">
+                            <img src="images/bsod.png">
+                            <div class="carousel-caption">
+                                <h1>Yes we know...</h1>
+                                <p class="lead">Everything is broken, but we're on it...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="container">
+                            <img src="images/octocat.jpg">
+                            <div class="carousel-caption">
+                                <h1>Chezbob is Open Source</h1>
+                                <p class="lead">Want to help? Fork us on github, implement a feature and send a pull request!</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="item" style="min-height:500px" id="chart">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container hidden" id="mainui">
+            <div id="mainpurchase" class="ui-screen">
+                <div class="row">
+                    <div class="col-xs-5">
+                        <div class="list-group">
+                            <a href="#" class="list-group-item sidebutton">
+                                <i class="fa-4x fa fa-plus-square"></i>
+                                <h1> Other Items</h1>
+                            </a>
+                        </div>
+                        <div class="list-group">
+                            <a href="#" class="list-group-item sidebutton hidden" id="moretimebtn">
+                                <i class="fa-4x fa fa-clock-o"></i>
+                                <h1> + 30s</h1>
+                            </a>
+                        </div>
+                        <div class="list-group sidebutton">
+                            <a href="#" class="list-group-item sidebutton" id="optionsbtn">
+                                <i class="fa-4x fa fa-gears"></i>
+                                <h1> Options</h1>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-xs-7">
+                        <div id="purchases">
+                            <table class="table table-striped h3" id="purchases-table">
+                                <thead>
+                                    <th>Item Name</th>
+                                    <th>Price</th>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="options" class="ui-screen">
+                <div class="row">
+                    <div class="col-xs-6">
+                        <div class="list-group">
+                            <a href="#" class="list-group-item">
+                                <i class="fa fa-4x fa-user pull-left"></i>
+                                <div class="buttontextgroup">
+                                    <h3>User Profile</h3>
+                                    Settings, passwords, barcodes, etc.
+                                </div>
+                            </a>
+                            <a href="#" class="list-group-item" id="transactionsbtn">
+                                <i class="fa fa-4x fa-sort-amount-desc pull-left"></i>
+                                <div class="buttontextgroup">
+                                    <h3>Transaction History</h3>
+                                    View and reconcile transactions.
+                                </div>
+                            </a>
+                            <a href="#" class="list-group-item" id="manualpurchasebtn">
+                                <i class="fa fa-4x fa-question-circle pull-left"></i>
+                                <div class="buttontextgroup">
+                                    <h3>Manual Purchase</h3>
+                                    Manually enter a purchase price.
+                                </div>
+                            </a>
+
+                        </div>
+                    </div>
+                    <div class="col-xs-6">
+                        <div class="list-group">
+                            <a href="#" class="list-group-item" id="optionsexitbtn">
+                                <i class="fa fa-4x fa-sign-out pull-left"></i>
+                                <div class="buttontextgroup">
+                                    <h3>Exit</h3>
+                                    Return to the purchase screen.
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="transactions" class="ui-screen">
+                <div class="row">
+                    <div class="col-xs-5">
+                        <div class="list-group">
+                            <a href="#" class="list-group-item sidebutton" id="transactionsexitbtn">
+                                <i class="fa-4x fa fa-sign-out"></i>
+                                <h1> Exit</h1>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="manualpurchase" class="ui-screen">
+                <div class="col-xs-5">
+                        <div class="list-group">
+                            <a href="#" class="list-group-item sidebutton" id="manualpurchaseexitbtn">
+                                <i class="fa-4x fa fa-sign-out"></i>
+                                <h1> Cancel</h1>
+                            </a>
+                        </div>
+                </div>
+                <div class="col-xs-7">
+                        <div class="alert alert-warning" role="alert">
+                            Use this form to enter manual purchases only. To deposit money, select deposit instead.
+                        </div>
+                        <p>
+                            Enter the amount of the manual purchase below:
+                            <form>
+                            <fieldset>
+                            <div class="row">
+                            <div class="col-xs-2"><i class="fa fa-4x fa-dollar"></i></div>
+                            <div class="col-xs-4"><input type="number" class="form-control input-lg" id="manualpurchase-dollars" min="0" max="20" size="2" title="Only numbers are allowed" value="0"/></div>
+                            <div class="col-xs-1" style="font-size:40px">.</div>
+                            <div class="col-xs-4"><input type="number" class="form-control input-lg" id="manualpurchase-cents" min="0" max="99" size="2" title="Only numbers are allowed" value="00"/></div>
+                            </div>
+                            <br/>
+                            <div class="list-group">
+                                <a href="#" class="list-group-item sidebutton" id="domanualpurchasebtn">
+                                    <i class="fa-4x fa fa-check"></i>
+                                    <h1> Purchase</h1>
+                                </a>
+                            </div>
+
+                            </fieldset>
+                            </form>
+                        </p>
+                </div>
+
+            </div>
+        </div>
+        <div class="footer">
+            <div class="container">
+                <h2>You can login above, scan a <i class="fa fa-barcode"></i>, fingerprint or RFID</h2>
             </div>
         </div>
     </body>

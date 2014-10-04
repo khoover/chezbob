@@ -5,3 +5,82 @@
 //depend
 @import "bootstrap/normalize";
 @import "font-awesome";
+
+//core
+@import "bootstrap/scaffolding";
+@import "bootstrap/type";
+@import "bootstrap/code";
+@import "bootstrap/grid";
+@import "bootstrap/tables";
+@import "bootstrap/forms";
+@import "bootstrap/buttons";
+
+//components
+@import "bootstrap/component-animations";
+@import "bootstrap/glyphicons";
+@import "bootstrap/dropdowns";
+@import "bootstrap/button-groups";
+@import "bootstrap/input-groups";
+@import "bootstrap/navs";
+@import "bootstrap/navbar";
+@import "bootstrap/breadcrumbs";
+@import "bootstrap/pagination";
+@import "bootstrap/pager";
+@import "bootstrap/labels";
+@import "bootstrap/badges";
+@import "bootstrap/jumbotron";
+@import "bootstrap/thumbnails";
+@import "bootstrap/alerts";
+@import "bootstrap/progress-bars";
+@import "bootstrap/media";
+@import "bootstrap/list-group";
+@import "bootstrap/panels";
+@import "bootstrap/wells";
+@import "bootstrap/close";
+
+//js components
+@import "bootstrap/modals";
+@import "bootstrap/tooltip";
+@import "bootstrap/popovers";
+@import "bootstrap/carousel";
+
+//utility
+@import "bootstrap/utilities";
+@import "bootstrap/responsive-utilities";
+
+.carousel-caption {
+    text-align: left;
+    position: absolute;
+    top: 200px;
+}
+
+.carousel-inner{
+    min-width:100%;
+}
+
+body {
+ margin-bottom: 60px;
+}
+
+.body-padded
+{
+    padding-top:60px;
+}
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    background-color: #f5f5f5;
+}
+
+.sidebutton h1 {
+    margin-left: 10px;
+    display: inline-block;
+}
+
+.buttontextgroup {
+    display: inline-block;
+    margin-top: -20px;
+}

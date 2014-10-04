@@ -67,6 +67,12 @@ gulp.task('icons', ['bower'], function()
                        .pipe(gulp.dest('./build/ui/fonts'));
           });
 
+gulp.task('images', ['bower'], function()
+          {
+            return gulp.src('./images/**.*')
+                       .pipe(gulp.dest('./build/ui/images'));
+          });
+
 gulp.task('html', function()
           {
               return gulp.src('./ui_src/*.html')
@@ -92,7 +98,7 @@ gulp.task('clean', function(cb) {
 });
 
 gulp.task('default', function() {
-    gulp.start('bower', 'html', 'icons', 'css', 'ui-ts-compile', 'ts-compile', 'ts-typings');
+    gulp.start('bower', 'html', 'icons', 'css', 'images', 'ui-ts-compile', 'ts-compile', 'ts-typings');
 });
 
 gulp.task('watch', ['ts-compile'], function() {

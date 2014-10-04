@@ -10,6 +10,7 @@ export interface SequelizeModel {
 export class Models {
     sql;
 
+    Transactions: SequelizeModel;
     Products: SequelizeModel;
     Users: SequelizeModel;
 
@@ -42,6 +43,17 @@ export class Models {
             notes: sequelize.STRING,
             created_time: sequelize.DATE,
             fraudulent: sequelize.BOOLEAN
-        }, {timestamps: false})
+        }, {timestamps: false});
+
+        this.Transactions = sql.define('transactions', {
+            xacttime : sequelize.DATE,
+            userid : sequelize.INTEGER,
+            xactvalue: sequelize.STRING,
+            xacttype: sequelize.STRING,
+            barcode: sequelize.STRING,
+            source: sequelize.STRING,
+            id: { type: sequelize.INTEGER, primaryKey: true},
+            finance_trans_id: sequelize.INTEGER
+        })
     }
 }

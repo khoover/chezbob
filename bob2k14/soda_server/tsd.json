@@ -22,6 +22,9 @@
     },
     "socket.io/socket.io.d.ts": {
       "commit": "2fe9f81c9d0c938362655f4dcbc63cb7d02ee612"
+    },
+    "bootstrap/bootstrap.d.ts": {
+      "commit": "4598e7d76b2b8e0470d5dea6035de2d218b17c77"
     }
   }
 }
