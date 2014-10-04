@@ -185,7 +185,9 @@ export class Client
                     },
                     addpurchase: function(purchasedata)
                     {
-                        $("#purchases-table tbody").append("<tr><td>" + purchasedata.name + "</td><td>" + purchasedata.amount + "</td>");
+                        //purchases are usually negative, so don't display unless positive.
+                        var purchaseprice = purchasedata.amount[0] === '-' ? purchasedata.amount.substring(1) : '+' + purchasedata.amount;
+                        $("#purchases-table tbody").append("<tr><td>" + purchasedata.name + "</td><td>" + purchaseprice + "</td>");
                         client.setBalance(client, purchasedata.newbalance);
                         client.setUIscreen(client,"mainpurchase");
                     },

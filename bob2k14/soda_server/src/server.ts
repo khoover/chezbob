@@ -172,6 +172,7 @@ class sodad_server {
 
     iochannel;
 
+    // balance_transaction : generate a new balance transaction for a user.
     balance_transaction (server: sodad_server, client: string, type: string,
             purchase_description: string, barcode: string, amt: string)
     {
@@ -308,7 +309,16 @@ class sodad_server {
             manualpurchase: function(amt)
             {
                 var client = this.id;
-                log.info("Manual purchase of " + amt + " for client " + this.id);
+                log.info("Manual purchase of " + amt + " for client " + client);
+                server.balance_transaction(server, client, "BUY OTHER",
+                        "Manual Purchase", null, "-" + amt);
+            },
+            manualdeposit: function(amt)
+            {
+                var client = this.id;
+                log.info("Manual deposit of " + amt + " for client " + client);
+                server.balance_transaction(server, client, "ADD MANUAL",
+                        "Manual Deposit", null,  amt);
             },
             authenticate: function(user, password)
             {
