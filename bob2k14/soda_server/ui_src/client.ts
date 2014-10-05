@@ -239,21 +239,8 @@ export class Client
         $("#moretimebtn").on('click', function() {
             client.time = client.time + 30;
         });
-        $("#optionsbtn").on('click', function() {
-            client.stopTimeout(client);
-            client.setUIscreen(client, "options");
-        });
-        $("#optionsexitbtn").on('click', function() {
-            client.setUIscreen(client, "mainpurchase");
-        });
-        $("#transactionsbtn").on('click', function() {
-            client.setUIscreen(client, "transactions");
-        });
         $("#transactionsexitbtn").on('click', function() {
             client.setUIscreen(client, "options");
-        });
-        $("#manualpurchasebtn").on('click', function() {
-            client.setUIscreen(client, "manualpurchase");
         });
         $("#manualpurchaseexitbtn").on('click', function() {
             client.setUIscreen(client, "options");
@@ -274,9 +261,6 @@ export class Client
         })
 
         //manual deposits
-        $("#manualdepositbtn").on('click', function() {
-            client.setUIscreen(client, "manualdeposit");
-        });
         $("#manualdepositexitbtn").on('click', function() {
             client.setUIscreen(client, "options");
         });
@@ -296,9 +280,6 @@ export class Client
         })
 
         //transfers
-        $("#transferbtn").on('click', function() {
-            client.setUIscreen(client, "transfer");
-        });
         $("#transferexitbtn").on('click', function() {
             client.setUIscreen(client, "options");
         });
