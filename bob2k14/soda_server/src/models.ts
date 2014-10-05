@@ -3,6 +3,7 @@
 var sequelize = require("sequelize");
 
 export interface SequelizeModel {
+    findAndCountAll();
     findAll();
     find();
     create();

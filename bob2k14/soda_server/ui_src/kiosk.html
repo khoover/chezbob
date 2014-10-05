@@ -74,6 +74,7 @@
                         @@include('snippets/tsidebutton.html', {
                             "id" : "optionsbtn",
                             "target": "options",
+                            "extraclasses" : "disabletimeout",
                             "fa" : "fa-gears",
                             "text" : "Options"
                         })
@@ -94,10 +95,31 @@
             </div>
             @@include('screens/options.html')
             @@include('screens/transactions.html')
+            @@include('screens/transactions_detail.html')
             @@include('screens/manualpurchase.html')
             @@include('screens/manualdeposit.html')
             @@include('screens/transfer.html')
 
+        </div>
+        <div class="modal fade" aria-hidden="true" tabindex="-1" role="dialog" aria-labelledby="large" id="errordialog">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="errortitle"></h4>
+                    </div>
+                    <div class="modal-body" style="margin-top:-20px;">
+                        <div class="container" style="width:100%">
+                            <div class="col-xs-2">
+                                <br/>
+                                <i class="fa-5x fa" id="erroricon"></i>
+                            </div>
+                            <div class="col-xs-8">
+                                <h2 id="errortext"></h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="footer">
             <div class="container">

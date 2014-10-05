@@ -1,0 +1,27 @@
+<div id="transactions-detail" class="ui-screen">
+    <div class="row">
+        <div class="col-xs-5">
+            <div class="list-group">
+                @@include('snippets/tsidebutton.html', {
+                    "id" : "transactions-exitbtn",
+                    "target" : "transactions",
+                    "fa" : "fa-sign-out",
+                    "text" : "Back"
+                })
+            </div>
+        </div>
+        <div class="col-xs-7">
+            <div id="transactiondetails">
+                <table class="table table-striped h5" id="transactiondetails-table">
+                    <thead>
+                        <th>Item</th>
+                        <th>Value</th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+

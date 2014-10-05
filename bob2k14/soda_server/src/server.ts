@@ -22,7 +22,7 @@ var config = require('/etc/chezbob.json');
 var pgpass = require('pgpass');
 var Models = require('./models');
 var crypt = require('crypt3');
-var redis = require('redis');
+var redis = promise.promisifyAll(require('redis'));
 
 var log;
 var dblog;
@@ -108,7 +108,7 @@ class InitData {
                         omitNull: true,
                         dialect: 'postgres',
                         logging: function(data) {
-                            dblog.debug(data);
+                            dblog.trace(data);
                         }
                     })
                     models = new Models.Models(sql);
@@ -172,15 +172,15 @@ class sodad_server {
 
     iochannel;
 
-    // balance_transaction : generate a new balance transaction for a user.
-    balance_transaction (server: sodad_server, client: string, type: string,
-            purchase_description: string, barcode: string, amt: string)
+    // balance_transfer : transfer balances from one user to another
+    balance_transfer (server: sodad_server, client: string, targetuser:string,
+             amt: string)
     {
         redisclient.hget("sodads:" + client, "uid", function (err,uid)
         {
             if (err)
             {
-                log.error("Error retrieving for manual purchase on client " + client);
+                log.error("Error retrieving for balance transfer on client " + client);
             }
             else
             {
@@ -192,7 +192,116 @@ class sodad_server {
                             {
                                 if (user)
                                 {
-                                    log.debug("User found in transaction");
+                                    log.trace("User found in transaction");
+                                    if (parseFloat(user.balance) < parseFloat(amt))
+                                    {
+                                        throw "Insufficient balance for balance transfer!"
+                                    }
+                                    if (parseFloat(amt) < 0)
+                                    {
+                                        throw "Balance transfer must be positive!"
+                                    }
+                                    return user.updateAttributes(
+                                        {
+                                            balance: (parseFloat(user.balance) - parseFloat(amt))
+                                        }, { transaction: t }
+                                        );
+                                }
+                                throw "User " + uid + " not found!"
+                            })
+                        .then(function (user_updated)
+                            {
+                                //add the transaction
+                                log.trace("User updated in transaction");
+                                return models.Users.find({ where: { username: targetuser}}, { transaction: t })
+                                    .then(function(target_found)
+                                    {
+                                        if (target_found)
+                                        {
+                                            log.trace("Target user found in transaction");
+                                            if (target_found.disabled)
+                                            {
+                                                throw "Cannot transfer to disabled user!"
+                                            }
+                                            return target_found.updateAttributes(
+                                                {
+                                                    balance: (parseFloat(target_found.balance) + parseFloat(amt)),
+                                                }, { transaction: t })
+                                            .then(function(target_updated)
+                                            {
+                                                return models.Transactions.create(
+                                                {
+                                                    userid: uid,
+                                                    xactvalue: - amt,
+                                                    xacttype: "TRANSFER TO " + target_updated.username,
+                                                    barcode: null,
+                                                    source: 'bob2k14.2',
+                                                    finance_trans_id: null
+                                                }, { transaction: t } )
+                                            })
+                                            .then(function(user_xact)
+                                            {
+                                                return models.Transactions.create(
+                                                {
+                                                    userid: target_found.userid,
+                                                    xactvalue: amt,
+                                                    xacttype: "TRANSFER FROM " + user_updated.username,
+                                                    barcode: null,
+                                                    source: 'bob2k14.2',
+                                                    finance_trans_id: null
+                                                }, { transaction: t } )
+                                            })
+                                            .then(function (target_xact)
+                                            {
+                                                return t.commit().then(function ()
+                                                {
+                                                    log.info("Balance transfer transactions successfully inserted for user " + uid + " to " + targetuser + ", client " + client);
+                                                    server.clientchannels[client].addpurchase({
+                                                        name: "Transfer to " + targetuser,
+                                                        amount: "-" + amt,
+                                                        newbalance: user_updated.balance
+                                                    })
+                                                });
+                                            });
+                                        }
+                                        throw "Target user " + targetuser + " not found!"
+                                    })
+                             })
+                        .catch(function (err)
+                            {
+                                log.error("Error committing transfer transaction for client " + client + ", rolling back: ", err);
+                                t.rollback().then(function()
+                                    {
+                                        server.clientchannels[client].displayerror("fa-warning", "Transfer Error", err);
+                                    }
+                                    );
+                            });
+                });
+            }
+        });
+    }
+
+    // balance_transaction : generate a new balance transaction for a user.
+    balance_transaction (server: sodad_server, client: string, type: string,
+            purchase_description: string, barcode: string, amt: string)
+    {
+        redisclient.hget("sodads:" + client, "uid", function (err,uid)
+        {
+            if (err)
+            {
+                log.error("Error retrieving for balance transaction on client " + client);
+            }
+            else
+            {
+                log.trace("Session resolved to uid " + uid + " on client " + client);
+                sql.transaction(function (t)
+                {
+                    return models.Users.find({ where: { userid: uid }},{ transaction: t })
+                        .then(function (user)
+                            {
+                                if (user)
+                                {
+                                    log.trace("User found in transaction");
                                     return user.updateAttributes(
                                         {
                                             balance: (parseFloat(user.balance) + parseFloat(amt))
@@ -204,7 +313,7 @@ class sodad_server {
                         .then(function (user_updated)
                             {
                                 //add the transaction
-                                log.debug("User updated in transaction");
+                                log.trace("User updated in transaction");
                                 return models.Transactions.create(
                                 {
                                     userid: uid,
@@ -230,12 +339,39 @@ class sodad_server {
                         .catch(function (err)
                             {
                                 log.error("Error committing transaction for client " + client + ", rolling back: ", err);
-                                t.rollback();
+                                t.rollback().then(function ()
+                                    {
+                                         server.clientchannels[client].displayerror("fa-warning", "Transaction Error", err);
+                                    })
                             });
                 });
             }
         });
     }
+
+    // transaction_history : get paginated transaction history for user.
+    transaction_history (server: sodad_server, client: string, index: number,
+            items: number)
+    {
+        return redisclient.hgetAsync("sodads:" + client, "uid")
+                          .then(function (uid)
+                                  {
+                                    if (uid == null)
+                                    { throw "User could not be found from session."; }
+                                    return models.Transactions.findAndCountAll({
+                                    where: { userid : uid },
+                                    order: 'xacttime DESC',
+                                    offset: index,
+                                    limit: items
+                                    })
+                                  })
+                          .catch(function (e)
+                                  {
+                                    log.error("Couldn't fetch transaction history " + e);
+                                  })
+    }
+
+
     start = () => {
         var server = this;
         log.info("sodad_server starting, listening on " + config.sodad.port);
@@ -320,6 +456,18 @@ class sodad_server {
                 server.balance_transaction(server, client, "ADD MANUAL",
                         "Manual Deposit", null,  amt);
             },
+            transfer: function(amt, user)
+            {
+                var client = this.id;
+                log.info("Balance transfer of " + amt + " to " + user + " for client " + client);
+                server.balance_transfer(server, client, user, amt);
+            },
+            transactionhistory: function(index, count)
+            {
+                var client = this.id;
+                log.info("Transaction history request for index " + index + ", count " + count + " for client " + client);
+                return server.transaction_history(server, client, index, count);
+            },
             authenticate: function(user, password)
             {
                 var deferred = promise.defer();
@@ -333,13 +481,17 @@ class sodad_server {
                             .complete(function (err,entry)
                             {
                                 if (err) { log.error(err); }
-                                else if (entry == null) { log.warn("Couldn't find user " + user + " for client " + client);}
+                                else if (entry == null) {
+                                    log.warn("Couldn't find user " + user + " for client " + client);
+                                    server.clientchannels[client].displayerror("fa-warning", "User not found", "Login for account " + user + " not found.");
+                                }
                                 else
                                 {
                                     var luser = entry.dataValues;
                                     if (luser.disabled)
                                     {
                                         log.warn("Disabled user " + user + " attempted login from client " + client);
+                                        server.clientchannels[client].displayerror("fa-times-circle", "Login Disabled", "Login for account " + user + " is disabled. Please contact ChezBob staff for more details.");
                                     }
                                     else if (luser.pwd == null && password == "")
                                     {
@@ -366,6 +518,7 @@ class sodad_server {
                                         else
                                         {
                                             log.warn("Authentication failure for client " + client);
+                                            server.clientchannels[client].displayerror("fa-times-circle", "Login Denied", "Login for account " + user + " denied. Incorrect password was entered.");
                                         }
                                     }
                                 }

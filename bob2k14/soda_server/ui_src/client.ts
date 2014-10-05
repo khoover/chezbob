@@ -7,6 +7,7 @@ import io = require("socket.io");
 var rpc = require("rpc");
 var bootstrap = require("bootstrap");
 var d3 = require('d3-browserify');
+var moment = require('moment');
 
 export enum ClientType {
     Terminal = 0,
@@ -45,7 +46,9 @@ export class Client
     log;
     bcstats;
     timeout_timer;
-    time;
+    time: number;
+    transactionindex : number;
+    currenttransactions;
 
     type : ClientType;
     id;
@@ -104,6 +107,7 @@ export class Client
         $("#carousel").removeClass('hidden');
         $("#mainui").addClass('hidden');
         $("#purchases-table tbody").empty();
+        $("#transactionhistory-table tbody").empty();
     }
 
     login(client: Client, logindata)
@@ -148,6 +152,57 @@ export class Client
 
         $('.balance').text(balance);
     }
+
+    updateTransactions(client: Client)
+    {
+        client.server_channel.transactionhistory(client.transactionindex * 5, 5).then(
+            function (transaction)
+            {
+                if (client.transactionindex == 0)
+                {
+                    $("#transactionhistory-newer").addClass("disabled");
+                    $("#transactionhistory-older").removeClass("disabled");
+                }
+                else if (5 + (5 * client.transactionindex) > transaction.count)
+                {
+                    $("#transactionhistory-older").addClass("disabled");
+                    $("#transactionhistory-newer").removeClass("disabled");
+                }
+                else
+                {
+                    $("#transactionhistory-older").removeClass("disabled");
+                    $("#transactionhistory-newer").removeClass("disabled");
+                }
+
+                $("#transactionhistory-table tbody").empty();
+                client.currenttransactions = transaction.rows;
+                $.each(transaction.rows, function (idx, row)
+                    {
+                         $("#transactionhistory-table tbody").append(
+                             "<tr><td>" + moment(row.xacttime).format("MM/D/YY hh:mm a") +
+                             "</td><td>" + row.xacttype +
+                             "</td><td>" + row.xactvalue +
+                             "</td><td><a href='#' class='btn btn-info transactiondetail' data-id='" + idx +  "'>Detail</a>" +
+                             "</td></tr>");
+                    });
+
+                $(".transactiondetail").on('click', function(e) {
+                    var xact = client.currenttransactions[$(this).data('id')];
+                    $("#transactiondetails-table tbody").empty();
+                    $("#transactiondetails-table tbody").append('<tr><td>Id</td><td>' + xact.id + '<td></tr>');
+                    $("#transactiondetails-table tbody").append('<tr><td>Time</td><td>' + xact.xacttime + '<td></tr>');
+                    $("#transactiondetails-table tbody").append('<tr><td>Value</td><td>' + xact.xactvalue + '<td></tr>');
+                    $("#transactiondetails-table tbody").append('<tr><td>Type</td><td>' + xact.xacttype + '<td></tr>');
+                    $("#transactiondetails-table tbody").append('<tr><td>Source</td><td>' + xact.source + '<td></tr>');
+                    $("#transactiondetails-table tbody").append('<tr><td>Barcode</td><td>' + xact.barcode + '<td></tr>');
+                    $("#transactiondetails-table tbody").append('<tr><td>User ID</td><td>' + xact.userid + '<td></tr>');
+                    client.setUIscreen(client, 'transactions-detail');
+        });
+
+            }
+        );
+    }
+
     connect(client: Client)
     {
         rpc.connect(window.location.protocol + '//' + window.location.hostname + ':' + window.location.port);
@@ -192,6 +247,13 @@ export class Client
                         client.setBalance(client, purchasedata.newbalance);
                         client.setUIscreen(client,"mainpurchase");
                     },
+                    displayerror: function(icon, title, text)
+                    {
+                        $("#errortext").text(text);
+                        $("#errortitle").text(title);
+                        $("#erroricon").removeClass().addClass("fa-5x fa " + icon);
+                        $("#errordialog").modal('show');
+                    },
                     reload: function()
                     {
                         window.location.reload();
@@ -224,6 +286,13 @@ export class Client
                 )
         });
 
+        $("#errordialog").modal({show:false});
+        $("#errordialog").on('shown.bs.modal', function () {
+            setTimeout(function()
+                {
+                    $("#errordialog").modal('hide');
+                }, 3000);
+        });
         $(".optbutton").on('click', function(e)
                 {
                     client.setUIscreen(client, $(this).data('target'));
@@ -234,6 +303,10 @@ export class Client
                     client.setUIscreen(client, $(this).data('target'));
                 });
 
+        $(".disabletimeout").on('click', function(e)
+                {
+                    client.stopTimeout(client);
+                })
         $("#balancewarn").tooltip({
             title: "Your balance is negative. Please add funds to your account.",
             placement: 'bottom'
@@ -246,6 +319,30 @@ export class Client
             client.time = client.time + 30;
             client.log.trace("User added 30 seconds to autologout");
         });
+
+        $("#transactions-btn").on('click', function() {
+            //inital pager state.
+            $("#transactionhistory-newer").addClass("disabled");
+            $("#transactionhistory-older").removeClass("disabled");
+
+            //start with 10 most recent transactions
+            client.transactionindex = 0;
+            client.updateTransactions(client);
+        });
+
+        $("#transactionhistory-newerbtn").on('click', function() {
+            if (client.transactionindex != 0)
+            {
+                client.transactionindex--;
+                client.updateTransactions(client);
+            }
+        });
+
+        $("#transactionhistory-olderbtn").on('click', function() {
+            client.transactionindex++;
+            client.updateTransactions(client);
+        });
+
 
         $("#domanualpurchasebtn").on('click', function() {
             //do a manual purchase for this session
@@ -275,6 +372,21 @@ export class Client
             $("#manualdeposit-cents").val("00");
             $("#manualdeposit-dollars").val("0");
             client.server_channel.manualdeposit(amt);
+        })
+
+        $("#dotransferbtn").on('click', function() {
+            //do a manual purchase for this session
+            //probably should prevent autologout
+            if (!(<any>$("#dotransferbtn").closest('form')[0]).checkValidity())
+            {
+                return;
+            }
+            var paddedcents = "0" + $("#transfer-cents").val();
+            paddedcents = paddedcents.slice(-2);
+            var amt = $("#transfer-dollars").val() + "." + paddedcents;
+            $("#transfer-cents").val("00");
+            $("#transfer-dollars").val("0");
+            client.server_channel.transfer(amt, $("#transfer-user").val());
         })
 
         $("#mainCarousel").on('slide.bs.carousel', function (e)
