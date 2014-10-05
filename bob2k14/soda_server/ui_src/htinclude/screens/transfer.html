@@ -1,10 +1,12 @@
 <div id="transfer" class="ui-screen">
     <div class="col-xs-5">
             <div class="list-group">
-                <a href="#" class="list-group-item sidebutton" id="manualtransferexitbtn">
-                    <i class="fa-4x fa fa-sign-out"></i>
-                    <h1> Cancel</h1>
-                </a>
+                @@include('snippets/tsidebutton.html', {
+                    "id" : "transfer-exitbtn",
+                    "target" : "options",
+                    "fa" : "fa-sign-out",
+                    "text" : "Cancel"
+                })
             </div>
     </div>
     <div class="col-xs-7">

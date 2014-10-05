@@ -2,10 +2,12 @@
     <div class="row">
         <div class="col-xs-5">
             <div class="list-group">
-                <a href="#" class="list-group-item sidebutton" id="transactionsexitbtn">
-                    <i class="fa-4x fa fa-sign-out"></i>
-                    <h1> Exit</h1>
-                </a>
+                @@include('snippets/tsidebutton.html', {
+                    "id" : "transactions-exitbtn",
+                    "target" : "options",
+                    "fa" : "fa-sign-out",
+                    "text" : "Exit"
+                })
             </div>
         </div>
     </div>

@@ -1,10 +1,13 @@
 <div id="manualdeposit" class="ui-screen">
     <div class="col-xs-5">
             <div class="list-group">
-                <a href="#" class="list-group-item sidebutton" id="manualdepositexitbtn">
-                    <i class="fa-4x fa fa-sign-out"></i>
-                    <h1> Cancel</h1>
-                </a>
+                @@include('snippets/tsidebutton.html', {
+                    "id" : "manualdeposit-exitbtn",
+                    "target" : "options",
+                    "fa" : "fa-sign-out",
+                    "text" : "Cancel"
+                })
+
             </div>
     </div>
     <div class="col-xs-7">

@@ -229,22 +229,24 @@ export class Client
                     client.setUIscreen(client, $(this).data('target'));
                 });
 
+        $(".tsidebutton").on('click', function(e)
+                {
+                    client.setUIscreen(client, $(this).data('target'));
+                });
+
         $("#balancewarn").tooltip({
             title: "Your balance is negative. Please add funds to your account.",
             placement: 'bottom'
         });
+
         $("#logoutbtn").on('click', function() {
             client.server_channel.logout();
         });
         $("#moretimebtn").on('click', function() {
             client.time = client.time + 30;
+            client.log.trace("User added 30 seconds to autologout");
         });
-        $("#transactionsexitbtn").on('click', function() {
-            client.setUIscreen(client, "options");
-        });
-        $("#manualpurchaseexitbtn").on('click', function() {
-            client.setUIscreen(client, "options");
-        });
+
         $("#domanualpurchasebtn").on('click', function() {
             //do a manual purchase for this session
             //probably should prevent autologout
@@ -260,10 +262,6 @@ export class Client
             client.server_channel.manualpurchase(amt);
         })
 
-        //manual deposits
-        $("#manualdepositexitbtn").on('click', function() {
-            client.setUIscreen(client, "options");
-        });
         $("#domanualdepositbtn").on('click', function() {
             //do a manual purchase for this session
             //probably should prevent autologout
@@ -278,13 +276,6 @@ export class Client
             $("#manualdeposit-dollars").val("0");
             client.server_channel.manualdeposit(amt);
         })
-
-        //transfers
-        $("#transferexitbtn").on('click', function() {
-            client.setUIscreen(client, "options");
-        });
-        $("#transferbtn").on('click', function() {
-        });
 
         $("#mainCarousel").on('slide.bs.carousel', function (e)
                 {
