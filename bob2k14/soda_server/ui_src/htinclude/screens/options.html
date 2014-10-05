@@ -2,59 +2,59 @@
     <div class="row">
         <div class="col-xs-6">
             <div class="list-group">
-                <a href="#" class="list-group-item">
-                    <i class="fa fa-4x fa-user pull-left"></i>
-                    <div class="buttontextgroup">
-                        <h3>User Profile</h3>
-                        Settings, passwords, barcodes, etc.
-                    </div>
-                </a>
-                <a href="#" class="list-group-item" id="transactionsbtn">
-                    <i class="fa fa-4x fa-sort-amount-desc pull-left"></i>
-                    <div class="buttontextgroup">
-                        <h3>Transaction History</h3>
-                        View and reconcile transactions.
-                    </div>
-                </a>
-                <a href="#" class="list-group-item" id="manualpurchasebtn">
-                    <i class="fa fa-4x fa-question-circle pull-left"></i>
-                    <div class="buttontextgroup">
-                        <h3>Manual Purchase</h3>
-                        Manually enter a purchase price.
-                    </div>
-                </a>
-                <a href="#" class="list-group-item" id="manualdepositbtn">
-                    <i class="fa fa-4x fa-money pull-left"></i>
-                    <div class="buttontextgroup">
-                        <h3>Manual Deposit</h3>
-                        Manually deposit money.
-                    </div>
-                </a>
+                @@include('snippets/optbutton.html', {
+                    "id" : "user-profile-btn",
+                    "target" : "user-profile",
+                    "fa" : "fa-user",
+                    "title" : "User Profile",
+                    "description" : "Settings, passwords, barcodes, etc."
+                })
+                @@include('snippets/optbutton.html', {
+                    "id" : "transactions-btn",
+                    "target" : "transactions",
+                    "fa" : "fa-sort-amount-desc",
+                    "title" : "Transaction History",
+                    "description" : "View and reconcile transactions."
+                })
+               @@include('snippets/optbutton.html', {
+                    "id" : "manualpurchase-btn",
+                    "target" : "manualpurchase",
+                    "fa" : "fa-question-circle",
+                    "title" : "Manual Purchase",
+                    "description" : "Manually enter a purchase price."
+                })
+               @@include('snippets/optbutton.html', {
+                    "id" : "manualdeposit-btn",
+                    "target" : "manualdeposit",
+                    "fa" : "fa-money",
+                    "title" : "Manual Deposit",
+                    "description" : "Manually deposit money."
+                })
             </div>
         </div>
         <div class="col-xs-6">
             <div class="list-group">
-                <a href="#" class="list-group-item" id="transferbtn">
-                    <i class="fa fa-4x fa-compress pull-left"></i>
-                    <div class="buttontextgroup">
-                        <h3>Transfer</h3>
-                        Transfer money between accounts.
-                    </div>
-                </a>
-                <a href="#" class="list-group-item" id="messagebtn">
-                    <i class="fa fa-4x fa-envelope pull-left"></i>
-                    <div class="buttontextgroup">
-                        <h3>Message</h3>
-                        Send a message to ChezBob.
-                    </div>
-                </a>
-                <a href="#" class="list-group-item" id="optionsexitbtn">
-                    <i class="fa fa-4x fa-sign-out pull-left"></i>
-                    <div class="buttontextgroup">
-                        <h3>Exit</h3>
-                        Return to the purchase screen.
-                    </div>
-                </a>
+                @@include('snippets/optbutton.html', {
+                    "id" : "transfer-btn",
+                    "target" : "transfer",
+                    "fa" : "fa-compress",
+                    "title" : "Transfer",
+                    "description" : "Transfer money between accounts."
+                })
+                @@include('snippets/optbutton.html', {
+                    "id" : "message-btn",
+                    "target" : "message",
+                    "fa" : "fa-envelope",
+                    "title" : "Message",
+                    "description" : "Send a message to ChezBob."
+                })
+               @@include('snippets/optbutton.html', {
+                    "id" : "optionsexit-btn",
+                    "target" : "mainpurchase",
+                    "fa" : "fa-sign-out",
+                    "title" : "Exit",
+                    "description" : "Return to the purchase screen."
+                })
             </div>
         </div>
     </div>

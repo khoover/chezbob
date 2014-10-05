@@ -125,6 +125,7 @@ export class Client
     {
         $(".ui-screen").addClass('hidden');
         $("#" + screen).removeClass('hidden');
+        client.log.trace("Switching to screen " + screen);
     }
 
     setBalance(client: Client, balance : string)
@@ -222,6 +223,11 @@ export class Client
                     }
                 )
         });
+
+        $(".optbutton").on('click', function(e)
+                {
+                    client.setUIscreen(client, $(this).data('target'));
+                });
 
         $("#balancewarn").tooltip({
             title: "Your balance is negative. Please add funds to your account.",
