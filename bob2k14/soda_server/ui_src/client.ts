@@ -206,6 +206,24 @@ export class Client
         );
     }
 
+    updateBarcodes(client: Client)
+    {
+        client.server_channel.get_barcodes().then(
+                    function (barcodes)
+                    {
+                        $("#barcodes-table tbody").empty();
+                        $.each(barcodes, function (idx, barcode)
+                            {
+                                $("#barcodes-table tbody").append('<tr><td>' + barcode.barcode + '</td><td><a href="#" class="btn btn-danger deregisterbarcode" data-barcode="' + barcode.barcode + '">Forget</a></td></tr>');
+                            });
+                        $(".deregisterbarcode").on('click', function(e)
+                            {
+                                var barcode = $(this).data('barcode');
+                                client.server_channel.forget_barcode(barcode);
+                            })
+                    }
+                )
+    }
     connect(client: Client)
     {
         rpc.connect(window.location.protocol + '//' + window.location.hostname + ':' + window.location.port);
@@ -256,6 +274,10 @@ export class Client
                         $("#errortitle").text(title);
                         $("#erroricon").removeClass().addClass("fa-5x fa " + icon);
                         $("#errordialog").modal('show');
+                    },
+                    updatebarcodes: function()
+                    {
+                        client.updateBarcodes(client);
                     },
                     reload: function()
                     {
@@ -349,6 +371,17 @@ export class Client
         $("#profile-btn").on('click', function() {
             $("#profile-username").val(client.current_user.username);
             $("#profile-email").val(client.current_user.email)
+        });
+
+        $("#profile-barcodebtn").on('click', function()
+        {
+            client.updateBarcodes(client);
+            client.server_channel.learnmode_barcode(true);
+        });
+
+        $("#setbarcode-exitbtn").on('click', function()
+        {
+            client.server_channel.learnmode_barcode(false);
         });
 
         $("#domanualpurchasebtn").on('click', function() {

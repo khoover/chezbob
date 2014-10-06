@@ -426,9 +426,38 @@ class sodad_server {
                             }
                             else
                             {
-                                if (session.learn)
+                                if (session.learn === "true")
                                 {
                                     //we are trying to learn this barcode
+                                    log.trace("Learning mode on, add learned barcode.")
+                                    models.Userbarcodes.find(
+                                                {
+                                                    where : {
+                                                    barcode: barcode,
+                                                    userid: session.uid}
+                                                }
+                                            ).then(function (exist_barcode) {
+                                                if (exist_barcode !== null)
+                                                {
+                                                    throw "Barcode already learned!"
+                                                }
+                                                return models.Userbarcodes.create(
+                                                    {
+                                                        barcode: barcode,
+                                                        userid: session.uid
+                                                    }
+                                                ).then(function (a)
+                                                    {
+                                                        log.info("Barcode " + barcode + " learned for client " + sessionid);
+                                                        server.clientchannels[sessionid].displayerror("fa-barcode", "Barcode learned", "Barcode " + barcode + " learned");
+                                                        server.clientchannels[sessionid].updatebarcodes();
+                                                    })
+                                            })
+                                            .catch(function (e)
+                                                {
+                                                    log.info("Barcode " + barcode + " NOT learned for client " + sessionid + " due to error: " + e);
+                                                    server.clientchannels[sessionid].displayerror("fa-warning", "Learn failed", "Barcode " + barcode + " already learned by you or another user.");
+                                                })
                                 }
                                 else if (session.detail)
                                 {
@@ -464,6 +493,39 @@ class sodad_server {
                             }
                         })
         }
+    }
+
+    //getbarcode: return a list of barcodes registered to the user.
+    get_barcodes( server: sodad_server, client: string )
+    {
+        return redisclient.hgetAsync("sodads:" + client, "uid")
+                          .then(function (uid)
+                                  {
+                                    return models.Userbarcodes.findAll( { where : { userid: uid }})
+                                  })
+    }
+
+    //forget_barcode: forgets a barcode registered to the user.
+    forget_barcode( server: sodad_server, client: string, barcode: string )
+    {
+        return redisclient.hgetAsync("sodads:" + client, "uid")
+                          .then(function (uid)
+                                  {
+                                    return models.Userbarcodes.find( { where : { userid: uid, barcode: barcode }})
+                                        .then(function(result){
+                                            if (result === null) {throw "Barcode not registered to user!"}
+                                            result.destroy().then(function (deleted)
+                                                {
+                                                    server.clientchannels[client].displayerror("fa-trash", "Barcode deleted", "Barcode " + barcode + " deleted");
+                                                    server.clientchannels[client].updatebarcodes();
+                                                })
+                                        })
+                                  })
+    }
+
+    learnmode_barcode( server: sodad_server, client: string, learnmode: boolean)
+    {
+        return redisclient.hsetAsync("sodads:" + client, "learn", learnmode);
     }
 
     start = () => {
@@ -575,6 +637,24 @@ class sodad_server {
                 var client = this.id;
                 log.info("Transaction history request for index " + index + ", count " + count + " for client " + client);
                 return server.transaction_history(server, client, index, count);
+            },
+            get_barcodes: function()
+            {
+                var client = this.id;
+                log.info("Getting barcodes registered for client " + client);
+                return server.get_barcodes(server, client);
+            },
+            forget_barcode: function(barcode)
+            {
+                var client = this.id;
+                log.info("Forget barcode requested for client "  + client);
+                return server.forget_barcode(server, client, barcode);
+            },
+            learnmode_barcode: function(mode)
+            {
+                var client = this.id;
+                log.info("Setting learn mode to " + mode  + " for client " + client);
+                return server.learnmode_barcode(server, client, mode);
             },
             authenticate: function(user, password)
             {
