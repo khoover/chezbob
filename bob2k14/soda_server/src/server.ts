@@ -447,8 +447,9 @@ class sodad_server {
                                                             .then( function (user)
                                                             {
                                                                 var purchase_desc = user.pref_forget_which_product ? "BUY" : "BUY " + products.name;
+                                                                var purchase_barcode = user.pref_forget_which_product ? null : products.barcode;
                                                                 server.balance_transaction(server, sessionid, purchase_desc,
-                                                                 purchase_desc, null,  "-" + products.price);
+                                                                 products.name, purchase_barcode,  "-" + products.price);
                                                             })
                                                     }
                                                     else
