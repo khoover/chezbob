@@ -13,6 +13,7 @@ var jayson = require('jayson');
 var jsesc = require('jsesc');
 import Buffer = require('buffer');
 import express = require('express')
+var bodyparser = require('body-parser');
 var bunyanredis = require('bunyan-redis');
 var io = require('socket.io');
 var promise = require('bluebird');
@@ -169,6 +170,7 @@ class sodad_server {
     clientloggers;
     clientchannels;
     clientmap;
+    clientidmap;
 
     iochannel;
 
@@ -371,6 +373,97 @@ class sodad_server {
                                   })
     }
 
+    handle_barcode (server: sodad_server, type: ClientType, num: number, bc_type: string, barcode: string)
+    {
+        var sessionid;
+        if (server.clientmap[type][num] !== undefined )
+        {
+            sessionid = server.clientidmap[type][num];
+            log.trace("Mapping session for " + ClientType[type] + "/" + num + " to " +  server.clientidmap[type][num]);
+            redisclient.hgetallAsync("sodads:" + sessionid)
+                .then(function (session)
+                        {
+                            if (session == null)
+                            {
+                                //nobody is logged in
+                               return models.Userbarcodes.find( { where: { barcode : barcode }})
+                                .then(function(userbarcode)
+                                    {
+                                        if (userbarcode !== null)
+                                        {
+                                            return models.Users.find( { where: { userid : userbarcode.userid }})
+                                                .then( function (user)
+                                                    {
+                                                        var multi = redisclient.multi();
+                                                        multi.hset("sodads:" + sessionid, "uid", user.userid);
+                                                        multi.expire("sodads:" + sessionid, 600);
+                                                        multi.exec();
+                                                        log.info("Successfully authenticated " + user.username +
+                                                            " (barcode) for client " + sessionid);
+                                                        server.clientchannels[sessionid].login(user)
+                                                    })
+                                        }
+                                        else
+                                        {
+                                            //maybe it's a product? price check.
+                                            return models.Products.find( { where: { barcode: barcode }})
+                                                .then( function (products)
+                                                {
+                                                    if (products !== null)
+                                                    {
+                                                        log.trace("Display price for product " + products.name + " due to barcode scan.");
+                                                        server.clientchannels[sessionid].displayerror("fa-barcode", "Price Check", products.name + " costs " + products.price);
+                                                    }
+                                                    else
+                                                    {
+                                                        //no idea what this is.
+                                                       log.trace("Unknown barcode " + barcode + ", rejecting.")
+                                                       server.clientchannels[sessionid].displayerror("fa-warning", "Unknown Barcode", "Unknown barcode " + barcode + ", please scan again.");
+                                                    }
+                                                });
+                                        }
+                                    })
+                            }
+                            else
+                            {
+                                if (session.learn)
+                                {
+                                    //we are trying to learn this barcode
+                                }
+                                else if (session.detail)
+                                {
+                                    //trying to get detailed info about this barcode
+                                }
+                                //default to purchase
+                                else
+                                {
+                                    return models.Products.find( { where: { barcode: barcode }})
+                                                .then( function (products)
+                                                {
+                                                    if (products !== null)
+                                                    {
+                                                        log.info("Purchase " + products.name + " using barcode scan.");
+                                                        return models.Users.find( { where: { userid : session.uid }})
+                                                            .then( function (user)
+                                                            {
+                                                                var purchase_desc = user.pref_forget_which_product ? "BUY" : "BUY " + products.name;
+                                                                server.balance_transaction(server, sessionid, purchase_desc,
+                                                                 purchase_desc, null,  "-" + products.price);
+                                                            })
+                                                    }
+                                                    else
+                                                    {
+                                                        //no idea what this is.
+                                                       log.trace("Unknown barcode " + barcode + ", rejecting.")
+                                                       server.clientchannels[sessionid].displayerror("fa-warning", "Unknown Barcode", "Unknown barcode " + barcode + ", please scan again.");
+                                                    }
+                                                });
+
+                                }
+                            }
+                        })
+        }
+    }
 
     start = () => {
         var server = this;
@@ -385,6 +478,17 @@ class sodad_server {
             res.send("hello world.");
         });
 
+        var jsonserver = jayson.server({
+            "Soda.remotebarcode" : function (type, barcode, cb)
+            {
+                log.trace("Got remote barcode "  + barcode);
+                server.handle_barcode(server, ClientType.Soda, 0, type, barcode);
+                cb(null);
+            }
+        });
+
+        this.app.use('/api', bodyparser.json());
+        this.app.use('/api', jsonserver.middleware());
         this.server = this.app.listen(config.sodad.port, function() {
 
         });
@@ -393,6 +497,9 @@ class sodad_server {
         this.clientmap = {};
         this.clientmap[ClientType.Terminal] = {};
         this.clientmap[ClientType.Soda] = {};
+        this.clientidmap = {};
+        this.clientidmap[ClientType.Terminal] = {};
+        this.clientidmap[ClientType.Soda] = {};
 
         this.iochannel = io.listen(this.server);
         rpc.createServer(this.iochannel, this.app);
@@ -538,6 +645,7 @@ class sodad_server {
                     server.clientchannels[socket.id] = fns;
                     fns.gettype().then(function (typedata){
                         server.clientmap[typedata.type][typedata.id] = fns;
+                        server.clientidmap[typedata.type][typedata.id] = socket.id;
                         log.info("Registered client channel type (" + ClientType[typedata.type] + "/"
                             + typedata.id + ") for client " + socket.id);
                     });
