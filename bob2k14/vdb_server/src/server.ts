@@ -173,7 +173,7 @@ class vdb_server {
 
     //asynchrnously sends a string over port
     send = (data: String, cb) => {
-        log.debug("send: ", jsesc(data));
+        log.trace("send: ", jsesc(data));
         this.port.write(data, function(error)
                 {
                     if (typeof error !== 'undefined' && error && error !== null)
@@ -204,13 +204,13 @@ class vdb_server {
                                 switch (data[i])
                                 {
                                     case 0xa:
-                                        log.debug("received ACK");
+                                        log.trace("received ACK");
                                     break;
                                     case 0xd:
                                         vdb.last_buffer = vdb.current_buffer;
                                         vdb.current_buffer = "";
                                         vdb.send("\n", null);
-                                        log.debug("received " + vdb.last_buffer);
+                                        log.trace("received " + vdb.last_buffer);
                                         //mark that we need to send the last buffer
                                         process_last = true;
                                         break;
