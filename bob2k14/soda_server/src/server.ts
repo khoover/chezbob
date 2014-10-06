@@ -106,7 +106,6 @@ class InitData {
                 {
                     sql = new sequelize(initdata.dbname, initdata.dbuser, password,  {
                         host: initdata.dbhost,
-                        omitNull: true,
                         dialect: 'postgres',
                         logging: function(data) {
                             dblog.trace(data);
@@ -400,6 +399,7 @@ class sodad_server {
                                                         multi.exec();
                                                         log.info("Successfully authenticated " + user.username +
                                                             " (barcode) for client " + sessionid);
+                                                        user.pwd = (user.pwd === null || user.pwd === "") ? false : true;
                                                         server.clientchannels[sessionid].login(user)
                                                     })
                                         }
@@ -526,6 +526,55 @@ class sodad_server {
     learnmode_barcode( server: sodad_server, client: string, learnmode: boolean)
     {
         return redisclient.hsetAsync("sodads:" + client, "learn", learnmode);
+    }
+
+    updateuser(server: sodad_server, client: string)
+    {
+        return redisclient.hgetAsync("sodads:" + client, "uid")
+                          .then(function (uid)
+                                  {
+                                    return models.Users.find( { where : { userid: uid }})
+                                        .then(function(result){
+                                                var user = result;
+                                                user.pwd = (user.pwd === null || user.pwd === '') ? false: true;
+                                                server.clientchannels[client].updateuser(user);
+                                            })
+                                  });
+    }
+
+    changepassword (server: sodad_server, client: string, enabled: boolean,
+            newpassword: string, oldpassword: string)
+    {
+        return redisclient.hgetAsync("sodads:" + client, "uid")
+                          .then(function (uid)
+                                  {
+                                    return models.Users.find( { where : { userid: uid }})
+                                        .then(function(result){
+                                            if (result === null) {throw "Couldn't find user to change password!"}
+                                            else if (!(result.pwd === null || result.pwd === ""))
+                                            {
+                                                if (crypt(oldpassword, "cB") !== result.pwd)
+                                                {
+                                                    throw "Old password is incorrect!"
+                                                }
+                                            }
+                                            var newpass = enabled ? crypt(newpassword, "cB") : null;
+                                            return result.updateAttributes(
+                                                    {
+                                                        pwd : newpass
+                                                    }).then(function (updated_user)
+                                                        {
+                                                            log.info("Successfully updated password for user " + updated_user.username + " on client "  + client);
+                                                            server.clientchannels[client].displayerror("fa-check", "Update success", "Password settings updated");
+                                                            server.updateuser(server, client);
+                                                        })
+                                            })
+                                  })
+                        .catch(function (e)
+                                {
+                                    log.info("Failed to update password due to " + e);
+                                    server.clientchannels[client].displayerror("fa-check", "Update failure", "Couldn't update passwords: " + e);
+                                })
     }
 
     start = () => {
@@ -656,6 +705,12 @@ class sodad_server {
                 log.info("Setting learn mode to " + mode  + " for client " + client);
                 return server.learnmode_barcode(server, client, mode);
             },
+            changepassword: function(enable, newpassword, oldpassword)
+            {
+                var client = this.id;
+                log.info("Setting password (enabled=" + enable + ") for client " + client);
+                return server.changepassword(server, client, enable, newpassword, oldpassword);
+            },
             authenticate: function(user, password)
             {
                 var deferred = promise.defer();
@@ -689,6 +744,7 @@ class sodad_server {
                                         multi.exec();
                                         log.info("Successfully authenticated " + user +
                                             " (no pass) for client " + client);
+                                        luser.pwd = false;
                                         server.clientchannels[client].login(luser);
                                     }
                                     else
@@ -701,6 +757,7 @@ class sodad_server {
                                             multi.exec();
                                             log.info("Successfully authenticated " + user +
                                             " (password) for client " + client);
+                                            luser.pwd = true;
                                             server.clientchannels[client].login(luser);
                                         }
                                         else

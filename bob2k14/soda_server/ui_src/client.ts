@@ -279,6 +279,10 @@ export class Client
                     {
                         client.updateBarcodes(client);
                     },
+                    updateuser: function(user)
+                    {
+                        client.current_user = user;
+                    },
                     reload: function()
                     {
                         window.location.reload();
@@ -383,6 +387,59 @@ export class Client
         {
             client.server_channel.learnmode_barcode(false);
         });
+
+        $("#profile-passwordbtn").on('click', function()
+        {
+            (<HTMLFormElement>$("#setpasswordform")[0]).reset();
+            if (client.current_user.pwd)
+            {
+                $("#setpassword-current-div").removeClass('hidden');
+                $("#setpassword-enable").prop("checked", true);
+                $("#setpassword-new-div").removeClass('hidden');
+                $("#setpassword-confirm-div").removeClass('hidden');
+            }
+            else
+            {
+                $("#setpassword-current-div").addClass('hidden');
+                $("#setpassword-enable").prop("checked", false);
+                $("#setpassword-new-div").addClass('hidden');
+                $("#setpassword-confirm-div").addClass('hidden');
+            }
+        });
+
+        $("#setpassword-confirm").on('input', function(e)
+                {
+                    if (this.value !== $("#setpassword-new").val())
+                    {
+                        this.setCustomValidity('The confirmation password must match.');
+                    }
+                    else
+                    {
+                        this.setCustomValidity('');
+                    }
+                });
+
+        $("#setpasswordform").on('submit', function(e)
+                {
+                    client.log.info("Begin password change request.");
+                    e.preventDefault();
+                    client.server_channel.changepassword($("#setpassword-enable").prop('checked'),
+                        $("#setpassword-new").val(), $("#setpassword-current").val());
+                }
+        );
+        $("#setpassword-enable").on('change', function()
+                {
+                    if (this.checked)
+                    {
+                        $("#setpassword-new-div").removeClass('hidden');
+                        $("#setpassword-confirm-div").removeClass('hidden');
+                    }
+                    else
+                    {
+                        $("#setpassword-new-div").addClass('hidden');
+                        $("#setpassword-confirm-div").addClass('hidden');
+                    }
+                })
 
         $("#domanualpurchasebtn").on('click', function() {
             //do a manual purchase for this session

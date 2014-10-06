@@ -30,11 +30,11 @@ export class Models {
         }, {timestamps : false});
 
         this.Users = sql.define('users', {
-            userid: { type: sequelize.INTEGER, primaryKey: true},
+            userid: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
             username: sequelize.STRING,
             email: sequelize.STRING,
             nickname: sequelize.STRING,
-            pwd: sequelize.STRING,
+            pwd: { type: sequelize.STRING, allowNull: true},
             balance: sequelize.DECIMAL,
             disabled: sequelize.BOOLEAN,
             last_purchase_time: sequelize.DATE,
@@ -55,7 +55,7 @@ export class Models {
             xacttype: sequelize.STRING,
             barcode: { type: sequelize.STRING, allowNull: true},
             source: sequelize.STRING,
-            id: { type: sequelize.INTEGER, primaryKey: true},
+            id: { type: sequelize.INTEGER, primaryKey: true, autoIncrement: true},
             finance_trans_id: { type: sequelize.INTEGER, allowNull: true}
         }, {timestamps: false});
 
