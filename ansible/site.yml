@@ -18,4 +18,5 @@
       - redis
       - mdb-server
       - vdb-server
+      - barcode-server
 
