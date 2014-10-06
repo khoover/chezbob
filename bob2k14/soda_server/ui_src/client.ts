@@ -52,6 +52,7 @@ export class Client
 
     type : ClientType;
     id;
+    current_user;
 
     startTimeout(client: Client)
     {
@@ -108,6 +109,7 @@ export class Client
         $("#mainui").addClass('hidden');
         $("#purchases-table tbody").empty();
         $("#transactionhistory-table tbody").empty();
+        client.current_user = null;
     }
 
     login(client: Client, logindata)
@@ -123,6 +125,7 @@ export class Client
         $("#purchases-table tbody").empty();
         client.startTimeout(client);
         client.setUIscreen(client, "mainpurchase");
+        client.current_user = logindata;
     }
 
     setUIscreen(client: Client, screen: string)
@@ -343,6 +346,10 @@ export class Client
             client.updateTransactions(client);
         });
 
+        $("#profile-btn").on('click', function() {
+            $("#profile-username").val(client.current_user.username);
+            $("#profile-email").val(client.current_user.email)
+        });
 
         $("#domanualpurchasebtn").on('click', function() {
             //do a manual purchase for this session

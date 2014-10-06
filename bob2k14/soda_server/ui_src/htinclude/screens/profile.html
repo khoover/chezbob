@@ -1,0 +1,47 @@
+<div id="profile" class="ui-screen">
+    <div class="row">
+        <div class="col-xs-5">
+            <div class="list-group">
+                @@include('snippets/tsidebutton.html', {
+                    "id" : "profile-exitbtn",
+                    "target" : "options",
+                    "fa" : "fa-sign-out",
+                    "text" : "Exit"
+                })
+                @@include('snippets/tsidebutton.html', {
+                    "id" : "profile-passwordbtn",
+                    "target" : "set-password",
+                    "fa" : "fa-pencil",
+                    "text" : "Password"
+                })
+                @@include('snippets/tsidebutton.html', {
+                    "id" : "profile-barcodebtn",
+                    "target" : "set-barcode",
+                    "fa" : "fa-barcode",
+                    "text" : "Barcode"
+                })
+            </div>
+        </div>
+        <div class="col-xs-7">
+            <form class="form-horizontal">
+                <div class="form-group">
+                     <label for="profile-username" class="control-label">
+                        Username
+                     </label>
+                     <input type="text" id="profile-username" class="form-control" readonly/>
+                </div>
+                <div class="form-group">
+                     <label for="profile-email" class="control-label">
+                        E-Mail
+                     </label>
+                     <input type="text" id="profile-email" class="form-control" readonly>
+                </div>
+                <div class="form-group">
+                    If you need to change your username or e-mail, please contact ChezBob staff.
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
