@@ -35,7 +35,3 @@
 - name: make sure sodad is running
   service: name=cb_sodad state=started
 
-- name: Install barcoded upstart job
-  copy: src=cb_barcoded.conf dest=/etc/init/cb_barcoded.conf
-- name: make sure barcoded is running
-  service: name=cb_barcoded state=started
