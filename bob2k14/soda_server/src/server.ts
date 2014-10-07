@@ -601,7 +601,7 @@ class sodad_server {
             multi.expire("sodads:" + client, 600);
             multi.exec();
             log.info("Successfully authenticated " + user.username +
-                " ( + " + user.source + " + ) for client " + client);
+                " (" + source + ") for client " + client);
             user.pwd = false;
             server.clientchannels[client].login(user);
     }
