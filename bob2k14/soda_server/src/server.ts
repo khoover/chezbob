@@ -590,14 +590,23 @@ class sodad_server {
 
     bug_report (server: sodad_server, client: string, report: string)
     {
-
+        return redisclient.hgetallAsync("sodads:" + client)
+            .then(function(udata)
+                {
+                    log.info("User " + udata.username + " submitted a bug report.", udata);
+                }
+            )
+            .catch(function(e)
+                    {
+                        log.error("Error sending bug report: " + e);
+                    })
     }
 
     handle_login (server: sodad_server, client: string, source: string, user)
     {
             var multi = redisclient.multi();
-            multi.hset("sodads:" + client, "uid", user.userid);
-            multi.hset("sodads:" + client, "udata", user)
+            multi.hset("sodads:" + client, "uid", user.userid); //TODO: deprecated key uid
+            multi.hmset("sodads:" + client, user)
             multi.expire("sodads:" + client, 600);
             multi.exec();
             log.info("Successfully authenticated " + user.username +
@@ -733,6 +742,12 @@ class sodad_server {
                 var client = this.id;
                 log.info("Setting learn mode to " + mode  + " for client " + client);
                 return server.learnmode_barcode(server, client, mode);
+            },
+            bug_report: function(report)
+            {
+                var client = this.id;
+                log.info("Submitting a bug report for client " + client);
+                return server.bug_report(server, client, report);
             },
             changepassword: function(enable, newpassword, oldpassword)
             {

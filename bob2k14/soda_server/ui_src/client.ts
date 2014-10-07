@@ -486,6 +486,15 @@ export class Client
             client.server_channel.transfer(amt, $("#transfer-user").val());
         })
 
+        $("#message_bug-form").on('submit', function(e) {
+            e.preventDefault();
+            client.log.info("Sending a bug report.");
+            client.server_channel.bug_report($("#message_bug-report").val()).then(function ()
+                {
+                    (<HTMLFormElement>$("#message_bug-form")[0]).reset();
+                    client.setUIscreen(client, "message");
+                });
+        })
         $("#mainCarousel").on('slide.bs.carousel', function (e)
                 {
                     if ($(e.relatedTarget).attr('id') === 'chart')
