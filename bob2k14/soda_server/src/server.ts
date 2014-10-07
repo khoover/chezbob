@@ -137,6 +137,7 @@ class InitData {
                 }
             )
         log.info("Mail transport configured.");
+        callback();
     }
 
     init = (initdata : InitData, callback: (err,res) => void) : void =>
