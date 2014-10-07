@@ -24,6 +24,7 @@ var pgpass = require('pgpass');
 var Models = require('./models');
 var crypt = require('crypt3');
 var redis = promise.promisifyAll(require('redis'));
+var nodemailer = require('nodemailer');
 
 var log;
 var dblog;
@@ -32,6 +33,7 @@ var redistransport;
 var sql;
 var models;
 var redisclient;
+var mailtransport;
 
 class InitData {
     version: String;
@@ -42,6 +44,8 @@ class InitData {
     dbname;
     dbuser;
     dbhost;
+
+    cbemail;
 
     loadVersion (initdata: InitData, callback: () => void) : void
     {
@@ -118,10 +122,21 @@ class InitData {
         });
     }
 
-    initSessions = (initdata: InitData, callback: () => void) : void =>
+    initSessions (initdata: InitData, callback: () => void) : void
     {
         redisclient = redis.createClient();
         callback();
+    }
+
+    initMailTransporter (initdata: InitData, callback: () => void) : void
+    {
+        mailtransport = nodemailer.createTransport(
+                {
+                    host: 'localhost',
+                    port: 25
+                }
+            )
+        log.info("Mail transport configured.");
     }
 
     init = (initdata : InitData, callback: (err,res) => void) : void =>
@@ -131,6 +146,7 @@ class InitData {
                     function (cb) {initdata.loadVersion(initdata, cb)},
                     function (cb) {initdata.connectDB(initdata, cb)},
                     function (cb) {initdata.initSessions(initdata, cb)},
+                    function (cb) {initdata.initMailTransporter(initdata, cb)},
                     function (err, res)
                     {
                         callback(null, initdata);
@@ -143,6 +159,7 @@ class InitData {
         this.dbname = "bob";
         this.dbuser = "bob";
         this.dbhost = "localhost";
+        this.cbemail = "mwei@cs.ucsd.edu";
     }
 }
 
@@ -393,14 +410,7 @@ class sodad_server {
                                             return models.Users.find( { where: { userid : userbarcode.userid }})
                                                 .then( function (user)
                                                     {
-                                                        var multi = redisclient.multi();
-                                                        multi.hset("sodads:" + sessionid, "uid", user.userid);
-                                                        multi.expire("sodads:" + sessionid, 600);
-                                                        multi.exec();
-                                                        log.info("Successfully authenticated " + user.username +
-                                                            " (barcode) for client " + sessionid);
-                                                        user.pwd = (user.pwd === null || user.pwd === "") ? false : true;
-                                                        server.clientchannels[sessionid].login(user)
+                                                        server.handle_login(server, sessionid, "barcode", user);
                                                     })
                                         }
                                         else
@@ -577,6 +587,24 @@ class sodad_server {
                                 })
     }
 
+    bug_report (server: sodad_server, client: string, report: string)
+    {
+
+    }
+
+    handle_login (server: sodad_server, client: string, source: string, user)
+    {
+            var multi = redisclient.multi();
+            multi.hset("sodads:" + client, "uid", user.userid);
+            multi.hset("sodads:" + client, "udata", user)
+            multi.expire("sodads:" + client, 600);
+            multi.exec();
+            log.info("Successfully authenticated " + user.username +
+                " ( + " + user.source + " + ) for client " + client);
+            user.pwd = false;
+            server.clientchannels[client].login(user);
+    }
+
     start = () => {
         var server = this;
         log.info("sodad_server starting, listening on " + config.sodad.port);
@@ -738,27 +766,13 @@ class sodad_server {
                                     }
                                     else if (luser.pwd == null && password == "")
                                     {
-                                        var multi = redisclient.multi();
-                                        multi.hset("sodads:" + client, "uid", luser.userid);
-                                        multi.expire("sodads:" + client, 600);
-                                        multi.exec();
-                                        log.info("Successfully authenticated " + user +
-                                            " (no pass) for client " + client);
-                                        luser.pwd = false;
-                                        server.clientchannels[client].login(luser);
+                                        server.handle_login(server, client, "no pass", luser);
                                     }
                                     else
                                     {
                                         if(crypt(password, "cB") === luser.pwd)
                                         {
-                                            var multi = redisclient.multi();
-                                            multi.hset("sodads:" + client, "uid", luser.userid);
-                                            multi.expire("sodads:" + client, 600);
-                                            multi.exec();
-                                            log.info("Successfully authenticated " + user +
-                                            " (password) for client " + client);
-                                            luser.pwd = true;
-                                            server.clientchannels[client].login(luser);
+                                            server.handle_login(server, client, "password", luser);
                                         }
                                         else
                                         {
