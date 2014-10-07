@@ -1,0 +1,30 @@
+<div id="message_bug" class="ui-screen">
+    <div class="row">
+        <div class="col-xs-5">
+            <div class="list-group">
+                @@include('snippets/tsidebutton.html', {
+                    "id" : "profile-exitbtn",
+                    "target" : "message",
+                    "fa" : "fa-sign-out",
+                    "text" : "Cancel"
+                })
+            </div>
+        </div>
+        <div class="col-xs-7">
+            <p class="lead">Thank you for submitting a bug report! This form will automatically
+            send logs so that ChezBob staff can debug the issue. You will
+            receive a copy of the bug report once submitted.</p>
+            <form class="form-horizontal" id="message_bug-form">
+                <div class="form-group">
+                     <label for="message_bug-report" class="control-label">
+                        Report
+                     </label>
+                     <textarea type="textarea" id="message_bug-report" class="form-control" rows=6 cols=10>
+                    </textarea>
+                    <button type="submit" class="btn btn-primary btn-lg">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

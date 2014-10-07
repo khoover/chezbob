@@ -1,0 +1,54 @@
+<div id="message" class="ui-screen">
+    <div class="row">
+        <div class="col-xs-5">
+            <div class="list-group">
+                @@include('snippets/tsidebutton.html', {
+                    "id" : "message-exitbtn",
+                    "target" : "options",
+                    "fa" : "fa-sign-out",
+                    "text" : "Exit"
+                })
+            </div>
+        </div>
+        <div class="col-xs-7">
+            Select the reason you would like to contact ChezBob below:
+
+            <div class="list-group">
+                @@include('snippets/optbutton.html',
+                {
+                    "id" : "messagebug-btn",
+                    "target" : "message_bug",
+                    "fa" : "fa-bug",
+                    "title" : "Bug Report",
+                    "description" : "Report a bug to ChezBob"
+                })
+                @@include('snippets/optbutton.html',
+                {
+                    "id" : "messagestock-btn",
+                    "target" : "message-stock",
+                    "fa" : "fa-ban",
+                    "title" : "Out of Stock",
+                    "description" : "Report out of stock items"
+                })
+                @@include('snippets/optbutton.html',
+                {
+                    "id" : "messageissues-btn",
+                    "target" : "message-issues",
+                    "fa" : "fa-life-ring",
+                    "title" : "Help / Issues",
+                    "description" : "Get help with account issues"
+                })
+                @@include('snippets/optbutton.html',
+                {
+                    "id" : "messagecomments-btn",
+                    "target" : "message-comments",
+                    "fa" : "fa-comments",
+                    "title" : "Comments",
+                    "description" : "Comments, complaints, requests..."
+                })
+
+            </div>
+        </div>
+    </div>
+</div>
+
