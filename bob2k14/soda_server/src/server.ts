@@ -167,7 +167,7 @@ class InitData {
         this.dbname = "bob";
         this.dbuser = "bob";
         this.dbhost = "localhost";
-        this.cbemail = "mwei@cs.ucsd.edu";
+        this.cbemail = "chezbob@cs.ucsd.edu";
 
         //TODO: this needs to be read from the main config file
         this.sodamap = {
