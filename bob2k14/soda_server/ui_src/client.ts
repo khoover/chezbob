@@ -47,6 +47,7 @@ export class Client
     bcstats;
     timeout_timer;
     time: number;
+    time_pause: boolean;
     transactionindex : number;
     currenttransactions;
 
@@ -67,7 +68,10 @@ export class Client
         $("#moretimebtn").removeClass('hidden');
         client.timeout_timer = setInterval(function ()
                 {
-                    client.time = client.time - 1;
+                    if (!client.time_pause)
+                    {
+                        client.time = client.time - 1;
+                    }
                     if (client.time == 0)
                     {
                         client.server_channel.logout();
@@ -110,6 +114,7 @@ export class Client
         $("#purchases-table tbody").empty();
         $("#transactionhistory-table tbody").empty();
         client.current_user = null;
+        client.time_pause = false;
     }
 
     login(client: Client, logindata)
@@ -126,6 +131,7 @@ export class Client
         client.startTimeout(client);
         client.setUIscreen(client, "mainpurchase");
         client.current_user = logindata;
+        client.time_pause = false;
     }
 
     setUIscreen(client: Client, screen: string)
@@ -233,7 +239,6 @@ export class Client
                     client.server_channel = channel;
                     client.log = new ClientLogger(channel);
                     client.log.info("New client connected");
-
                     var barcodes = ['782740', '496340', '049000042566', '120130', '120500',
                                 '783150', '783230', '120850', '496580'];
                     client.bcstats = {};
@@ -266,6 +271,9 @@ export class Client
                         var purchaseprice = purchasedata.amount[0] === '-' ? purchasedata.amount.substring(1) : '+' + purchasedata.amount;
                         $("#purchases-table tbody").append("<tr><td>" + purchasedata.name + "</td><td>" + purchaseprice + "</td>");
                         client.setBalance(client, purchasedata.newbalance);
+                        //maybe we don't want to call this on every purchase?
+                        $("#sodadialog").modal('hide');
+                        client.time_pause = false;
                         client.setUIscreen(client,"mainpurchase");
                     },
                     displayerror: function(icon, title, text)
@@ -273,7 +281,17 @@ export class Client
                         $("#errortext").text(text);
                         $("#errortitle").text(title);
                         $("#erroricon").removeClass().addClass("fa-5x fa " + icon);
+                        //if soda errors, we are no longer dispensing
+                        $("#sodadialog").modal('hide');
                         $("#errordialog").modal('show');
+                        client.time_pause = false;
+                    },
+                    displaysoda: function(requested_soda, soda_name)
+                    {
+                        //TODO: use requested_soda to display logo.
+                        $("#sodatext").text("Dispensing " + soda_name);
+                        $("#sodadialog").modal('show');
+                        client.time_pause = true;
                     },
                     updatebarcodes: function()
                     {

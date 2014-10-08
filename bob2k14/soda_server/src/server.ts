@@ -507,8 +507,8 @@ class sodad_server {
                                                         return models.Users.find( { where: { userid : session.uid }})
                                                             .then( function (user)
                                                             {
-                                                                var purchase_desc = user.pref_forget_which_product ? "BUY" : "BUY " + products.name;
-                                                                var purchase_barcode = user.pref_forget_which_product ? null : products.barcode;
+                                                                var purchase_desc = user.pref_forget_which_product === "true" ? "BUY" : "BUY " + products.name;
+                                                                var purchase_barcode = user.pref_forget_which_product  === "true" ? null : products.barcode;
                                                                 server.balance_transaction(server, sessionid, purchase_desc,
                                                                  products.name, purchase_barcode,  "-" + products.price);
                                                             })
@@ -828,6 +828,113 @@ class sodad_server {
                 log.trace("Got remote barcode "  + barcode);
                 server.handle_barcode(server, ClientType.Soda, 0, type, barcode);
                 cb(null);
+            },
+            "Soda.vdbauth" : function (requested_soda, cb)
+            {
+                var sessionid;
+
+                //for now, there is only one client attached to the soda machine.
+                var type:ClientType = ClientType.Soda;
+                var num: number = 0;
+                if (server.clientmap[type][num] !== undefined )
+                {
+                    sessionid = server.clientidmap[type][num];
+                    log.trace("Mapping session for " + ClientType[type] + "/" + num + " to " +  server.clientidmap[type][num]);
+                    redisclient.hgetallAsync("sodads:" + sessionid)
+                        .then (function (session)
+                            {
+                                if (session === null)
+                                {
+                                    log.info ("Vend request for " + requested_soda + " DENIED due to no session");
+                                    server.clientchannels[sessionid].displayerror("fa-warn", "Vend DENIED", "You must be logged in to buy soda.");
+                                    cb(null, false);
+                                }
+                                else
+                                {
+                                    log.info("Vend request for " + requested_soda + " AUTHORIZED for user " + session.username);
+                                    //get requested soda name...
+                                    models.Products.find({where : {barcode : server.initdata.sodamap[requested_soda] }})
+                                        .then(function (sodainfo)
+                                            {
+                                                server.clientchannels[sessionid].displaysoda(requested_soda, sodainfo.name);
+                                                redisclient.hsetAsync("sodads:" + sessionid, "activevend", true).then(function ()
+                                                {
+                                                    cb(null, true);
+                                                });
+                                            });
+                                }
+                            }).catch(function (e)
+                                {
+                                    log.error("Vend request for " + requested_soda + " DENIED due to lookup error " + e);
+                                    server.clientchannels[sessionid].displayerror("fa-warning", "Vend DENIED", "Lookup error " + e);
+                                    cb(null, false);
+                                })
+                }
+                else
+                {
+                    log.info("Vend request for " + requested_soda + " DENIED due to no session or socket");
+                    cb(null, false); //DENY vend, no one is logged in (and the browser isn't even pointed at this page)
+                }
+            },
+            "Soda.vdbvend" : function (success, requested_soda, cb)
+            {
+                log.info("Vend result is " + success);
+                var sessionid;
+
+                //for now, there is only one client attached to the soda machine.
+                var type:ClientType = ClientType.Soda;
+                var num: number = 0;
+                if (server.clientmap[type][num] !== undefined )
+                {
+                    sessionid = server.clientidmap[type][num];
+                    log.trace("Mapping session for " + ClientType[type] + "/" + num + " to " +  server.clientidmap[type][num]);
+                    redisclient.hgetallAsync("sodads:" + sessionid)
+                        .then (function (session)
+                            {
+                                if (session === null)
+                                {
+                                    log.error("Vend result=" + success + " for " + requested_soda + " NOT RECORDED due to no session!");
+                                    cb(null);
+                                }
+                                else
+                                {
+                                        log.info("Vend result=" + success + " for " + requested_soda + " recorded for " + session.username);
+                                        redisclient.hsetAsync("sodads:" + sessionid, "activevend", false).then(function ()
+                                                    {
+                                                        if (success)
+                                                        {
+                                                        models.Products.find({where : {barcode : server.initdata.sodamap[requested_soda] }})
+                                                            .then(function (sodainfo)
+                                                            {
+                                                                log.info("Purchase " + sodainfo.name + " due to soda vend");
+                                                                var purchase_desc = session.pref_forget_which_product === "true" ? "BUY" : "BUY " + sodainfo.name;
+                                                                var purchase_barcode = session.pref_forget_which_product === " true" ? null : sodainfo.barcode;
+                                                                server.balance_transaction(server, sessionid, purchase_desc,
+                                                                 sodainfo.name, purchase_barcode,  "-" + sodainfo.price);
+                                                                cb(null);
+                                                            })
+                                                        }
+                                                        else
+                                                        {
+                                                            log.info("Notifying client and recoding OOS for " + requested_soda);
+                                                            server.clientchannels[sessionid].displayerror("fa-warning", "Sold Out", "Sorry, looks like we are sold out. Don't worry, you won't be charged.");
+                                                            cb(null);
+                                                        }
+                                                    });
+                                }
+                            }).catch(function (e)
+                                {
+                                    log.error("Vend result=" + success + " for " + requested_soda + " NOT RECORDED due to " + e);
+                                    server.clientchannels[sessionid].displayerror("fa-warn", "Vend ERROR", "Lookup error " + e);
+                                    cb(null, false);
+                                })
+                }
+                else
+                {
+                    log.error("Vend result=" + success + " for " + requested_soda + " NOT RECORDED due to no session!");
+                    cb(null);
+                }
+
             }
         });
 
@@ -888,10 +995,25 @@ class sodad_server {
             },
             logout: function()
             {
-                redisclient.del("sodads:" + this.id);
-                log.info("Logging out session for client " + this.id);
-                server.clientchannels[this.id].logout();
-                return true;
+                var client = this.id;
+                return redisclient.hgetAsync("sodads:" + client, "activevend")
+                    .then(function(activevend)
+                            {
+                                if (activevend === "true")
+                                {
+                                    log.warn("Logout cancelled due to active vending session");
+                                    throw "Active vending session prevents logout!";
+                                }
+                                else
+                                {
+                                    return redisclient.delAsync("sodads:" + client)
+                                                      .then(function()
+                                                          {
+                                                            log.info("Logging out session for client " + client);
+                                                            server.clientchannels[client].logout();
+                                                          })
+                                }
+                            })
             },
             manualpurchase: function(amt)
             {
