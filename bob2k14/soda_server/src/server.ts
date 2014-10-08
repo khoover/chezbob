@@ -24,7 +24,11 @@ var pgpass = require('pgpass');
 var Models = require('./models');
 var crypt = require('crypt3');
 var redis = promise.promisifyAll(require('redis'));
-var nodemailer = require('nodemailer');
+var nodemailer = promise.promisifyAll(require('nodemailer'));
+var ansihtml = require('ansi-to-html');
+var child_process= require("child_process");
+var S = require('string');
+var stripansi = require('strip-ansi');
 
 var log;
 var dblog;
@@ -130,12 +134,14 @@ class InitData {
 
     initMailTransporter (initdata: InitData, callback: () => void) : void
     {
-        mailtransport = nodemailer.createTransport(
+        mailtransport = promise.promisifyAll(
+                nodemailer.createTransport(
                 {
                     host: 'localhost',
-                    port: 25
+                    port: 25,
+                    ignoreTLS: true
                 }
-            )
+            ))
         log.info("Mail transport configured.");
         callback();
     }
@@ -588,12 +594,71 @@ class sodad_server {
                                 })
     }
 
+    //maybe make this a library function
+    debunyanize (log: string[], callback: (Object, string) => void)
+    {
+        var bunyanproc = child_process.spawn('bunyan', ["--color"]);
+        bunyanproc.stdout.setEncoding('utf8');
+        var bunyanstr = '';
+        bunyanproc.stdout.on('data', function(data) {
+            bunyanstr += data;
+        })
+        bunyanproc.stdout.on('close', function(code){
+            return callback(null, bunyanstr);
+        });
+        log.forEach(function (item)
+                {
+                    var unescaped = S(item).replaceAll('\n', '')
+                    bunyanproc.stdin.write(unescaped + "\n");
+                })
+
+        //this should close bunyan
+        bunyanproc.stdin.end("\x04");
+    }
+    //maybe this should create a github issue?
     bug_report (server: sodad_server, client: string, report: string)
     {
         return redisclient.hgetallAsync("sodads:" + client)
             .then(function(udata)
                 {
-                    log.info("User " + udata.username + " submitted a bug report.", udata);
+                    log.info("User " + udata.username + " submitted a bug report, collecting log.");
+                    //collect log.
+                    return redisclient.lrangeAsync("cb_log", 0, -1).then(
+                        function (lrange)
+                        {
+                            var debunyanizeAsync = promise.promisify(server.debunyanize, server);
+                            return debunyanizeAsync(lrange.slice(0,200)).then(function(ansilog)
+                            {
+                                var converter = new ansihtml(
+                                    {
+                                        newline: true,
+                                        escapeXML: true,
+                                        bg: '#fff',
+                                        fg: '#000'
+                                    }
+                                    );
+                                //lrange is an array of log entries.
+                                var mailOpts = {
+                                    from: server.initdata.cbemail,
+                                    to: server.initdata.cbemail,
+                                    cc: udata.email,
+                                    subject: '[cb_bugreport] Bug report from ' + udata.username,
+                                    html: 'User ' + udata.username + " submitted a bug report:<br/><br/>" + report + '<br/><br/> The json log corresponding to this report is attached, and the first 200 log entries follow:<br/<br/>' + converter.toHtml(ansilog),
+                                    text: 'User ' + udata.username + " submitted a bug report:\n\n" + report + '\n\n The json log corresponding to this report is attached, and the first 200 log entries follows:\n\n' + stripansi(ansilog),
+                                    attachments: [
+                                        {
+                                            filename: 'log.json',
+                                            content: lrange.join('\n')
+                                        }
+                                    ]
+                                };
+                                return mailtransport.sendMailAsync(mailOpts).then(function (response)
+                                    {
+                                        log.info("Bug report successfully e-mailed for user " + udata.username);
+                                    })
+                            })
+                        }
+                        )
                 }
             )
             .catch(function(e)
