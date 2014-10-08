@@ -678,7 +678,14 @@ class sodad_server {
             multi.exec();
             log.info("Successfully authenticated " + user.username +
                 " (" + source + ") for client " + client);
-            user.pwd = false;
+            if (user.pwd !== null && user.pwd !== '')
+            {
+                user.pwd = true;
+            }
+            else
+            {
+                user.pwd = false;
+            }
             server.clientchannels[client].login(user);
     }
 
