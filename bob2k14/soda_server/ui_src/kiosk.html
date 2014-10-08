@@ -58,41 +58,7 @@
             </div>
         </div>
         <div class="container hidden" id="mainui">
-            <div id="mainpurchase" class="ui-screen">
-                <div class="row">
-                    <div class="col-xs-5">
-                        @@include('snippets/sidebutton.html', {
-                            "id" : "otheritemsbtn",
-                            "fa" : "fa-plus-square",
-                            "text" : "Other Items"
-                        })
-                        @@include('snippets/sidebutton.html', {
-                            "id" : "moretimebtn",
-                            "fa" : "fa-clock-o",
-                            "text" : "+ 30s"
-                        })
-                        @@include('snippets/tsidebutton.html', {
-                            "id" : "optionsbtn",
-                            "target": "options",
-                            "extraclasses" : "disabletimeout",
-                            "fa" : "fa-gears",
-                            "text" : "Options"
-                        })
-                    </div>
-                    <div class="col-xs-7">
-                        <div id="purchases">
-                            <table class="table table-striped h3" id="purchases-table">
-                                <thead>
-                                    <th>Item Name</th>
-                                    <th>Price</th>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @@include('screens/mainpurchase.html')
             @@include('screens/options.html')
             @@include('screens/transactions.html')
             @@include('screens/transactions_detail.html')
