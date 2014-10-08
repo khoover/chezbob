@@ -590,7 +590,7 @@ class sodad_server {
                         .catch(function (e)
                                 {
                                     log.info("Failed to update password due to " + e);
-                                    server.clientchannels[client].displayerror("fa-check", "Update failure", "Couldn't update passwords: " + e);
+                                    server.clientchannels[client].displayerror("fa-close", "Update failure", "Couldn't update passwords: " + e);
                                 })
     }
 
@@ -655,6 +655,7 @@ class sodad_server {
                                 return mailtransport.sendMailAsync(mailOpts).then(function (response)
                                     {
                                         log.info("Bug report successfully e-mailed for user " + udata.username);
+                                        server.clientchannels[client].displayerror("fa-check", "Report Submitted", "Thanks for your report! We'll get to squashing this bug soon.");
                                     })
                             })
                         }
@@ -664,6 +665,7 @@ class sodad_server {
             .catch(function(e)
                     {
                         log.error("Error sending bug report: " + e);
+                        server.clientchannels[client].displayerror("fa-close", "Well this is embarassing...", "Could not submit your report - please e-mail chezbob@cs.ucsd.edu. Error: " + e);
                     })
     }
 
