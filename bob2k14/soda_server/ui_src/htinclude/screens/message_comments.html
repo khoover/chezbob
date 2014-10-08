@@ -1,0 +1,33 @@
+<div id="message_comments" class="ui-screen">
+    <div class="row">
+        <div class="col-xs-5">
+            <div class="list-group">
+                @@include('snippets/tsidebutton.html', {
+                    "id" : "profile-exitbtn",
+                    "target" : "message",
+                    "fa" : "fa-sign-out",
+                    "text" : "Cancel"
+                })
+            </div>
+        </div>
+        <div class="col-xs-7">
+            <p class="lead">Questions, comments or concerns? Let us know here. Note: you will not receive an e-mail if you choose to submit anonymously.</p>
+            <form class="form-horizontal" id="message_comments-form">
+                <div class="form-group">
+                     <label for="message_comments-anonymous" class="control-label">
+                        Send anonymously
+                     </label>
+                     <input type="checkbox" id="message_comments-anonymous" class="form-control" value="">
+                </div>
+                <div class="form-group">
+                     <label for="message_comments-report" class="control-label">
+                        Comment
+                     </label>
+                     <textarea type="textarea" id="message_comments-report" class="form-control" rows=6 cols=10></textarea>
+                    <button type="submit" class="btn btn-primary btn-lg">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+

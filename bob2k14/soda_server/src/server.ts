@@ -674,7 +674,7 @@ class sodad_server {
         return redisclient.hgetallAsync("sodads:" + client)
             .then(function(udata)
                 {
-                    log.info("User " + udata.username + " submitted a bug report, collecting log.");
+                    log.info("User " + udata.username + " submitted an issue report");
                     var mailOpts = {
                         from: server.initdata.cbemail,
                         to: server.initdata.cbemail,
@@ -691,7 +691,43 @@ class sodad_server {
                 })
             .catch(function(e)
                     {
-                        log.error("Error sending bug report: " + e);
+                        log.error("Error sending issue report: " + e);
+                        server.clientchannels[client].displayerror("fa-close", "Well this is embarassing...", "Could not submit your report - please e-mail chezbob@cs.ucsd.edu. Error: " + e);
+                    })
+    }
+
+    //btw anonymous seems pretty silly since we can figure out who sent via logs???
+    comment_report (server: sodad_server, client: string, report: string, anonymous: boolean)
+    {
+        return redisclient.hgetallAsync("sodads:" + client)
+            .then(function(udata)
+                {
+                    if (!anonymous)
+                    {
+                        log.info("User " + udata.username + " submitted a comment report");
+                    }
+                    var cc = anonymous ? null : udata.email;
+                    var subject = anonymous ? "[cb_comment] Comment from anonymous" : "[cb_comment] Comment from " + udata.username;
+                    var mailOpts = {
+                        from: server.initdata.cbemail,
+                        to: server.initdata.cbemail,
+                        cc: cc,
+                        subject: subject,
+                        html: 'User submitted an comment report:<br/><br/>' + report,
+                        text: 'User submitted an comment report:\n\n' + report
+                    };
+                    return mailtransport.sendMailAsync(mailOpts).then(function (response)
+                        {
+                            if (!anonymous)
+                            {
+                                log.info("Comment report successfully e-mailed for user " + udata.username);
+                            }
+                            server.clientchannels[client].displayerror("fa-check", "Report Submitted", "Thanks for your comment! We'll look into this as resources permit.");
+                        })
+                })
+            .catch(function(e)
+                    {
+                        log.error("Error sending comment report: " + e);
                         server.clientchannels[client].displayerror("fa-close", "Well this is embarassing...", "Could not submit your report - please e-mail chezbob@cs.ucsd.edu. Error: " + e);
                     })
     }
@@ -855,6 +891,12 @@ class sodad_server {
                 var client = this.id;
                 log.info("Submitting an issue report for client " + client);
                 return server.issue_report(server, client, report);
+            },
+            comment_report: function(anonymous, report)
+            {
+                var client = this.id;
+                log.info("Submitting an comment report for client " + client);
+                return server.comment_report(server, client, report, anonymous);
             },
             changepassword: function(enable, newpassword, oldpassword)
             {

@@ -506,6 +506,16 @@ export class Client
                 });
         })
 
+        $("#message_comments-form").on('submit', function(e) {
+            e.preventDefault();
+            client.log.info("Sending an account comment report.");
+            client.server_channel.comment_report($("#message_comments-anonymous").prop('checked'), $("#message_comments-report").val()).then(function ()
+                {
+                    (<HTMLFormElement>$("#message_comments-form")[0]).reset();
+                    client.setUIscreen(client, "message");
+                });
+        })
+
         $("#mainCarousel").on('slide.bs.carousel', function (e)
                 {
                     if ($(e.relatedTarget).attr('id') === 'chart')
