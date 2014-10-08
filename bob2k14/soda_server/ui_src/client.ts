@@ -516,6 +516,34 @@ export class Client
                 });
         })
 
+        $("#message_oos-search").on('keyup', function(e) {
+            var searchinput = $("#message_oos-search").val();
+            client.log.trace("OOS search input set to " + searchinput);
+            $("#message_oos-list").empty();
+            client.server_channel.oos_search(searchinput).then(
+                function(results)
+                {
+                    results.forEach(function(result)
+                        {
+                            $("#message_oos-list").append("<a href='#' class='list-group-item oos_search_item' data-barcode='" + result.barcode + "'>" + result.name + "</a>")
+                        });
+                    $(".oos_search_item").on('click', function(e)
+                        {
+                            var item = $(this).data('barcode');
+                            client.log.info("Sending OOS report for barcode " + item);
+                            client.server_channel.oos_report(item).then(function (s)
+                                {
+                                    client.setUIscreen(client, "message");
+                                })
+                        })
+                })
+        })
+
+        $("#message_oos-btn").on('click', function(e)
+                {
+                    $("#message_oos-list").empty();
+                    $("#message_oos-search").val("");
+                });
         $("#mainCarousel").on('slide.bs.carousel', function (e)
                 {
                     if ($(e.relatedTarget).attr('id') === 'chart')

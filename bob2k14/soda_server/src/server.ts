@@ -696,6 +696,35 @@ class sodad_server {
                     })
     }
 
+    oos_report (server: sodad_server, client: string, barcode: string)
+    {
+        return redisclient.hgetallAsync("sodads:" + client)
+            .then(function(udata)
+                {
+                    log.info("User " + udata.username + " submitted an oos report");
+                    return models.Products.find({where: {barcode : String(barcode)}}).then(function (product) {
+                        var mailOpts = {
+                            from: server.initdata.cbemail,
+                            to: server.initdata.cbemail,
+                            cc: udata.email,
+                            subject: '[cb_oos] OOS of ' + product.name,
+                            html: 'User ' + udata.username + " submitted an oos report for " + product.name + ", barcode " + product.barcode,
+                            text: 'User ' + udata.username + " submitted an oos report for " + product.name + ", barcode " + product.barcode,
+                        };
+                        return mailtransport.sendMailAsync(mailOpts).then(function (response)
+                            {
+                                log.info("OOS report successfully e-mailed for user " + udata.username);
+                                server.clientchannels[client].displayerror("fa-check", "Report Submitted", "Thanks for your report! Hopefully a restocker will get you more " + product.name + " soon.");
+                            })
+                    });
+                })
+            .catch(function(e)
+                    {
+                        log.error("Error sending oos report: " + e);
+                        server.clientchannels[client].displayerror("fa-close", "Well this is embarassing...", "Could not submit your report - please e-mail chezbob@cs.ucsd.edu. Error: " + e);
+                    })
+    }
+
     //btw anonymous seems pretty silly since we can figure out who sent via logs???
     comment_report (server: sodad_server, client: string, report: string, anonymous: boolean)
     {
@@ -752,6 +781,19 @@ class sodad_server {
             server.clientchannels[client].login(user);
     }
 
+    oos_search (server: sodad_server, client: string, searchstring: string)
+    {
+        return models.Products.findAll(
+                {
+                    where: [ "name ILIKE '" + searchstring +"%'" ],
+                    limit: 5
+                }
+                ).then(function (products)
+                    {
+                        return products;
+                    }
+                    )
+    }
     start = () => {
         var server = this;
         log.info("sodad_server starting, listening on " + config.sodad.port);
@@ -903,6 +945,18 @@ class sodad_server {
                 var client = this.id;
                 log.info("Setting password (enabled=" + enable + ") for client " + client);
                 return server.changepassword(server, client, enable, newpassword, oldpassword);
+            },
+            oos_search: function(searchphrase)
+            {
+                var client = this.id;
+                log.info("Executing OOS search for " + searchphrase + " for client " + client);
+                return server.oos_search(server, client, searchphrase);
+            },
+            oos_report: function(barcode)
+            {
+                var client = this.id;
+                log.info("Submitting an OOS report for barcode " + barcode + " for client " + client);
+                return server.oos_report(server, client, barcode);
             },
             authenticate: function(user, password)
             {

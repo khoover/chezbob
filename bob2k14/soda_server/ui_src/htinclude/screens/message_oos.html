@@ -1,0 +1,29 @@
+<div id="message_oos" class="ui-screen">
+    <div class="row">
+        <div class="col-xs-5">
+            <div class="list-group">
+                @@include('snippets/tsidebutton.html', {
+                    "id" : "message_oos-exitbtn",
+                    "target" : "message",
+                    "fa" : "fa-sign-out",
+                    "text" : "Cancel"
+                })
+            </div>
+        </div>
+        <div class="col-xs-7">
+            <p class="lead">Something out of stock? Let us know here. Search for the out of stock item below.</p>
+            <form class="form-horizontal" id="message_oos-form">
+                <div class="input-group">
+                    <span class="input-group-addon">
+                        <i class="fa fa-search"></i>
+                    </span>
+                    <input type="text" class="form-control" id="message_oos-search" placeholder="Search here"/>
+                </div>
+            </form>
+            <div class="list-group" id="message_oos-list">
+
+            </div>
+        </div>
+    </div>
+</div>
+
