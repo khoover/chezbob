@@ -50,6 +50,7 @@ class InitData {
     dbhost;
 
     cbemail;
+    sodamap;
 
     loadVersion (initdata: InitData, callback: () => void) : void
     {
@@ -167,6 +168,20 @@ class InitData {
         this.dbuser = "bob";
         this.dbhost = "localhost";
         this.cbemail = "mwei@cs.ucsd.edu";
+
+        //TODO: this needs to be read from the main config file
+        this.sodamap = {
+            "01" : "782740",
+            "02" : "496340",
+            "03" : "",
+            "04" : "049000042566",
+            "05" : "120130",
+            "06" : "120500",
+            "07" : "783150",
+            "08" : "783230",
+            "09" : "120850",
+            "0A" : "496580"
+        }
     }
 }
 
