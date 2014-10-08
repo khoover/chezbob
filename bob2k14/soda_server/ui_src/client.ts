@@ -495,6 +495,17 @@ export class Client
                     client.setUIscreen(client, "message");
                 });
         })
+
+        $("#message_issues-form").on('submit', function(e) {
+            e.preventDefault();
+            client.log.info("Sending an account issue report.");
+            client.server_channel.issue_report($("#message_issues-report").val()).then(function ()
+                {
+                    (<HTMLFormElement>$("#message_issues-form")[0]).reset();
+                    client.setUIscreen(client, "message");
+                });
+        })
+
         $("#mainCarousel").on('slide.bs.carousel', function (e)
                 {
                     if ($(e.relatedTarget).attr('id') === 'chart')

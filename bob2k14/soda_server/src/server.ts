@@ -669,6 +669,33 @@ class sodad_server {
                     })
     }
 
+    issue_report (server: sodad_server, client: string, report: string)
+    {
+        return redisclient.hgetallAsync("sodads:" + client)
+            .then(function(udata)
+                {
+                    log.info("User " + udata.username + " submitted a bug report, collecting log.");
+                    var mailOpts = {
+                        from: server.initdata.cbemail,
+                        to: server.initdata.cbemail,
+                        cc: udata.email,
+                        subject: '[cb_issuereport] Account issue report from ' + udata.username,
+                        html: 'User ' + udata.username + " submitted an issue report:<br/><br/>" + report,
+                        text: 'User ' + udata.username + " submitted an issue report:\n\n" + report,
+                    };
+                    return mailtransport.sendMailAsync(mailOpts).then(function (response)
+                        {
+                            log.info("Issue report successfully e-mailed for user " + udata.username);
+                            server.clientchannels[client].displayerror("fa-check", "Report Submitted", "Thanks for your report! We'll get back to you about your accounts soon.");
+                        })
+                })
+            .catch(function(e)
+                    {
+                        log.error("Error sending bug report: " + e);
+                        server.clientchannels[client].displayerror("fa-close", "Well this is embarassing...", "Could not submit your report - please e-mail chezbob@cs.ucsd.edu. Error: " + e);
+                    })
+    }
+
     handle_login (server: sodad_server, client: string, source: string, user)
     {
             var multi = redisclient.multi();
@@ -822,6 +849,12 @@ class sodad_server {
                 var client = this.id;
                 log.info("Submitting a bug report for client " + client);
                 return server.bug_report(server, client, report);
+            },
+            issue_report: function(report)
+            {
+                var client = this.id;
+                log.info("Submitting an issue report for client " + client);
+                return server.issue_report(server, client, report);
             },
             changepassword: function(enable, newpassword, oldpassword)
             {
