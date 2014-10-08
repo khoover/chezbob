@@ -809,6 +809,29 @@ class sodad_server {
                     }
                     )
     }
+
+    handle_logout (server: sodad_server, client: string)
+    {
+        return redisclient.hgetAsync("sodads:" + client, "activevend")
+            .then(function(activevend)
+                    {
+                        if (activevend === "true")
+                        {
+                            log.warn("Logout cancelled due to active vending session");
+                            throw "Active vending session prevents logout!";
+                        }
+                        else
+                        {
+                            return redisclient.delAsync("sodads:" + client)
+                                              .then(function()
+                                                  {
+                                                    log.info("Logging out session for client " + client);
+                                                    server.clientchannels[client].logout();
+                                                  })
+                        }
+                    })
+    }
+
     start = () => {
         var server = this;
         log.info("sodad_server starting, listening on " + config.sodad.port);
@@ -832,7 +855,6 @@ class sodad_server {
             "Soda.vdbauth" : function (requested_soda, cb)
             {
                 var sessionid;
-
                 //for now, there is only one client attached to the soda machine.
                 var type:ClientType = ClientType.Soda;
                 var num: number = 0;
@@ -880,7 +902,6 @@ class sodad_server {
             {
                 log.info("Vend result is " + success);
                 var sessionid;
-
                 //for now, there is only one client attached to the soda machine.
                 var type:ClientType = ClientType.Soda;
                 var num: number = 0;
@@ -934,7 +955,32 @@ class sodad_server {
                     log.error("Vend result=" + success + " for " + requested_soda + " NOT RECORDED due to no session!");
                     cb(null);
                 }
-
+            },
+            "Soda.remotemdb": function(command,cb) {
+                //TODO: this functionality (parsing commands) should be in MDB server
+                log.info("Got MDB command " + command);
+                var sessionid;
+                //for now, there is only one client attached to the soda machine.
+                var type:ClientType = ClientType.Soda;
+                var num: number = 0;
+                if (server.clientmap[type][num] !== undefined )
+                {
+                    sessionid = server.clientidmap[type][num];
+                    log.trace("Mapping session for " + ClientType[type] + "/" + num + " to " +  server.clientidmap[type][num]);
+                    switch (command)
+                    {
+                        case "W": //logout
+                            log.info("Requesting logout over MDB");
+                            server.handle_logout(server, sessionid);
+                            break;
+                    }
+                }
+                else
+                {
+                    log.error("MDB command ignored due to NO SESSION!");
+                }
+                //command always succeeds.
+                cb(null);
             }
         });
 
@@ -996,24 +1042,7 @@ class sodad_server {
             logout: function()
             {
                 var client = this.id;
-                return redisclient.hgetAsync("sodads:" + client, "activevend")
-                    .then(function(activevend)
-                            {
-                                if (activevend === "true")
-                                {
-                                    log.warn("Logout cancelled due to active vending session");
-                                    throw "Active vending session prevents logout!";
-                                }
-                                else
-                                {
-                                    return redisclient.delAsync("sodads:" + client)
-                                                      .then(function()
-                                                          {
-                                                            log.info("Logging out session for client " + client);
-                                                            server.clientchannels[client].logout();
-                                                          })
-                                }
-                            })
+                server.handle_logout(server, client);
             },
             manualpurchase: function(amt)
             {
