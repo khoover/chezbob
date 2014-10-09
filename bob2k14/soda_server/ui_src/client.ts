@@ -328,7 +328,6 @@ export class Client
                                         $("#vendstock").append("<div style='display:inline-block;width:40px;margin-left:10px;background-color:" + stockcolor + ";'><img src='images/sodalogos/" + item + ".jpg'/ style='width:40px;height:40px;'><p style='text-align:center'>" + level + "</p>");
                                     });
                         }
-                        console.log(stock);
                     },
                     reload: function()
                     {
