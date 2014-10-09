@@ -16,6 +16,7 @@ export class Models {
     Products: SequelizeModel;
     Users: SequelizeModel;
     Userbarcodes: SequelizeModel;
+    Roles: SequelizeModel;
 
     constructor (sql) {
         this.sql = sql;
@@ -62,6 +63,11 @@ export class Models {
         this.Userbarcodes = sql.define('userbarcodes', {
             userid : { type: sequelize.INTEGER },
             barcode : { type : sequelize.STRING, primaryKey: true}
+        }, {timestamps: false});
+
+        this.Roles = sql.define('roles', {
+            userid : {type: sequelize.INTEGER, primaryKey: true },
+            roles: { type: sequelize.STRING }
         }, {timestamps: false});
     }
 }

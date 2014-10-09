@@ -301,6 +301,10 @@ export class Client
                     {
                         client.current_user = user;
                     },
+                    updatevendstock: function(stock)
+                    {
+                        console.log(stock);
+                    },
                     reload: function()
                     {
                         window.location.reload();

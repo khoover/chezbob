@@ -786,18 +786,34 @@ class sodad_server {
             multi.hset("sodads:" + client, "uid", user.userid); //TODO: deprecated key uid
             multi.hmset("sodads:" + client, user)
             multi.expire("sodads:" + client, 600);
-            multi.exec();
-            log.info("Successfully authenticated " + user.username +
-                " (" + source + ") for client " + client);
-            if (user.pwd !== null && user.pwd !== '')
-            {
-                user.pwd = true;
-            }
-            else
-            {
-                user.pwd = false;
-            }
-            server.clientchannels[client].login(user);
+            multi.execAsync()
+                .then(function(success)
+                {
+                    return models.Roles.find({ where : { userid: user.userid }});
+                })
+                .then(function (roles)
+                {
+                    log.info("Successfully authenticated " + user.username +
+                        " (" + source + ") for client " + client);
+                    if (user.pwd !== null && user.pwd !== '')
+                    {
+                        user.pwd = true;
+                    }
+                    else
+                    {
+                        user.pwd = false;
+                    }
+                    user.roles = {};
+                    if (roles != null)
+                    {
+                        S(roles.roles).parseCSV().forEach(function (role) {
+                            user.roles[role] = true;
+                        });
+                    }
+                    log.info("User roles loaded: ", user.roles);
+                    server.clientchannels[client].login(user);
+                });
+
     }
 
     oos_search (server: sodad_server, client: string, searchstring: string)
@@ -876,9 +892,17 @@ class sodad_server {
                     }
                     else
                     {
-                        log.info("Vend status for " + soda + "UNKNOWN, not updating.")
+                        log.info("Vend status for " + soda + " UNKNOWN, not updating.")
                     }
                 })
+    }
+
+    updateClientVendStock(server: sodad_server, client: string)
+    {
+        return redisclient.hgetallAsync("sodad_vendstock").then(function (stock)
+                {
+                    server.clientchannels[client].updatevendstock(stock);
+                });
     }
 
     start = () => {
@@ -958,7 +982,10 @@ class sodad_server {
                 {
                     sessionid = server.clientidmap[type][num];
                     log.trace("Mapping session for " + ClientType[type] + "/" + num + " to " +  server.clientidmap[type][num]);
-                    server.updateVendStock(server, sessionid, requested_soda, success);
+                    server.updateVendStock(server, sessionid, requested_soda, success)
+                        .then(function() {
+                            server.updateClientVendStock(server, sessionid);
+                        });
                     redisclient.hgetallAsync("sodads:" + sessionid)
                         .then (function (session)
                             {
