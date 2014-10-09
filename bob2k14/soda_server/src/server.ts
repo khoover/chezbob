@@ -49,6 +49,8 @@ class InitData {
     dbuser;
     dbhost;
 
+    mdbendpoint;
+
     cbemail;
     sodamap;
 
@@ -182,6 +184,8 @@ class InitData {
             "09" : "120850",
             "0A" : "496580"
         }
+
+        this.mdbendpoint = "http://localhost:8081"
     }
 }
 
@@ -832,6 +836,51 @@ class sodad_server {
                     })
     }
 
+    handleCoinDeposit(server: sodad_server, client : string, amt: string, tube: string, user)
+    {
+        if (user !== null)
+        {
+            log.info("Coin type " + amt + " accepted");
+            server.balance_transaction(server, client, "ADD " + amt,
+                "Deposit " + amt, null, amt);
+        }
+        else
+        {
+            log.warn("Coin type " + amt + " inserted, but no user is logged in, returning...")
+            var rpc_client = jayson.rpc_client(server.initdata.mdbendpoint);
+            rpc_client.request("Mdb.command", [ "G" + tube + "01"], function (err,response){});
+        }
+    }
+
+    updateVendStock(server: sodad_server, client: string, soda: string, success: boolean)
+    {
+        return redisclient.hgetAsync("sodad_vendstock", soda).then(function (curstock)
+                {
+                    // if curstock == null, the current status is unknown,
+                    // but if the the vend failed, then we know that we are OOS
+                    if (!success)
+                    {
+                        log.info("Vend FAILED, setting " + soda + " stock to OOS");
+                        return redis.hsetAsync("sodad_vendstock", soda, 0);
+                    }
+                    else if (parseInt(curstock) === 0) //note curstock = null will get NaN
+                    {
+                        log.info("Vend SUCCESS but stock at 0,  setting " + soda + " stock to UNKNOWN");
+                        return redis.hsetAsync("sodad_vendstock", soda, null);
+                    }
+                    else if (curstock !== null)
+                    {
+                        var newstock = Math.max(parseInt(curstock) - 1,0);
+                        log.info("Vend SUCCESS,  setting " + soda + " stock to " + newstock);
+                        return redis.hsetAsync("sodad_vend", soda, newstock);
+                    }
+                    else
+                    {
+                        log.info("Vend status for " + soda + "UNKNOWN, not updating.")
+                    }
+                })
+    }
+
     start = () => {
         var server = this;
         log.info("sodad_server starting, listening on " + config.sodad.port);
@@ -909,6 +958,7 @@ class sodad_server {
                 {
                     sessionid = server.clientidmap[type][num];
                     log.trace("Mapping session for " + ClientType[type] + "/" + num + " to " +  server.clientidmap[type][num]);
+                    server.updateVendStock(server, sessionid, requested_soda, success);
                     redisclient.hgetallAsync("sodads:" + sessionid)
                         .then (function (session)
                             {
@@ -967,17 +1017,40 @@ class sodad_server {
                 {
                     sessionid = server.clientidmap[type][num];
                     log.trace("Mapping session for " + ClientType[type] + "/" + num + " to " +  server.clientidmap[type][num]);
-                    switch (command)
-                    {
-                        case "W": //logout
-                            log.info("Requesting logout over MDB");
-                            server.handle_logout(server, sessionid);
-                            break;
-                    }
+                    redisclient.hgetallAsync("sodads:" + sessionid).then(function (user) {
+                        switch (command)
+                        {
+                            case "W": //logout
+                                if (user !== null)
+                                {
+                                    log.info("Requesting logout over MDB");
+                                    server.handle_logout(server, sessionid);
+                                }
+                                else
+                                {
+                                    log.info("Requested logout but no one is logged in!");
+                                    server.clientchannels[sessionid].displayerror("fa-warn", "Not logged in!", "No one is logged in!");
+                                }
+                                break;
+                            case "P100":
+                                server.handleCoinDeposit(server, sessionid, "0.05", "00", user);
+                                break;
+                            case "P101":
+                                server.handleCoinDeposit(server, sessionid, "0.10", "01", user);
+                                break;
+                            case "P102":
+                                server.handleCoinDeposit(server, sessionid, "0.25", "02", user);
+                                break;
+                            default:
+                                log.error("Unknown MDB command: " + command);
+                        }
+                    }).catch(
+                            log.error("MDB command couldn't get session data!")
+                        )
                 }
                 else
                 {
-                    log.error("MDB command ignored due to NO SESSION!");
+                    log.error("MDB command " + command + " ignored due to NO SESSION!");
                 }
                 //command always succeeds.
                 cb(null);
