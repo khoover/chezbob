@@ -132,6 +132,15 @@ export class Client
         client.setUIscreen(client, "mainpurchase");
         client.current_user = logindata;
         client.time_pause = false;
+
+        if (logindata.roles.admin || logindata.roles.restocker)
+        {
+            $("#adminbtn").removeClass('hidden');
+        }
+        else
+        {
+            $("#adminbtn").addClass('hidden');
+        }
     }
 
     setUIscreen(client: Client, screen: string)

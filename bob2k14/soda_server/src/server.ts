@@ -783,35 +783,36 @@ class sodad_server {
     handle_login (server: sodad_server, client: string, source: string, user)
     {
             var multi = redisclient.multi();
-            multi.hset("sodads:" + client, "uid", user.userid); //TODO: deprecated key uid
-            multi.hmset("sodads:" + client, user)
-            multi.expire("sodads:" + client, 600);
-            multi.execAsync()
+            models.Roles.find({ where : { userid: user.userid }})
+                .then(function(roles)
+                    {
+                        user.roles = {};
+                        if (roles != null)
+                        {
+                            S(roles.roles).parseCSV().forEach(function (role) {
+                                user.roles[role] = true;
+                            });
+                        }
+                        log.info("User roles loaded: ", user.roles);
+
+                        multi.hset("sodads:" + client, "uid", user.userid); //TODO: deprecated key uid
+                        multi.hmset("sodads:" + client, user)
+                        multi.expire("sodads:" + client, 600);
+                        return multi.execAsync();
+                    })
                 .then(function(success)
-                {
-                    return models.Roles.find({ where : { userid: user.userid }});
-                })
-                .then(function (roles)
-                {
-                    log.info("Successfully authenticated " + user.username +
-                        " (" + source + ") for client " + client);
-                    if (user.pwd !== null && user.pwd !== '')
                     {
-                        user.pwd = true;
-                    }
-                    else
-                    {
-                        user.pwd = false;
-                    }
-                    user.roles = {};
-                    if (roles != null)
-                    {
-                        S(roles.roles).parseCSV().forEach(function (role) {
-                            user.roles[role] = true;
-                        });
-                    }
-                    log.info("User roles loaded: ", user.roles);
-                    server.clientchannels[client].login(user);
+                        log.info("Successfully authenticated " + user.username +
+                            " (" + source + ") for client " + client);
+                        if (user.pwd !== null && user.pwd !== '')
+                        {
+                            user.pwd = true;
+                        }
+                        else
+                        {
+                            user.pwd = false;
+                        }
+                        server.clientchannels[client].login(user);
                 });
 
     }
