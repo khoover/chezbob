@@ -1,0 +1,27 @@
+<div id="admin" class="ui-screen">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="list-group">
+                @@include('snippets/optbutton.html', {
+                    "id" : "restock-btn",
+                    "target" : "restock",
+                    "fa" : "fa-plus-square",
+                    "title" : "Restock Soda",
+                    "description" : "Restock the soda machine.."
+                })
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <div class="list-group">
+               @@include('snippets/optbutton.html', {
+                    "id" : "optionsexit-btn",
+                    "target" : "mainpurchase",
+                    "fa" : "fa-sign-out",
+                    "title" : "Exit",
+                    "description" : "Return to the purchase screen."
+                })
+            </div>
+        </div>
+    </div>
+</div>
+
