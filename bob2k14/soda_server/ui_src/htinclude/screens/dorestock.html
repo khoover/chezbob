@@ -1,0 +1,35 @@
+<div id="dorestock" class="ui-screen">
+    <div class="col-xs-5">
+            <div class="list-group">
+                @@include('snippets/tsidebutton.html', {
+                    "id" : "restock-exitbtn",
+                    "target" : "restock",
+                    "fa" : "fa-sign-out",
+                    "text" : "Cancel"
+                })
+            </div>
+    </div>
+    <div class="col-xs-7">
+            <div>
+                <h2>Restocking <span id='dorestock-name'></span></h2>
+            </div>
+            <p>
+                Enter the new stock level below:
+                <form>
+                <fieldset>
+                <div class="row">
+                <div class="col-xs-4"><input type="number" class="form-control input-lg" id="restock-level" min="0" max="99" size="2" title="Only numbers are allowed" value="0"/></div>
+                </div>
+                <br/>
+                <div class="list-group">
+                    <a href="#" class="list-group-item sidebutton" id="restock-update">
+                        <i class="fa-4x fa fa-check"></i>
+                        <h1> Update</h1>
+                    </a>
+                </div>
+                </fieldset>
+                </form>
+            </p>
+    </div>
+</div>
+

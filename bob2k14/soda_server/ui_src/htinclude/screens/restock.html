@@ -1,0 +1,56 @@
+<div id="restock" class="ui-screen">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="list-group">
+                @@include('snippets/restockbutton.html', {
+                    "target" : "01",
+                    "name" : "Sunkist Orange"
+                })
+                @@include('snippets/restockbutton.html', {
+                    "target" : "02",
+                    "name" : "Coca-Cola Classic"
+                })
+                @@include('snippets/restockbutton.html', {
+                    "target" : "04",
+                    "name" : "Coca-Cola Zero"
+                })
+                @@include('snippets/restockbutton.html', {
+                    "target" : "05",
+                    "name" : "Pepsi Cola"
+                })
+                @@include('snippets/restockbutton.html', {
+                    "target" : "06",
+                    "name" : "Diet Pepsi Cola"
+                })
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <div class="list-group">
+                @@include('snippets/restockbutton.html', {
+                    "target" : "07",
+                    "name" : "Dr. Pepper"
+                })
+                @@include('snippets/restockbutton.html', {
+                    "target" : "08",
+                    "name" : "Diet Dr. Pepper"
+                })
+                @@include('snippets/restockbutton.html', {
+                    "target" : "09",
+                    "name" : "Mountain Dew"
+                })
+                @@include('snippets/restockbutton.html', {
+                    "target" : "0A",
+                    "name" : "Diet Coca-Cola"
+                })
+               @@include('snippets/optbutton.html', {
+                    "id" : "optionsexit-btn",
+                    "target" : "mainpurchase",
+                    "fa" : "fa-sign-out",
+                    "title" : "Exit",
+                    "description" : "Return to the purchase screen."
+                })
+            </div>
+        </div>
+    </div>
+</div>
+

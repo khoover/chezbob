@@ -73,12 +73,23 @@
             @@include('screens/message_issues.html')
             @@include('screens/message_comments.html')
             @@include('screens/message_oos.html')
+            @@include('screens/admin.html')
+            @@include('screens/restock.html')
+            @@include('screens/dorestock.html')
         </div>
         @@include('modals/error.html')
         @@include('modals/soda.html')
         <div class="footer">
             <div class="container">
-                <h2>You can login above, scan a <i class="fa fa-barcode"></i>, fingerprint or RFID</h2>
+                <div id="footercarousel" class="carousel slide" data-ride="carousel">
+                    <div class="carousel-inner">
+                        <div class="item active">
+                        <h2>You can login above, scan a <i class="fa fa-barcode"></i>, fingerprint or RFID</h2>
+                        </div>
+                        <div class="item" id="vendstock">
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </body>

@@ -71,7 +71,7 @@ gulp.task('icons', ['bower'], function()
 
 gulp.task('images', ['bower'], function()
           {
-            return gulp.src('./images/**.*')
+            return gulp.src('./images/**/*.*')
                        .pipe(gulp.dest('./build/ui/images'));
           });
 

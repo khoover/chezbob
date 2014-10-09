@@ -258,6 +258,8 @@ export class Client
                                 console.log(barcode + ": " + res);
                             });
                     });
+
+                    client.server_channel.vendstock();
                 }
                 );
         rpc.expose('clientChannel',
@@ -312,6 +314,20 @@ export class Client
                     },
                     updatevendstock: function(stock)
                     {
+                        $("#vendstock").empty();
+                        if (stock !== null)
+                        {
+                            var keys = Object.keys(stock);
+                            keys.sort();
+                            $.each(keys, function (idx, item)
+                                    {
+                                        var level = stock[item];
+                                        var stockcolor;
+                                        if (level === 'null') { stockcolor = '#ffff00'; level = '?';}
+                                        else { stockcolor = (level > 0) ? '#aaffaa' : '#ffaaaa'; }
+                                        $("#vendstock").append("<div style='display:inline-block;width:40px;margin-left:10px;background-color:" + stockcolor + ";'><img src='images/sodalogos/" + item + ".jpg'/ style='width:40px;height:40px;'><p style='text-align:center'>" + level + "</p>");
+                                    });
+                        }
                         console.log(stock);
                     },
                     reload: function()
@@ -575,6 +591,24 @@ export class Client
                     $("#message_oos-list").empty();
                     $("#message_oos-search").val("");
                 });
+
+        $(".restockbutton").on('click',function(e)
+                {
+                    var name = $(this).data('name')
+                    var col = $(this).data('target');
+                    $("#dorestock-name").text(name);
+                    $("#restock-update").data('col', col);
+                    client.setUIscreen(client, "dorestock");
+                });
+
+        $("#restock-update").on('click', function(e)
+                {
+                    var col = $(this).data('col');
+                    client.log.info("Client requesting restock of " + col + " to " + $("#restock-level").val());
+                    client.server_channel.updatevendstock(col, $("#restock-level").val());
+                    client.setUIscreen(client, "restock");
+                });
+
         $("#mainCarousel").on('slide.bs.carousel', function (e)
                 {
                     if ($(e.relatedTarget).attr('id') === 'chart')

@@ -797,6 +797,7 @@ class sodad_server {
 
                         multi.hset("sodads:" + client, "uid", user.userid); //TODO: deprecated key uid
                         multi.hmset("sodads:" + client, user)
+                        multi.hmset("sodads_roles:" + client, user.roles);
                         multi.expire("sodads:" + client, 600);
                         return multi.execAsync();
                     })
@@ -844,7 +845,10 @@ class sodad_server {
                         else
                         {
                             return redisclient.delAsync("sodads:" + client)
-                                              .then(function()
+                                            .then(function() {
+                                                return redisclient.delAsync("sodads_roles:" + client)
+                                            })
+                                            .then(function()
                                                   {
                                                     log.info("Logging out session for client " + client);
                                                     server.clientchannels[client].logout();
@@ -878,24 +882,57 @@ class sodad_server {
                     if (!success)
                     {
                         log.info("Vend FAILED, setting " + soda + " stock to OOS");
-                        return redis.hsetAsync("sodad_vendstock", soda, 0);
+                        return redisclient.hsetAsync("sodad_vendstock", soda, 0);
                     }
                     else if (parseInt(curstock) === 0) //note curstock = null will get NaN
                     {
                         log.info("Vend SUCCESS but stock at 0,  setting " + soda + " stock to UNKNOWN");
-                        return redis.hsetAsync("sodad_vendstock", soda, null);
+                        return redisclient.hsetAsync("sodad_vendstock", soda, null);
                     }
                     else if (curstock !== null)
                     {
                         var newstock = Math.max(parseInt(curstock) - 1,0);
                         log.info("Vend SUCCESS,  setting " + soda + " stock to " + newstock);
-                        return redis.hsetAsync("sodad_vend", soda, newstock);
+                        return redisclient.hsetAsync("sodad_vendstock", soda, newstock);
                     }
                     else
                     {
                         log.info("Vend status for " + soda + " UNKNOWN, not updating.")
                     }
                 })
+    }
+
+    updateVendStockLevel(server: sodad_server, client:string, soda:string, newstock:number)
+    {
+        if (soda === undefined || newstock === undefined)
+        {
+            throw "Error: Incorrect param!";
+        }
+        return redisclient.hgetallAsync("sodads_roles:" + client)
+            .then(function (user)
+            {
+                if (user.restocker !== 'true')
+                {
+                    throw "Error: You need the restocker permission to perform this action!";
+                }
+            }
+            )
+            .then(function() {
+                redisclient.hsetAsync("sodad_vendstock", soda, newstock)
+            })
+            .then(function (update){
+                server.updateClientVendStock(server, client);
+            })
+            .then(function(update)
+            {
+                server.clientchannels[client].displayerror("fa-check", "Update success", "Stock level for col " + soda + " updated!");
+            })
+            .catch(function (error)
+            {
+                log.error("Failed to update stock for reason: " + error);
+                server.clientchannels[client].displayerror("fa-warn", "Update failure", "Update failed for reason: " + error);
+            })
+
     }
 
     updateClientVendStock(server: sodad_server, client: string)
@@ -1212,6 +1249,18 @@ class sodad_server {
                 var client = this.id;
                 log.info("Setting password (enabled=" + enable + ") for client " + client);
                 return server.changepassword(server, client, enable, newpassword, oldpassword);
+            },
+            vendstock: function()
+            {
+                var client = this.id;
+                log.info("Getting vend stock levels for client " + client);
+                return server.updateClientVendStock(server, client);
+            },
+            updatevendstock: function(col, level)
+            {
+                var client = this.id;
+                log.info("Updating vend stock levels for client " + client);
+                return server.updateVendStockLevel(server, client, col, level);
             },
             oos_search: function(searchphrase)
             {
