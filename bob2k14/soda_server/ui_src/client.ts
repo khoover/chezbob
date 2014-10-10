@@ -516,7 +516,12 @@ export class Client
                 e.preventDefault();
                 var voices = (<any>window).speechSynthesis.getVoices();
                 var voice = voices[$("#setspeech-voice").val()];
-                client.server_channel.savespeech(voice.name, $("#setspeech-greeting").val(), $("#setspeech-farewell").val());
+                client.server_channel.savespeech(voice.name, $("#setspeech-greeting").val(), $("#setspeech-farewell").val())
+                        .then(function ()
+                            {
+                                client.setUIscreen("profilemenu");
+                            }
+                            )
             })
         }
         else
@@ -570,7 +575,7 @@ export class Client
             $("#profile-email").val(client.current_user.email)
         });
 
-        $("#profile-barcodebtn").on('click', function()
+        $("#profilebarcode-btn").on('click', function()
         {
             client.updateBarcodes(client);
             client.server_channel.learnmode_barcode(true);
@@ -581,7 +586,7 @@ export class Client
             client.server_channel.learnmode_barcode(false);
         });
 
-        $("#profile-passwordbtn").on('click', function()
+        $("#profilepassword-btn").on('click', function()
         {
             (<HTMLFormElement>$("#setpasswordform")[0]).reset();
             if (client.current_user.pwd)
