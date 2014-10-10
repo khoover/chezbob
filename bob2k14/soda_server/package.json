@@ -14,7 +14,8 @@
     "rpc": {
       "exports": "RPC",
       "depends": [
-        "io:io"
+        "io:io",
+        "q:Promise"
       ]
     },
     "bootstrap": {
