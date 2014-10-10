@@ -9,6 +9,9 @@ var bootstrap = require("bootstrap");
 var d3 = require('d3-browserify');
 var moment = require('moment');
 
+declare var SpeechSynthesisUtterance;
+declare var speechSynthesis;
+
 export enum ClientType {
     Terminal = 0,
     Soda = 1
@@ -51,9 +54,58 @@ export class Client
     transactionindex : number;
     currenttransactions;
 
+    voice_msg;
+
     type : ClientType;
     id;
     current_user;
+
+    voice_configure(client: Client)
+    {
+        if ('speechSynthesis' in window) {
+            if (client.current_user.pref_speech)
+            {
+                client.voice_msg = new SpeechSynthesisUtterance();
+                var voices = (<any>window).speechSynthesis.getVoices();
+                $.each(voices, function(idx,voice)
+                    {
+                        if (voice.name === client.current_user.voice_settings.voice)
+                        {
+                            client.voice_msg.voice = voice;
+                            client.log.info("Set voice to " + voice.name);
+                        }
+                    });
+            }
+        }
+    }
+
+    voice_speak(client: Client , msg : string)
+    {
+        if ('speechSynthesis' in window) {
+            if (client.current_user.pref_speech)
+            {
+                client.voice_msg.text = msg;
+                speechSynthesis.speak(client.voice_msg);
+            }
+        }
+    }
+
+    voice_forcespeak(client: Client, msg: string)
+    {
+        if ('speechSynthesis' in window) {
+            if (client.current_user.pref_speech)
+            {
+                client.voice_msg.text = msg;
+                speechSynthesis.speak(client.voice_msg);
+            }
+            else
+            {
+                var nmsg = new SpeechSynthesisUtterance();
+                nmsg.text= msg;
+                speechSynthesis.speak(nmsg);
+            }
+        }
+    }
 
     startTimeout(client: Client)
     {
@@ -113,12 +165,17 @@ export class Client
         $("#mainui").addClass('hidden');
         $("#purchases-table tbody").empty();
         $("#transactionhistory-table tbody").empty();
-        client.current_user = null;
         client.time_pause = false;
+        client.voice_speak(client, client.current_user.voice_settings.farewell);
+        client.current_user = null;
     }
 
     login(client: Client, logindata)
     {
+        client.current_user = logindata;
+        client.voice_configure(client);
+        client.voice_speak(client, logindata.voice_settings.welcome);
+
         $("#login").addClass('hidden');
         $("#logout").removeClass('hidden');
         $("#loginpanel").removeClass('hidden');
@@ -130,7 +187,6 @@ export class Client
         $("#purchases-table tbody").empty();
         client.startTimeout(client);
         client.setUIscreen(client, "mainpurchase");
-        client.current_user = logindata;
         client.time_pause = false;
 
         if (logindata.roles.admin || logindata.roles.restocker)
@@ -160,6 +216,12 @@ export class Client
             setTimeout(function() {
                 $("#balancewarn").tooltip('hide')
             }, 3000);
+
+            if (parseFloat(balance) < parseFloat("-5.00") && client.current_user.voice_balance_warned !== true)
+            {
+                client.voice_forcespeak(client, "Your balance is negative! Please add funds to your account!");
+                client.current_user.voice_balance_warned = true;
+            }
         }
         else
         {
@@ -285,6 +347,12 @@ export class Client
                         //maybe we don't want to call this on every purchase?
                         $("#sodadialog").modal('hide');
                         client.time_pause = false;
+                        var speakPrice = purchaseprice;
+                        if (parseFloat(speakPrice) > 0 && parseFloat(speakPrice) < 1)
+                        {
+                            speakPrice = speakPrice.substring(2) + "cents";
+                        }
+                        client.voice_speak(client, purchasedata.name + " for " + speakPrice);
                         client.setUIscreen(client,"mainpurchase");
                     },
                     displayerror: function(icon, title, text)
@@ -296,11 +364,13 @@ export class Client
                         $("#sodadialog").modal('hide');
                         $("#errordialog").modal('show');
                         client.time_pause = false;
+                        client.voice_speak(client, text);
                     },
                     displaysoda: function(requested_soda, soda_name)
                     {
                         //TODO: use requested_soda to display logo.
                         $("#sodatext").text("Dispensing " + soda_name);
+                        client.voice_speak(client, "Dispensing " + soda_name);
                         $("#sodadialog").modal('show');
                         client.time_pause = true;
                     },
@@ -311,6 +381,7 @@ export class Client
                     updateuser: function(user)
                     {
                         client.current_user = user;
+                        client.voice_configure(client);
                     },
                     updatevendstock: function(stock)
                     {
@@ -323,7 +394,7 @@ export class Client
                                     {
                                         var level = stock[item];
                                         var stockcolor;
-                                        if (level === 'null') { stockcolor = '#ffff00'; level = '?';}
+                                        if (level === 'null' || level === 'NaN') { stockcolor = '#ffff00'; level = '?';}
                                         else { stockcolor = (level > 0) ? '#aaffaa' : '#ffaaaa'; }
                                         $("#vendstock").append("<div style='display:inline-block;width:40px;margin-left:10px;background-color:" + stockcolor + ";'><img src='images/sodalogos/" + item + ".jpg'/ style='width:40px;height:40px;'><p style='text-align:center'>" + level + "</p>");
                                     });
@@ -378,10 +449,86 @@ export class Client
                     client.setUIscreen(client, $(this).data('target'));
                 });
 
+        //I think we can assume we're running on a browser with speech-synthesis api
+        if ('speechSynthesis' in window) {
+            (<any>window).speechSynthesis.onvoiceschanged = function()
+            {
+                var voices = (<any>window).speechSynthesis.getVoices();
+                $.each(voices, function(idx,voice)
+                        {
+                            $("#setspeech-voice")
+                                .append($("<option></option>")
+                                .attr("value", idx)
+                                .text(voice.name));
+                        });
+            };
+
+            $("#profilespeech-btn").on('click', function()
+                    {
+                        (<HTMLFormElement>$("#setspeechform")[0]).reset();
+                        if(client.current_user.pref_speech)
+                        {
+                            $(".speechsetting").removeClass('hidden');
+                            $("#setspeech-enable").prop('checked', true);
+                            var voices = (<any>window).speechSynthesis.getVoices();
+                            $.each(voices, function(idx,voice)
+                                {
+                                    if (voice.name === client.current_user.voice_settings.voice)
+                                    {
+                                        $("#setspeech-voice").val(idx);
+                                    }
+                                });
+                            $("#setspeech-greeting").val(client.current_user.voice_settings.welcome);
+                            $("#setspeech-farewell").val(client.current_user.voice_settings.farewell);
+                        }
+                        else
+                        {
+                            $(".speechsetting").addClass('hidden');
+                            $("#setspeech-enable").prop('checked', false);
+                        }
+                    });
+
+            $("#setspeech-enable").on('change', function()
+                    {
+                        if($("#setspeech-enable").prop('checked'))
+                        {
+                            $(".speechsetting").removeClass('hidden');
+                        }
+                        else
+                        {
+                            $(".speechsetting").addClass('hidden');
+                        }
+                    })
+
+            $("#profilespeech-btn").removeClass('hidden');
+
+            $("#setspeech-test").on('click', function () {
+                var msg = new SpeechSynthesisUtterance();
+                var voices = (<any>window).speechSynthesis.getVoices();
+                msg.voice = voices[$("#setspeech-voice").val()];
+
+                msg.text = $("#setspeech-greeting").val() + " " + $("#setspeech-farewell").val();
+                speechSynthesis.speak(msg);
+            }
+            );
+
+            $("#setspeechform").on('submit', function(e) {
+                e.preventDefault();
+                var voices = (<any>window).speechSynthesis.getVoices();
+                var voice = voices[$("#setspeech-voice").val()];
+                client.server_channel.savespeech(voice.name, $("#setspeech-greeting").val(), $("#setspeech-farewell").val());
+            })
+        }
+        else
+        {
+            $("#profilespeech-btn").addClass('hidden');
+        }
+
         $(".disabletimeout").on('click', function(e)
                 {
                     client.stopTimeout(client);
-                })
+                });
+
         $("#balancewarn").tooltip({
             title: "Your balance is negative. Please add funds to your account.",
             placement: 'bottom'

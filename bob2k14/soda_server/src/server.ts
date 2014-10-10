@@ -564,19 +564,6 @@ class sodad_server {
         return redisclient.hsetAsync("sodads:" + client, "learn", learnmode);
     }
 
-    updateuser(server: sodad_server, client: string)
-    {
-        return redisclient.hgetAsync("sodads:" + client, "uid")
-                          .then(function (uid)
-                                  {
-                                    return models.Users.find( { where : { userid: uid }})
-                                        .then(function(result){
-                                                var user = result;
-                                                user.pwd = (user.pwd === null || user.pwd === '') ? false: true;
-                                                server.clientchannels[client].updateuser(user);
-                                            })
-                                  });
-    }
 
     changepassword (server: sodad_server, client: string, enabled: boolean,
             newpassword: string, oldpassword: string)
@@ -813,9 +800,25 @@ class sodad_server {
                         {
                             user.pwd = false;
                         }
+                        user.voice_settings = JSON.parse(user.voice_settings);
                         server.clientchannels[client].login(user);
                 });
 
+    }
+
+    updateuser(server: sodad_server, client: string)
+    {
+        return redisclient.hgetAsync("sodads:" + client, "uid")
+                          .then(function (uid)
+                                  {
+                                    return models.Users.find( { where : { userid: uid }})
+                                        .then(function(result){
+                                                var user = result;
+                                                user.pwd = (user.pwd === null || user.pwd === '') ? false: true;
+                                                user.voice_settings = JSON.parse(user.voice_settings);
+                                                server.clientchannels[client].updateuser(user);
+                                            })
+                                  });
     }
 
     oos_search (server: sodad_server, client: string, searchstring: string)
@@ -889,7 +892,7 @@ class sodad_server {
                         log.info("Vend SUCCESS but stock at 0,  setting " + soda + " stock to UNKNOWN");
                         return redisclient.hsetAsync("sodad_vendstock", soda, null);
                     }
-                    else if (curstock !== null)
+                    else if (curstock !== null && curstock !== 'NaN')
                     {
                         var newstock = Math.max(parseInt(curstock) - 1,0);
                         log.info("Vend SUCCESS,  setting " + soda + " stock to " + newstock);
@@ -943,6 +946,43 @@ class sodad_server {
                 });
     }
 
+    savespeech(server: sodad_server, client: string, voice: string, welcome: string, farewell: string)
+    {
+        return redisclient.hgetAsync("sodads:" + client, "userid")
+                    .then(function(uid)
+                            {
+                                models.Users.find({ where: { userid : uid }})
+                                    .then(function (user)
+                                        {
+                                            if (voice === null)
+                                            {
+                                                return user.updateAttributes(
+                                                    {
+                                                        pref_speech : false
+                                                    }
+                                                    )
+                                            }
+                                            else
+                                            {
+                                                var voice_settings : any = {};
+                                                voice_settings.voice = voice;
+                                                voice_settings.welcome = welcome;
+                                                voice_settings.farewell = farewell;
+                                                var voice_settings_json = JSON.stringify(voice_settings);
+                                                return user.updateAttributes(
+                                                    {
+                                                        pref_speech : true,
+                                                        voice_settings: voice_settings_json
+                                                    }
+                                                    )
+                                            }
+                                        })
+                                    .then(function(updated_user)
+                                            {
+                                                server.updateuser(server, client);
+                                            })
+                            })
+    }
     start = () => {
         var server = this;
         log.info("sodad_server starting, listening on " + config.sodad.port);
@@ -1273,6 +1313,12 @@ class sodad_server {
                 var client = this.id;
                 log.info("Submitting an OOS report for barcode " + barcode + " for client " + client);
                 return server.oos_report(server, client, barcode);
+            },
+            savespeech: function (voice, greeting, farewell)
+            {
+                var client = this.id;
+                log.info("Saving speech settings, voice=" + voice + " for client " + client);
+                return server.savespeech(server, client, voice, greeting, farewell);
             },
             authenticate: function(user, password)
             {

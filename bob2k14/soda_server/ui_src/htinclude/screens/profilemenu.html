@@ -1,0 +1,48 @@
+<div id="profilemenu" class="ui-screen">
+    <div class="row">
+        <div class="col-xs-6">
+            <div class="list-group">
+                @@include('snippets/optbutton.html', {
+                    "id" : "profile-btn",
+                    "target" : "profile",
+                    "fa" : "fa-user",
+                    "title" : "Personal Info",
+                    "description" : "Username, nickname, e-mail"
+                })
+                @@include('snippets/optbutton.html', {
+                    "id" : "profilepassword-btn",
+                    "target" : "set-password",
+                    "fa" : "fa-pencil",
+                    "title" : "Set Password",
+                    "description" : "Set or disable password."
+                })
+               @@include('snippets/optbutton.html', {
+                    "id" : "profilebarcode-btn",
+                    "target" : "set-barcode",
+                    "fa" : "fa-barcode",
+                    "title" : "Set Barcode",
+                    "description" : "Manage or disable barcodes."
+                })
+            </div>
+        </div>
+        <div class="col-xs-6">
+            <div class="list-group">
+               @@include('snippets/optbutton.html', {
+                    "id" : "profilespeech-btn",
+                    "target" : "set-speech",
+                    "fa" : "fa-comment",
+                    "title" : "Speech Settings",
+                    "description" : "Manage or disable speech.."
+                })
+               @@include('snippets/optbutton.html', {
+                    "id" : "optionsexit-btn",
+                    "target" : "mainpurchase",
+                    "fa" : "fa-sign-out",
+                    "title" : "Exit",
+                    "description" : "Return to the purchase screen."
+                })
+            </div>
+        </div>
+    </div>
+</div>
+

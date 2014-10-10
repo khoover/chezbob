@@ -46,7 +46,8 @@ export class Models {
             pref_skip_purchase_confirm: sequelize.BOOLEAN,
             notes: sequelize.STRING,
             created_time: sequelize.DATE,
-            fraudulent: sequelize.BOOLEAN
+            fraudulent: sequelize.BOOLEAN,
+            voice_settings: sequelize.STRING
         }, {timestamps: false});
 
         this.Transactions = sql.define('transactions', {
