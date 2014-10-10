@@ -519,7 +519,7 @@ export class Client
                 client.server_channel.savespeech(voice.name, $("#setspeech-greeting").val(), $("#setspeech-farewell").val())
                         .then(function ()
                             {
-                                client.setUIscreen("profilemenu");
+                                client.setUIscreen(client,"profilemenu");
                             }
                             )
             })
