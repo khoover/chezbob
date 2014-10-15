@@ -813,4 +813,11 @@ $(document).ready(function() {
     var client = new Client(<ClientType> qs.type, qs.id);
     client.setup_ui(client);
     client.connect(client);
+
+    window.onerror = function(errorMsg, url, lineNumber, col)
+    {
+        client.log.error("Unhandled error in client: " + errorMsg);
+        //fire default handler as well
+        return false;
+    }
 })
