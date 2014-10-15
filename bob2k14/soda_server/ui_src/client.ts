@@ -8,6 +8,7 @@ var rpc = require("rpc");
 var bootstrap = require("bootstrap");
 var d3 = require('d3-browserify');
 var moment = require('moment');
+var querystring = require('query-string');
 
 declare var SpeechSynthesisUtterance;
 declare var speechSynthesis;
@@ -804,7 +805,12 @@ export class Client
 }
 
 $(document).ready(function() {
-    var client = new Client(ClientType.Soda, 0);
+    var qs = querystring.parse(location.search);
+    if (qs.type === undefined)
+    {
+        qs.type = ClientType.Terminal;
+    }
+    var client = new Client(<ClientType> qs.type, qs.id);
     client.setup_ui(client);
     client.connect(client);
 })
