@@ -15,7 +15,7 @@
     "gulp-type": "^0.3.0",
     "jayson": "^1.1.1",
     "jsesc": "^0.5.0",
-    "pkginfo": "^0.3.0",
+    "pkginfo": "^0.3.0"
   },
   "dependencies": {
     "bluebird": "^2.3.5",

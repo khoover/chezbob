@@ -997,10 +997,10 @@ class sodad_server {
         });
 
         var jsonserver = jayson.server({
-            "Soda.remotebarcode" : function (type, barcode, cb)
+            "Soda.remotebarcode" : function (ctype, id, type, barcode, cb)
             {
                 log.trace("Got remote barcode "  + barcode);
-                server.handle_barcode(server, ClientType.Soda, 0, type, barcode);
+                server.handle_barcode(server, ctype, id, type, barcode);
                 cb(null);
             },
             "Soda.vdbauth" : function (requested_soda, cb)
