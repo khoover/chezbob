@@ -20,4 +20,5 @@
       - vdb-server
       - barcode-server
       - barcodei-server
+      - soda-server
 

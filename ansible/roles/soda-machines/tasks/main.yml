@@ -30,8 +30,3 @@
 - name: Install udev rules
   copy: src=99-cbdevices.rules dest=/etc/udev/rules.d
 
-- name: Install sodad upstart job
-  copy: src=cb_sodad.conf dest=/etc/init/cb_sodad.conf
-- name: make sure sodad is running
-  service: name=cb_sodad state=started
-

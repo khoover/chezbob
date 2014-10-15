@@ -425,8 +425,6 @@ class sodad_server {
             redisclient.hgetallAsync("sodads:" + sessionid)
                 .then(function (session)
                         {
-                            if (session == null)
-                            {
                                 //nobody is logged in
                                return models.Userbarcodes.find( { where: { barcode : barcode }})
                                 .then(function(userbarcode)
@@ -436,7 +434,14 @@ class sodad_server {
                                             return models.Users.find( { where: { userid : userbarcode.userid }})
                                                 .then( function (user)
                                                     {
-                                                        server.handle_login(server, sessionid, "barcode", user);
+                                                        if (user !== null)
+                                                        {
+                                                            server.handle_login(server, sessionid, "barcode", user.dataValues);
+                                                        }
+                                                        else
+                                                        {
+                                                            throw "ERROR: userbarcode mapped to nonexistent user!";
+                                                        }
                                                     })
                                         }
                                         else
@@ -450,83 +455,72 @@ class sodad_server {
                                                         log.trace("Display price for product " + products.name + " due to barcode scan.");
                                                         server.clientchannels[sessionid].displayerror("fa-barcode", "Price Check", products.name + " costs " + products.price);
                                                     }
-                                                    else
+                                                    else if (session !== null && session.learn === "true")
                                                     {
-                                                        //no idea what this is.
-                                                       log.trace("Unknown barcode " + barcode + ", rejecting.")
-                                                       server.clientchannels[sessionid].displayerror("fa-warning", "Unknown Barcode", "Unknown barcode " + barcode + ", please scan again.");
+                                                        //we are trying to learn this barcode
+                                                        log.trace("Learning mode on, add learned barcode.")
+                                                        models.Userbarcodes.find(
+                                                                    {
+                                                                        where : {
+                                                                        barcode: barcode,
+                                                                        userid: session.uid}
+                                                                    }
+                                                                ).then(function (exist_barcode) {
+                                                                    if (exist_barcode !== null)
+                                                                    {
+                                                                        throw "Barcode already learned!"
+                                                                    }
+                                                                    return models.Userbarcodes.create(
+                                                                        {
+                                                                            barcode: barcode,
+                                                                            userid: session.uid
+                                                                        }
+                                                                    ).then(function (a)
+                                                                        {
+                                                                            log.info("Barcode " + barcode + " learned for client " + sessionid);
+                                                                            server.clientchannels[sessionid].displayerror("fa-barcode", "Barcode learned", "Barcode " + barcode + " learned");
+                                                                            server.clientchannels[sessionid].updatebarcodes();
+                                                                        })
+                                                                })
+                                                                .catch(function (e)
+                                                                    {
+                                                                        log.info("Barcode " + barcode + " NOT learned for client " + sessionid + " due to error: " + e);
+                                                                        server.clientchannels[sessionid].displayerror("fa-warning", "Learn failed", "Barcode " + barcode + " already learned by you or another user.");
+                                                                    })
                                                     }
-                                                });
-                                        }
-                                    })
-                            }
-                            else
-                            {
-                                if (session.learn === "true")
-                                {
-                                    //we are trying to learn this barcode
-                                    log.trace("Learning mode on, add learned barcode.")
-                                    models.Userbarcodes.find(
-                                                {
-                                                    where : {
-                                                    barcode: barcode,
-                                                    userid: session.uid}
-                                                }
-                                            ).then(function (exist_barcode) {
-                                                if (exist_barcode !== null)
-                                                {
-                                                    throw "Barcode already learned!"
-                                                }
-                                                return models.Userbarcodes.create(
+                                                    else if (session !== null && session.detail)
                                                     {
-                                                        barcode: barcode,
-                                                        userid: session.uid
+                                                        //trying to get detailed info about this barcode
                                                     }
-                                                ).then(function (a)
+                                                    //default to purchase
+                                                    else if (session !== null)
                                                     {
-                                                        log.info("Barcode " + barcode + " learned for client " + sessionid);
-                                                        server.clientchannels[sessionid].displayerror("fa-barcode", "Barcode learned", "Barcode " + barcode + " learned");
-                                                        server.clientchannels[sessionid].updatebarcodes();
-                                                    })
-                                            })
-                                            .catch(function (e)
-                                                {
-                                                    log.info("Barcode " + barcode + " NOT learned for client " + sessionid + " due to error: " + e);
-                                                    server.clientchannels[sessionid].displayerror("fa-warning", "Learn failed", "Barcode " + barcode + " already learned by you or another user.");
+                                                        return models.Products.find( { where: { barcode: barcode }})
+                                                                    .then( function (products)
+                                                                    {
+                                                                        if (products !== null)
+                                                                        {
+                                                                            log.info("Purchase " + products.name + " using barcode scan.");
+                                                                            return models.Users.find( { where: { userid : session.uid }})
+                                                                                .then( function (user)
+                                                                                {
+                                                                                    var purchase_desc = user.pref_forget_which_product === "true" ? "BUY" : "BUY " + products.name;
+                                                                                    var purchase_barcode = user.pref_forget_which_product  === "true" ? null : products.barcode;
+                                                                                    server.balance_transaction(server, sessionid, purchase_desc,
+                                                                                     products.name, purchase_barcode,  "-" + products.price);
+                                                                                })
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            //no idea what this is.
+                                                                           log.trace("Unknown barcode " + barcode + ", rejecting.")
+                                                                           server.clientchannels[sessionid].displayerror("fa-warning", "Unknown Barcode", "Unknown barcode " + barcode + ", please scan again.");
+                                                                        }
+                                                                    });
+                                                    }
                                                 })
-                                }
-                                else if (session.detail)
-                                {
-                                    //trying to get detailed info about this barcode
-                                }
-                                //default to purchase
-                                else
-                                {
-                                    return models.Products.find( { where: { barcode: barcode }})
-                                                .then( function (products)
-                                                {
-                                                    if (products !== null)
-                                                    {
-                                                        log.info("Purchase " + products.name + " using barcode scan.");
-                                                        return models.Users.find( { where: { userid : session.uid }})
-                                                            .then( function (user)
-                                                            {
-                                                                var purchase_desc = user.pref_forget_which_product === "true" ? "BUY" : "BUY " + products.name;
-                                                                var purchase_barcode = user.pref_forget_which_product  === "true" ? null : products.barcode;
-                                                                server.balance_transaction(server, sessionid, purchase_desc,
-                                                                 products.name, purchase_barcode,  "-" + products.price);
-                                                            })
-                                                    }
-                                                    else
-                                                    {
-                                                        //no idea what this is.
-                                                       log.trace("Unknown barcode " + barcode + ", rejecting.")
-                                                       server.clientchannels[sessionid].displayerror("fa-warning", "Unknown Barcode", "Unknown barcode " + barcode + ", please scan again.");
-                                                    }
-                                                });
-
-                                }
-                            }
+                                        }
+                                })
                         })
         }
     }
@@ -786,6 +780,7 @@ class sodad_server {
                         multi.hmset("sodads:" + client, user)
                         multi.hmset("sodads_roles:" + client, user.roles);
                         multi.expire("sodads:" + client, 600);
+                        multi.expire("sodads_roles:" + client, 600);
                         return multi.execAsync();
                     })
                 .then(function(success)
