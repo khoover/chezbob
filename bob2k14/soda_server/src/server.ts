@@ -450,10 +450,23 @@ class sodad_server {
                                             return models.Products.find( { where: { barcode: barcode }})
                                                 .then( function (products)
                                                 {
-                                                    if (products !== null)
+                                                    if (products !== null && session === null)
                                                     {
                                                         log.trace("Display price for product " + products.name + " due to barcode scan.");
                                                         server.clientchannels[sessionid].displayerror("fa-barcode", "Price Check", products.name + " costs " + products.price);
+                                                    }
+                                                    else if (products !== null && session !== null)
+                                                    {
+                                                        log.info("Purchase " + products.name + " using barcode scan.");
+                                                        return models.Users.find( { where: { userid : session.uid }})
+                                                            .then( function (user)
+                                                            {
+                                                                var purchase_desc = user.pref_forget_which_product === "true" ? "BUY" : "BUY " + products.name;
+                                                                var purchase_barcode = user.pref_forget_which_product  === "true" ? null : products.barcode;
+                                                                server.balance_transaction(server, sessionid, purchase_desc,
+                                                                 products.name, purchase_barcode,  "-" + products.price);
+                                                            });
+
                                                     }
                                                     else if (session !== null && session.learn === "true")
                                                     {
@@ -493,30 +506,11 @@ class sodad_server {
                                                         //trying to get detailed info about this barcode
                                                     }
                                                     //default to purchase
-                                                    else if (session !== null)
+                                                    else
                                                     {
-                                                        return models.Products.find( { where: { barcode: barcode }})
-                                                                    .then( function (products)
-                                                                    {
-                                                                        if (products !== null)
-                                                                        {
-                                                                            log.info("Purchase " + products.name + " using barcode scan.");
-                                                                            return models.Users.find( { where: { userid : session.uid }})
-                                                                                .then( function (user)
-                                                                                {
-                                                                                    var purchase_desc = user.pref_forget_which_product === "true" ? "BUY" : "BUY " + products.name;
-                                                                                    var purchase_barcode = user.pref_forget_which_product  === "true" ? null : products.barcode;
-                                                                                    server.balance_transaction(server, sessionid, purchase_desc,
-                                                                                     products.name, purchase_barcode,  "-" + products.price);
-                                                                                })
-                                                                        }
-                                                                        else
-                                                                        {
-                                                                            //no idea what this is.
-                                                                           log.trace("Unknown barcode " + barcode + ", rejecting.")
-                                                                           server.clientchannels[sessionid].displayerror("fa-warning", "Unknown Barcode", "Unknown barcode " + barcode + ", please scan again.");
-                                                                        }
-                                                                    });
+                                                        //no idea what this is.
+                                                       log.trace("Unknown barcode " + barcode + ", rejecting.")
+                                                       server.clientchannels[sessionid].displayerror("fa-warning", "Unknown Barcode", "Unknown barcode " + barcode + ", please scan again.");
                                                     }
                                                 })
                                         }
