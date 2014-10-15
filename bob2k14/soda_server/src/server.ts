@@ -796,7 +796,7 @@ class sodad_server {
                             user.pwd = false;
                         }
                         user.voice_settings = JSON.parse(user.voice_settings);
-                        if (user.voice_settings === undefined)
+                        if (user.voice_settings === undefined || user.voice_settings === null)
                         {
                             user.voice_settings = {};
                         }
