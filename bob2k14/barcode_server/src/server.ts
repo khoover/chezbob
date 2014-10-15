@@ -27,6 +27,9 @@ class InitData {
     remote_endpoint: String;
     rpc_port: number;
 
+    id;
+    type;
+
     loadVersion (initdata: InitData, callback: () => void) : void
     {
         log.debug("Getting version information...");
@@ -107,6 +110,8 @@ class InitData {
         this.timeout = 1000;
         this.remote_endpoint = "http://127.0.0.1:8080/api";
         this.rpc_port = 8086;
+        this.id = 0;
+        this.type = 1;
     }
 }
 
@@ -187,7 +192,7 @@ class barcode_server {
                             if (process_last)
                             {
                                 log.info("Barcode scanned, type=" + barcode.last_buffer[0] + " barcode=" +  barcode.last_buffer.substr(1));
-                                barcode.rpc_client.request("Soda.remotebarcode", [barcode.last_buffer[0], barcode.last_buffer.substr(1)], function (err, response)
+                                barcode.rpc_client.request("Soda.remotebarcode", [barcode.initdata.type, barcode.initdata.id, barcode.last_buffer[0], barcode.last_buffer.substr(1)], function (err, response)
                                         {
                                             if (err)
                                             {
