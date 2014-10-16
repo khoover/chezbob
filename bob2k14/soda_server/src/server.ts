@@ -935,7 +935,7 @@ class sodad_server {
     {
         return redisclient.hgetallAsync("sodad_vendstock").then(function (stock)
                 {
-                    server.clientchannels[client].updatevendstock(stock);
+                    return server.clientchannels[client].updatevendstock(stock);
                 });
     }
 

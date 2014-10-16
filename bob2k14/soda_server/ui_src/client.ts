@@ -335,10 +335,12 @@ export class Client
                     login: function (logindata)
                     {
                         client.login(client, logindata);
+                        return true;
                     },
                     logout: function()
                     {
                         client.logout(client);
+                        return true;
                     },
                     getversion: function()
                     {
@@ -360,6 +362,7 @@ export class Client
                         }
                         client.voice_speak(client, purchasedata.name + " for " + speakPrice);
                         client.setUIscreen(client,"mainpurchase");
+                        return true;
                     },
                     displayerror: function(icon, title, text)
                     {
@@ -371,6 +374,7 @@ export class Client
                         $("#errordialog").modal('show');
                         client.time_pause = false;
                         client.voice_speak(client, text);
+                        return true;
                     },
                     displaysoda: function(requested_soda, soda_name)
                     {
@@ -379,15 +383,18 @@ export class Client
                         client.voice_speak(client, "Dispensing " + soda_name);
                         $("#sodadialog").modal('show');
                         client.time_pause = true;
+                        return true;
                     },
                     updatebarcodes: function()
                     {
                         client.updateBarcodes(client);
+                        return true;
                     },
                     updateuser: function(user)
                     {
                         client.current_user = user;
                         client.voice_configure(client);
+                        return true;
                     },
                     updatevendstock: function(stock)
                     {
@@ -405,6 +412,7 @@ export class Client
                                         $("#vendstock").append("<div style='display:inline-block;width:40px;margin-left:10px;background-color:" + stockcolor + ";'><img src='images/sodalogos/" + item + ".jpg'/ style='width:40px;height:40px;'><p style='text-align:center'>" + level + "</p>");
                                     });
                         }
+                        return true;
                     },
                     reload: function()
                     {
