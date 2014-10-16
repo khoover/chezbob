@@ -1385,7 +1385,11 @@ class sodad_server {
                             {
                                 log.trace("Client version " + version);
                             }
-                        });
+                        }).catch(function (err)
+                            {
+                                log.warn("Error getting client version (probably really old), forcing reload");
+                                fns.reload();
+                            });
                     });
                 }
                 )
