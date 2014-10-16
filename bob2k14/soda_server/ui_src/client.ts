@@ -9,6 +9,7 @@ var bootstrap = require("bootstrap");
 var d3 = require('d3-browserify');
 var moment = require('moment');
 var querystring = require('query-string');
+var _curversion = "!!VERSION";
 
 declare var SpeechSynthesisUtterance;
 declare var speechSynthesis;
@@ -338,6 +339,10 @@ export class Client
                     logout: function()
                     {
                         client.logout(client);
+                    },
+                    getversion: function()
+                    {
+                        return _curversion;
                     },
                     addpurchase: function(purchasedata)
                     {

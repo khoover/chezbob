@@ -1374,6 +1374,18 @@ class sodad_server {
                         server.clientidmap[typedata.type][typedata.id] = socket.id;
                         log.info("Registered client channel type (" + ClientType[typedata.type] + "/"
                             + typedata.id + ") for client " + socket.id);
+                        return fns.getversion().then(function(version)
+                        {
+                            if (version !== server.initdata.longVersion)
+                            {
+                                log.warn("Client version (" + version + ") different from server version + (" +server.initdata.longVersion + "), reloading");
+                                fns.reload();
+                            }
+                            else
+                            {
+                                log.trace("Client version " + version);
+                            }
+                        });
                     });
                 }
                 )
