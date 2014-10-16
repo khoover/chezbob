@@ -1350,7 +1350,7 @@ class sodad_server {
                                         }
                                         else
                                         {
-                                            log.warn("Authentication failure for client " + client);
+                                            log.warn("Authentication failure (user= " + user + ")for client " + client);
                                             server.clientchannels[client].displayerror("fa-times-circle", "Login Denied", "Login for account " + user + " denied. Incorrect password was entered.");
                                         }
                                     }
