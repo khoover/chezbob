@@ -1338,7 +1338,7 @@ class sodad_server {
                                         log.warn("Disabled user " + user + " attempted login from client " + client);
                                         server.clientchannels[client].displayerror("fa-times-circle", "Login Disabled", "Login for account " + user + " is disabled. Please contact ChezBob staff for more details.");
                                     }
-                                    else if (luser.pwd == null && password == "")
+                                    else if ((luser.pwd == null && password == "") || (luser.pwd === "" && password == ""))
                                     {
                                         server.handle_login(server, client, "no pass", luser);
                                     }
