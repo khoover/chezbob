@@ -950,6 +950,7 @@ class sodad_server {
     {
         if (learnmode == true)
         {
+            log.info("Start fingerprint enroll process...");
             redisclient.hgetAsync("sodads:" + client, "userid").then(
                 function (uid)
                 {
