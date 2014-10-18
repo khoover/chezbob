@@ -521,6 +521,11 @@ class sodad_server {
         }
     }
 
+    get_fingerprints( server: sodad_server, client: string )
+    {
+        return null;
+    }
+
     //getbarcode: return a list of barcodes registered to the user.
     get_barcodes( server: sodad_server, client: string )
     {
@@ -1268,6 +1273,12 @@ class sodad_server {
                 var client = this.id;
                 log.info("Getting barcodes registered for client " + client);
                 return server.get_barcodes(server, client);
+            },
+            get_fingerprints: function()
+            {
+                var client = this.id;
+                log.info("Getting fingerprints registered for client " + client);
+                return server.get_fingerprints(server, client);
             },
             forget_barcode: function(barcode)
             {
