@@ -50,6 +50,7 @@ class InitData {
     dbhost;
 
     mdbendpoint;
+    fpendpoint;
 
     cbemail;
     sodamap;
@@ -185,7 +186,8 @@ class InitData {
             "0A" : "496580"
         }
 
-        this.mdbendpoint = "http://localhost:8081"
+        this.mdbendpoint = "http://localhost:8081";
+        this.fpendpoint = "http://localhost:8089";
     }
 }
 
@@ -939,6 +941,26 @@ class sodad_server {
                 });
     }
 
+    learnmode_fingerprint( server: sodad_server, client: string, learnmode: boolean)
+    {
+        if (learnmode == true)
+        {
+            redisclient.hgetAsync("sodads:" + client, "userid").then(
+                function (uid)
+                {
+                    var fp_rpc_client = jayson.rpc_client(server.initdata.fpendpoint);
+                    fp_rpc_client.request("fp.enroll", [ uid ], function (err,response){
+                        log.info("fp learn complete, result =", response);
+                    });
+                }
+                )
+        }
+        else
+        {
+
+        }
+    }
+
     savespeech(server: sodad_server, client: string, voice: string, welcome: string, farewell: string)
     {
         return redisclient.hgetAsync("sodads:" + client, "userid")
@@ -1252,6 +1274,12 @@ class sodad_server {
                 var client = this.id;
                 log.info("Forget barcode requested for client "  + client);
                 return server.forget_barcode(server, client, barcode);
+            },
+            learnmode_fingerprint: function(mode)
+            {
+                var client = this.id;
+                log.info("Setting fingerprint learn mode to " + mode + " for client " + client);
+                return server.learnmode_fingerprint(server, client, mode);
             },
             learnmode_barcode: function(mode)
             {

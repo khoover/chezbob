@@ -303,6 +303,26 @@ export class Client
                     }
                 )
     }
+
+    updateFingerprints(client: Client)
+    {
+        client.server_channel.get_fingerprints().then(
+                    function (fingerprints)
+                    {
+                        $("#fingerprints-table tbody").empty();
+                        $.each(fingerprints, function (idx, fingerprint)
+                            {
+                                $("#fingerprints-table tbody").append('<tr><td>' + fingerprint.id + '</td><td><a href="#" class="btn btn-danger deregisterbarcode" data-barcode="' + fingerprint.id + '">Forget</a></td></tr>');
+                            });
+                        $(".deregisterfingerprint").on('click', function(e)
+                            {
+                                var fingerprint = $(this).data('fid');
+                                client.server_channel.forget_fingerprint(fingerprint);
+                            })
+                    }
+                )
+    }
+
     connect(client: Client)
     {
         rpc.connect(window.location.protocol + '//' + window.location.hostname + ':' + window.location.port);
@@ -593,6 +613,17 @@ export class Client
         {
             client.updateBarcodes(client);
             client.server_channel.learnmode_barcode(true);
+        });
+
+        $("#profilefingerprint-btn").on('click', function()
+        {
+            client.updateFingerprints(client);
+            client.server_channel.learnmode_fingerprint(true);
+        });
+
+        $("#setfingerprint-exitbtn").on('click', function()
+        {
+            client.server_channel.learnmode_fingeprint(false);
         });
 
         $("#setbarcode-exitbtn").on('click', function()
