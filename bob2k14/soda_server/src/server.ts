@@ -954,6 +954,7 @@ class sodad_server {
             redisclient.hgetAsync("sodads:" + client, "userid").then(
                 function (uid)
                 {
+                    log.info("Learning fingerprint for user " + uid);
                     var fp_rpc_client = jayson.rpc_client(server.initdata.fpendpoint);
                     fp_rpc_client.request("fp.enroll", [ uid ], function (err,response){
                         log.info("fp learn complete, result =", response);
