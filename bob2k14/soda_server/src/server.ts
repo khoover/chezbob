@@ -959,7 +959,9 @@ class sodad_server {
                     var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
                     fp_rpc_client.request("fp.enroll", [ uid ], function (err,response){
                         log.info("fp learn complete");
-                        response = JSONB.parse(response);
+
+                        log.info(typeof response);
+                        log.info(Object.keys(response));
                         var png = new PNG({
                             width: response.width,
                             height: response.height
