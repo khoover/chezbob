@@ -434,6 +434,11 @@ export class Client
                         }
                         return true;
                     },
+                    acceptfingerprint: function(image)
+                    {
+                        $("#acceptfingerprintimg").html('<img src="data:image/png;base64,' + image + '"/>"');
+                        $("#acceptfingerprintdialog").modal('show');
+                    },
                     reload: function()
                     {
                         window.location.reload();
@@ -473,6 +478,15 @@ export class Client
                     $("#errordialog").modal('hide');
                 }, 3000);
         });
+
+        $("#acceptfingerprintdialog").modal({show:false});
+        $("#acceptfingerprintdialog").on('shown.bs.modal', function () {
+            setTimeout(function()
+                {
+                    $("#acceptfingerprintdialog").modal('hide');
+                }, 3000);
+        });
+
         $(".optbutton").on('click', function(e)
                 {
                     client.setUIscreen(client, $(this).data('target'));

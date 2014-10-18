@@ -11,7 +11,6 @@ var util = require('util');
 var bunyan = require('bunyan');
 var jayson = require('jayson');
 var jsesc = require('jsesc');
-import Buffer = require('buffer');
 import express = require('express')
 var bodyparser = require('body-parser');
 var bunyanredis = require('bunyan-redis');
@@ -29,6 +28,7 @@ var ansihtml = require('ansi-to-html');
 var child_process= require("child_process");
 var S = require('string');
 var stripansi = require('strip-ansi');
+var PNG = require('pngjs').PNG;
 
 var log;
 var dblog;
@@ -957,7 +957,31 @@ class sodad_server {
                     log.info("Learning fingerprint for user " + uid);
                     var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
                     fp_rpc_client.request("fp.enroll", [ uid ], function (err,response){
-                        log.info("fp learn complete, result =", response);
+                        log.info("fp learn complete");
+                        var png = new PNG({
+                            width: response.width,
+                            height: response.height
+                        });
+
+                        var gsPixels = new Buffer(response.fpimage, 'base64');
+                        var rgbPixels = new Buffer(response.width * response.height * 4); //RGBA
+                        for (var i = 0; i < gsPixels.length; i++)
+                        {
+                            rgbPixels[(i*4)] = gsPixels[i]; //R
+                            rgbPixels[(i*4) + 1] = gsPixels[i]; //G
+                            rgbPixels[(i*4) + 2] = gsPixels[i]; //B
+                            rgbPixels[(i*4) + 3] = 255; // A
+                        }
+                        png.data = rgbPixels;
+                        var chunks = [];
+                        png.on('data', function(chunk) {
+                            chunks.push(chunk);
+                        });
+                        png.on('end', function(chunk) {
+                            var result = Buffer.concat(chunks);
+                            server.clientchannels[client].acceptfingerprint(result.toString('base64'));
+                        })
+                        png.pack();
                     });
                 }
                 )
