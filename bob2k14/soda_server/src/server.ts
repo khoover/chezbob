@@ -960,18 +960,17 @@ class sodad_server {
                     fp_rpc_client.request("fp.enroll", [ uid ], function (err,response){
                         log.info("fp learn complete");
 
-                        log.info(typeof response);
-                        log.info(Object.keys(response));
+                        var result = response.result;
                         var png = new PNG({
-                            width: response.width,
-                            height: response.height
+                            width: result.width,
+                            height: result.height
                         });
 
-                        log.info(response.height);
-                        log.info(typeof response.fpimage);
-                        var gsPixels = new Buffer(response.fpimage, 'base64');
-                        var rgbPixels = new Buffer(parseInt(response.width) * parseInt(response.height) * 4); //RGBA
-                        log.info("Built fpimage buffer");
+                        log.info(result.height);
+                        log.info(typeof result.fpimage);
+                        var gsPixels = new Buffer(result.fpimage, 'base64');
+                        var rgbPixels = new Buffer(parseInt(result.width) * parseInt(result.height) * 4); //RGBA
+                        log.info("Built fpimage buffer " + rgbPixels.length + ", " + gsPixels.length);
                         for (var i = 0; i < gsPixels.length; i++)
                         {
                             rgbPixels[(i*4)] = gsPixels[i]; //R
@@ -985,8 +984,8 @@ class sodad_server {
                             chunks.push(chunk);
                         });
                         png.on('end', function(chunk) {
-                            var result = Buffer.concat(chunks);
-                            server.clientchannels[client].acceptfingerprint(result.toString('base64'));
+                            var res = Buffer.concat(chunks);
+                            server.clientchannels[client].acceptfingerprint(res.toString('base64'));
                         })
                         png.pack();
                     });
