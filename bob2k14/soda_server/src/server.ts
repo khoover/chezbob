@@ -963,6 +963,8 @@ class sodad_server {
                             height: response.height
                         });
 
+                        log.info(response.height);
+                        log.info(typeof response.fpimage);
                         var gsPixels = new Buffer(response.fpimage, 'base64');
                         var rgbPixels = new Buffer(parseInt(response.width) * parseInt(response.height) * 4); //RGBA
                         log.info("Built fpimage buffer");
