@@ -871,7 +871,7 @@ class sodad_server {
         else
         {
             log.warn("Coin type " + amt + " inserted, but no user is logged in, returning...")
-            var rpc_client = jayson.rpc_client(server.initdata.mdbendpoint);
+            var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
             rpc_client.request("Mdb.command", [ "G" + tube + "01"], function (err,response){});
         }
     }
@@ -955,7 +955,7 @@ class sodad_server {
                 function (uid)
                 {
                     log.info("Learning fingerprint for user " + uid);
-                    var fp_rpc_client = jayson.rpc_client(server.initdata.fpendpoint);
+                    var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
                     fp_rpc_client.request("fp.enroll", [ uid ], function (err,response){
                         log.info("fp learn complete, result =", response);
                     });
