@@ -1,0 +1,32 @@
+<div id="set-fingerprint" class="ui-screen">
+    <div class="row">
+        <div class="col-xs-5">
+            <div class="list-group">
+                @@include('snippets/tsidebutton.html', {
+                    "id" : "setfingerprint-exitbtn",
+                    "target" : "profilemenu",
+                    "fa" : "fa-sign-out",
+                    "text" : "Exit"
+                })
+            </div>
+        </div>
+        <div class="col-xs-7">
+            <p class="lead">To associate a fingerprint with your account, scan your finger now.</p>
+            <p class="lead">A list of fingerprints associated with your account can be found below:</p>
+
+            <div id="learned-fingerprint">
+                <table class="table table-striped h3" id="fingerprints-table">
+                    <thead>
+                        <th>Fingerprint</th>
+                        <th>View</th>
+                        <th>Forget</th>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+

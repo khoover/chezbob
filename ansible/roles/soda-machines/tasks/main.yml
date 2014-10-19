@@ -3,29 +3,8 @@
 - name: Install soda machine packages
   apt: pkg={{item}} state=present
   with_items:
-   - screen
    - postgresql
    - libpq-dev
-   - python3.4-dev
-
-- name: Install GNU ARM repo
-  apt_repository: repo='ppa:terry.guo/gcc-arm-embedded' state=present update-cache=yes
-
-- name: Install GNU ARM toolchain
-  apt: pkg=gcc-arm-none-eabi state=present
-
-- name: Install required python packages
-  pip: executable=pip3.4 name={{item}}
-  with_items:
-   - pyserial
-   - flask
-   - flask-jsonrpc
-   - flask-cors
-   - sqlalchemy
-   - flask-sqlalchemy
-   - psycopg2
-   - json-rpc
-   - requests
 
 - name: Install udev rules
   copy: src=99-cbdevices.rules dest=/etc/udev/rules.d

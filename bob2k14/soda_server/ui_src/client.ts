@@ -9,6 +9,7 @@ var bootstrap = require("bootstrap");
 var d3 = require('d3-browserify');
 var moment = require('moment');
 var querystring = require('query-string');
+var _curversion = "!!VERSION";
 
 declare var SpeechSynthesisUtterance;
 declare var speechSynthesis;
@@ -302,6 +303,26 @@ export class Client
                     }
                 )
     }
+
+    updateFingerprints(client: Client)
+    {
+        client.server_channel.get_fingerprints().then(
+                    function (fingerprints)
+                    {
+                        $("#fingerprints-table tbody").empty();
+                        $.each(fingerprints, function (idx, fingerprint)
+                            {
+                                $("#fingerprints-table tbody").append('<tr><td>' + fingerprint.id + '</td><td><a href="#" class="btn btn-danger deregisterbarcode" data-barcode="' + fingerprint.id + '">Forget</a></td></tr>');
+                            });
+                        $(".deregisterfingerprint").on('click', function(e)
+                            {
+                                var fingerprint = $(this).data('fid');
+                                client.server_channel.forget_fingerprint(fingerprint);
+                            })
+                    }
+                )
+    }
+
     connect(client: Client)
     {
         rpc.connect(window.location.protocol + '//' + window.location.hostname + ':' + window.location.port);
@@ -334,10 +355,16 @@ export class Client
                     login: function (logindata)
                     {
                         client.login(client, logindata);
+                        return true;
                     },
                     logout: function()
                     {
                         client.logout(client);
+                        return true;
+                    },
+                    getversion: function()
+                    {
+                        return _curversion;
                     },
                     addpurchase: function(purchasedata)
                     {
@@ -355,6 +382,7 @@ export class Client
                         }
                         client.voice_speak(client, purchasedata.name + " for " + speakPrice);
                         client.setUIscreen(client,"mainpurchase");
+                        return true;
                     },
                     displayerror: function(icon, title, text)
                     {
@@ -366,6 +394,7 @@ export class Client
                         $("#errordialog").modal('show');
                         client.time_pause = false;
                         client.voice_speak(client, text);
+                        return true;
                     },
                     displaysoda: function(requested_soda, soda_name)
                     {
@@ -374,15 +403,18 @@ export class Client
                         client.voice_speak(client, "Dispensing " + soda_name);
                         $("#sodadialog").modal('show');
                         client.time_pause = true;
+                        return true;
                     },
                     updatebarcodes: function()
                     {
                         client.updateBarcodes(client);
+                        return true;
                     },
                     updateuser: function(user)
                     {
                         client.current_user = user;
                         client.voice_configure(client);
+                        return true;
                     },
                     updatevendstock: function(stock)
                     {
@@ -400,6 +432,12 @@ export class Client
                                         $("#vendstock").append("<div style='display:inline-block;width:40px;margin-left:10px;background-color:" + stockcolor + ";'><img src='images/sodalogos/" + item + ".jpg'/ style='width:40px;height:40px;'><p style='text-align:center'>" + level + "</p>");
                                     });
                         }
+                        return true;
+                    },
+                    acceptfingerprint: function(image)
+                    {
+                        $("#acceptfingerprintimg").html('<img src="data:image/png;base64,' + image + '"/>"');
+                        $("#acceptfingerprintdialog").modal('show');
                     },
                     reload: function()
                     {
@@ -440,6 +478,15 @@ export class Client
                     $("#errordialog").modal('hide');
                 }, 3000);
         });
+
+        $("#acceptfingerprintdialog").modal({show:false});
+        $("#acceptfingerprintdialog").on('shown.bs.modal', function () {
+            setTimeout(function()
+                {
+                    $("#acceptfingerprintdialog").modal('hide');
+                }, 3000);
+        });
+
         $(".optbutton").on('click', function(e)
                 {
                     client.setUIscreen(client, $(this).data('target'));
@@ -580,6 +627,17 @@ export class Client
         {
             client.updateBarcodes(client);
             client.server_channel.learnmode_barcode(true);
+        });
+
+        $("#profilefingerprint-btn").on('click', function()
+        {
+            client.updateFingerprints(client);
+            client.server_channel.learnmode_fingerprint(true);
+        });
+
+        $("#setfingerprint-exitbtn").on('click', function()
+        {
+            client.server_channel.learnmode_fingeprint(false);
         });
 
         $("#setbarcode-exitbtn").on('click', function()

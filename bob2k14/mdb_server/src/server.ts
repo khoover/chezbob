@@ -235,6 +235,8 @@ class mdb_server {
                                 }
                                 else
                                 {
+                                    if (mdb.last_buffer[0] != "X")
+                                    {
                                     //otherwise send to the remote endpoint.
                                     mdb.rpc_client.request("Soda.remotemdb", [mdb.last_buffer], function (err, response)
                                             {
@@ -247,6 +249,11 @@ class mdb_server {
                                                     log.debug("remotemdb successful, response=", response);
                                                 }
                                             });
+                                    }
+                                    else
+                                    {
+                                        log.trace("Error ignored: " + mdb.last_buffer);
+                                    }
                                 }
                             }
                         });

@@ -11,7 +11,6 @@ var util = require('util');
 var bunyan = require('bunyan');
 var jayson = require('jayson');
 var jsesc = require('jsesc');
-import Buffer = require('buffer');
 import express = require('express')
 var bodyparser = require('body-parser');
 var bunyanredis = require('bunyan-redis');
@@ -27,6 +26,8 @@ var ansihtml = require('ansi-to-html');
 var child_process= require("child_process");
 var S = require('string');
 var stripansi = require('strip-ansi');
+var PNG = require('pngjs').PNG;
+var JSONB = require('json-buffer');
 
 var log;
 var dblog;
@@ -49,6 +50,7 @@ class InitData {
     config;
 
     mdbendpoint;
+    fpendpoint;
 
     cbemail;
     sodamap;
@@ -205,7 +207,8 @@ class InitData {
             "0A" : "496580"
         }
 
-        this.mdbendpoint = "http://localhost:8081"
+        this.mdbendpoint = "http://localhost:8081";
+        this.fpendpoint = "http://localhost:8089";
     }
 }
 
@@ -537,6 +540,11 @@ class sodad_server {
                                 })
                         })
         }
+    }
+
+    get_fingerprints( server: sodad_server, client: string )
+    {
+        return null;
     }
 
     //getbarcode: return a list of barcodes registered to the user.
@@ -884,7 +892,7 @@ class sodad_server {
         else
         {
             log.warn("Coin type " + amt + " inserted, but no user is logged in, returning...")
-            var rpc_client = jayson.rpc_client(server.initdata.mdbendpoint);
+            var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
             rpc_client.request("Mdb.command", [ "G" + tube + "01"], function (err,response){});
         }
     }
@@ -955,8 +963,59 @@ class sodad_server {
     {
         return redisclient.hgetallAsync("sodad_vendstock").then(function (stock)
                 {
-                    server.clientchannels[client].updatevendstock(stock);
+                    return server.clientchannels[client].updatevendstock(stock);
                 });
+    }
+
+    learnmode_fingerprint( server: sodad_server, client: string, learnmode: boolean)
+    {
+        if (learnmode == true)
+        {
+            log.info("Start fingerprint enroll process...");
+            redisclient.hgetAsync("sodads:" + client, "userid").then(
+                function (uid)
+                {
+                    log.info("Learning fingerprint for user " + uid);
+                    var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
+                    fp_rpc_client.request("fp.enroll", [ uid ], function (err,response){
+                        log.info("fp learn complete");
+
+                        var result = response.result;
+                        var png = new PNG({
+                            width: result.width,
+                            height: result.height
+                        });
+
+                        log.info(result.height);
+                        log.info(typeof result.fpimage);
+                        var gsPixels = new Buffer(result.fpimage, 'base64');
+                        var rgbPixels = new Buffer(parseInt(result.width) * parseInt(result.height) * 4); //RGBA
+                        log.info("Built fpimage buffer " + rgbPixels.length + ", " + gsPixels.length);
+                        for (var i = 0; i < gsPixels.length; i++)
+                        {
+                            rgbPixels[(i*4)] = gsPixels[i]; //R
+                            rgbPixels[(i*4) + 1] = gsPixels[i]; //G
+                            rgbPixels[(i*4) + 2] = gsPixels[i]; //B
+                            rgbPixels[(i*4) + 3] = 255; // A
+                        }
+                        png.data = rgbPixels;
+                        var chunks = [];
+                        png.on('data', function(chunk) {
+                            chunks.push(chunk);
+                        });
+                        png.on('end', function(chunk) {
+                            var res = Buffer.concat(chunks);
+                            server.clientchannels[client].acceptfingerprint(res.toString('base64'));
+                        })
+                        png.pack();
+                    });
+                }
+                )
+        }
+        else
+        {
+
+        }
     }
 
     savespeech(server: sodad_server, client: string, voice: string, welcome: string, farewell: string)
@@ -1268,11 +1327,23 @@ class sodad_server {
                 log.info("Getting barcodes registered for client " + client);
                 return server.get_barcodes(server, client);
             },
+            get_fingerprints: function()
+            {
+                var client = this.id;
+                log.info("Getting fingerprints registered for client " + client);
+                return server.get_fingerprints(server, client);
+            },
             forget_barcode: function(barcode)
             {
                 var client = this.id;
                 log.info("Forget barcode requested for client "  + client);
                 return server.forget_barcode(server, client, barcode);
+            },
+            learnmode_fingerprint: function(mode)
+            {
+                var client = this.id;
+                log.info("Setting fingerprint learn mode to " + mode + " for client " + client);
+                return server.learnmode_fingerprint(server, client, mode);
             },
             learnmode_barcode: function(mode)
             {
@@ -1359,7 +1430,7 @@ class sodad_server {
                                         log.warn("Disabled user " + user + " attempted login from client " + client);
                                         server.clientchannels[client].displayerror("fa-times-circle", "Login Disabled", "Login for account " + user + " is disabled. Please contact ChezBob staff for more details.");
                                     }
-                                    else if (luser.pwd == null && password == "")
+                                    else if ((luser.pwd == null && password == "") || (luser.pwd === "" && password == ""))
                                     {
                                         server.handle_login(server, client, "no pass", luser);
                                     }
@@ -1371,7 +1442,8 @@ class sodad_server {
                                         }
                                         else
                                         {
-                                            log.warn("Authentication failure for client " + client);
+                                            log.error("PASSWORD =", luser.pwd);
+                                            log.warn("Authentication failure (user= " + user + ")for client " + client);
                                             server.clientchannels[client].displayerror("fa-times-circle", "Login Denied", "Login for account " + user + " denied. Incorrect password was entered.");
                                         }
                                     }
@@ -1395,6 +1467,22 @@ class sodad_server {
                         server.clientidmap[typedata.type][typedata.id] = socket.id;
                         log.info("Registered client channel type (" + ClientType[typedata.type] + "/"
                             + typedata.id + ") for client " + socket.id);
+                        return fns.getversion().then(function(version)
+                        {
+                            if (version !== server.initdata.longVersion)
+                            {
+                                log.warn("Client version (" + version + ") different from server version + (" +server.initdata.longVersion + "), reloading");
+                                fns.reload();
+                            }
+                            else
+                            {
+                                log.trace("Client version " + version);
+                            }
+                        }).catch(function (err)
+                            {
+                                log.warn("Error getting client version (probably really old), forcing reload");
+                                fns.reload();
+                            });
                     });
                 }
                 )

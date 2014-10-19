@@ -12,6 +12,9 @@ var autoprefix = require('gulp-autoprefixer');
 var notify = require('gulp-notify');
 var bower = require('gulp-bower');
 var fileinclude = require('gulp-file-include');
+var replace = require('gulp-replace');
+var git = require('git-rev-2');
+var pkginfo = require('pkginfo')(module);
 
 var tsProject = ts.createProject({
     declarationFiles: true,
@@ -32,7 +35,7 @@ gulp.task('ts-compile', ['ts-typings'], function () {
                       .pipe(gulp.dest('build'));
 })
 
-gulp.task('ui-ts-compile', ['ts-typings'], function () {
+gulp.task('ui-ts-compile', ['ts-typings'], function (cb) {
     var browserified = transform(function(filename)
                                  {
                                      return browserify(filename, {debug: true})
@@ -40,13 +43,25 @@ gulp.task('ui-ts-compile', ['ts-typings'], function () {
                                             .bundle()
                                  })
 
-    return gulp.src(['ui_src/client.ts'])
-               .pipe(browserified)
-//               .pipe(uglify({outSourceMap:true}))
-               .pipe(rename({
-                   extname: ".js"
-               }))
-               .pipe(gulp.dest('build/ui/scripts'));
+    git.short(__dirname, function (err,str)
+              {
+                  var version = module.exports.version;
+                  if (err === null)
+                    {
+                        version = version + "/" + str;
+                    }
+
+                    gulp.src(['ui_src/client.ts'])
+                        .pipe(browserified)
+       //               .pipe(uglify({outSourceMap:true}))
+                        .pipe(rename({
+                             extname: ".js"
+                         }))
+                        .pipe(replace("\"!!VERSION\"", "\"" + version + "\""))
+                        .pipe(gulp.dest('build/ui/scripts'));
+
+                    cb();
+              })
 })
 
 gulp.task('ts-typings', function (cb) {
@@ -93,7 +108,8 @@ gulp.task('css', ['bower'], function()
                                 './ui_src',
                                 './bower_components/bootstrap-sass-official/assets/stylesheets/',
                                 './bower_components/fontawesome/scss/'
-                            ]
+                            ],
+                            container: Math.floor(Math.random()*99999 + 1).toString()
                          }))
                          .pipe(autoprefix('last 2 version'))
                          .pipe(gulp.dest('./build/ui/css'))
