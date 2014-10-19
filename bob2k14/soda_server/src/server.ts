@@ -18,8 +18,6 @@ var bunyanredis = require('bunyan-redis');
 var io = require('socket.io');
 var promise = require('bluebird');
 var rpc = require('socket.io-rpc');
-var sequelize = require('sequelize');
-var config = require('/etc/chezbob.json');
 var pgpass = require('pgpass');
 var Models = require('./models');
 var crypt = require('crypt3');
@@ -48,6 +46,7 @@ class InitData {
     dbname;
     dbuser;
     dbhost;
+    config;
 
     mdbendpoint;
 
@@ -112,21 +111,37 @@ class InitData {
     connectDB = (initdata : InitData, callback: () => void) : void  =>
     {
         dblog = log.child({module: 'db'});
-        pgpass({host: this.dbhost,
-                user: this.dbuser}, function (password)
-                {
-                    sql = new sequelize(initdata.dbname, initdata.dbuser, password,  {
-                        host: initdata.dbhost,
-                        dialect: 'postgres',
-                        logging: function(data) {
-                            dblog.trace(data);
-                        }
-                    })
-                    models = new Models.Models(sql);
-                    log.info("Sequelize database initialized.")
-                    callback();
+        if (initdata.config.db.type == "postgres") {
+            var sequelize = require('sequelize');
+            pgpass({host: this.dbhost,
+                    user: this.dbuser}, function (password)
+                    {
+                        sql = new sequelize(initdata.dbname, initdata.dbuser, password,  {
+                            host: initdata.dbhost,
+                            dialect: 'postgres',
+                            logging: function(data) {
+                                dblog.trace(data);
+                            }
+                        })
+                        models = new Models.Models(sql);
+                        log.info("Sequelize database initialized.")
+                        callback();
 
-        });
+            });
+        } else {
+            var sequelize = require('sequelize');
+            sql = new sequelize(null, null, null, {
+                storage: initdata.config.db.path,
+                dialect: 'sqlite',
+                logging: function(data) {
+                    dblog.trace(data);
+                }
+            })
+
+            models = new Models.Models(sql);
+            log.info("Sequelize database initialized.")
+            callback();
+        }
     }
 
     initSessions (initdata: InitData, callback: () => void) : void
@@ -165,10 +180,15 @@ class InitData {
     }
 
     constructor(args: string[]) {
+        if (args.length < 1)
+            this.config = require('/etc/chezbob.json');
+        else
+            this.config = require(args[0]);
+
         this.timeout = 10000;
-        this.dbname = "bob";
-        this.dbuser = "bob";
-        this.dbhost = "localhost";
+        this.dbname = this.config.db.name
+        this.dbuser = this.config.db.user
+        this.dbhost = this.config.db.host
         this.cbemail = "chezbob@cs.ucsd.edu";
 
         //TODO: this needs to be read from the main config file
@@ -978,7 +998,8 @@ class sodad_server {
     }
     start = () => {
         var server = this;
-        log.info("sodad_server starting, listening on " + config.sodad.port);
+        var init = server.initdata
+        log.info("sodad_server starting, listening on " + init.config.sodad.port);
         this.app = express();
 
         //configure routes
@@ -1157,7 +1178,7 @@ class sodad_server {
 
         this.app.use('/api', bodyparser.json());
         this.app.use('/api', jsonserver.middleware());
-        this.server = this.app.listen(config.sodad.port, function() {
+        this.server = this.app.listen(init.config.sodad.port, function() {
 
         });
 
