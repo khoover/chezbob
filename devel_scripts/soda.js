@@ -47,6 +47,7 @@ var sodaEp = fmt("http://%s:%s/api", host, sodaPort);
 var mdbdEp = fmt("http://%s:%s", host, mdbdPort);
 var vdbdEp = fmt("http://%s:%s", host, vdbdPort);
 var barcodeEp = fmt("http://%s:%s", host, barcodePort);
+var barcodeiEp = fmt("http://%s:%s", host, barcodeiPort);
 
 var chezbobJSON = {
   sodad: {
@@ -69,6 +70,13 @@ var chezbobJSON = {
     host: host,
     endpoint: barcodeEp,
     device: deployDir + "/barcode",
+    timeout: 1000
+  },
+  barcodeid: {
+    port: barcodeiPort,
+    host: host,
+    endpoint: barcodeiEp,
+    device: deployDir + "/barcodei",
     timeout: 1000
   },
   db: {
@@ -102,23 +110,34 @@ function killServer(name) {
   servers[name].kill(); 
 }
 
-function mkPseudoDevice(name, devFactory) {
+function mkPseudoDevice(name, devFactory, serial) {
   var devPath = deployDir + '/' + name
   var dev = spawn("mkfifo", [devPath])
-  var port = new serialport(devPath)
+  if (serial === undefined)
+    serial = true;
 
-  port.on("open",
-    function () {
-      var dev = devFactory(port);
-      port.on('data', dev.read);
-      devices[name] = dev;
+  if (serial) {
+    var port = new serialport(devPath)
+
+    port.on("open",
+      function () {
+        devices[name] = devFactory(port);
     })
+  } else {
+    fs.open(devPath, "r+",
+      function(err, fd) {
+        if (err) die("Couldn't open named pipe %s", devPath);
+
+        devices[name] = devFactory(fd);
+      });
+  }
 }
 
 function ignore() {}
 
+// This implements the soda barcode scanner behavior.
 function barcodeFactory(port) {
-  return {
+  var dev = {
     scan: function (barcode, type) {
       var buf = new Buffer(barcode.length + 3);
       if (type === undefined)
@@ -135,12 +154,55 @@ function barcodeFactory(port) {
       log(d)
     }
   }
+  port.on('data', dev.read);
+  return dev;
+}
+
+// This implements the kiosk barcode scanner behavior.
+var characterMap = {};
+characterMap["1"] = 2;
+characterMap["2"] = 3;
+characterMap["3"] = 4;
+characterMap["4"] = 5;
+characterMap["5"] = 6;
+characterMap["6"] = 7;
+characterMap["7"] = 8;
+characterMap["8"] = 9;
+characterMap["9"] = 10;
+characterMap["0"] = 11;
+
+function kbInputFactory(port) {
+  var dev = {
+    keyUp: function (keycode) {
+      var buf = new Buffer(24);
+      buf.writeUInt32LE(0,0);
+      buf.writeUInt32LE(0,8);
+      buf.writeUInt16LE(1, 16);
+      buf.writeUInt16LE(keycode, 18);
+      buf.writeUInt16LE(0, 20);
+      fs.writeSync(port, buf, 0, buf.length);
+      fs.fsync(port, ignore);
+    },
+    type: function (ch) { dev.keyUp(characterMap[ch]); },
+    scan: function (barcode) {
+      for (var i in barcode) {
+        dev.type(barcode[i]);
+      }
+      dev.keyUp(28); // Finish barcode by typing "Enter"
+    },
+    read: function (d) {
+      assert(false); // Fake KB should never really read
+    }
+  }
+  return dev;
 }
 
 // Soda
 startServer("soda", bobDir + "/soda_server/app.js")
-mkPseudoDevice("barcode", barcodeFactory)
+mkPseudoDevice("barcode", barcodeFactory, true)
 startServer("barcode", bobDir + "/barcode_server/app.js")
+mkPseudoDevice("barcodei", kbInputFactory, false)
+startServer("barcodei", bobDir + "/barcodei_server/app.js")
 
 // Start Repl
 var r = repl.start({
@@ -151,8 +213,13 @@ r.context.scanSoda = function (b, type) {
   devices['barcode'].scan(b, type);
 }
 
+r.context.scanTerminal = function (b, type) {
+  devices['barcodei'].scan(b, type);
+}
+
 r.on("exit",
   function () {
-    killServer("soda")
+    killServer("barcodei");
     killServer("barcode");
+    killServer("soda")
   })

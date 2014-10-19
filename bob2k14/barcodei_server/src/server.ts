@@ -41,6 +41,7 @@ class InitData {
 
     type = 0;
     id = 0;
+    config;
 
     loadVersion (initdata: InitData, callback: () => void) : void
     {
@@ -113,15 +114,16 @@ class InitData {
     constructor(args: string[]) {
         if (args.length < 1)
         {
-            this.barcodeport = "/dev/input/by-id/usb-Metrologic_Metrologic_Scanner-event-kbd";
+            this.config = require("/etc/chezbob.json");
         }
         else
         {
-            this.barcodeport = args[0];
+            this.config = require(args[0]);
         }
-        this.timeout = 1000;
-        this.remote_endpoint = "http://127.0.0.1:8080/api";
-        this.rpc_port = 8088;
+        this.barcodeport = this.config.barcodeid.device
+        this.timeout = this.config.barcodeid.timeout;
+        this.remote_endpoint = this.config.sodad.endpoint;
+        this.rpc_port = this.config.barcodeid.port
     }
 }
 
