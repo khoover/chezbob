@@ -13,6 +13,7 @@ var jayson = require('jayson');
 import Buffer = require('buffer');
 var jsesc = require('jsesc');
 var bunyanredis = require('bunyan-redis');
+var fs = require('fs');
 
 var log;
 var ringbuffer;
@@ -29,6 +30,7 @@ class InitData {
 
     id;
     type;
+    config;
 
     loadVersion (initdata: InitData, callback: () => void) : void
     {
@@ -101,15 +103,17 @@ class InitData {
     constructor(args: string[]) {
         if (args.length < 1)
         {
-            this.barcodeport = "/dev/barcode";
+            this.config = require("/etc/chezbob.json");
         }
         else
         {
-            this.barcodeport = args[0];
+            this.config = require(fs.realpathSync(args[0]));
         }
-        this.timeout = 1000;
-        this.remote_endpoint = "http://127.0.0.1:8080/api";
-        this.rpc_port = 8086;
+        var bd_conf = this.config.barcoded;
+        this.barcodeport = bd_conf.device;
+        this.timeout = bd_conf.timeout;
+        this.remote_endpoint = this.config.sodad.endpoint
+        this.rpc_port = bd_conf.port;
         this.id = 0;
         this.type = 1;
     }
