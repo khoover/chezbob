@@ -306,15 +306,12 @@ class sodad_server {
                                             })
                                             .then(function (target_xact)
                                             {
-                                                return t.commit().then(function ()
-                                                {
-                                                    log.info("Balance transfer transactions successfully inserted for user " + uid + " to " + targetuser + ", client " + client);
-                                                    server.clientchannels[client].addpurchase({
-                                                        name: "Transfer to " + targetuser,
-                                                        amount: "-" + amt,
-                                                        newbalance: user_updated.balance
-                                                    })
-                                                });
+                                                log.info("Balance transfer transactions successfully inserted for user " + uid + " to " + targetuser + ", client " + client);
+                                                server.clientchannels[client].addpurchase({
+                                                    name: "Transfer to " + targetuser,
+                                                    amount: "-" + amt,
+                                                    newbalance: user_updated.balance
+                                                })
                                             });
                                         }
                                         throw "Target user " + targetuser + " not found!"
@@ -323,11 +320,7 @@ class sodad_server {
                         .catch(function (err)
                             {
                                 log.error("Error committing transfer transaction for client " + client + ", rolling back: ", err);
-                                t.rollback().then(function()
-                                    {
-                                        server.clientchannels[client].displayerror("fa-warning", "Transfer Error", err);
-                                    }
-                                    );
+                                server.clientchannels[client].displayerror("fa-warning", "Transfer Error", err);
                             });
                 });
             }
@@ -378,24 +371,18 @@ class sodad_server {
                                 }, { transaction: t } )
                                 .then(function (new_xact)
                                 {
-                                    return t.commit().then(function ()
-                                    {
-                                        log.info("New balance transaction successfully inserted for user " + uid + ", client " + client);
-                                        server.clientchannels[client].addpurchase({
-                                            name: purchase_description,
-                                            amount: amt,
-                                            newbalance: user_updated.balance
-                                        })
-                                    });
+                                    log.info("New balance transaction successfully inserted for user " + uid + ", client " + client);
+                                    server.clientchannels[client].addpurchase({
+                                        name: purchase_description,
+                                        amount: amt,
+                                        newbalance: user_updated.balance
+                                    })
                                 });
                              })
                         .catch(function (err)
                             {
                                 log.error("Error committing transaction for client " + client + ", rolling back: ", err);
-                                t.rollback().then(function ()
-                                    {
-                                         server.clientchannels[client].displayerror("fa-warning", "Transaction Error", err);
-                                    })
+                                server.clientchannels[client].displayerror("fa-warning", "Transaction Error", err);
                             });
                 });
             }
