@@ -26,6 +26,7 @@ class InitData {
     timeout: Number;
     remote_endpoint: String;
     rpc_port: number;
+    config;
 
     loadVersion (initdata: InitData, callback: () => void) : void
     {
@@ -64,7 +65,7 @@ class InitData {
                     streams: [
                     {
                         stream: process.stdout,
-                        level: "info"
+                        level: "trace"
                     },
                     {
                         stream: ringbuffer,
@@ -97,16 +98,17 @@ class InitData {
     constructor(args: string[]) {
         if (args.length < 1)
         {
-            this.vdbport = "/dev/ttyS0";
+            this.config = require("/etc/chezbob.json")
         }
         else
         {
-            this.vdbport = args[0];
+            this.config = require(args[0])
         }
 
-        this.timeout = 10000;
-        this.remote_endpoint = "http://127.0.0.1:8080/api";
-        this.rpc_port = 8083;
+        this.vdbport = this.config.vdbd.device
+        this.timeout = this.config.vdbd.timeout;
+        this.remote_endpoint = this.config.sodad.endpoint
+        this.rpc_port = this.config.vdbd.port;
     }
 }
 
@@ -185,6 +187,7 @@ class vdb_server {
                         cb(error);
                     }
                 })
+        this.port.drain(function () {});
     }
 
     start = () => {

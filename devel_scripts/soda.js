@@ -63,7 +63,9 @@ var chezbobJSON = {
   vdbd: {
     port: vdbdPort,
     host: host,
-    endpoint: vdbdEp
+    endpoint: vdbdEp,
+    timeout: 10000,
+    device: deployDir + "/vdb"
   },
   barcoded: {
     port: barcodePort,
@@ -82,8 +84,27 @@ var chezbobJSON = {
   db: {
     type: "sqlite",
     path: argv.db
+  },
+  sodamap: {
+    "01" : "782740",
+    "02" : "496340",
+    "03" : "",
+    "04" : "049000042566",
+    "05" : "120130",
+    "06" : "120500",
+    "07" : "783150",
+    "08" : "783230",
+    "09" : "120850",
+    "0A" : "496580"
   }
 }
+
+var columns = {};
+var cols = Object.keys(chezbobJSON.sodamap);
+cols.sort();
+
+for (var i in cols)
+    columns[i] = cols[i];
 
 // Emit the chezbob.json
 var jsonPath = deployDir  + "/chezbob.json"
@@ -93,12 +114,22 @@ fs.writeFile(jsonPath, JSON.stringify(chezbobJSON, null, 2),
 // Kick off servers
 var servers = {}
 var devices = {}
+
+function ppLog(data) {
+  try {
+    rec=JSON.parse(data);
+    log("%s:%s\[%s\]:", rec.time, rec.name, rec.pid, rec.msg);
+  } catch (e) {
+    log("%s", data)
+  }
+}
+
 function startServer(name, path) {
   log(path)
   var srv = spawn("nodejs", [path, jsonPath]);
   srv.on("exit", function(code, sig) { die("Server %s died!", name); })
-  srv.stdout.on("data", function (d) { log("%s: %s", name, d); })
-  srv.stderr.on("data", function (d) { log("%s: %s", name, d); })
+  srv.stdout.on("data", ppLog);
+  srv.stderr.on("data", ppLog);
 
   servers[name] = srv;
 }
@@ -158,6 +189,57 @@ function barcodeFactory(port) {
   return dev;
 }
 
+function vdbFactory(port) {
+  var dev = {
+    send: function(buf) { port.write(buf, function (err, r) { if (err) die("Error sending command %s to vdb server"); port.drain(ignore); }); },
+    ack: function() { dev.send(new Buffer([0xa, 0xd])) },
+    sendStr: function(s) {
+      var buf = new Buffer(s.length + 1);
+      buf.write(s, 0, s.length)
+      buf[s.length] = 0xd;
+      dev.send(buf)
+    },
+    pressButton: function(col) { dev.sendStr("R00000000" + columns[col]); },
+    dispenseSuccess: function(col) { dev.sendStr("K"); },
+    dispenseFail: function(col){ dev.sendStr("L"); },
+    read: function (d) {
+      str = d.toString();
+      if (str == "\n\n\n\n\r") {
+        log("VDB: Clearing Messages");
+        dev.ack();
+      } else if (str == "\x1B\r") {
+        log("VDB: Reset line 1.");
+        dev.ack();
+      } else if (str == "W090001\r") {
+        log("VDB: Reset line 2.");
+        dev.ack();
+      } else if (str == "W070001\r") {
+        log("VDB: Reset line 3.");
+        dev.ack();
+      } else if (str == "WFF0000\r") {
+        log("VDB: Reset line 4.");
+        dev.ack();
+      } else if (str == "X\r") { // WTF?
+        dev.ack();
+      } else if (str == "C\r") { // WTF?
+        dev.ack();
+      } else if (str == "A\r") { // Authorizing Purchase
+        log("Sale AUTHORIZED");
+        dev.ack();
+      } else if (str == "D\r") { // Denying Purchase
+        log("Sale NOT AUTHORIZED");
+        dev.ack();
+      } else if (str.trim() == "") {
+        // Ignore
+      } else {
+        log("Uknown vdb command: ", d);
+      }
+    }
+  }
+  port.on('data', dev.read);
+  return dev;
+}
+
 // This implements the kiosk barcode scanner behavior.
 var characterMap = {};
 characterMap["1"] = 2;
@@ -189,9 +271,6 @@ function kbInputFactory(port) {
         dev.type(barcode[i]);
       }
       dev.keyUp(28); // Finish barcode by typing "Enter"
-    },
-    read: function (d) {
-      assert(false); // Fake KB should never really read
     }
   }
   return dev;
@@ -203,6 +282,8 @@ mkPseudoDevice("barcode", barcodeFactory, true)
 startServer("barcode", bobDir + "/barcode_server/app.js")
 mkPseudoDevice("barcodei", kbInputFactory, false)
 startServer("barcodei", bobDir + "/barcodei_server/app.js")
+mkPseudoDevice("vdb", vdbFactory, true)
+startServer("vdb", bobDir + "/vdb_server/app.js")
 
 // Start Repl
 var r = repl.start({
@@ -217,8 +298,21 @@ r.context.scanTerminal = function (b, type) {
   devices['barcodei'].scan(b, type);
 }
 
+r.context.pressSodaButton = function (c) {
+  devices['vdb'].pressButton(c);
+}
+
+r.context.vendOk = function (c) {
+  devices['vdb'].dispenseSuccess(c);
+}
+
+r.context.vendFail = function (c) {
+  devices['vdb'].dispenseFail(c);
+}
+
 r.on("exit",
   function () {
+    killServer("vdb");
     killServer("barcodei");
     killServer("barcode");
     killServer("soda")
