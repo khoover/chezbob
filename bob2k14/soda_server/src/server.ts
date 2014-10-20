@@ -105,7 +105,7 @@ class InitData {
                     }
                     ]
                 }
-                );4
+                );
         log.info("Logging system initialized");
         callback();
     }
@@ -125,7 +125,7 @@ class InitData {
                                 dblog.trace(data);
                             }
                         })
-                        models = new Models.Models(sql);
+                        models = new Models.Models(sql, "postgres");
                         log.info("Sequelize database initialized.")
                         callback();
 
@@ -140,7 +140,7 @@ class InitData {
                 }
             })
 
-            models = new Models.Models(sql);
+            models = new Models.Models(sql, "sqlite");
             log.info("Sequelize database initialized.")
             callback();
         }
@@ -192,21 +192,7 @@ class InitData {
         this.dbuser = this.config.db.user
         this.dbhost = this.config.db.host
         this.cbemail = "chezbob@cs.ucsd.edu";
-
-        //TODO: this needs to be read from the main config file
-        this.sodamap = {
-            "01" : "782740",
-            "02" : "496340",
-            "03" : "",
-            "04" : "049000042566",
-            "05" : "120130",
-            "06" : "120500",
-            "07" : "783150",
-            "08" : "783230",
-            "09" : "120850",
-            "0A" : "496580"
-        }
-
+        this.sodamap = this.config.sodamap;
         this.mdbendpoint = "http://localhost:8081";
         this.fpendpoint = "http://localhost:8089";
     }

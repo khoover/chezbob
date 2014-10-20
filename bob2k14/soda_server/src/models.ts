@@ -18,7 +18,14 @@ export class Models {
     Userbarcodes: SequelizeModel;
     Roles: SequelizeModel;
 
-    constructor (sql) {
+    constructor (sql, type) {
+        var dateFn;
+
+        if (type == "postgres")
+          dateFn = "NOW";
+        else
+          dateFn = "date";
+
         this.sql = sql;
 
         this.Products = sql.define('products', {
@@ -51,7 +58,7 @@ export class Models {
         }, {timestamps: false});
 
         this.Transactions = sql.define('transactions', {
-            xacttime : { type: sequelize.DATE, allowNull: false, defaultValue: sequelize.fn('NOW')},
+            xacttime : { type: sequelize.DATE, allowNull: false, defaultValue: sequelize.fn(dateFn)},
             userid : sequelize.INTEGER,
             xactvalue: sequelize.STRING,
             xacttype: sequelize.STRING,
