@@ -58,7 +58,9 @@ var chezbobJSON = {
   mdbd: {
     port: mdbdPort,
     host: host,
-    endpoint: mdbdEp
+    endpoint: mdbdEp,
+    device: deployDir + "/mdb",
+    timeout: 1000
   },
   vdbd: {
     port: vdbdPort,
@@ -189,6 +191,7 @@ function barcodeFactory(port) {
   return dev;
 }
 
+// Implement the Soda Machine
 function vdbFactory(port) {
   var dev = {
     send: function(buf) { port.write(buf, function (err, r) { if (err) die("Error sending command %s to vdb server"); port.drain(ignore); }); },
@@ -276,6 +279,19 @@ function kbInputFactory(port) {
   return dev;
 }
 
+// Implement the money-reader
+function mdbFactory(port) {
+  var dev = {
+    send: function(buf) { port.write(buf, function (err, r) { if (err) die("Error sending command %s to vdb server"); port.drain(ignore); }); },
+    read: function (d) {
+      str = d.toString();
+      log("Uknown mdb command: ", d);
+    }
+  }
+  port.on('data', dev.read);
+  return dev;
+}
+
 // Soda
 startServer("soda", bobDir + "/soda_server/app.js")
 mkPseudoDevice("barcode", barcodeFactory, true)
@@ -284,6 +300,8 @@ mkPseudoDevice("barcodei", kbInputFactory, false)
 startServer("barcodei", bobDir + "/barcodei_server/app.js")
 mkPseudoDevice("vdb", vdbFactory, true)
 startServer("vdb", bobDir + "/vdb_server/app.js")
+mkPseudoDevice("mdb", mdbFactory, true)
+startServer("mdb", bobDir + "/mdb_server/app.js")
 
 // Start Repl
 var r = repl.start({
@@ -312,6 +330,7 @@ r.context.vendFail = function (c) {
 
 r.on("exit",
   function () {
+    killServer("mdb");
     killServer("vdb");
     killServer("barcodei");
     killServer("barcode");

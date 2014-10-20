@@ -26,6 +26,7 @@ class InitData {
     timeout: Number;
     remote_endpoint: String;
     rpc_port: number;
+    config;
 
     loadVersion (initdata: InitData, callback: () => void) : void
     {
@@ -64,7 +65,7 @@ class InitData {
                     streams: [
                     {
                         stream: process.stdout,
-                        level: "info"
+                        level: "trace"
                     },
                     {
                         level: "trace",
@@ -98,15 +99,17 @@ class InitData {
     constructor(args: string[]) {
         if (args.length < 1)
         {
-            this.mdbport = "/dev/mdb";
+            this.config = require("/etc/chezbob.json");
         }
         else
         {
-            this.mdbport = args[0];
+            this.config = require(args[0]);
         }
-        this.timeout = 1000;
-        this.remote_endpoint = "http://127.0.0.1:8080/api";
-        this.rpc_port = 8081;
+
+        this.mdbport = this.config.mdbd.device;
+        this.timeout = this.config.mdbd.timeout;
+        this.remote_endpoint = this.config.sodad.endpoint;
+        this.rpc_port = this.config.mdbd.port;
     }
 }
 
