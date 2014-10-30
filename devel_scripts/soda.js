@@ -11,6 +11,8 @@ var spawn = require("child_process").spawn
 var repl = require("repl")
 var path = require("path")
 var serialport = require("serialport").SerialPort
+var fdserialport = require("fdserialport").SerialPort
+var openpty = require("openpty")
 
 // Utility functions
 var fmt = util.format
@@ -60,7 +62,7 @@ var chezbobJSON = {
     host: host,
     endpoint: mdbdEp,
     device: deployDir + "/mdb",
-    timeout: 1000
+    timeout: 10000
   },
   vdbd: {
     port: vdbdPort,
@@ -143,27 +145,22 @@ function killServer(name) {
   servers[name].kill(); 
 }
 
+
 function mkPseudoDevice(name, devFactory, serial) {
-  var devPath = deployDir + '/' + name
-  var dev = spawn("mkfifo", [devPath])
+  var pty = openpty();
+  var devPath = deployDir + '/' + name;
   if (serial === undefined)
     serial = true;
 
   if (serial) {
-    var port = new serialport(devPath)
-
-    port.on("open",
-      function () {
-        devices[name] = devFactory(port);
-    })
+    var port = new fdserialport(pty.master)
+    devices[name] = devFactory(port);
   } else {
-    fs.open(devPath, "r+",
-      function(err, fd) {
-        if (err) die("Couldn't open named pipe %s", devPath);
-
-        devices[name] = devFactory(fd);
-      });
+    devices[name] = devFactory(pty.master);
   }
+
+  // Link to our slave_name
+  fs.unlink(devPath, function(err) { fs.symlinkSync(pty.slave_name, devPath) })
 }
 
 function ignore() {}
@@ -279,19 +276,6 @@ function kbInputFactory(port) {
   return dev;
 }
 
-// Implement the money-reader
-function mdbFactory(port) {
-  var dev = {
-    send: function(buf) { port.write(buf, function (err, r) { if (err) die("Error sending command %s to vdb server"); port.drain(ignore); }); },
-    read: function (d) {
-      str = d.toString();
-      log("Uknown mdb command: ", d);
-    }
-  }
-  port.on('data', dev.read);
-  return dev;
-}
-
 // Soda
 startServer("soda", bobDir + "/soda_server/app.js")
 mkPseudoDevice("barcode", barcodeFactory, true)
@@ -300,7 +284,7 @@ mkPseudoDevice("barcodei", kbInputFactory, false)
 startServer("barcodei", bobDir + "/barcodei_server/app.js")
 mkPseudoDevice("vdb", vdbFactory, true)
 startServer("vdb", bobDir + "/vdb_server/app.js")
-mkPseudoDevice("mdb", mdbFactory, true)
+mkPseudoDevice("mdb", require("./mdb").mdbFactory, true)
 startServer("mdb", bobDir + "/mdb_server/app.js")
 
 // Start Repl

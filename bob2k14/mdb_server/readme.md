@@ -62,4 +62,4 @@ the service starts.
 
 # References
 
-TODO: a reference to the P115E MDB protocol goes here.
+http://www.jcasystems.com/images/p115master.pdf
