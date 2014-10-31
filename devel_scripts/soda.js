@@ -11,28 +11,19 @@ var spawn = require("child_process").spawn
 var repl = require("repl")
 var path = require("path")
 var serialport = require("serialport").SerialPort
-var fdserialport = require("fdserialport").SerialPort
-var openpty = require("openpty")
+var com = require("./common")
 
 // Utility functions
 var fmt = util.format
-
-function die() {
-  if (arguments.length > 0) {
-    log(fmt.apply(this, arguments))
-  }
-  process.exit(-1);
-}
+var ignore = com.ignore
+var die = com.die
+var log = com.log
 
 function mkDie() {
   return function(err) {
     if (err != null)
       die(arguments)
   }
-}
-
-function log() {
-  console.log(fmt.apply(this, arguments));
 }
 
 // Setup the devel chezbob.json config
@@ -62,7 +53,7 @@ var chezbobJSON = {
     host: host,
     endpoint: mdbdEp,
     device: deployDir + "/mdb",
-    timeout: 10000
+    timeout: 1000
   },
   vdbd: {
     port: vdbdPort,
@@ -103,13 +94,6 @@ var chezbobJSON = {
   }
 }
 
-var columns = {};
-var cols = Object.keys(chezbobJSON.sodamap);
-cols.sort();
-
-for (var i in cols)
-    columns[i] = cols[i];
-
 // Emit the chezbob.json
 var jsonPath = deployDir  + "/chezbob.json"
 fs.writeFile(jsonPath, JSON.stringify(chezbobJSON, null, 2),
@@ -118,6 +102,7 @@ fs.writeFile(jsonPath, JSON.stringify(chezbobJSON, null, 2),
 // Kick off servers
 var servers = {}
 var devices = {}
+var socats = {}
 
 function ppLog(data) {
   try {
@@ -145,146 +130,75 @@ function killServer(name) {
   servers[name].kill(); 
 }
 
+function makePTTYPair(name, cb) {
+  socats[name] = spawn("socat", ['-d', '-d', 'pty,raw,echo=0', 'pty,raw,echo=0']);
+  var pttyReg = new RegExp('PTY is (\/dev\/pts\/[0-9]*)', 'g')
+
+  var ptyPaths = [];
+  socats[name].stderr.on("data", function(d) {
+    if (ptyPaths.length >= 2) return; // Only interested in the 1st 2 occurances
+    var s = d.toString();
+    m = pttyReg.exec(s);
+
+    while (m != null) {
+      ptyPaths.push(m[1]);
+      m = pttyReg.exec(s);
+
+      if (ptyPaths.length == 2) cb(ptyPaths);
+    }
+  });
+}
 
 function mkPseudoDevice(name, devFactory, serial) {
-  var pty = openpty();
-  var devPath = deployDir + '/' + name;
-  if (serial === undefined)
-    serial = true;
+  makePTTYPair(name,
+    function(ptys) {
+      var devPath = deployDir + '/' + name
 
-  if (serial) {
-    var port = new fdserialport(pty.master)
-    devices[name] = devFactory(port);
-  } else {
-    devices[name] = devFactory(pty.master);
-  }
+      if (serial === undefined)
+        serial = true;
 
-  // Link to our slave_name
-  fs.unlink(devPath, function(err) { fs.symlinkSync(pty.slave_name, devPath) })
-}
+      var master = ptys[0]
+      var slave = ptys[1]
 
-function ignore() {}
+      // Link the slave
+      fs.unlink(devPath,
+        function (err) {
+          if (err) die("Couldn't remove ", devPath);
+          fs.symlinkSync(slave, devPath);
+      })
 
-// This implements the soda barcode scanner behavior.
-function barcodeFactory(port) {
-  var dev = {
-    scan: function (barcode, type) {
-      var buf = new Buffer(barcode.length + 3);
-      if (type === undefined)
-        type = "A";
+      // Fire off the pseudo device on the master
+      if (serial) {
+        var port = new serialport(master)
 
-      buf[0] = 0;
-      buf[1] = type;
-      buf.write(barcode, 2);
-      buf[barcode.length + 2] = 0xd;
-      
-      port.write(buf, function (err, r) {if (err) die("Error scanning barcode");  port.drain(ignore); })
-    },
-    read: function (d) {
-      log(d)
-    }
-  }
-  port.on('data', dev.read);
-  return dev;
-}
-
-// Implement the Soda Machine
-function vdbFactory(port) {
-  var dev = {
-    send: function(buf) { port.write(buf, function (err, r) { if (err) die("Error sending command %s to vdb server"); port.drain(ignore); }); },
-    ack: function() { dev.send(new Buffer([0xa, 0xd])) },
-    sendStr: function(s) {
-      var buf = new Buffer(s.length + 1);
-      buf.write(s, 0, s.length)
-      buf[s.length] = 0xd;
-      dev.send(buf)
-    },
-    pressButton: function(col) { dev.sendStr("R00000000" + columns[col]); },
-    dispenseSuccess: function(col) { dev.sendStr("K"); },
-    dispenseFail: function(col){ dev.sendStr("L"); },
-    read: function (d) {
-      str = d.toString();
-      if (str == "\n\n\n\n\r") {
-        log("VDB: Clearing Messages");
-        dev.ack();
-      } else if (str == "\x1B\r") {
-        log("VDB: Reset line 1.");
-        dev.ack();
-      } else if (str == "W090001\r") {
-        log("VDB: Reset line 2.");
-        dev.ack();
-      } else if (str == "W070001\r") {
-        log("VDB: Reset line 3.");
-        dev.ack();
-      } else if (str == "WFF0000\r") {
-        log("VDB: Reset line 4.");
-        dev.ack();
-      } else if (str == "X\r") { // WTF?
-        dev.ack();
-      } else if (str == "C\r") { // WTF?
-        dev.ack();
-      } else if (str == "A\r") { // Authorizing Purchase
-        log("Sale AUTHORIZED");
-        dev.ack();
-      } else if (str == "D\r") { // Denying Purchase
-        log("Sale NOT AUTHORIZED");
-        dev.ack();
-      } else if (str.trim() == "") {
-        // Ignore
+        port.on("open",
+          function () {
+            devices[name] = devFactory(port);
+        })
       } else {
-        log("Uknown vdb command: ", d);
+        fs.open(master, "r+",
+          function(err, fd) {
+            if (err) die("Couldn't open named pipe %s", devPath);
+    
+            devices[name] = devFactory(fd);
+          });
       }
-    }
-  }
-  port.on('data', dev.read);
-  return dev;
+    })
 }
 
-// This implements the kiosk barcode scanner behavior.
-var characterMap = {};
-characterMap["1"] = 2;
-characterMap["2"] = 3;
-characterMap["3"] = 4;
-characterMap["4"] = 5;
-characterMap["5"] = 6;
-characterMap["6"] = 7;
-characterMap["7"] = 8;
-characterMap["8"] = 9;
-characterMap["9"] = 10;
-characterMap["0"] = 11;
-
-function kbInputFactory(port) {
-  var dev = {
-    keyUp: function (keycode) {
-      var buf = new Buffer(24);
-      buf.writeUInt32LE(0,0);
-      buf.writeUInt32LE(0,8);
-      buf.writeUInt16LE(1, 16);
-      buf.writeUInt16LE(keycode, 18);
-      buf.writeUInt16LE(0, 20);
-      fs.writeSync(port, buf, 0, buf.length);
-      fs.fsync(port, ignore);
-    },
-    type: function (ch) { dev.keyUp(characterMap[ch]); },
-    scan: function (barcode) {
-      for (var i in barcode) {
-        dev.type(barcode[i]);
-      }
-      dev.keyUp(28); // Finish barcode by typing "Enter"
-    }
-  }
-  return dev;
+function killPseudoDevice(name) {
+  socats[name].kill();
 }
 
 // Soda
 startServer("soda", bobDir + "/soda_server/app.js")
-mkPseudoDevice("barcode", barcodeFactory, true)
+mkPseudoDevice("barcode", require("./barcode.js").barcodeFactory, true)
 startServer("barcode", bobDir + "/barcode_server/app.js")
-mkPseudoDevice("barcodei", kbInputFactory, false)
+mkPseudoDevice("barcodei", require("./kbd.js").kbdFactory, false)
 startServer("barcodei", bobDir + "/barcodei_server/app.js")
-mkPseudoDevice("vdb", vdbFactory, true)
+mkPseudoDevice("vdb", require("./vdb.js").vdbFactory, true)
 startServer("vdb", bobDir + "/vdb_server/app.js")
-mkPseudoDevice("mdb", require("./mdb").mdbFactory, true)
+mkPseudoDevice("mdb", require("./mdb.js").mdbFactory, true)
 startServer("mdb", bobDir + "/mdb_server/app.js")
 
 // Start Repl
@@ -292,6 +206,7 @@ var r = repl.start({
   prompt: "soda>",
 })
 
+// Additional functions to the repl to interact with devices
 r.context.scanSoda = function (b, type) {
   devices['barcode'].scan(b, type);
 }
@@ -312,6 +227,14 @@ r.context.vendFail = function (c) {
   devices['vdb'].dispenseFail(c);
 }
 
+r.context.putCoin = function (v) {
+  devices['mdb'].putCoin(v);
+}
+
+r.context.pressCoinReturn = function (v) {
+  devices['mdb'].pressCoinReturn(v);
+}
+
 r.on("exit",
   function () {
     killServer("mdb");
@@ -319,4 +242,8 @@ r.on("exit",
     killServer("barcodei");
     killServer("barcode");
     killServer("soda")
+    killPseudoDevice("barcode");
+    killPseudoDevice("barcodei");
+    killPseudoDevice("vdb");
+    killPseudoDevice("mdb");
   })
