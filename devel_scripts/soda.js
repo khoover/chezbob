@@ -1,11 +1,21 @@
 #! /usr/bin/env node
-var usage = " soda --deploy <deploy dir> --db <path-to-database> --port_start [num]"
+var usage = " soda --deploy <deploy dir> --db <path-to-database> --port_start [num] --logs [file|terminal|null]"
 // Library Imports
 var util = require("util")
 var argv = require("optimist")
            .usage(usage)
            .default("port_start", 8080)
-           .demand(["deploy", "db", "port_start"]).argv
+           .default("logs", "file")
+           .describe("deploy", "Directory where temporary files for the current deployment are held")
+           .describe("db", "Path to the sqlite3 version of ChezBob's database to use")
+           .describe("port-start", "Starting port number for the deployed daemons")
+           .describe("logs", "Where to print logs from started daemons. With file each process's logs are printed in its own file. With terminal they are all printed in the current terminal. With null they are all ignored")
+           .demand(["deploy", "db", "port_start", "logs"])
+           .check(function (args) {
+              if (! args.logs in ["file", "terminal", "null"])
+                throw "Invalid value for logs"
+            })
+           .argv
 var fs = require("fs")
 var spawn = require("child_process").spawn
 var repl = require("repl")
@@ -115,10 +125,25 @@ function ppLog(data) {
 
 function startServer(name, path) {
   log(path)
-  var srv = spawn("nodejs", [path, jsonPath]);
+  var childIO;
+
+  if (argv.logs == "file") {
+    stdoutFD = fs.openSync(deployDir + "/" + name + ".stdout", "w")
+    stderrFD = fs.openSync(deployDir + "/" + name + ".stderr", "w")
+    childIO = ["pipe", stdoutFD, stderrFD]
+  } else if (argv.logs == "terminal") {
+    childIO = "pipe";
+  } else { //null
+    childIO = "ignore";
+  }
+
+  var srv = spawn("nodejs", [path, jsonPath], {stdio: childIO});
   srv.on("exit", function(code, sig) { die("Server %s died!", name); })
-  srv.stdout.on("data", ppLog);
-  srv.stderr.on("data", ppLog);
+
+  if (argv.logs == "terminal") {
+    srv.stdout.on("data", ppLog);
+    srv.stderr.on("data", ppLog);
+  }
 
   servers[name] = srv;
 }
