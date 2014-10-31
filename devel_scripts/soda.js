@@ -163,7 +163,7 @@ function mkPseudoDevice(name, devFactory, serial) {
       // Link the slave
       fs.unlink(devPath,
         function (err) {
-          if (err) die("Couldn't remove ", devPath);
+          if (err && fs.existsSync(devPath)) die("Couldn't remove ", devPath);
           fs.symlinkSync(slave, devPath);
       })
 

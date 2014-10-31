@@ -15,7 +15,7 @@ exports.log = function () {
 
 exports.die = function () {
   if (arguments.length > 0) {
-    log(arguments)
+    exports.log(arguments)
   }
 
   process.exit(-1);
