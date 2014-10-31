@@ -12,8 +12,10 @@ var argv = require("optimist")
            .describe("logs", "Where to print logs from started daemons. With file each process's logs are printed in its own file. With terminal they are all printed in the current terminal. With null they are all ignored")
            .demand(["deploy", "db", "port_start", "logs"])
            .check(function (args) {
-              if (! args.logs in ["file", "terminal", "null"])
-                throw "Invalid value for logs"
+              if (args.logs != "file" &&
+                  args.logs != "terminal" &&
+                  args.logs !=  "null")
+                throw "Invalid value for logs: " + args.logs
             })
            .argv
 var fs = require("fs")
