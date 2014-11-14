@@ -4,9 +4,9 @@
   apt: pkg={{ item }} state=present
   with_items:
    - git
-
-- name: Easyinstall to get pip-3.2
-  easy_install: executable=easy_install3.4 name=pip
+   - python-pip 
+   - nodejs
+   - npm
 
 - name: Install common packages with pip
   pip: name={{item}}
