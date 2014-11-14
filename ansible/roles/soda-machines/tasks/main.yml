@@ -9,3 +9,8 @@
 - name: Install udev rules
   copy: src=99-cbdevices.rules dest=/etc/udev/rules.d
 
+- name: Install required npm packages
+  npm: name={{ item }} state=present global=yes
+  sudo: yes
+  with_items:
+    - bunyan-redis-watch
