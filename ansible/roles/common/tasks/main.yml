@@ -1,11 +1,5 @@
 ---
 
-- name: install pycurl
-  apt: pkg=python-pycurl state=present
-
-- name: Add deadsnakes repo
-  apt_repository: repo=ppa:fkrull/deadsnakes update_cache=yes state=present
-
 - name: Install common packages
   apt: pkg={{ item }} state=present
   with_items:
