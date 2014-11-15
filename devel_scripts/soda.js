@@ -7,10 +7,10 @@ var argv = require("optimist")
            .default("port_start", 8080)
            .default("logs", "file")
            .describe("deploy", "Directory where temporary files for the current deployment are held")
-           .describe("db", "Path to the sqlite3 version of ChezBob's database to use")
+           .describe("db", "Path to the sqlite3 version of ChezBob's database or none. (when none, use default posgres db)")
            .describe("port-start", "Starting port number for the deployed daemons")
            .describe("logs", "Where to print logs from started daemons. With file each process's logs are printed in its own file. With terminal they are all printed in the current terminal. With null they are all ignored")
-           .demand(["deploy", "db", "port_start", "logs"])
+           .demand(["deploy", "port_start", "logs"])
            .check(function (args) {
               if (args.logs != "file" &&
                   args.logs != "terminal" &&
@@ -54,6 +54,22 @@ var vdbdEp = fmt("http://%s:%s", host, vdbdPort);
 var barcodeEp = fmt("http://%s:%s", host, barcodePort);
 var barcodeiEp = fmt("http://%s:%s", host, barcodeiPort);
 
+var db_conf;
+
+if (argv.db) {
+    db_conf = {
+      type: "sqlite",
+      path: argv.db
+    }
+  } else {
+    db_conf = {
+      "type": "postgres",
+      "dbhost": "localhost",
+      "dbname": "bob",
+      "dbuser": "bob"
+    }  
+  }
+
 var chezbobJSON = {
   sodad: {
     port: sodaPort,
@@ -88,10 +104,7 @@ var chezbobJSON = {
     device: deployDir + "/barcodei",
     timeout: 1000
   },
-  db: {
-    type: "sqlite",
-    path: argv.db
-  },
+  db: db_conf,
   sodamap: {
     "01" : "782740",
     "02" : "496340",

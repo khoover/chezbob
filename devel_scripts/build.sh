@@ -3,6 +3,8 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BASE=$DIR/../
 
+sudo rm -rf ~/tmp
+
 pushd $BASE/bob2k14/mdb_server
 npm install
 gulp

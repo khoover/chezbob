@@ -7,7 +7,7 @@ function installPkg {
   dpkg -s $1 &> /dev/null
   if [[ $? -ne 0 ]]; then
     echo "Installing $1. This may request your superuser password"
-    sudo apt-get install $1
+    sudo apt-get --force-yes install $1
   else
     echo "Package $1 is already installed."
   fi
@@ -30,7 +30,8 @@ installPkg nodejs
 installPkg nodejs-legacy
 installPkg socat
 installPkg libpq-dev
-
+installPkg npm
+installPkg postgresql
 
 installGlobNpmPkg forever
 installGlobNpmPkg gulp
