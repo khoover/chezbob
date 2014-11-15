@@ -38,38 +38,18 @@ installGlobNpmPkg typescript
 installGlobNpmPkg bunyan
 installGlobNpmPkg sqlite3
 
-pushd $BASE/bob2k14/mdb_server
-npm install
-gulp
-popd
+# Set the permissions on the postgresql server to allow all connections
+# from localhost
+echo "Setting permissions for postgresql database. This may ask your sudo password"
+echo "
+local   all             postgres                                peer
 
-pushd $BASE/bob2k14/vdb_server
-npm install
-gulp
-popd
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
 
-pushd $BASE/bob2k14/barcode_server
-npm install
-gulp
-popd
-
-pushd $BASE/bob2k14/barcodei_server
-npm install
-gulp
-popd
-
-pushd $BASE/bob2k14/soda_server
-npm install
-gulp
-popd
-
-pushd $BASE/devel_scripts
-npm install optimist
-npm install serialport
-popd
-
-echo "Attempting to copy test app.db from soda"
-echo "Please ensure you've setup an entry for soda in your .ssh/config"
-
-mkdir $BASE/deploy
-scp soda.ucsd.edu:/home/dimo/app.db $BASE/deploy/
+# local is for Unix domain socket connections only
+local   all             all                                     trust
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            trust
+# IPv6 local connections:
+host    all             all             ::1/128                 md5
+" |  sudo tee /etc/postgresql/9.3/main/pg_hba.conf 
