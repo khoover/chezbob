@@ -5,6 +5,7 @@
     with_items:
         - nodejs
         - git
+        - ruby-sass
 
   - name: Install required npm packages
     npm: name={{ item }} state=present global=yes
