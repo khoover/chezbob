@@ -6,7 +6,7 @@
    - git
    - python-pip 
    - nodejs
-   - npm
+   - nodejs-legacy
 
 - name: Install common packages with pip
   pip: name={{item}}
