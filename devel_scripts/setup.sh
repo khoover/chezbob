@@ -59,3 +59,6 @@ pushd $BASE/devel_scripts
 
 npm install pg sequelize
 popd
+
+sudo rm -rf ~/tmp
+
