@@ -69,7 +69,7 @@ if (argv.db) {
   sql = new sequelize(null, null, null, {
     storage: argv.db,
     dialect: 'sqlite',
-    loggin: function(d) {}
+    logging: function(d) {}
   });
 } else {
   db_conf = {
@@ -82,7 +82,7 @@ if (argv.db) {
   sql = new sequelize("bob", "bob", "", {
     host: "localhost",
     dialect: "postgres",
-    loggin: function(d) {}
+    logging: function(d) {}
   });
 }
 
@@ -264,6 +264,7 @@ startServer("mdb", bobDir + "/mdb_server/app.js")
 // Start Repl
 var r = repl.start({
   prompt: "soda>",
+  useColors: true
 })
 
 // Additional functions to the repl to interact with devices
