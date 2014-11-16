@@ -6,11 +6,12 @@ var argv = require("optimist")
            .usage(usage)
            .default("port_start", 8080)
            .default("logs", "file")
+           .default("deploy", "/tmp")
            .describe("deploy", "Directory where temporary files for the current deployment are held")
-           .describe("db", "Path to the sqlite3 version of ChezBob's database to use")
+           .describe("db", "Path to the sqlite3 version of ChezBob's database or none. (when none, use default posgres db)")
            .describe("port-start", "Starting port number for the deployed daemons")
            .describe("logs", "Where to print logs from started daemons. With file each process's logs are printed in its own file. With terminal they are all printed in the current terminal. With null they are all ignored")
-           .demand(["deploy", "db", "port_start", "logs"])
+           .demand(["deploy", "port_start", "logs"])
            .check(function (args) {
               if (args.logs != "file" &&
                   args.logs != "terminal" &&
@@ -24,6 +25,8 @@ var repl = require("repl")
 var path = require("path")
 var serialport = require("serialport").SerialPort
 var com = require("./common")
+var sequelize = require("sequelize")
+var Models = require("../bob2k14/soda_server/build/models.js")
 
 // Utility functions
 var fmt = util.format
@@ -53,6 +56,37 @@ var mdbdEp = fmt("http://%s:%s", host, mdbdPort);
 var vdbdEp = fmt("http://%s:%s", host, vdbdPort);
 var barcodeEp = fmt("http://%s:%s", host, barcodePort);
 var barcodeiEp = fmt("http://%s:%s", host, barcodeiPort);
+
+var db_conf;
+var sql;
+
+if (argv.db) {
+  db_conf = {
+    type: "sqlite",
+    path: argv.db
+  }
+
+  sql = new sequelize(null, null, null, {
+    storage: argv.db,
+    dialect: 'sqlite',
+    logging: function(d) {}
+  });
+} else {
+  db_conf = {
+    "type": "postgres",
+    "dbhost": "localhost",
+    "dbname": "bob",
+    "dbuser": "bob"
+  }  
+
+  sql = new sequelize("bob", "bob", "", {
+    host: "localhost",
+    dialect: "postgres",
+    logging: function(d) {}
+  });
+}
+
+var models = new Models.Models(sql, "postgres")
 
 var chezbobJSON = {
   sodad: {
@@ -88,10 +122,7 @@ var chezbobJSON = {
     device: deployDir + "/barcodei",
     timeout: 1000
   },
-  db: {
-    type: "sqlite",
-    path: argv.db
-  },
+  db: db_conf,
   sodamap: {
     "01" : "782740",
     "02" : "496340",
@@ -217,6 +248,8 @@ function killPseudoDevice(name) {
   socats[name].kill();
 }
 
+// Connect to the DB
+
 // Soda
 startServer("soda", bobDir + "/soda_server/app.js")
 mkPseudoDevice("barcode", require("./barcode.js").barcodeFactory, true)
@@ -231,6 +264,7 @@ startServer("mdb", bobDir + "/mdb_server/app.js")
 // Start Repl
 var r = repl.start({
   prompt: "soda>",
+  useColors: true
 })
 
 // Additional functions to the repl to interact with devices
@@ -261,6 +295,8 @@ r.context.putCoin = function (v) {
 r.context.pressCoinReturn = function (v) {
   devices['mdb'].pressCoinReturn(v);
 }
+
+r.context.models = models;
 
 r.on("exit",
   function () {

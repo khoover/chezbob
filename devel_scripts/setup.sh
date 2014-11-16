@@ -7,7 +7,7 @@ function installPkg {
   dpkg -s $1 &> /dev/null
   if [[ $? -ne 0 ]]; then
     echo "Installing $1. This may request your superuser password"
-    sudo apt-get install $1
+    sudo apt-get --force-yes install $1
   else
     echo "Package $1 is already installed."
   fi
@@ -30,7 +30,8 @@ installPkg nodejs
 installPkg nodejs-legacy
 installPkg socat
 installPkg libpq-dev
-
+installPkg npm
+installPkg postgresql
 
 installGlobNpmPkg forever
 installGlobNpmPkg gulp
@@ -38,38 +39,26 @@ installGlobNpmPkg typescript
 installGlobNpmPkg bunyan
 installGlobNpmPkg sqlite3
 
-pushd $BASE/bob2k14/mdb_server
-npm install
-gulp
-popd
+# Set the permissions on the postgresql server to allow all connections
+# from localhost
+echo "Setting permissions for postgresql database. This may ask your sudo password"
+echo "
+local   all             postgres                                peer
 
-pushd $BASE/bob2k14/vdb_server
-npm install
-gulp
-popd
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
 
-pushd $BASE/bob2k14/barcode_server
-npm install
-gulp
-popd
-
-pushd $BASE/bob2k14/barcodei_server
-npm install
-gulp
-popd
-
-pushd $BASE/bob2k14/soda_server
-npm install
-gulp
-popd
+# local is for Unix domain socket connections only
+local   all             all                                     trust
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            trust
+# IPv6 local connections:
+host    all             all             ::1/128                 md5
+" |  sudo tee /etc/postgresql/9.3/main/pg_hba.conf 
 
 pushd $BASE/devel_scripts
-npm install optimist
-npm install serialport
+
+npm install pg sequelize
 popd
 
-echo "Attempting to copy test app.db from soda"
-echo "Please ensure you've setup an entry for soda in your .ssh/config"
+sudo rm -rf ~/tmp
 
-mkdir $BASE/deploy
-scp soda.ucsd.edu:/home/dimo/app.db $BASE/deploy/

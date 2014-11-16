@@ -5,7 +5,9 @@
   with_items:
    - postgresql
    - libpq-dev
+   - nodejs
+   - nodejs-legacy
+   - npm
 
 - name: Install udev rules
   copy: src=99-cbdevices.rules dest=/etc/udev/rules.d
-

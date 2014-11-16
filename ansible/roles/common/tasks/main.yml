@@ -1,32 +1,24 @@
 ---
 
-- name: install pycurl
-  apt: pkg=python-pycurl state=present
-
-- name: Add deadsnakes repo
-  apt_repository: repo=ppa:fkrull/deadsnakes update_cache=yes state=present
-
 - name: Install common packages
   apt: pkg={{ item }} state=present
   with_items:
-   - python3
-   - python-pip
-   - python3-setuptools
    - git
-   - python3.4
-
-- name: Easyinstall to get pip-3.2
-  easy_install: executable=easy_install3.4 name=pip
+   - python-pip 
+   - nodejs
+   - nodejs-legacy
 
 - name: Install common packages with pip
-  pip: executable=pip3.4 name={{item}}
+  pip: name={{item}}
   with_items:
    - docopt
 
+- name: Create sodasrv user
+  action: user name=sodasrv state=present groups=dialout
+
 - name: Create git directory
   sudo: yes
-  sudo_user: sodasrv
-  file: path=/git state=directory
+  file: path=/git state=directory owner=sodasrv group=sodasrv
 
 - name: Clone and update repository
   sudo: yes
