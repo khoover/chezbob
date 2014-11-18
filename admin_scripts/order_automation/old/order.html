@@ -1,0 +1,16 @@
+<html>
+<body onload="document.createElement('form').submit.call(document.getElementById('myForm'))">
+
+<!--<form id="myForm" action="https://www2.costco.com/Common/Login.aspx?cm_re=1_en-_-Top_Right_Nav-_-Top_login&topnav=bdoff&whse=BD_578&lang=en-US&browse=1" method="post">
+    <input type="text" name="_ctl0:EmailAddress" value="test@test.com" />
+    <input type="password" name="_ctl0:Password" value="testtest"/>
+    <input type="submit" value="submit">
+</form>-->
+
+<form id="myForm" action="http://www2.costco.com/Browse/QuickOrderEntry.aspx?topnav=bdoff&whse=BD_578&lang=en-US" method="post">
+    <input type="text" name="QuickOrderEntry1:QuickOrderList:_ctl1:ItemNo" value="1"/>
+    <input type="text" name="QuickOrderEntry1:QuickOrderList:_ctl1:Qty" value="1"/>
+</form>
+
+</body>
+</html>
