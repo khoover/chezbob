@@ -268,35 +268,114 @@ var r = repl.start({
 })
 
 // Additional functions to the repl to interact with devices
-r.context.scanSoda = function (b, type) {
+
+function scanSoda(b, type) {
+  if (!type) type = "A"
   devices['barcode'].scan(b, type);
 }
 
-r.context.scanTerminal = function (b, type) {
+function scanTerminal(b, type) {
+  if (!type) type = "A"
   devices['barcodei'].scan(b, type);
 }
 
-r.context.pressSodaButton = function (c) {
+function pressSodaButton(c) {
   devices['vdb'].pressButton(c);
 }
 
-r.context.vendOk = function (c) {
+
+function vendOk(c) {
   devices['vdb'].dispenseSuccess(c);
 }
 
-r.context.vendFail = function (c) {
+
+function vendFail(c) {
   devices['vdb'].dispenseFail(c);
 }
-
-r.context.putCoin = function (v) {
+function putCoin(v) {
   devices['mdb'].putCoin(v);
 }
-
-r.context.pressCoinReturn = function (v) {
+function pressCoinReturn(v) {
   devices['mdb'].pressCoinReturn(v);
 }
 
+function loginWithCard(pat, soda) {
+  findOneByPattern(models.Users, "username", pat, function (res) {
+    models.Userbarcodes.find({where: {userid: res.userid}}).complete(function(e, r) {
+      if (e) {
+        console.log("Error looking up barcode for uid: " + res.userid + " :" + e + "\n")
+        return
+      }
+
+      if (!r) {
+        console.log("Userid: " + res.userid + " doesn't have an associated barcode\n")
+        return
+      }
+
+      if (soda)
+        scanSoda(r.barcode)
+      else
+        scanTerminal(r.barcode)
+    })
+  })
+}
+
+function findAllByPattern(model, field, pat, cb) {
+  var o = new Object();
+  o[field] = {like: "%" + pat + "%"}
+  model.findAll({where: o})
+    .complete(function(e,r) {
+      if (e) {
+        console.log("Error talking to db:" + e + "\n")
+        return
+      }
+      cb(r)
+    })
+}
+
+function findOneByPattern(model, field, pat, cb) {
+  findAllByPattern(model, field, pat, function(r) {
+    if (r.length == 0) {
+      console.log("Error: No items match " + pat);
+      return;
+    }
+
+    if (r.length > 1) {
+      console.log("Error: Multiple items match pattern " + pat);
+      for (var i in r) {
+        console.log(r[i].get(field));
+      }
+      return;
+    }
+
+    cb(r[0]);
+  })
+}
+
+function scanProduct(pat, soda) {
+  findOneByPattern(models.BulkItems, "description", pat, function(p) {
+    models.Products.find({where: {bulkid: p.bulkid}}).then(function (r) {
+      if (soda) {
+	scanSoda(r.barcode);
+      } else {
+	scanTerminal(r.barcode);
+      }
+    })
+  });
+}
+
+r.context.scanBarcodeSoda = scanSoda;
+r.context.scanBarcodeTerminal = scanTerminal
+r.context.pressSodaButton = pressSodaButton
+r.context.vendOk = vendOk;
 r.context.models = models;
+r.context.vendFail = vendFail;
+r.context.putCoin = putCoin;
+r.context.pressCoinReturn = pressCoinReturn;
+r.context.loginWithCardSoda = function(user) { loginWithCard(user, 1); }
+r.context.loginWithCardTerminal = function(user) { loginWithCard(user, 0); }
+r.context.scanProductSoda = function(pat) { scanProduct(pat, 1); }
+r.context.scanProductTerminal = function(pat) { scanProduct(pat, 0); }
 
 r.on("exit",
   function () {
