@@ -139,7 +139,8 @@ class mdb_server {
                 function (cb) { mdb.sendread("L FFFF", cb); },
                 function (cb) { mdb.sendread("V 0000", cb); },
                 function (cb) { mdb.sendread("J FFFF", cb); },
-                function (cb) { mdb.sendread("E2", cb); }
+                function (cb) { mdb.sendread("S7", cb); }
+                //function (cb) { mdb.sendread("E2", cb); }
                 ],
                 function (error, result)
                 {
