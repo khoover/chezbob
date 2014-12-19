@@ -55,6 +55,8 @@ host    all             all             127.0.0.1/32            trust
 host    all             all             ::1/128                 md5
 " |  sudo tee /etc/postgresql/9.3/main/pg_hba.conf 
 
+sudo rm -rf ~/tmp
+
 pushd $BASE/devel_scripts
 
 npm install pg sequelize optimist serialport
