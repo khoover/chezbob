@@ -57,7 +57,7 @@ host    all             all             ::1/128                 md5
 
 pushd $BASE/devel_scripts
 
-npm install pg sequelize
+npm install pg sequelize optimist serialport
 popd
 
 sudo rm -rf ~/tmp
