@@ -797,9 +797,13 @@ class sodad_server {
                         }
                         server.clientchannels[client].login(user);
 
-                        // Enable bill acceptance
-                        var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
-                        rpc_client.request("Mdb.command", [ "E2" ], function (err,response){});
+                        // Enable bill acceptance if logged in to the soda machine.
+                        // Is this really the best way to determine the client type?
+                        if (server.clientidmap[ClientType.Soda][0] == client)
+                        {
+                            var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
+                            rpc_client.request("Mdb.command", [ "E2" ], function (err,response){});
+                        }
                 });
 
     }
@@ -845,9 +849,14 @@ class sodad_server {
                         }
                         else
                         {
-                            // Disable bill acceptance
-                            var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
-                            rpc_client.request("Mdb.command", [ "D2" ], function (err,response){});
+
+                            // Disable bill acceptance if logged in to the soda machine.
+                            // Is this really the best way to determine the client type?
+                            if (server.clientidmap[ClientType.Soda][0] == client)
+                            {
+                                var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
+                                rpc_client.request("Mdb.command", [ "D2" ], function (err,response){});
+                            }
 
                             return redisclient.delAsync("sodads:" + client)
                                             .then(function() {
