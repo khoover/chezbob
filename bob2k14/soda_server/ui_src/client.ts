@@ -133,6 +133,10 @@ export class Client
                     if (client.time < 5)
                     {
                         $("body").css('background-color', '#ffaaaa');
+                        // We don't know when bills get inserted, only when they are validated,
+                        // so to prevent weird experiences disable bill acceptance when there
+                        // are less than 5 seconds left.
+                        //client.server_channel.disable_bill_acceptor();
                     }
                     else
                     {
@@ -140,6 +144,15 @@ export class Client
                     }
                     $("#timeout").text(client.time+"s");
                 }, 1000);
+    }
+
+    extendTimeout(client: Client)
+    {
+        if (client.timeout_timer != null)
+        {
+            client.time = 20;
+            $("#timeout").text(client.time+"s");
+        }
     }
 
     stopTimeout(client:Client)
@@ -375,6 +388,7 @@ export class Client
                         //maybe we don't want to call this on every purchase?
                         $("#sodadialog").modal('hide');
                         client.time_pause = false;
+                        client.extendTimeout();
                         var speakPrice = purchaseprice;
                         if (parseFloat(speakPrice) > 0 && parseFloat(speakPrice) < 1)
                         {
