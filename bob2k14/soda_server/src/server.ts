@@ -796,6 +796,10 @@ class sodad_server {
                             user.voice_settings = {};
                         }
                         server.clientchannels[client].login(user);
+
+                        // Enable bill acceptance
+                        var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
+                        rpc_client.request("Mdb.command", [ "E2" ], function (err,response){});
                 });
 
     }
@@ -841,6 +845,10 @@ class sodad_server {
                         }
                         else
                         {
+                            // Disable bill acceptance
+                            var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
+                            rpc_client.request("Mdb.command", [ "D2" ], function (err,response){});
+
                             return redisclient.delAsync("sodads:" + client)
                                             .then(function() {
                                                 return redisclient.delAsync("sodads_roles:" + client)
@@ -867,6 +875,25 @@ class sodad_server {
             log.warn("Coin type " + amt + " inserted, but no user is logged in, returning...")
             var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
             rpc_client.request("Mdb.command", [ "G" + tube + "01"], function (err,response){});
+        }
+    }
+
+    handleBillDeposit(server: sodad_server, client : string, amt: string, user)
+    {
+        if (user !== null)
+        {
+            log.info("Bill type " + amt + " accepted");
+            server.balance_transaction(server, client, "ADD " + amt,
+                "Deposit " + amt, null, amt);
+            var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
+            rpc_client.request("Mdb.command", [ "K1" ], function (err,response){});
+
+        }
+        else
+        {
+            log.warn("Bill type " + amt + " inserted, but no user is logged in, returning...")
+            var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
+            rpc_client.request("Mdb.command", [ "K2" ], function (err,response){});
         }
     }
 
@@ -1183,14 +1210,32 @@ class sodad_server {
                                     server.clientchannels[sessionid].displayerror("fa-warn", "Not logged in!", "No one is logged in!");
                                 }
                                 break;
-                            case "P100":
+                            case "P1 00":
                                 server.handleCoinDeposit(server, sessionid, "0.05", "00", user);
                                 break;
-                            case "P101":
+                            case "P1 01":
                                 server.handleCoinDeposit(server, sessionid, "0.10", "01", user);
                                 break;
-                            case "P102":
+                            case "P1 02":
                                 server.handleCoinDeposit(server, sessionid, "0.25", "02", user);
+                                break;
+                            case "Q1 00":
+                                server.handleBillDeposit(server, sessionid, "1.00", user);
+                                break;
+                            case "Q1 01":
+                                server.handleBillDeposit(server, sessionid, "5.00", user);
+                                break;
+                            case "Q1 02":
+                                server.handleBillDeposit(server, sessionid, "10.00", user);
+                                break;
+                            case "Q1 03":
+                                server.handleBillDeposit(server, sessionid, "20.00", user);
+                                break;
+                            case "Q1 04":
+                                server.handleBillDeposit(server, sessionid, "50.00", user);
+                                break;
+                            case "Q1 05":
+                                server.handleBillDeposit(server, sessionid, "100.00", user);
                                 break;
                             default:
                                 log.error("Unknown MDB command: " + command);
