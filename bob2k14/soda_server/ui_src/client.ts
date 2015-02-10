@@ -388,7 +388,7 @@ export class Client
                         //maybe we don't want to call this on every purchase?
                         $("#sodadialog").modal('hide');
                         client.time_pause = false;
-                        client.extendTimeout();
+                        client.extendTimeout(client);
                         var speakPrice = purchaseprice;
                         if (parseFloat(speakPrice) > 0 && parseFloat(speakPrice) < 1)
                         {
