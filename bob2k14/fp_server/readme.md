@@ -1,12 +1,7 @@
-# barcodei_server daemon
+# fp_server daemon
 
-This server is responsible for running the barcode connection to
+This server is responsible for running the fingerprint connection to
 the soda UI.
-
-This is different from barcode_server in that it reads from a
-input device from /dev/input/ rather than a serial port. It is
-intended for use with USB barcode readers which emulate a
-keyboard.
 
 It uses JSON-RPC to talk to the main soda server.
 
@@ -49,10 +44,10 @@ Most likely you are not running this script directly, but as a service.
 In that case, if you deployed using ansible, the name of the service
 is cb_barcoded, and you should start it as:
 
-    service cb_barcoded start
+    service cb_fpd start
 
 The logs are stored in /var/log/chezbob/cb_barcoded.log, so to view them
 using bunyan:
 
-    cat /var/log/chezbob/cb_barcoded.log | bunyan
+    cat /var/log/chezbob/cb_fpd.log | bunyan
 
