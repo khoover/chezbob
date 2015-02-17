@@ -651,7 +651,7 @@ export class Client
 
         $("#setfingerprint-exitbtn").on('click', function()
         {
-            client.server_channel.learnmode_fingeprint(false);
+            client.server_channel.learnmode_fingerprint(false);
         });
 
         $("#setbarcode-exitbtn").on('click', function()
