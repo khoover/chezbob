@@ -1,5 +1,5 @@
 {
-  "name": "barcodei-server",
+  "name": "fp_server",
   "description": "chezbob barcode input interface",
   "version": "0.0.1",
   "author": "Michael Wei <mwei@cs.ucsd.edu>",
