@@ -3,6 +3,10 @@
 This server is responsible for running the fingerprint connection to
 the soda UI.
 
+It uses node-libfprint, (https://github.com/no2chem/node-libfprint)
+a node wrapper for libfprint (http://www.freedesktop.org/wiki/Software/fprint/),
+to interface with the fingerprint reader.
+
 It uses JSON-RPC to talk to the main soda server.
 
 My apologies that it is written in javascript (er, typescript).
