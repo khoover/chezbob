@@ -44,7 +44,7 @@ casper.waitForSelector("#TopNav1_LogInLink img",
    });
    casper.waitForSelector("input[name='_ctl0:Password']",
        function success() {
-           this.sendKeys("input[name='_ctl0:Password']", "mn0g0pr0dazb1");
+           this.sendKeys("input[name='_ctl0:Password']", "WRONGPASSWORD");
        },
        function fail() {
    });

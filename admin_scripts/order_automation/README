@@ -1,0 +1,28 @@
+SELENIUM ORDER AUTOMATION
+
+1. To use the selenium python order automator, you must first install the selenium python package:
+
+	pip install -U selenium
+
+2. You must also install Firefox:
+
+	https://www.mozilla.org/en-US/firefox/new/
+
+3. Create a file called "creds.txt" - the format of creds.txt is two lines, the first being your Costco username, the second your Costco password, as such:
+
+   		username
+   		password
+
+If you don't want to create this file, you will be prompted for your username and password upon execution.
+
+4. Make the order file. Go to https://chezbob.ucsd.edu/admin/inventory/order/ and select the button "Estimate." Copy the contents of this file into file "order_estimate.txt"
+
+5. It's time. Run the following command:
+
+	python fill_cart.py
+
+It will open Firefox and run for a while. Once Firefox closes, you can log into your Costco Business account and the cart will be filled :)
+
+
+
+- Brown <bfarinho@cs.ucsd.edu>
