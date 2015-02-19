@@ -37,7 +37,10 @@ class AddItem(unittest.TestCase):
                         # add to list of orders
                         order[itemNo] = qty
                         if itemNo == '':
-                            print 'ERROR ' + str(item)
+                            print 'ERROR item misconfigured, parsing failed: ' + str(item)
+                            print 'correct sample:  1    Arizona Peach Tea [15.5 oz] (#326523)'
+                            print 'correct sample: 1    Apples (#21405, #49118)'
+                            print 'INcorrect sample: 1    Apples (# 21405)'
                             sys.exit()
         return order
 
