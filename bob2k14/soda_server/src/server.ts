@@ -1228,6 +1228,9 @@ class sodad_server {
                             case "P1 02":
                                 server.handleCoinDeposit(server, sessionid, "0.25", "02", user);
                                 break;
+                            case "P1 03":
+                                server.handleCoinDeposit(server, sessionid, "1.00", "03", user);
+                                break;
                             case "Q1 00":
                                 server.handleBillDeposit(server, sessionid, "1.00", user);
                                 break;
