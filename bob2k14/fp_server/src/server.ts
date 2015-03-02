@@ -128,7 +128,7 @@ class fp_server {
     reader;
 
 
-    //sends the commands to reset the barcode reader
+    //sends the commands to reset the fp reader
     reset (server : fp_server) {
         async.series([
                 ],
@@ -144,13 +144,15 @@ class fp_server {
 
     start (server: fp_server) {
         log.info("fp_server starting, listening on " + server.initdata.rpc_port);
-        //use first available reader (TODO: support multiple readers?)
+        //use first available reader (TODO: support multiple readers? "umm... no" - Brown )
         var fp = new libfprint.fprint();
         fp.init();
         var reader = fp.discover()[0];
         log.info("Using reader " + reader.driver_detail);
         server.reader = promise.promisifyAll(fp.get_reader(reader.handle));
-        //default to verify mode
+
+        // default to identify mode
+        // ****TODO****
 
         var jserver = jayson.server(
                 {
@@ -171,6 +173,56 @@ class fp_server {
                             .catch(function (err)
                                 {
                                     log.error("Fingerprint enroll for uid " + uid + " FAILED, reason= " + err);
+                                    callback(err);
+                                })
+                    },
+                    "fp.stopenroll" : function (uid, callback)
+                    {
+                        log.info("Stop fingerprint enroll for uid " + uid);
+                        server.reader.stop_enrollAsync().then(
+                                function()
+                                {
+                                    callback(null);
+                                }
+                            )
+                            .catch(function (err)
+                                {
+                                    log.error("Fingerprint stop enroll for uid " + uid + " FAILED, reason= " + err);
+                                    callback(err);
+                                })
+                    },
+                    "fp.identify" : function (callback)
+                    {
+                        log.info("Begin fingerprint identify");
+                        server.reader.start_identifyAsync().then(
+                                function(result)
+                                {
+                                    var jresult = {
+                                        fpimage : result[2].toString('base64'),
+                                        height : result[3],
+                                        width : result[4]
+                                    }
+                                    callback(null, jresult);
+                                }
+                            )
+                            .catch(function (err)
+                                {
+                                    log.error("Fingerprint identify FAILED, reason= " + err);
+                                    callback(err);
+                                })
+                    },
+                    "fp.stopidentify" : function (callback)
+                    {
+                        log.info("Stop fingerprint identify");
+                        server.reader.stop_identifyAsync().then(
+                                function()
+                                {
+                                    callback(null);
+                                }
+                            )
+                            .catch(function (err)
+                                {
+                                    log.error("Fingerprint stop identify FAILED, reason= " + err);
                                     callback(err);
                                 })
                     }

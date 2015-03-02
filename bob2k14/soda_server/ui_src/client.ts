@@ -317,24 +317,39 @@ export class Client
                 )
     }
 
+
+
+    /**** Begin fingerprint functions ****/
+
+    // Builds the "Set Fingerprint" menu dynamically for the user
     updateFingerprints(client: Client)
     {
+        // Asks the soda server for the client's stored fingerprints
         client.server_channel.get_fingerprints().then(
-                    function (fingerprints)
+            function (fingerprints)
+            {
+                // For each fingerprint, add an item to the table
+                // allowing user to view and de-register any and all
+                // stored fingerprints
+                $("#fingerprints-table tbody").empty();
+                $.each(fingerprints, function (idx, fingerprint)
                     {
-                        $("#fingerprints-table tbody").empty();
-                        $.each(fingerprints, function (idx, fingerprint)
-                            {
-                                $("#fingerprints-table tbody").append('<tr><td>' + fingerprint.id + '</td><td><a href="#" class="btn btn-danger deregisterbarcode" data-barcode="' + fingerprint.id + '">Forget</a></td></tr>');
-                            });
-                        $(".deregisterfingerprint").on('click', function(e)
-                            {
-                                var fingerprint = $(this).data('fid');
-                                client.server_channel.forget_fingerprint(fingerprint);
-                            })
-                    }
-                )
+                        $("#fingerprints-table tbody").append('<tr><td>' + fingerprint.id + '</td><td><a href="#" class="btn btn-danger deregisterbarcode" data-barcode="' + fingerprint.id + '">Forget</a></td></tr>');
+                    });
+                // Upon selecting to deregister a fingerprint
+                $(".deregisterfingerprint").on('click', function(e)
+                    {
+                        var fingerprint = $(this).data('fid');
+                        // Tell the soda server to forget selected fingerprint for the user
+                        client.server_channel.forget_fingerprint(fingerprint);
+                    })
+            }
+        )
     }
+
+    /**** End fingerprint functions ****/
+
+
 
     connect(client: Client)
     {
@@ -453,6 +468,11 @@ export class Client
                         $("#acceptfingerprintimg").html('<img src="data:image/png;base64,' + image + '"/>"');
                         $("#acceptfingerprintdialog").modal('show');
                     },
+                    rejectfingerprint: function(image)
+                    {
+                        $("#rejectfingerprintimg").html('<img src="data:image/png;base64,' + image + '"/>"');
+                        $("#rejectfingerprintdialog").modal('show');
+                    },
                     reload: function()
                     {
                         window.location.reload();
@@ -493,6 +513,9 @@ export class Client
                 }, 3000);
         });
 
+
+        /**** begin fingerprint modals ****/
+
         $("#acceptfingerprintdialog").modal({show:false});
         $("#acceptfingerprintdialog").on('shown.bs.modal', function () {
             setTimeout(function()
@@ -500,6 +523,17 @@ export class Client
                     $("#acceptfingerprintdialog").modal('hide');
                 }, 3000);
         });
+
+        $("#rejectfingerprintdialog").modal({show:false});
+        $("#rejectfingerprintdialog").on('shown.bs.modal', function () {
+            setTimeout(function()
+                {
+                    $("#rejectfingerprintdialog").modal('hide');
+                }, 3000);
+        });
+
+        /**** end fingerprint modals ****/
+
 
         $(".optbutton").on('click', function(e)
                 {
@@ -643,16 +677,30 @@ export class Client
             client.server_channel.learnmode_barcode(true);
         });
 
+
+        /******** Begin fingerprint event triggers ********/
+
+        // In the user profile menu, clicking on the button labelled
+        // "Set Fngerprint" will trigger this function
         $("#profilefingerprint-btn").on('click', function()
         {
+            // Dyanmically build the fingerprint menu for the user
             client.updateFingerprints(client);
+
+            // Tell the soda server to tell the fingerprint server to START ENROLLMENT
             client.server_channel.learnmode_fingerprint(true);
         });
 
+        // In the Set Fingerprint menu, clicking on the button labelled
+        // "Exit" will trigger this functon
         $("#setfingerprint-exitbtn").on('click', function()
         {
+            // Tell the soda server to tell the fingerprint server to STOP ENROLLMENT
             client.server_channel.learnmode_fingerprint(false);
         });
+
+        /******** End fingerprint event triggers ********/
+
 
         $("#setbarcode-exitbtn").on('click', function()
         {
