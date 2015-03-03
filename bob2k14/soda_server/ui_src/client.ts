@@ -468,9 +468,10 @@ export class Client
                         $("#acceptfingerprintimg").html('<img src="data:image/png;base64,' + image + '"/>"');
                         $("#acceptfingerprintdialog").modal('show');
                     },
-                    rejectfingerprint: function(image)
+                    rejectfingerprint: function()
                     {
-                        $("#rejectfingerprintimg").html('<img src="data:image/png;base64,' + image + '"/>"');
+                        // should this have an image?? TODO
+                        //$("#rejectfingerprintimg").html('<img src="data:image/png;base64,' + image + '"/>"');
                         $("#rejectfingerprintdialog").modal('show');
                     },
                     reload: function()
@@ -512,28 +513,6 @@ export class Client
                     $("#errordialog").modal('hide');
                 }, 3000);
         });
-
-
-        /**** begin fingerprint modals ****/
-
-        $("#acceptfingerprintdialog").modal({show:false});
-        $("#acceptfingerprintdialog").on('shown.bs.modal', function () {
-            setTimeout(function()
-                {
-                    $("#acceptfingerprintdialog").modal('hide');
-                }, 3000);
-        });
-
-        $("#rejectfingerprintdialog").modal({show:false});
-        $("#rejectfingerprintdialog").on('shown.bs.modal', function () {
-            setTimeout(function()
-                {
-                    $("#rejectfingerprintdialog").modal('hide');
-                }, 3000);
-        });
-
-        /**** end fingerprint modals ****/
-
 
         $(".optbutton").on('click', function(e)
                 {
@@ -677,6 +656,26 @@ export class Client
             client.server_channel.learnmode_barcode(true);
         });
 
+
+        /**** begin fingerprint modals ****/
+
+        $("#acceptfingerprintdialog").modal({show:false});
+        $("#acceptfingerprintdialog").on('shown.bs.modal', function () {
+            setTimeout(function()
+                {
+                    $("#acceptfingerprintdialog").modal('hide');
+                }, 3000);
+        });
+
+        $("#rejectfingerprintdialog").modal({show:false});
+        $("#rejectfingerprintdialog").on('shown.bs.modal', function () {
+            setTimeout(function()
+                {
+                    $("#rejectfingerprintdialog").modal('hide');
+                }, 3000);
+        });
+
+        /**** end fingerprint modals ****/
 
         /******** Begin fingerprint event triggers ********/
 

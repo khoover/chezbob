@@ -851,6 +851,10 @@ class sodad_server {
                             {
                                 var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
                                 rpc_client.request("Mdb.command", [ "D2" ], function (err,response){});
+
+                                // while we're at it, let's de-activate any fingerprint 
+                                // enrollment that has survived thus far...
+                                server.learnmode_fingerprint(server, client, false);
                             }
 
                             return redisclient.delAsync("sodads:" + client)
@@ -997,40 +1001,54 @@ class sodad_server {
 
                     // send an enrollment request to the fingerprint server
                     fp_rpc_client.request("fp.enroll", [ uid ], function (err,response){
-                        log.info("fp learn complete");
+                        log.info("fp enrollment complete");
 
                         // once the request has returned its response, and if it is not null, process the image
+                        // I believe a non-null response here means that the enrollment was successful
                         if (response != null) {
-                            var result = response.result;
-                            var png = new PNG({
-                                width: result.width,
-                                height: result.height
-                            });
-                            log.info(result.height);
-                            log.info(typeof result.fpimage);
-                            var gsPixels = new Buffer(result.fpimage, 'base64');
-                            var rgbPixels = new Buffer(parseInt(result.width) * parseInt(result.height) * 4); //RGBA
-                            log.info("Built fpimage buffer " + rgbPixels.length + ", " + gsPixels.length);
-                            for (var i = 0; i < gsPixels.length; i++)
-                            {
-                                rgbPixels[(i*4)] = gsPixels[i];     // R
-                                rgbPixels[(i*4) + 1] = gsPixels[i]; // G
-                                rgbPixels[(i*4) + 2] = gsPixels[i]; // B
-                                rgbPixels[(i*4) + 3] = 255;         // A
-                            }
-                            png.data = rgbPixels;
-                            var chunks = [];
-                            png.on('data', function(chunk) {
-                                chunks.push(chunk);
-                            });
-                            png.on('end', function(chunk) {
-                                var res = Buffer.concat(chunks);
-                                server.clientchannels[client].acceptfingerprint(res.toString('base64'));
-                            })
-                            png.pack();
-                        } else {
 
-                            // the response from the enrollment function was null (this is incorrect)
+                            // I think we should also make sure response.result != null
+                            if (response.result != null) {
+
+                                // get result from the response
+                                var result = response.result;
+
+                                // TODO we should make sure all elements of result are set
+                                var png = new PNG({
+                                    width: result.width,
+                                    height: result.height
+                                });
+                                log.info(result.height);
+                                log.info(typeof result.fpimage);
+                                var gsPixels = new Buffer(result.fpimage, 'base64');
+                                var rgbPixels = new Buffer(parseInt(result.width) * parseInt(result.height) * 4); //RGBA
+                                log.info("Built fpimage buffer " + rgbPixels.length + ", " + gsPixels.length);
+                                for (var i = 0; i < gsPixels.length; i++)
+                                {
+                                    rgbPixels[(i*4)] = gsPixels[i];     // R
+                                    rgbPixels[(i*4) + 1] = gsPixels[i]; // G
+                                    rgbPixels[(i*4) + 2] = gsPixels[i]; // B
+                                    rgbPixels[(i*4) + 3] = 255;         // A
+                                }
+                                png.data = rgbPixels;
+                                var chunks = [];
+                                png.on('data', function(chunk) {
+                                    chunks.push(chunk);
+                                });
+                                png.on('end', function(chunk) {
+                                    var res = Buffer.concat(chunks);
+                                    server.clientchannels[client].acceptfingerprint(res.toString('base64'));
+                                })
+                                png.pack();
+
+                            } else {
+                                // the response had a null result child (something went wrong here)
+                                server.clientchannels[client].rejectfingerprint();
+                                log.info("Error: fingerprint enrollment returned null");
+                            }
+                        } else { // we could check if err was set, be more verbose
+                            // the response from the enrollment function was null (there was an error with enrollment)
+                            server.clientchannels[client].rejectfingerprint();
                             log.info("Error: fingerprint enrollment returned null");
                         }
                     });
@@ -1062,68 +1080,16 @@ class sodad_server {
         }
     }
 
+    // TODO identify a fingerprint
     identifymode_fingerprint( server: sodad_server, client: string, identifymode: boolean)
-    //identifymode_fingerprint( server: sodad_server, identifymode: boolean)
     {
         // Start identifying a fingerprint asynchronously
         if (identifymode == true)
         {
             log.info("Start fingerprint identify process...");
 
-            // get the client's userid
-            //redisclient.hgetAsync("sodads:" + client, "userid").then(
-
-                // after getting the userid, run this function
-                //function (uid)
-                //{
-                    log.info("Learning fingerprint for user " + uid);
-
-                    // open a channel to the fingerprint server
-                    var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
-
-                    // send an enrollment request to the fingerprint server
-                    fp_rpc_client.request("fp.enroll", [ uid ], function (err,response){
-                        log.info("fp learn complete");
-
-                        // once the request has returned its response, and if it is not null, process the image
-                        if (response != null) {
-                            var result = response.result;
-                            var png = new PNG({
-                                width: result.width,
-                                height: result.height
-                            });
-                            log.info(result.height);
-                            log.info(typeof result.fpimage);
-                            var gsPixels = new Buffer(result.fpimage, 'base64');
-                            var rgbPixels = new Buffer(parseInt(result.width) * parseInt(result.height) * 4); //RGBA
-                            log.info("Built fpimage buffer " + rgbPixels.length + ", " + gsPixels.length);
-                            for (var i = 0; i < gsPixels.length; i++)
-                            {
-                                rgbPixels[(i*4)] = gsPixels[i];     // R
-                                rgbPixels[(i*4) + 1] = gsPixels[i]; // G
-                                rgbPixels[(i*4) + 2] = gsPixels[i]; // B
-                                rgbPixels[(i*4) + 3] = 255;         // A
-                            }
-                            png.data = rgbPixels;
-                            var chunks = [];
-                            png.on('data', function(chunk) {
-                                chunks.push(chunk);
-                            });
-                            png.on('end', function(chunk) {
-                                var res = Buffer.concat(chunks);
-                                server.clientchannels[client].acceptfingerprint(res.toString('base64'));
-                            })
-                            png.pack();
-                        } else {
-
-                            // the response from the enrollment function was null (this is incorrect)
-                            log.info("Error: fingerprint enrollment returned null");
-                        }
-                    });
-                //}
-                //)
         }
-        // If there is an enrollment running currently, stop it
+        // If there is an identification running currently, stop it
         else // if (identifymode == False)
         {
 
@@ -1132,7 +1098,15 @@ class sodad_server {
 
     // Should "return" all the fingerprints associated with the given client
     // "return" may require calling a function on the client server
+    // TODO
     get_fingerprints( server: sodad_server, client: string )
+    {
+        return null;
+    }
+
+    // Should remove the fingerprint associated with the given client
+    // TODO
+    forget_fingerprint( server: sodad_server, client: string, fingerprint: string )
     {
         return null;
     }

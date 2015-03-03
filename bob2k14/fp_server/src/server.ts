@@ -156,16 +156,26 @@ class fp_server {
 
         var jserver = jayson.server(
                 {
+                    // Upon receiving fp.enroll, start enrolling a fingerprint
                     "fp.enroll" : function (uid, callback)
                     {
                         log.info("Begin fingerprint enroll for uid " + uid);
+                        // start the reader enrolling
                         server.reader.start_enrollAsync().then(
-                                function(result)
+                                function (result)
                                 {
+                                    log.info("SUCCESS: fingerprint enroll for uid " + uid);
+
+                                    // TODO send all the data back to the server for storage
                                     var jresult = {
+
+                                        // image of print
                                         fpimage : result[2].toString('base64'),
+                                        // height of image
                                         height : result[3],
+                                        // width of image
                                         width : result[4]
+                                        
                                     }
                                     callback(null, jresult);
                                 }
@@ -176,21 +186,19 @@ class fp_server {
                                     callback(err);
                                 })
                     },
-                    "fp.stopenroll" : function (uid, callback)
+                    // Upon receiving fp.stopenroll, stop whatever enrollment may be occuring
+                    "fp.stopenroll" : function (uid)
                     {
                         log.info("Stop fingerprint enroll for uid " + uid);
+                        // stop the reader enrolling
                         server.reader.stop_enrollAsync().then(
                                 function()
                                 {
-                                    callback(null);
+                                    log.info("SUCCESS: fingerprint stop enroll for uid " + uid);
                                 }
                             )
-                            .catch(function (err)
-                                {
-                                    log.error("Fingerprint stop enroll for uid " + uid + " FAILED, reason= " + err);
-                                    callback(err);
-                                })
                     },
+                    // TODO
                     "fp.identify" : function (callback)
                     {
                         log.info("Begin fingerprint identify");
@@ -211,20 +219,15 @@ class fp_server {
                                     callback(err);
                                 })
                     },
-                    "fp.stopidentify" : function (callback)
+                    "fp.stopidentify" : function ()
                     {
                         log.info("Stop fingerprint identify");
                         server.reader.stop_identifyAsync().then(
                                 function()
                                 {
-                                    callback(null);
+                                    log.info("SUCCESS: fingerprint stop identify");
                                 }
                             )
-                            .catch(function (err)
-                                {
-                                    log.error("Fingerprint stop identify FAILED, reason= " + err);
-                                    callback(err);
-                                })
                     }
                 }
                 )
