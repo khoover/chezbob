@@ -168,12 +168,12 @@ class fp_server {
                     // Upon receiving fp.enroll, start enrolling a fingerprint
                     "fp.enroll" : function (uid, callback)
                     {
-                        log.info("Begin fingerprint enroll for uid " + uid);
+                        log.info("BEGIN: Fingerprint enroll for uid " + uid);
                         // start the reader enrolling
                         server.reader.start_enrollAsync().then(
                                 function (result)
                                 {
-                                    log.info("SUCCESS: fingerprint enroll for uid " + uid);
+                                    log.info("SUCCESS: Fingerprint enroll for uid " + uid);
 
                                     // TODO send _all_ the data back to the server for storage
                                     var jresult = {
@@ -191,19 +191,19 @@ class fp_server {
                             )
                             .catch(function (err)
                                 {
-                                    log.error("Fingerprint enroll for uid " + uid + " FAILED, reason= " + err);
+                                    log.error("ERROR: Fingerprint enroll for uid " + uid + " FAILED, reason= " + err);
                                     callback(err);
                                 })
                     },
                     // Upon receiving fp.stopenroll, stop whatever enrollment may be occuring
                     "fp.stopenroll" : function (uid)
                     {
-                        log.info("Stop fingerprint enroll for uid " + uid);
+                        log.info("BEGIN: Stop fingerprint enroll for uid " + uid);
                         // stop the reader enrolling
                         server.reader.stop_enrollAsync().then(
                                 function()
                                 {
-                                    log.info("SUCCESS: fingerprint stop enroll for uid " + uid);
+                                    log.info("SUCCESS: Stop fingerprint enroll for uid " + uid);
                                 }
                             )
                     },
