@@ -166,7 +166,7 @@ class fp_server {
                                 {
                                     log.info("SUCCESS: fingerprint enroll for uid " + uid);
 
-                                    // TODO send all the data back to the server for storage
+                                    // TODO send _all_ the data back to the server for storage
                                     var jresult = {
 
                                         // image of print
@@ -231,7 +231,16 @@ class fp_server {
                     }
                 }
                 )
-            jserver.http().listen(server.initdata.rpc_port);
+            jserver.http().listen(server.initdata.rpc_port); // start the server up
+
+            // Constantly call the reader's event handler
+            while(true) {
+                server.reader.handle_eventsAsync().then(
+                        function() {
+                            //log.info("handling events"); // don't do this, the log will explode
+                        }
+                    )
+            }
     }
 
     constructor(initdata : InitData) {
