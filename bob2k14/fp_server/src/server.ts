@@ -151,6 +151,12 @@ class fp_server {
         log.info("Using reader " + reader.driver_detail);
         server.reader = promise.promisifyAll(fp.get_reader(reader.handle));
 
+        // to drive the fpreader asyncronously
+        function DRIVE_MONKEY_DRIVE() {
+            server.reader.handle_events();
+            process.nextTick(DRIVEMONKEYDRIVE);
+        } // the astute reader will note the reference to the classic "Grandma's Boy"
+
         // default to identify mode
         // ****TODO****
 
@@ -234,13 +240,7 @@ class fp_server {
             jserver.http().listen(server.initdata.rpc_port); // start the server up
 
             // Constantly call the reader's event handler
-            while(true) {
-                server.reader.handle_eventsAsync().then(
-                        function() {
-                            //log.info("handling events"); // don't do this, the log will explode
-                        }
-                    )
-            }
+            DRIVE_MONKEY_DRIVE();
     }
 
     constructor(initdata : InitData) {
