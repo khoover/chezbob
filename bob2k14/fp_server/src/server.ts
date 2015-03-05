@@ -152,9 +152,11 @@ class fp_server {
         server.reader = promise.promisifyAll(fp.get_reader(reader.handle));
 
         // to drive the fpreader asyncronously
+        var break_time = 10; // 10 milliseconds
         function DRIVE_MONKEY_DRIVE() {
             server.reader.handle_events();
-            process.nextTick(DRIVEMONKEYDRIVE);
+            //process.nextTick(DRIVE_MONKEY_DRIVE);
+            setTimeout( DRIVE_MONKEY_DRIVE, break_time );
         } // the astute reader will note the reference to the classic "Grandma's Boy"
 
         // default to identify mode
