@@ -986,7 +986,7 @@ class sodad_server {
         // Start enrolling a fingerprint asynchronously
         if (learnmode == true)
         {
-            log.info("Start fingerprint enroll process...");
+            log.info("FPRINT: learnmode has been set to TRUE");
 
             // get the client's userid
             redisclient.hgetAsync("sodads:" + client, "userid").then(
@@ -994,18 +994,26 @@ class sodad_server {
                 // after getting the userid, run this function
                 function (uid)
                 {
-                    log.info("Learning fingerprint for user " + uid);
+                    log.info("FPRINT: begin fingerprint enrollment for user " + uid);
 
                     // open a channel to the fingerprint server
                     var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
 
                     // send an enrollment request to the fingerprint server
-                    fp_rpc_client.request("fp.enroll", [ uid ], function (err,response){
-                        log.info("fp enrollment complete");
+                    // TODO handle error here
+                    fp_rpc_client.request("fp.enroll", [ uid ], function (err,response)
+                    {
+                        log.info("FPRINT: fingerprint enrollment complete for user " + uid);
 
-                        // once the request has returned its response, and if it is not null, process the image
-                        // I believe a non-null response here means that the enrollment was successful
-                        if (response != null) {
+                        if (err) {
+                            // err contains the error code, do something with it
+                            server.clientchannels[client].rejectfingerprint(err);
+                            log.info("FPRINT: error, fingerprint enrollment err = " + err);
+                        }
+                        else if (response) {
+
+                            // once the request has returned its response, and if it is not null, process the image
+                            // I believe a non-null response here means that the enrollment was successful
 
                             // I think we should also make sure response.result != null
                             if (response.result != null) {
@@ -1043,13 +1051,13 @@ class sodad_server {
 
                             } else {
                                 // the response had a null result child (something went wrong here)
-                                server.clientchannels[client].rejectfingerprint();
-                                log.info("Error: fingerprint enrollment returned null");
+                                server.clientchannels[client].rejectfingerprint("Internal error: 902");
+                                log.info("FPRINT: error, fingerprint enrollment result.response == null");
                             }
                         } else { // we could check if err was set, be more verbose
                             // the response from the enrollment function was null (there was an error with enrollment)
-                            server.clientchannels[client].rejectfingerprint();
-                            log.info("Error: fingerprint enrollment returned null");
+                            server.clientchannels[client].rejectfingerprint("Internal error: 903");
+                            log.info("FPRINT: major error, fingerprint enrollment (err,result) == null");
                         }
                     });
                 }
@@ -1058,7 +1066,7 @@ class sodad_server {
         // If there is an enrollment running currently, stop it
         else // if (learnmode == False)
         {
-            log.info("Stopping fingerprint enroll process...");
+            log.info("FPRINT: learnmode has been set to FALSE");
 
             // get the client's userid
             redisclient.hgetAsync("sodads:" + client, "userid").then(
@@ -1066,14 +1074,18 @@ class sodad_server {
                 // after getting the userid, run this function
                 function (uid)
                 {
-                    log.info("Stopping fingerprint enrollment for user " + uid);
+                    log.info("FPRINT: begin stopping fingerprint enrollment for user " + uid);
 
                     // open a channel to the fingerprint server
                     var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
 
                     // send an enrollment request to the fingerprint server
-                    fp_rpc_client.request("fp.stopenroll", [ uid ], function (){
-                        log.info("fp enroll stopped");
+                    fp_rpc_client.request("fp.stopenroll", [ uid ], function (success){
+                        if (success) {
+                            log.info("FPRINT: enrollment stopped for user " + uid);
+                        } else {
+                            log.info("FPRINT: error, stopping enrollment failed for user " + uid);
+                        }
                     });
                 }
             )

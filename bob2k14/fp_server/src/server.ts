@@ -196,16 +196,22 @@ class fp_server {
                                 })
                     },
                     // Upon receiving fp.stopenroll, stop whatever enrollment may be occuring
-                    "fp.stopenroll" : function (uid)
+                    "fp.stopenroll" : function (uid, callback)
                     {
                         log.info("BEGIN: Stop fingerprint enroll for uid " + uid);
                         // stop the reader enrolling
                         server.reader.stop_enrollAsync().then(
-                                function()
+                                function (result)
                                 {
                                     log.info("SUCCESS: Stop fingerprint enroll for uid " + uid);
+                                    callback(true);
                                 }
                             )
+                            .catch(function (err)
+                                {
+                                    log.info("ERROR: Failure to stop fingerprint enroll for uid " + uid);
+                                    callback(false);
+                                })
                     },
                     // TODO
                     "fp.identify" : function (callback)
