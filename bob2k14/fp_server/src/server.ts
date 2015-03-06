@@ -153,10 +153,10 @@ class fp_server {
 
         /*** I'm concerned this is not sharing very well with the jayson server ***/
         // to drive the fpreader asyncronously
-        var break_time = 1; // 100 milliseconds
+        var break_time = 1; // milliseconds
         function DRIVE_MONKEY_DRIVE() {
             server.reader.handle_eventsAsync().then();
-            //process.nextTick(DRIVE_MONKEY_DRIVE);
+            //log.info("--- handle events ---"); // for testing only, never do this it ruins the log
             setTimeout( DRIVE_MONKEY_DRIVE, break_time );
         } // the astute reader will note the reference to the classic "Grandma's Boy"
 
