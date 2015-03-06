@@ -1001,7 +1001,7 @@ class sodad_server {
 
                     // send an enrollment request to the fingerprint server
                     // TODO handle error here
-                    fp_rpc_client.request("fp.enroll", [ uid ], function (err, response)
+                    fp_rpc_client.request("fp.enroll", [ uid ], function (err, error, response)
                     {
                         // ****** FYI: *******
                         // err is going to be an error in the request communication itself
@@ -1013,60 +1013,53 @@ class sodad_server {
                         if(err) {
                             server.clientchannels[client].rejectfingerprint(err);
                             log.info("FPRINT: error, fingerprint enrollment communication err = " + err);
-                        } else {
+                        } else if (error) {
+                            server.clientchannels[client].rejectfingerprint(response.err);
+                            log.info("FPRINT: failure, fingerprint enrollment err = " + response.err);
+                        } else if (response) {
 
-                            // response contains err and result of callback
-                            if (response) {
+                            if (response.result) {
 
-                                // was there an err thrown during the enroll?
-                                if (response.err) {
-                                    server.clientchannels[client].rejectfingerprint(response.err);
-                                    log.info("FPRINT: failure, fingerprint enrollment err = " + response.err);
+                                log.info("FPRINT: success, fingerprint enrollment complete for user " + uid);
+
+                                // get result from the response
+                                var result = response.result;
+
+                                // TODO we should make sure all elements of result are set
+                                var png = new PNG({
+                                    width: result.width,
+                                    height: result.height
+                                });
+                                log.info(result.height);
+                                log.info(typeof result.fpimage);
+                                var gsPixels = new Buffer(result.fpimage, 'base64');
+                                var rgbPixels = new Buffer(parseInt(result.width) * parseInt(result.height) * 4); //RGBA
+                                log.info("Built fpimage buffer " + rgbPixels.length + ", " + gsPixels.length);
+                                for (var i = 0; i < gsPixels.length; i++)
+                                {
+                                    rgbPixels[(i*4)] = gsPixels[i];     // R
+                                    rgbPixels[(i*4) + 1] = gsPixels[i]; // G
+                                    rgbPixels[(i*4) + 2] = gsPixels[i]; // B
+                                    rgbPixels[(i*4) + 3] = 255;         // A
                                 }
-                                // parse that successful enrollment result
-                                else if (response.result) {
+                                png.data = rgbPixels;
+                                var chunks = [];
+                                png.on('data', function(chunk) {
+                                    chunks.push(chunk);
+                                });
+                                png.on('end', function(chunk) {
+                                    var res = Buffer.concat(chunks);
+                                    server.clientchannels[client].acceptfingerprint(res.toString('base64'));
+                                })
+                                png.pack();
 
-                                    log.info("FPRINT: success, fingerprint enrollment complete for user " + uid);
-
-                                    // get result from the response
-                                    var result = response.result;
-
-                                    // TODO we should make sure all elements of result are set
-                                    var png = new PNG({
-                                        width: result.width,
-                                        height: result.height
-                                    });
-                                    log.info(result.height);
-                                    log.info(typeof result.fpimage);
-                                    var gsPixels = new Buffer(result.fpimage, 'base64');
-                                    var rgbPixels = new Buffer(parseInt(result.width) * parseInt(result.height) * 4); //RGBA
-                                    log.info("Built fpimage buffer " + rgbPixels.length + ", " + gsPixels.length);
-                                    for (var i = 0; i < gsPixels.length; i++)
-                                    {
-                                        rgbPixels[(i*4)] = gsPixels[i];     // R
-                                        rgbPixels[(i*4) + 1] = gsPixels[i]; // G
-                                        rgbPixels[(i*4) + 2] = gsPixels[i]; // B
-                                        rgbPixels[(i*4) + 3] = 255;         // A
-                                    }
-                                    png.data = rgbPixels;
-                                    var chunks = [];
-                                    png.on('data', function(chunk) {
-                                        chunks.push(chunk);
-                                    });
-                                    png.on('end', function(chunk) {
-                                        var res = Buffer.concat(chunks);
-                                        server.clientchannels[client].acceptfingerprint(res.toString('base64'));
-                                    })
-                                    png.pack();
-
-                                } else {
-                                    server.clientchannels[client].rejectfingerprint("Internal error: 902");
-                                    log.info("FPRINT: error, fingerprint enrollment response had no err or result");
-                                }
                             } else {
-                                server.clientchannels[client].rejectfingerprint("Internal error: 903");
-                                log.info("FPRINT: major error, fingerprint enrollment received no response at all");
+                                server.clientchannels[client].rejectfingerprint("Internal error: 002");
+                                log.info("FPRINT: error, fingerprint enrollment response had no result");
                             }
+                        } else {
+                            server.clientchannels[client].rejectfingerprint("Internal error: 003");
+                            log.info("FPRINT: major error, fingerprint enrollment received nothing");
                         }
                     });
                 }
