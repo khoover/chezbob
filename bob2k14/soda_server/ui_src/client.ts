@@ -465,13 +465,14 @@ export class Client
                     },
                     acceptfingerprint: function(image)
                     {
+                        // display the print
                         $("#acceptfingerprintimg").html('<img src="data:image/png;base64,' + image + '"/>"');
                         $("#acceptfingerprintdialog").modal('show');
                     },
-                    rejectfingerprint: function()
+                    rejectfingerprint: function(dialog)
                     {
-                        // should this have an image?? TODO
-                        //$("#rejectfingerprintimg").html('<img src="data:image/png;base64,' + image + '"/>"');
+                        // print the error
+                        $("#rejectfingerprinterr").html('<p>' + dialog + '</p>');
                         $("#rejectfingerprintdialog").modal('show');
                     },
                     reload: function()
