@@ -1011,19 +1011,21 @@ class sodad_server {
 
                         // err in request response
                         if(err) {
-                            server.clientchannels[client].rejectfingerprint(err);
-                            log.info("FPRINT: error, fingerprint enrollment communication err = " + err);
+                            server.clientchannels[client].rejectfingerprint(err.message);
+                            log.info("FPRINT: error, fingerprint enrollment communication err = " + err.message);
                         } else if (error) {
-                            server.clientchannels[client].rejectfingerprint(response.err);
-                            log.info("FPRINT: failure, fingerprint enrollment err = " + response.err);
+                            server.clientchannels[client].rejectfingerprint(error.message);
+                            log.info("FPRINT: failure, fingerprint enrollment err = " + error.message);
                         } else if (response) {
 
-                            if (response.result) {
+                            //if (response.result) {
+                            if (response) {
 
                                 log.info("FPRINT: success, fingerprint enrollment complete for user " + uid);
 
                                 // get result from the response
-                                var result = response.result;
+                                //var result = response.result;
+                                var result = response;
 
                                 // TODO we should make sure all elements of result are set
                                 var png = new PNG({
@@ -1082,22 +1084,22 @@ class sodad_server {
                     var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
 
                     // send an enrollment request to the fingerprint server
-                    fp_rpc_client.request("fp.stopenroll", [ uid ], function (err, response){
+                    fp_rpc_client.request("fp.stopenroll", [ uid ], function (err, error, response){
 
                         if (err) {
-                            // error in the actually request / response process
-                            log.info("FPRINT: error in request to stop enrollment for user " + uid);
+                            // error in the actual request / response process
+                            log.info("FPRINT: error in request to stop enrollment for user " + uid + " err = " + err.message);
+                        } else if (error) {
+                            // error in the stopping of enrollment
+                            log.info("FRPINT: failure to stop enrollment user " + uid + " err = " + error.message);
                         } else if (response) {
-                            if (response.err) {
-                                // failure in the enrollment stopping itself
-                                log.info("FPRINT: failed to stop enrollment for user " + uid);
-                            } else if (response.result) {
+                            //if (response.result) {
                                 // result means successful 
                                 log.info("FPRINT: success, stopped enrollment for user " + uid);
-                            } else {
+                            //} else {
                                 // error, response has incorrect fields
-                                log.info("FPRINT: error, nothing in response to stop enrollment for user " + uid);
-                            }
+                                //log.info("FPRINT: error, nothing in response to stop enrollment for user " + uid);
+                            //}
                         } else {
                             // error, neither response nor error returned
                             log.info("FPRINT: error, no response in request to stop enrollment for user " + uid);

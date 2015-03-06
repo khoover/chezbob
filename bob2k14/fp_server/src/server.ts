@@ -191,8 +191,9 @@ class fp_server {
                             )
                             .catch(function (err)
                                 {
+                                    var error = {code: 404, message: err};
                                     log.error("FAILED: Fingerprint enroll for uid " + uid + " failed, reason= " + err);
-                                    callback(err, null);
+                                    callback(error, null);
                                 })
                     },
                     // Upon receiving fp.stopenroll, stop whatever enrollment may be occuring
@@ -203,14 +204,18 @@ class fp_server {
                         server.reader.stop_enrollAsync().then(
                                 function (result)
                                 {
+                                    var jresult = {
+                                        success : true
+                                    }
                                     log.info("SUCCESS: Stop fingerprint enroll for uid " + uid);
-                                    callback(null, true);
+                                    callback(null, jresult);
                                 }
                             )
                             .catch(function (err)
                                 {
+                                    var error = {code: 404, message: err};
                                     log.info("FAILED: Failure to stop fingerprint enroll for uid " + uid + ", reason = " + err);
-                                    callback(err, null);
+                                    callback(error, null);
                                 })
                     },
                     // TODO
