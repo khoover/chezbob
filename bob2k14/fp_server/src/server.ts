@@ -191,7 +191,7 @@ class fp_server {
                             )
                             .catch(function (err)
                                 {
-                                    log.error("ERROR: Fingerprint enroll for uid " + uid + " FAILED, reason= " + err);
+                                    log.error("FAILED: Fingerprint enroll for uid " + uid + " failed, reason= " + err);
                                     callback(err, null);
                                 })
                     },
@@ -204,13 +204,13 @@ class fp_server {
                                 function (result)
                                 {
                                     log.info("SUCCESS: Stop fingerprint enroll for uid " + uid);
-                                    callback(true);
+                                    callback(null, true);
                                 }
                             )
                             .catch(function (err)
                                 {
-                                    log.info("ERROR: Failure to stop fingerprint enroll for uid " + uid);
-                                    callback(false);
+                                    log.info("FAILED: Failure to stop fingerprint enroll for uid " + uid + ", reason = " + err);
+                                    callback(err, null);
                                 })
                     },
                     // TODO
