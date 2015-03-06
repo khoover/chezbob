@@ -192,7 +192,7 @@ class fp_server {
                             .catch(function (err)
                                 {
                                     log.error("ERROR: Fingerprint enroll for uid " + uid + " FAILED, reason= " + err);
-                                    callback(err);
+                                    callback(err, null);
                                 })
                     },
                     // Upon receiving fp.stopenroll, stop whatever enrollment may be occuring

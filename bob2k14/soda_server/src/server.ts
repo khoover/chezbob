@@ -1001,16 +1001,15 @@ class sodad_server {
 
                     // send an enrollment request to the fingerprint server
                     // TODO handle error here
-                    fp_rpc_client.request("fp.enroll", [ uid ], function (err,response)
+                    fp_rpc_client.request("fp.enroll", [ uid ], function (err, response)
                     {
                         log.info("FPRINT: fingerprint enrollment complete for user " + uid);
 
-                        if (err) {
+                        if (err != null) {
                             // err contains the error code, do something with it
                             server.clientchannels[client].rejectfingerprint(err);
                             log.info("FPRINT: error, fingerprint enrollment err = " + err);
-                        }
-                        else if (response) {
+                        } else if (response != null) {
 
                             // once the request has returned its response, and if it is not null, process the image
                             // I believe a non-null response here means that the enrollment was successful
@@ -1081,7 +1080,7 @@ class sodad_server {
 
                     // send an enrollment request to the fingerprint server
                     fp_rpc_client.request("fp.stopenroll", [ uid ], function (success){
-                        if (success) {
+                        if (success == true) {
                             log.info("FPRINT: enrollment stopped for user " + uid);
                         } else {
                             log.info("FPRINT: error, stopping enrollment failed for user " + uid);
