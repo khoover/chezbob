@@ -331,6 +331,7 @@ class fp_server {
 
                                     /**** TODO get the userid of the user at index result[1] */
                                     //matched_userid = uid_list[result[1]];
+                                    var matched_userid = 0;
 
                                     // send image back to soda server for display
                                     // also send the userid back to be logged in!!

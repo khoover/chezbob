@@ -1715,7 +1715,7 @@ class sodad_server {
         })
 
         // Put the fp_server in id mode off the bat
-        server.identifymode_fingerprint(server, this.id, true);
+        server.identifymode_fingerprint(server, null, true);
     }
 
     constructor(initdata : InitData) {
