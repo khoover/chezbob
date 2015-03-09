@@ -1,4 +1,5 @@
 /// <reference path="../typings/tsd.d.ts"/>
+/// <reference path="models.ts"/>
 
 var git = require('git-rev-2');
 import async = require('async');
@@ -14,14 +15,35 @@ var bunyanredis = require('bunyan-redis');
 var promise = require('bluebird');
 var fs = promise.promisifyAll(require('fs'));
 
+// DB access
+var pgpass = require('pgpass');
+var Models = require('./models');
+var sequelize = require('sequelize');
+
+// FP library
 var libfprint = require('node-libfprint');
+
 var log;
 var ringbuffer;
 var redistransport;
 
+// DB variables
+var dblog;
+var ringbuffer;
+var redistransport;
+var sql;
+var models;
+var redisclient;
+
 class InitData {
     version: String;
     longVersion: String;
+
+    // DB variables
+    dbname;
+    dbuser;
+    dbhost;
+    config;
 
     barcodeport: String;
     timeout: Number;
@@ -87,11 +109,49 @@ class InitData {
         callback();
     }
 
+    // DB for FP access
+    connectDB = (initdata : InitData, callback: () => void) : void  =>
+    {
+        dblog = log.child({module: 'db'});
+        if (initdata.config.db.type == "postgres") {
+            var sequelize = require('sequelize');
+            pgpass({host: this.dbhost,
+                    user: this.dbuser}, function (password)
+                    {
+                        sql = new sequelize(initdata.dbname, initdata.dbuser, password,  {
+                            host: initdata.dbhost,
+                            dialect: 'postgres',
+                            logging: function(data) {
+                                dblog.trace(data);
+                            }
+                        })
+                        models = new Models.Models(sql, "postgres");
+                        log.info("Sequelize database initialized.")
+                        callback();
+
+            });
+        } else {
+            var sequelize = require('sequelize');
+            sql = new sequelize(null, null, null, {
+                storage: initdata.config.db.path,
+                dialect: 'sqlite',
+                logging: function(data) {
+                    dblog.trace(data);
+                }
+            })
+
+            models = new Models.Models(sql, "sqlite");
+            log.info("Sequelize database initialized.")
+            callback();
+        }
+    }
+
     init = (initdata : InitData, callback: (err,res) => void) : void =>
     {
         async.series([
                     function (cb) {initdata.prepareLogs(initdata, cb)},
                     function (cb) {initdata.loadVersion(initdata, cb)},
+                    function (cb) {initdata.connectDB(initdata, cb)}, // DB init
                     function (err, res)
                     {
                         callback(null, initdata);
@@ -102,11 +162,16 @@ class InitData {
     constructor(args: string[]) {
         if (args.length < 1)
         {
+            this.config = require('/etc/chezbob.json'); // DB config
         }
         else
         {
+            this.config = require(args[0]);
         }
         this.timeout = 1000;
+        this.dbname = this.config.db.name; //
+        this.dbuser = this.config.db.user; // DB construction
+        this.dbhost = this.config.db.host; //
         this.remote_endpoint = "http://127.0.0.1:8080/api";
         this.rpc_port = 8089;
     }
@@ -126,7 +191,6 @@ class fp_server {
     rpc_client;
 
     reader;
-
 
     //sends the commands to reset the fp reader
     reset (server : fp_server) {
@@ -151,14 +215,19 @@ class fp_server {
         log.info("Using reader " + reader.driver_detail);
         server.reader = promise.promisifyAll(fp.get_reader(reader.handle));
 
-        /*** I'm concerned this is not sharing very well with the jayson server ***/
-        // to drive the fpreader asyncronously
+        // drive the fpreader asyncronously
         var break_time = 1; // milliseconds
         function DRIVE_MONKEY_DRIVE() {
             server.reader.handle_eventsAsync().then();
-            //log.info("--- handle events ---"); // for testing only, never do this it ruins the log
             setTimeout( DRIVE_MONKEY_DRIVE, break_time );
         } // the astute reader will note the reference to the classic "Grandma's Boy"
+
+        // TODO read in the fingerprint data, make a list of uids, fpdatas
+
+
+
+        uid_list;
+        fpdata_list;
 
         // default to identify mode
         // ****TODO****
@@ -175,7 +244,44 @@ class fp_server {
                                 {
                                     log.info("SUCCESS: Fingerprint enroll for uid " + uid);
 
-                                    // TODO send _all_ the data back to the server for storage
+                                    // enrolled FP data 
+                                    var newFPdata = result[1];
+                                    var newFPimg = result[2];
+
+                                    /**** TODO store the fingerprint with user uid in BOTh list and database ****/
+
+                                    // update database (TODO handle errors)
+                                    models.Fingerprints.find( { where : { userid: uid }})
+                                        .then( function (res) {
+                                            if (res === null) {
+                                                // add a new entry to the fingerprint table
+                                                return models.Fingerprints.create(
+                                                {
+                                                    userid: uid,
+                                                    fpdata: newFPdata,
+                                                    fpimg: newFPimg
+                                                }).then(function (updated_fp)
+                                                    {
+                                                        log.info("Created fingerprint for user " + uid);
+                                                    })
+                                            } else {
+                                                // update the current user's fingerprint information
+                                                return res.updateAttributes(
+                                                {
+                                                    fpdata : newFPdata,
+                                                    fpimg : newFPimg
+                                                }).then(function (updated_fp)
+                                                    {
+                                                        log.info("Updated fingerprint for user " + uid);
+                                                    })
+                                            }
+                                        })
+
+                                    // TODO update the list
+
+
+
+                                    // send image back to soda server for display
                                     var jresult = {
 
                                         // image of print

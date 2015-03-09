@@ -20,6 +20,8 @@
   "dependencies": {
     "bluebird": "^2.3.5",
     "bunyan-redis": "^0.1.3",
+    "sequelize": "^2.0.0-rc1",
+    "pgpass": "0.0.3",
     "node-libfprint": "git+https://github.com/no2chem/node-libfprint.git"
   }
 }

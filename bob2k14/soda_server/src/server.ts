@@ -1003,12 +1003,6 @@ class sodad_server {
                     // TODO handle error here
                     fp_rpc_client.request("fp.enroll", [ uid ], function (err, error, response)
                     {
-                        // ****** FYI: *******
-                        // err is going to be an error in the request communication itself
-                        // response is the response to the request
-                        // response.err is the error set in fp.server
-                        // response.result is the result set in fp.server
-
                         // err in request response
                         if(err) {
                             server.clientchannels[client].rejectfingerprint(err.message);
@@ -1018,47 +1012,40 @@ class sodad_server {
                             log.info("FPRINT: failure, fingerprint enrollment err = " + error.message);
                         } else if (response) {
 
-                            //if (response.result) {
-                            if (response) {
+                            log.info("FPRINT: success, fingerprint enrollment complete for user " + uid);
 
-                                log.info("FPRINT: success, fingerprint enrollment complete for user " + uid);
+                            // get result from the response
+                            //var result = response.result;
+                            var result = response;
 
-                                // get result from the response
-                                //var result = response.result;
-                                var result = response;
-
-                                // TODO we should make sure all elements of result are set
-                                var png = new PNG({
-                                    width: result.width,
-                                    height: result.height
-                                });
-                                log.info(result.height);
-                                log.info(typeof result.fpimage);
-                                var gsPixels = new Buffer(result.fpimage, 'base64');
-                                var rgbPixels = new Buffer(parseInt(result.width) * parseInt(result.height) * 4); //RGBA
-                                log.info("Built fpimage buffer " + rgbPixels.length + ", " + gsPixels.length);
-                                for (var i = 0; i < gsPixels.length; i++)
-                                {
-                                    rgbPixels[(i*4)] = gsPixels[i];     // R
-                                    rgbPixels[(i*4) + 1] = gsPixels[i]; // G
-                                    rgbPixels[(i*4) + 2] = gsPixels[i]; // B
-                                    rgbPixels[(i*4) + 3] = 255;         // A
-                                }
-                                png.data = rgbPixels;
-                                var chunks = [];
-                                png.on('data', function(chunk) {
-                                    chunks.push(chunk);
-                                });
-                                png.on('end', function(chunk) {
-                                    var res = Buffer.concat(chunks);
-                                    server.clientchannels[client].acceptfingerprint(res.toString('base64'));
-                                })
-                                png.pack();
-
-                            } else {
-                                server.clientchannels[client].rejectfingerprint("Internal error: 002");
-                                log.info("FPRINT: error, fingerprint enrollment response had no result");
+                            // TODO we should make sure all elements of result are set
+                            var png = new PNG({
+                                width: result.width,
+                                height: result.height
+                            });
+                            log.info(result.height);
+                            log.info(typeof result.fpimage);
+                            var gsPixels = new Buffer(result.fpimage, 'base64');
+                            var rgbPixels = new Buffer(parseInt(result.width) * parseInt(result.height) * 4); //RGBA
+                            log.info("Built fpimage buffer " + rgbPixels.length + ", " + gsPixels.length);
+                            for (var i = 0; i < gsPixels.length; i++)
+                            {
+                                rgbPixels[(i*4)] = gsPixels[i];     // R
+                                rgbPixels[(i*4) + 1] = gsPixels[i]; // G
+                                rgbPixels[(i*4) + 2] = gsPixels[i]; // B
+                                rgbPixels[(i*4) + 3] = 255;         // A
                             }
+                            png.data = rgbPixels;
+                            var chunks = [];
+                            png.on('data', function(chunk) {
+                                chunks.push(chunk);
+                            });
+                            png.on('end', function(chunk) {
+                                var res = Buffer.concat(chunks);
+                                server.clientchannels[client].acceptfingerprint(res.toString('base64'));
+                            })
+                            png.pack();
+
                         } else {
                             server.clientchannels[client].rejectfingerprint("Internal error: 003");
                             log.info("FPRINT: major error, fingerprint enrollment received nothing");
@@ -1093,13 +1080,8 @@ class sodad_server {
                             // error in the stopping of enrollment
                             log.info("FRPINT: failure to stop enrollment user " + uid + " err = " + error.message);
                         } else if (response) {
-                            //if (response.result) {
-                                // result means successful 
-                                log.info("FPRINT: success, stopped enrollment for user " + uid);
-                            //} else {
-                                // error, response has incorrect fields
-                                //log.info("FPRINT: error, nothing in response to stop enrollment for user " + uid);
-                            //}
+                            // result means successful 
+                            log.info("FPRINT: success, stopped enrollment for user " + uid);
                         } else {
                             // error, neither response nor error returned
                             log.info("FPRINT: error, no response in request to stop enrollment for user " + uid);

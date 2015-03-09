@@ -468,16 +468,19 @@ export class Client
                         // display the print
                         $("#acceptfingerprintimg").html('<img src="data:image/png;base64,' + image + '"/>"');
                         $("#acceptfingerprintdialog").modal('show');
+                        return true;
                     },
                     rejectfingerprint: function(dialog)
                     {
                         // print the error
                         $("#rejectfingerprinterr").html('<p>' + dialog + '</p>');
                         $("#rejectfingerprintdialog").modal('show');
+                        return true;
                     },
                     reload: function()
                     {
                         window.location.reload();
+                        //return true; // if there's a typeerror, this is the cause
                     }
                 }
                 );
