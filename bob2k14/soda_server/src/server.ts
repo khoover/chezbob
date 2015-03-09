@@ -798,6 +798,7 @@ class sodad_server {
                         {
                             var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
                             rpc_client.request("Mdb.command", [ "E2" ], function (err,response){});
+                            server.identifymode_fingerprint(server, client, false);
                         }
                 });
 
@@ -855,6 +856,8 @@ class sodad_server {
                                 // while we're at it, let's de-activate any fingerprint 
                                 // enrollment that has survived thus far...
                                 server.learnmode_fingerprint(server, client, false);
+                                //pause?
+                                server.identifymode_fingerprint(server, client, true);
                             }
 
                             return redisclient.delAsync("sodads:" + client)
@@ -1098,13 +1101,93 @@ class sodad_server {
         // Start identifying a fingerprint asynchronously
         if (identifymode == true)
         {
-            log.info("Start fingerprint identify process...");
+            log.info("FPRINT: identifymode has been set to TRUE");
+            log.info("FPRINT: begin fingerprint identify");
 
+            // open a channel to the fingerprint server
+            var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
+
+            // send an enrollment request to the fingerprint server
+            fp_rpc_client.request("fp.identify", [], function (err, error, response)
+            {
+                // *** TODO restart the identification process if it errors out (not asked to cancel)
+                if(err) {
+                    server.clientchannels[client].rejectfingerprint(err.message);
+                    log.info("FPRINT: error, fingerprint identify communication err = " + err.message);
+                } else if (error) {
+                    server.clientchannels[client].rejectfingerprint(error.message);
+                    log.info("FPRINT: failure, fingerprint identify err = " + error.message);
+                } else if (response) {
+
+                    log.info("FPRINT: success, fingerprint identify complete");
+
+                    // get result from the response
+                    var result = response;
+
+                    // ***** TODO log the user in! result.fpuserid
+
+
+
+                    // TODO we should make sure all elements of result are set
+                    var png = new PNG({
+                        width: result.width,
+                        height: result.height
+                    });
+                    log.info(result.height);
+                    log.info(typeof result.fpimage);
+                    var gsPixels = new Buffer(result.fpimage, 'base64');
+                    var rgbPixels = new Buffer(parseInt(result.width) * parseInt(result.height) * 4); //RGBA
+                    log.info("Built fpimage buffer " + rgbPixels.length + ", " + gsPixels.length);
+                    for (var i = 0; i < gsPixels.length; i++)
+                    {
+                        rgbPixels[(i*4)] = gsPixels[i];     // R
+                        rgbPixels[(i*4) + 1] = gsPixels[i]; // G
+                        rgbPixels[(i*4) + 2] = gsPixels[i]; // B
+                        rgbPixels[(i*4) + 3] = 255;         // A
+                    }
+                    png.data = rgbPixels;
+                    var chunks = [];
+                    png.on('data', function(chunk) {
+                        chunks.push(chunk);
+                    });
+                    png.on('end', function(chunk) {
+                        var res = Buffer.concat(chunks);
+                        server.clientchannels[client].acceptfingerprint(res.toString('base64'));
+                    })
+                    png.pack();
+
+                } else {
+                    server.clientchannels[client].rejectfingerprint("Internal error: 003");
+                    log.info("FPRINT: major error, fingerprint identify received nothing");
+                }
+            });
         }
         // If there is an identification running currently, stop it
         else // if (identifymode == False)
         {
+            log.info("FPRINT: identifymode has been set to FALSE");
+            log.info("FPRINT: begin stopping fingerprint identification");
 
+            // open a channel to the fingerprint server
+            var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
+
+            // send an enrollment request to the fingerprint server
+            fp_rpc_client.request("fp.stopidentify", [], function (err, error, response){
+
+                if (err) {
+                    // error in the actual request / response process
+                    log.info("FPRINT: error in request to stop identification, err = " + err.message);
+                } else if (error) {
+                    // error in the stopping of enrollment
+                    log.info("FRPINT: failure to stop identification, err = " + error.message);
+                } else if (response) {
+                    // result means successful 
+                    log.info("FPRINT: success, stopped identification");
+                } else {
+                    // error, neither response nor error returned
+                    log.info("FPRINT: error, no response in request to stop identification");
+                }
+            });
         }
     }
 
@@ -1630,6 +1713,9 @@ class sodad_server {
                 log.info("Deregistered client channel for client " + socket.id);
             }
         })
+
+        // Put the fp_server in id mode off the bat
+        server.identifymode_fingerprint(server, this.id, true);
     }
 
     constructor(initdata : InitData) {

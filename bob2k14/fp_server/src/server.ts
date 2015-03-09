@@ -222,15 +222,10 @@ class fp_server {
             setTimeout( DRIVE_MONKEY_DRIVE, break_time );
         } // the astute reader will note the reference to the classic "Grandma's Boy"
 
-        // TODO read in the fingerprint data, make a list of uids, fpdatas
+        // ****** TODO read in the fingerprint data, make a list of uids, fpdatas
 
-
-
-        uid_list;
-        fpdata_list;
-
-        // default to identify mode
-        // ****TODO****
+        var uid_list;
+        var fpdata_list;
 
         var jserver = jayson.server(
                 {
@@ -327,33 +322,61 @@ class fp_server {
                     // TODO
                     "fp.identify" : function (callback)
                     {
-                        log.info("Begin fingerprint identify");
-                        server.reader.start_identifyAsync().then(
-                                function(result)
+                        log.info("BEGIN: Fingerprint identification");
+                        // start the reader enrolling
+                        server.reader.start_identifyAsync().then( // TODO pass in the list
+                                function (result)
                                 {
+                                    log.info("SUCCESS: Fingerprint identification");
+
+                                    /**** TODO get the userid of the user at index result[1] */
+                                    //matched_userid = uid_list[result[1]];
+
+                                    // send image back to soda server for display
+                                    // also send the userid back to be logged in!!
                                     var jresult = {
+
+                                        // userid to log in
+                                        fpuserid : matched_userid,
+                                        // image of print
                                         fpimage : result[2].toString('base64'),
+                                        // height of image
                                         height : result[3],
+                                        // width of image
                                         width : result[4]
+                                        
                                     }
                                     callback(null, jresult);
                                 }
                             )
                             .catch(function (err)
                                 {
-                                    log.error("Fingerprint identify FAILED, reason= " + err);
-                                    callback(err);
+                                    var error = {code: 404, message: err};
+                                    log.error("FAILED: Fingerprint identification failed, reason= " + err);
+                                    callback(error, null);
                                 })
                     },
-                    "fp.stopidentify" : function ()
+                    // Stop identification
+                    "fp.stopidentify" : function (callback)
                     {
-                        log.info("Stop fingerprint identify");
+                        log.info("BEGIN: Stop fingerprint identification");
+                        // stop the reader enrolling
                         server.reader.stop_identifyAsync().then(
-                                function()
+                                function (result)
                                 {
-                                    log.info("SUCCESS: fingerprint stop identify");
+                                    var jresult = {
+                                        success : true
+                                    }
+                                    log.info("SUCCESS: Stop fingerprint identify");
+                                    callback(null, jresult);
                                 }
                             )
+                            .catch(function (err)
+                                {
+                                    var error = {code: 404, message: err};
+                                    log.info("FAILED: Failure to stop fingerprint identify, reason = " + err);
+                                    callback(error, null);
+                                })
                     }
                 }
                 )
