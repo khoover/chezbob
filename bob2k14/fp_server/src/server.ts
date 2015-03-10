@@ -14,6 +14,7 @@ var jsesc = require('jsesc');
 var bunyanredis = require('bunyan-redis');
 var promise = require('bluebird');
 var fs = promise.promisifyAll(require('fs'));
+var proc = require('process');
 
 // DB access
 var pgpass = require('pgpass');
@@ -115,6 +116,9 @@ class InitData {
         dblog = log.child({module: 'db'});
         if (initdata.config.db.type == "postgres") {
             var sequelize = require('sequelize');
+
+            log.info(proc.env);
+
             pgpass({host: this.dbhost,
                     user: this.dbuser}, function (password)
                     {
