@@ -1124,6 +1124,8 @@ class sodad_server {
                     // get result from the response
                     var result = response;
 
+                    log.info("FPRINT: matched_userid = " + result.matched_userid)
+
                     // ***** TODO log the user in! result.fpuserid
                     models.Users.find( { where: { userid : result.matched_userid }})
                         .then( function (user)

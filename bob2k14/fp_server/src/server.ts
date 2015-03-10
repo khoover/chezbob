@@ -240,9 +240,9 @@ class fp_server {
                     for (var i = 0; i < resuLength; i++) {
                         uid_list.push(resu[i].userid);
 
-                        log.info("out of db: " + resu[i].fpdata.toString('hex'));
-                        log.info("len out: " + resu[i].fpdata.length);
-                        log.info("type out: " + Object.prototype.toString.call(resu[i].fpdata));
+                        // log.info("out of db: " + resu[i].fpdata.toString('hex'));
+                        // log.info("len out: " + resu[i].fpdata.length);
+                        // log.info("type out: " + Object.prototype.toString.call(resu[i].fpdata));
 
                         fpdata_list.push(resu[i].fpdata.toString('utf8'));
               
@@ -272,8 +272,8 @@ class fp_server {
                                     var newFPdata = result[1];
                                     var newFPimg = result[2];
 
-                                    log.info("in to DB: " + newFPdata.toString('hex'));
-                                    log.info("len in: " + newFPdata.length);
+                                    // log.info("in to DB: " + newFPdata.toString('hex'));
+                                    // log.info("len in: " + newFPdata.length);
 
                                     /**** TODO store the fingerprint with user uid in BOTh list and database ****/
 
