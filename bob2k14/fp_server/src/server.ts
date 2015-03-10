@@ -239,9 +239,18 @@ class fp_server {
                     var resuLength = resu.length;
                     for (var i = 0; i < resuLength; i++) {
                         uid_list.push(resu[i].userid);
-                        fpdata_list.push(resu[i].fpdata);
+
+                        log.info("out of db: " + resu[i].fpdata.toString('hex'));
+                        log.info("len out: " + resu[i].fpdata.length);
+                        log.info("type out: " + Object.prototype.toString.call(resu[i].fpdata));
+
+                        fpdata_list.push(resu[i].fpdata.toString('utf8'));
+              
                     }
-                    server.reader.update_database(fpdata_list).catch(function (err) {log.info("Reload fp database failed, e = " + err);} );
+
+                    log.info("array type out " + Object.prototype.toString.call(fpdata_list));
+
+                    server.reader.update_database(fpdata_list); //.catch(function (err) {log.info("Reload fp database failed, e = " + err);} );
                 }
             )
         }
@@ -263,6 +272,9 @@ class fp_server {
                                     var newFPdata = result[1];
                                     var newFPimg = result[2];
 
+                                    log.info("in to DB: " + newFPdata.toString('hex'));
+                                    log.info("len in: " + newFPdata.length);
+
                                     /**** TODO store the fingerprint with user uid in BOTh list and database ****/
 
                                     // update database (TODO handle errors)
@@ -278,6 +290,7 @@ class fp_server {
                                                 }).then(function (updated_fp)
                                                     {
                                                         log.info("Created fingerprint for user " + uid);
+                                                        reload_fp();
                                                     })
                                             } else {
                                                 // update the current user's fingerprint information
@@ -288,12 +301,11 @@ class fp_server {
                                                 }).then(function (updated_fp)
                                                     {
                                                         log.info("Updated fingerprint for user " + uid);
+                                                        reload_fp();
                                                     })
                                             }
+                                            //reload_fp();
                                         })
-
-                                    // TODO update the list
-                                    reload_fp();
 
                                     // send image back to soda server for display
                                     var jresult = {
