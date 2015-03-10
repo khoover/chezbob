@@ -1125,6 +1125,22 @@ class sodad_server {
                     var result = response;
 
                     // ***** TODO log the user in! result.fpuserid
+                    models.Users.find( { where: { userid : result.matched_userid }})
+                        .then( function (user)
+                            {
+                                if (user !== null)
+                                {
+                                    server.handle_login(server, server.clientidmap[1][0], "fprint", user);
+                                }
+                                else
+                                {
+                                    throw "ERROR: fprint mapped to nonexistent user!";
+                                }
+                            })
+                        .catch( function (err) {
+                            // TODO tell user id failed
+                            log.info(err)
+                        })
 
 
 
@@ -1715,7 +1731,7 @@ class sodad_server {
         })
 
         // Put the fp_server in id mode off the bat
-        server.identifymode_fingerprint(server, null, true);
+        server.identifymode_fingerprint(server, server.clientidmap[1][0], true);
     }
 
     constructor(initdata : InitData) {

@@ -222,10 +222,26 @@ class fp_server {
             setTimeout( DRIVE_MONKEY_DRIVE, break_time );
         } // the astute reader will note the reference to the classic "Grandma's Boy"
 
-        // ****** TODO read in the fingerprint data, make a list of uids, fpdatas
+                // ****** TODO read in the fingerprint data, make a list of uids, fpdatas
 
+        // TODO race condition....
         var uid_list;
-        var fpdata_list;
+        var fpdata_list;   
+        function reload_fp() {     
+            models.Fingerprints.findAll({}).then( function (resu) 
+                {
+                    uid_list = [];
+                    fpdata_list = [];
+                    var resuLength = resu.length;
+                    for (var i = 0; i < resuLength; i++) {
+                        uid_list.push(resu[i].userid);
+                        fpdata_list.push(resu[i].fpdata);
+                    }
+                    server.reader.update_database(fpdata_list).catch(function (err) {log.info("Reload fp database failed, e = " + err);} );
+                }
+            )
+        }
+        reload_fp();
 
         var jserver = jayson.server(
                 {
@@ -273,8 +289,7 @@ class fp_server {
                                         })
 
                                     // TODO update the list
-
-
+                                    reload_fp();
 
                                     // send image back to soda server for display
                                     var jresult = {
@@ -330,8 +345,8 @@ class fp_server {
                                     log.info("SUCCESS: Fingerprint identification");
 
                                     /**** TODO get the userid of the user at index result[1] */
-                                    //matched_userid = uid_list[result[1]];
-                                    var matched_userid = 0;
+                                    var matched_userid = uid_list[result[1]];
+                                    //var matched_userid = 0;
 
                                     // send image back to soda server for display
                                     // also send the userid back to be logged in!!
