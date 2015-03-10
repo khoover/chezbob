@@ -1130,7 +1130,7 @@ class sodad_server {
                             {
                                 if (user !== null)
                                 {
-                                    server.handle_login(server, server.clientidmap[1][0], "fprint", user);
+                                    server.handle_login(server, server.clientidmap[ClientType.Soda][0], "fprint", user);
                                 }
                                 else
                                 {
@@ -1699,6 +1699,11 @@ class sodad_server {
                     fns.gettype().then(function (typedata){
                         server.clientmap[typedata.type][typedata.id] = fns;
                         server.clientidmap[typedata.type][typedata.id] = socket.id;
+
+                        // fprint
+                        // Put the fp_server in id mode off the bat
+                        server.identifymode_fingerprint(server, server.clientidmap[ClientType.Soda][0], true);
+
                         log.info("Registered client channel type (" + ClientType[typedata.type] + "/"
                             + typedata.id + ") for client " + socket.id);
                         return fns.getversion().then(function(version)
@@ -1729,9 +1734,6 @@ class sodad_server {
                 log.info("Deregistered client channel for client " + socket.id);
             }
         })
-
-        // Put the fp_server in id mode off the bat
-        server.identifymode_fingerprint(server, server.clientidmap[1][0], true);
     }
 
     constructor(initdata : InitData) {
