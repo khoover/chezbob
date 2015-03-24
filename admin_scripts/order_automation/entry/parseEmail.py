@@ -4,7 +4,6 @@ import os
 import sys
 import email
 import re
-from parseOrder import parseOrder
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, Tag
 
