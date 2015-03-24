@@ -20,6 +20,21 @@ def parseEmailOrder(emailText):
   htmlContents = htmlPart.get_payload(decode=True)
   return parseOrder(htmlContents)
 
+def parseStringCont(contents):
+  s = u''
+  for i in contents:
+    if type(i) == Tag and i.name == "br":
+      s += u'\n'
+      # On older versions of bs4 the remaining contents are placed under the <br> tag
+      if (len(i.contents) > 0): 
+        s += parseStringCont(i.contents)
+    elif type(i) == NavigableString:
+      s += i
+    else:
+      print "Unexpected cell content:", i
+      assert False
+  return s
+
 def _extractTable(tbl):
   """Given a simple bs table return a list with tuples with its contents"""
   res = []
@@ -31,16 +46,7 @@ def _extractTable(tbl):
       if type(cell) != Tag or len(cell.contents) == 0:
         continue
 
-      s = u''
-      for i in cell.contents:
-        if type(i) == Tag and i.name == "br":
-          s += u'\n'
-        elif type(i) == NavigableString:
-          s += i
-        else:
-          print "Unexpected cell content:", i
-          assert False
-
+      s = parseStringCont(cell.contents)
       res_row.append(s)
     res.append(res_row)
   return res
@@ -55,7 +61,11 @@ def _dictify(l):  return dict(map(lambda x: (x[0].strip(), x[1]), l))
 def parseOrder(html):
   soup = BeautifulSoup(html)
   # The main sections of the order are several tables lieing at the following path
-  tables = soup.body.table.tbody.tr.td.contents
+  try:
+    tables = soup.body.table.tbody.tr.td.contents
+  except:
+    # Some weird incompatibility between different versions of bs4 on soda (12.04) and newer machines
+    tables = soup.div.div.table.tbody.tr.td.contents
   # tables[0] is the costco logo on the top left side
   # tables[1] is the order steps on the top right side
   # tables[2] contains the 3 tables at the top with order general info,
