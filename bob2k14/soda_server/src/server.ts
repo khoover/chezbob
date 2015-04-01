@@ -768,7 +768,7 @@ class sodad_server {
 
                         multi.hset("sodads:" + client, "uid", user.userid); //TODO: deprecated key uid
                         multi.hmset("sodads:" + client, user)
-                        multi.hmset("sodads_roles:" + client, user.roles);
+                        //multi.hmset("sodads_roles:" + client, user.roles);
                         multi.expire("sodads:" + client, 600);
                         multi.expire("sodads_roles:" + client, 600);
                         return multi.execAsync();
@@ -790,12 +790,19 @@ class sodad_server {
                         {
                             user.voice_settings = {};
                         }
-                        server.clientchannels[client].login(user);
 
+                        server.clientchannels[client].login(user, 'Greeting');                   
+                             
                         // Enable bill acceptance if logged in to the soda machine.
                         // Is this really the best way to determine the client type?
                         if (server.clientidmap[ClientType.Soda][0] == client)
                         {
+                            if (user.balance < 0) {
+                                server.clientchannels[client].agentSpeak("It looks like you're trying to pay off your balance! Please insert some money!");
+                            } else {
+                                server.clientchannels[client].agentSpeak("It looks like you're trying to buy some soda! Just press the button for the soda you want!");
+                            }
+
                             var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
                             rpc_client.request("Mdb.command", [ "E2" ], function (err,response){});
                             server.identifymode_fingerprint(server, client, false);
@@ -1704,7 +1711,9 @@ class sodad_server {
 
                         // fprint
                         // Put the fp_server in id mode off the bat
-                        server.identifymode_fingerprint(server, server.clientidmap[ClientType.Soda][0], true);
+                        if (typedata.type == ClientType.Soda) {
+                            server.identifymode_fingerprint(server, server.clientidmap[ClientType.Soda][0], true);
+                        }
 
                         log.info("Registered client channel type (" + ClientType[typedata.type] + "/"
                             + typedata.id + ") for client " + socket.id);
