@@ -1121,9 +1121,11 @@ class sodad_server {
                 if(err) {
                     server.clientchannels[client].rejectfingerprint(err.message);
                     log.info("FPRINT: error, fingerprint identify communication err = " + err.message);
+                    //server.identifymode_fingerprint(server, client, true);
                 } else if (error) {
                     server.clientchannels[client].rejectfingerprint(error.message);
                     log.info("FPRINT: failure, fingerprint identify err = " + error.message);
+                    //server.identifymode_fingerprint(server, client, true);
                 } else if (response) {
 
                     log.info("FPRINT: success, fingerprint identify complete");
@@ -1131,10 +1133,9 @@ class sodad_server {
                     // get result from the response
                     var result = response;
 
-                    log.info("FPRINT: matched_userid = " + result.matched_userid)
+                    log.info("FPRINT: matched_userid = " + result.fpuserid)
 
-                    // ***** TODO log the user in! result.fpuserid
-                    models.Users.find( { where: { userid : result.matched_userid }})
+                    models.Users.find( { where: { userid : result.fpuserid }})
                         .then( function (user)
                             {
                                 if (user !== null)

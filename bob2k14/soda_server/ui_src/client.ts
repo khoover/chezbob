@@ -185,6 +185,7 @@ export class Client
         client.time_pause = false;
         client.voice_speak(client, client.current_user.voice_settings.farewell);
         client.current_user = null;
+        window['agent'].stop();
         window['agent'].hide();
     }
 
@@ -661,6 +662,11 @@ export class Client
         $("#logoutbtn").on('click', function() {
             client.server_channel.logout();
         });
+
+        $("#logoutbtn2").on('click', function() {
+            client.server_channel.logout();
+        });
+
         $("#moretimebtn").on('click', function() {
             client.time = client.time + 30;
             client.log.trace("User added 30 seconds to autologout");

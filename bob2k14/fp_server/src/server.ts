@@ -358,7 +358,7 @@ class fp_server {
                         server.reader.start_identifyAsync().then( // TODO pass in the list
                                 function (result)
                                 {
-                                    log.info("SUCCESS: Fingerprint identification");
+                                    log.info("SUCCESS: Fingerprint identification: " + result[1] +","+ uid_list[result[1]]);
 
                                     /**** TODO get the userid of the user at index result[1] */
                                     var matched_userid = uid_list[result[1]];
