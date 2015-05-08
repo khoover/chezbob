@@ -854,6 +854,10 @@ export class Client
             client.server_channel.transfer(amt, $("#transfer-user").val());
         })
 
+	$("#rain-btn").on('click', function() {
+	    client.server_channel.rain();
+	})
+
         $("#message_bug-form").on('submit', function(e) {
             e.preventDefault();
             client.log.info("Sending a bug report.");

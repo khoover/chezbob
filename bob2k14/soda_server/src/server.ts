@@ -768,7 +768,7 @@ class sodad_server {
 
                         multi.hset("sodads:" + client, "uid", user.userid); //TODO: deprecated key uid
                         multi.hmset("sodads:" + client, user)
-                        //multi.hmset("sodads_roles:" + client, user.roles);
+                        multi.hmset("sodads_roles:" + client, user.roles);
                         multi.expire("sodads:" + client, 600);
                         multi.expire("sodads_roles:" + client, 600);
                         return multi.execAsync();
@@ -791,7 +791,7 @@ class sodad_server {
                             user.voice_settings = {};
                         }
 
-                        server.clientchannels[client].login(user, 'Greeting');                   
+                        server.clientchannels[client].login(user, user.balance < 0 ? 'GetAttention' : 'Greeting');                   
                              
                         // Enable bill acceptance if logged in to the soda machine.
                         // Is this really the best way to determine the client type?
@@ -880,6 +880,13 @@ class sodad_server {
                     })
     }
 
+    handleRainRequest(server: sodad_server, client : string)
+    {
+        var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
+        rpc_client.request("Mdb.command", [ "G0204" ], function (err, response){});
+        server.balance_transaction(server, client, "WITHDRAW 1.00", "Withdraw 1.00", null, "-1.00");
+    }
+ 
     handleCoinDeposit(server: sodad_server, client : string, amt: string, tube: string, user)
     {
         if (user !== null)
@@ -1119,11 +1126,11 @@ class sodad_server {
             {
                 // *** TODO restart the identification process if it errors out (not asked to cancel)
                 if(err) {
-                    server.clientchannels[client].rejectfingerprint(err.message);
+                    //server.clientchannels[client].rejectfingerprint(err.message);
                     log.info("FPRINT: error, fingerprint identify communication err = " + err.message);
                     //server.identifymode_fingerprint(server, client, true);
                 } else if (error) {
-                    server.clientchannels[client].rejectfingerprint(error.message);
+                    //server.clientchannels[client].rejectfingerprint(error.message);
                     log.info("FPRINT: failure, fingerprint identify err = " + error.message);
                     //server.identifymode_fingerprint(server, client, true);
                 } else if (response) {
@@ -1546,6 +1553,11 @@ class sodad_server {
                 log.info("Manual deposit of " + amt + " for client " + client);
                 server.balance_transaction(server, client, "ADD MANUAL",
                         "Manual Deposit", null,  amt);
+            },
+	    rain: function()
+            {
+	        var client = this.id;
+                server.handleRainRequest(server, client);
             },
             transfer: function(amt, user)
             {
