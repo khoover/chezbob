@@ -1,0 +1,2674 @@
+                                                                                                                                                                                                                                                               
+Delivered-To: dbounov@eng.ucsd.edu
+Received: by 10.114.81.106 with SMTP id z10csp1429054ldx;
+        Mon, 23 Feb 2015 14:04:43 -0800 (PST)
+X-Received: by 10.70.37.202 with SMTP id a10mr23121046pdk.108.1424729082340;
+        Mon, 23 Feb 2015 14:04:42 -0800 (PST)
+Return-Path: <brown.farinholt@gmail.com>
+Received: from mail-pa0-x235.google.com (mail-pa0-x235.google.com. [2607:f8b0:400e:c03::235])
+        by mx.google.com with ESMTPS id 4si12614920pdx.19.2015.02.23.14.04.41
+        for <dbounov@eng.ucsd.edu>
+        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 23 Feb 2015 14:04:42 -0800 (PST)
+Received-SPF: pass (google.com: domain of brown.farinholt@gmail.com designates 2607:f8b0:400e:c03::235 as permitted sender) client-ip=2607:f8b0:400e:c03::235;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of brown.farinholt@gmail.com designates 2607:f8b0:400e:c03::235 as permitted sender) smtp.mail=brown.farinholt@gmail.com;
+       dkim=pass header.i=@gmail.com;
+       dmarc=pass (p=NONE dis=NONE) header.from=gmail.com
+Received: by pablf10 with SMTP id lf10so30789431pab.6
+        for <dbounov@eng.ucsd.edu>; Mon, 23 Feb 2015 14:04:41 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20120113;
+        h=mime-version:in-reply-to:references:date:message-id:subject:from:to
+         :content-type;
+        bh=GTL+Hx/OfBUEBM2noNvFtMMpZS8uKe0DpxjTldq2kAg=;
+        b=dYcd/F49o2wfxOMnBq+DYd7q/bGmV1vq43IPu4l+Qkwnc58U6QhektuoXy/hNrNFeF
+         56geZfBRzuyAggSfKg2pxAv4m9H3+M5hOSpvP0CtgnswQ2sww3Npm2lRyOQCRzzjk5Hw
+         /pQqwuSRJNkUS7FEiRcffBu7M/EZrlSfU75h7oflMrzYu3YlIKZ7CI4IZ8HEVZqqUVoL
+         cnVrVUL+iAAm/1bT0xf4j9EDhVOpghnv5+6PAT5MtVUjChPJBWzyYbCKJ7O+BsnU71M0
+         S53XXLvjTgU2TKaAH+8/Tm9malCKATNPMdVDfnzh30R3+JxZw4oFj14zyZiU44oUeTr8
+         QaxQ==
+MIME-Version: 1.0
+X-Received: by 10.70.36.75 with SMTP id o11mr22806793pdj.107.1424729081319;
+ Mon, 23 Feb 2015 14:04:41 -0800 (PST)
+Received: by 10.70.55.66 with HTTP; Mon, 23 Feb 2015 14:04:41 -0800 (PST)
+In-Reply-To: <6979ef$epq4n@epmailmta03-int.prod.costco.web>
+References: <6979ef$epq4n@epmailmta03-int.prod.costco.web>
+Date: Mon, 23 Feb 2015 14:04:41 -0800
+Message-ID: <CAH1=om6ZMEfbPz7Gjsi=k+hJOSB+ehqxwNUyW-kJoDRkPY6B5g@mail.gmail.com>
+Subject: Fwd: Your Costco.com Order Was Received. 259834530
+From: Brown Farinholt <brown.farinholt@gmail.com>
+To: Dimitar Bounov <dbounov@eng.ucsd.edu>
+Content-Type: multipart/alternative; boundary=047d7bfeac76cb15a7050fc8967c
+
+--047d7bfeac76cb15a7050fc8967c
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+NVM
+
+---------- Forwarded message ----------
+From: <orderstatus@costco.com>
+Date: Wed, Feb 18, 2015 at 11:44 AM
+Subject: Your Costco.com Order Was Received. 259834530
+To: brown.farinholt@gmail.com
+
+
+
+<http://www.costco.com/home.aspx?cm_mmc=3DTransactional-_-OrderReceived-_-T=
+opNav-_-Logo>
+*Order
+Received*STEPS FOR YOUR ORDER:1. *Order Received*    2. Sent to
+Fulfillment    3. Shipped Order Number:259834530Membership Number:
+111840744815Date Placed:2/18/2015  Shipping Address    Brown Farinholt
+UCSD/CSE   9500 GILMAN DR BLDG EBU 3B   ROOM 3127  SAN DIEGO, CA 92093
+Note:*Note:* This email was automatically generated from a mailbox that is
+not monitored. If you have any questions, please visit customer service
+<https://costco.egain.net/system/web/custom/initialPage.html?lang=3Den-US&t=
+opnav=3D&whse=3DBC>
+.Dear Brown Farinholt,Thank you for ordering from * Costco.com
+<http://www.costco.com/home.aspx?cm_mmc=3DTransactional-_-OrderReceived-_-M=
+ain-_-Intro>*.
+We have received the order and, after processing it, will send it to the
+fulfillment facility. Please keep this email for your records.Your OrderQty
+DescriptionShipping MethodPriceItem Total 1Tim's Cascade, Variety, 1.5 oz,
+30 ct - Item# 633582Business Delivery$12.93 $12.931Progresso Soup, Variety
+Chicken, 19 oz, 8 ct - Item# 924434Business Delivery $12.93$12.932Oreo
+Sandwich Cookie, 30/6 ct - Item# 455213 Business Delivery$11.75$23.501 Trid=
+ent
+Layers Sugar Free Gum, Strawberry and Ctirus, 14 Pieces, 10 ct - Item#
+669276Business Delivery$8.58$8.58 2Knotts Premium Shortbread Cookies,
+Raspberry, 2 oz, 24 ct - Item# 254245Business Delivery$8.76 $17.521Sunkist,
+36/12 oz - Item# 2488Business Delivery $11.40$11.401CA REDEMP VAL T EE -
+Item# -996900000 Business Delivery$1.80$1.801 V8 100% Vegetable Juice, 5.5
+oz, 48 ct - Item# 2036Business Delivery$22.34$22.34 1CA REDEMP VAL N EE -
+Item# -996800000Business Delivery$2.40$2.40 1Fuji Apples, 5.5 lbs - Item#
+21405Business Delivery$6.81 $6.811Snapple Iced Tea, Variety, 20 oz, 24 ct -
+Item# 207679Business Delivery $20.58$20.581CA REDEMP VAL N EE - Item#
+-996900000 Business Delivery$1.20$1.201 Tropicana 100% Orange Juice, 10 oz,
+24 ct - Item# 12529Business Delivery$15.05$15.05 1CA REDEMP VAL N EE -
+Item# -996800000Business Delivery$1.20$1.20 1Act II Microwave Popcorn,
+Butter Lovers, 2.75 oz, 36 ct - Item# 7611Business Delivery$11.28 $11.282Li=
+pton
+Brisk Iced Tea, Lemon, 12 oz, 24 ct - Item# 407Business Delivery $9.50$19.0=
+0
+2CA REDEMP VAL N EE - Item# -996900000 Business Delivery$1.20$2.401 Luna
+Bar, Chocolate Dipped Coconut, 1.69 oz, 15 ct - Item# 634081Business
+Delivery$17.28$17.28 1Instant Savings
+Propel Zero, Variety, 16.9 oz, 24 ct - Item# 52430Business Delivery$13.87
+Before $1 OFF$13.871CA REDEMP VAL N EE - Item# -996900000Business Delivery
+$1.20$1.201Pop Tarts, Frosted Brown Sugar Cinnamon, 3.52 oz, 36 ct - Item#
+501692 Business Delivery$8.11$8.111 Dentyne Ice Sugar Free Gum, Spearmint,
+16 Pieces, 12 ct - Item# 776660Business Delivery$8.58$8.58 1Coca-Cola of
+Mexico, 12 oz, 24 ct - Item# 179571Business Delivery$24.38 $24.381CA REDEMP
+VAL T EE - Item# -996900000Business Delivery $1.20$1.201Nissin Cup Noodles
+Flavored Soup, Chicken, 2.5 oz, 24 ct - Item# 980978 Business Delivery$8.11
+$8.111 Nature Valley Trail Mix Bar, Fruit & Nut, 1.2 oz, 48 ct - Item#
+1951Business
+Delivery$15.05$15.05 1Nature Valley Sweet 'N Salty Nut Bar, Peanut, 1.2 oz,
+48 ct - Item# 1952Business Delivery$15.05 $15.051Tropicana 100% Ruby Red
+Grapefruit Juice, 10 oz, 24 ct - Item# 12530Business Delivery $15.87$15.871=
+CA
+REDEMP VAL N EE - Item# -996800000 Business Delivery$1.20$1.201 Arizona
+Iced Tea, Lemon, 23 oz, 24 ct - Item# 804916Business Delivery$17.40$17.40 1=
+CA
+REDEMP VAL N EE - Item# -996900000Business Delivery$1.20$1.20 2Clif
+Builder's Bar, Chocolate Mint, 2.4 oz, 12 ct - Item# 501905Business Deliver=
+y
+$18.58 $37.162Clif Builder's Protein Bar, Variety, 2.4 oz, 18 ct - Item#
+809750Business Delivery $22.34$44.681Trident White Sugar Free Gum,
+Peppermint, 16 Pieces, 12 ct - Item# 776673 Business Delivery$8.58$8.581 Ni=
+ssin
+Hot & Spicy Noodle Bowl, Chicken, 3.32 oz, 12 ct - Item# 374959Business
+Delivery$9.40$9.40 1Red Bull Sugar Free Energy Drink, 12 oz, 24 ct - Item#
+184570Business Delivery$58.81 $58.811CA REDEMP VAL T EE - Item#
+-996900000Business
+Delivery $1.20$1.201Kellogg's Fruity Snacks, Variety, 2.5 oz, 36 ct - Item#
+901400 Business Delivery$12.81$12.811 Famous Amos Cookies, Chocolate Chip,
+2 oz, 42 ct - Item# 171859Business Delivery$15.64$15.64 3Diet Pepsi, 12 oz,
+24 ct - Item# 83Business Delivery$9.50$28.50 3CA REDEMP VAL T EE - Item#
+-996900000Business Delivery$1.20 $3.601Lays Oven Baked Chips, Variety, 30
+ct - Item# 5497Business Delivery $13.75$13.752Diet Coke, Caffeine Free, 12
+oz, 32 ct - Item# 86 Business Delivery$12.55$25.102 CA REDEMP VAL T EE -
+Item# -996900000Business Delivery$1.60$3.20 1Darigold 2% Reduced Fat Milk,
+12/16 oz - Item# 5763Business Delivery$15.28 $15.285Coca-Cola, 12 oz, 32 ct
+- Item# 84Business Delivery $12.55$62.755CA REDEMP VAL T EE - Item#
+-996900000 Business Delivery$1.60$8.005 Diet Coke, 12 oz, 32 ct -
+Item# 85Business
+Delivery$12.55$62.75 5CA REDEMP VAL T EE - Item# -996900000Business Deliver=
+y
+$1.60$8.00 2Starbucks Frappuccino Coffee Drink, Mocha, 9.5 oz, 12 ct -
+Item# 158936Business Delivery$16.00 $32.002CA REDEMP VAL N EE - Item#
+-996900000Business Delivery $0.60$1.201Sour Patch Kids, 24 ct - Item#
+610626 Business
+Delivery$17.05$17.051 Pringles, Sour Cream & Onion, 1.41 oz, 12 ct - Item#
+720795Business Delivery$6.81$6.81 1Diet Snapple Iced Tea, Variety, 20 oz,
+24 ct - Item# 207719Business Delivery$19.99 $19.991CA REDEMP VAL N EE -
+Item# -996900000Business Delivery $1.20$1.201Red Bull Sugar Free Energy
+Drink, 8.4 oz, 24 ct - Item# 711509 Business Delivery$41.75$41.751 CA
+REDEMP VAL T EE - Item# -996900000Business Delivery$1.20$1.20 2Royal Gala
+Apples, 5.5 lbs - Item# 49118Business Delivery$6.24$12.48 1Red Baron
+Variety Deep Dish Pizza, 12 ct - Item# 236170Business Delivery$12.34
+$12.341Kirkland
+Signature Premium Water, 35/16.9 oz - Item# 10134Business Delivery $3.65
+$3.651CA REDEMP VAL N EE - Item# -996900000 Business Delivery$1.75$1.753 Ja=
+ck
+Link's Beef Jerky, Variety, 1.25 oz, 9 ct - Item# 536593Business Delivery
+$13.87$41.61 1M&M's Peanut, 1.74 oz, 48 ct - Item# 1232Business Delivery
+$34.11 $34.112Clif Bar, Crunchy Peanut Butter, 2.4 oz, 12 ct - Item#
+417230Business
+Delivery $13.87$27.741Dentyne Ice Sugar Free Gum, Peppermint, 16 Pieces, 12
+ct - Item# 776654 Business Delivery$8.58$8.582 Bananas, 3 lbs - Item#
+30669Business
+Delivery$1.58$3.16 1Lipton Original Tea, 312 Bags - Item# 251767Business
+Delivery$11.16 $11.162Knotts Premium Shortbread Cookies, Strawberry, 2 oz,
+24 ct - Item# 717747Business Delivery $8.76$17.522Diet Dr Pepper, 32/12 oz
+- Item# 900827 Business Delivery$12.55$25.102 CA REDEMP VAL T EE - Item#
+-996900000Business Delivery$1.60$3.20 3Dr Pepper, 32/12 oz - Item#
+900826Business
+Delivery$12.55$37.65 3CA REDEMP VAL T EE - Item# -996900000Business Deliver=
+y
+$1.60 $4.804Keebler Vienna Fingers Cookies, Creme Filled, 2 oz, 12 ct -
+Item# 77502Business Delivery $7.05$28.201Kirkland Signature Trail Mix, 2.5
+oz, 18 ct - Item# 288976 Business Delivery$14.41$14.412 Clif Bar, Blueberry
+Crisp, 2.4 oz, 12 ct - Item# 466681Business Delivery$13.87$27.74 2Clif Bar,
+Chocolate Chip, 2.4 oz, 12 ct - Item# 473783Business Delivery$13.87 $27.742=
+Clif
+Bar, Chocolate Brownie, 2.4 oz, 12 ct - Item# 285218Business Delivery $13.8=
+7
+$27.741Goldfish Snack Crackers, Cheddar, 1.5 oz, 24 ct - Item# 393619 Busin=
+ess
+Delivery$9.40$9.401 Arizona Iced Tea, Raspberry, 23 oz, 24 ct - Item#
+804919Business
+Delivery$17.40$17.40 1CA REDEMP VAL N EE - Item# -996900000Business Deliver=
+y
+$1.20$1.20 1Red Bull Energy Drink, 12 oz, 24 ct - Item# 184554Business
+Delivery$58.81 $58.811CA REDEMP VAL T EE - Item# -996900000Business Deliver=
+y
+$1.20$1.202Kit Kat, 1.5 oz, 36 ct - Item# 24600 Business Delivery$25.28
+$50.561 Campbell's Soup, Chicken Noodle, 10.75 oz, 12 ct - Item# 1226Busine=
+ss
+Delivery$9.40$9.40 2Snickers, 1.86 oz, 48 ct - Item# 707667Business Deliver=
+y
+$34.11$68.22 1Red Bull Energy Drink, 8.4 oz, 24 ct - Item# 242668Business
+Delivery$41.75 $41.751CA REDEMP VAL T EE - Item# -996900000Business Deliver=
+y
+$1.20$1.203Reese's Peanut Butter Cups, 1.5 oz, 36 ct - Item# 44000 Business
+Delivery$25.28$75.842 Hansen's Natural Soda, Variety, 12 oz, 24 ct - Item#
+75510Business Delivery$9.38$18.76 2CA REDEMP VAL T EE - Item#
+-996900000Business
+Delivery$1.20$2.40 1Gatorade Perform, Variety, 20 oz, 24 ct - Item#
+214226Business
+Delivery$18.22 $18.221CA REDEMP VAL N EE - Item# -996900000Business Deliver=
+y
+$1.20$1.201Funyuns Onion Rings Chips, 1.25 oz, 64 - Item# 320871 Business
+Delivery$31.64$31.641 PayDay, 1.85 oz, 24 ct - Item# 11343Business Delivery
+$17.64$17.64 1Faygo Classic Root Beer, 12 oz, 24 ct - Item# 506211Business
+Delivery$7.30 $7.301CA REDEMP VAL T EE - Item# -996900000Business Delivery
+$1.20$1.201Clif Bar, Oatmeal Raisin Walnut, 2.4 oz, 12 ct - Item#
+270382 Business
+Delivery$13.87$13.871 Instant Savings
+Pringles, Sour Cream & Onion, 5.96 oz, 14 ct - Item# 721074Business
+Delivery$23.52
+
+Before $4 OFF$23.523Twix, 1.79 oz, 36 ct - Item# 482832Business Delivery
+$25.28$75.841Sun Chips Multigrain, Variety, 1.5 oz, 30 ct - Item#
+571548 Business
+Delivery$13.40$13.401 Luna Bar, LemonZest, 1.69 oz, 15 ct - Item#
+333422Business
+Delivery$17.28$17.28 1Pop Tarts, Frosted Strawberry, 3.52 oz, 36 ct - Item#
+355773Business Delivery$8.11 $8.111Clif Bar, White Chocolate Macadamia Nut,
+2.4 oz, 12 ct - Item# 473886Business Delivery $13.87$13.871Milky Way Simply
+Caramel, 1.91 oz, 24 ct - Item# 312094 Business Delivery$17.16$17.161 Lipto=
+n
+Green Tea, 100 Bags - Item# 560649Business Delivery$6.11$6.11 1Alpine
+Original Spiced Apple Cider, 0.74 oz, 60 ct - Item# 347649Business Delivery
+$8.22 $8.222Milky Way, Midnight Dark, 1.76 oz, 24 ct - Item# 1104Business
+Delivery $17.16$34.321Arizona Peach Tea, 24/15.5 oz - Item# 326523 Business
+Delivery$11.75$11.751 CA REDEMP VAL N EE - Item# -996900000Business Deliver=
+y
+$1.20$1.20 2Grandma's Homestyle Cookies, Chocolate Chip, 2.5 oz, 33 ct -
+Item# 333622Business Delivery$10.93 $21.861Dentyne Ice Sugar Free Gum,
+Artic Chill, 16 Pieces, 12 ct - Item# 776658Business Delivery
+$8.58$8.581Martinelli's
+Sparkling Apple Juice, 10 oz, 24 ct - Item# 90105 Business Delivery$19.75
+$19.751 CA REDEMP VAL N EE - Item# -996800000Business
+Delivery$1.20$1.20 1Martinelli's
+100% Apple Juice, 10 oz, 24 ct - Item# 90102Business Delivery$19.75 $19.751=
+CA
+REDEMP VAL N EE - Item# -996800000Business Delivery $1.20$1.201Bigelow Herb
+Tea, Variety, 28 Bags, 6 ct - Item# 291446 Business Delivery$19.40$19.403 J=
+ack
+Link's Beef Jerky, Teriyaki, 3.25 oz, 3 ct - Item# 5646Business Delivery
+$15.28$45.84 1Nature Valley Crunchy Bar, Oat 'N Honey, 1.5 oz, 49 ct -
+Item# 846156Business Delivery$15.05 $15.053Pepsi, 12 oz, 24 ct - Item#
+81Business
+Delivery $9.50$28.503CA REDEMP VAL T EE - Item# -996900000 Business Deliver=
+y
+$1.20$3.601 Starbucks Frappuccino Coffee Drink, Caramel, 9.5 oz, 12 ct -
+Item# 363478Business Delivery$16.46$16.46 1CA REDEMP VAL N EE - Item#
+-996900000Business Delivery$0.60$0.60 2Sprite, 12 oz, 32 ct - Item# 87Busin=
+ess
+Delivery$12.55 $25.102CA REDEMP VAL T EE - Item# -996900000Business Deliver=
+y
+$1.60$3.201Hot Pockets, Pepperoni Pizza, 4.5 oz, 17 ct - Item# 959901 Busin=
+ess
+Delivery$14.11$14.114 Keebler Sugar Wafers, Vanilla, 2.75 oz, 12 ct - Item#
+356100Business Delivery$7.05$28.20 1Snapple Juice, Variety, 20 oz, 24 ct -
+Item# 207599Business Delivery$20.58 $20.581CA REDEMP VAL N EE - Item#
+-996900000Business Delivery $1.20$1.202Zone Perfect Nutrition Bar, Variety,
+1.76 oz, 12 ct - Item# 20358 Business Delivery$19.99$39.983 Coca-Cola Zero,
+12 oz, 32 ct - Item# 1752Business Delivery$12.55$37.65 3CA REDEMP VAL T EE
+- Item# -996900000Business Delivery$1.60$4.80 1Nature Valley Chewy Granola
+Bar, Strawberry Yogurt, 1.2 oz, 16 ct - Item# 4310Business Delivery$7.64
+$7.641Arizona Green Tea, Ginseng and Honey, 23 oz, 24 ct - Item# 804922Busi=
+ness
+Delivery $17.40$17.401CA REDEMP VAL N EE - Item# -996900000 Business
+Delivery$1.20$1.201 Nutri-Grain Cereal Bars, Variety, 1.3 oz, 48 ct - Item#
+698223Business Delivery$14.69$14.69 1Pringles, The Original, 1.31 oz, 12 ct
+- Item# 720590Business Delivery$6.81 $6.812Fig Newtons Cookies, 2 oz, 24 ct
+- Item# 767083Business Delivery $10.58$21.163Ruffles Chips, Cheddar & Sour
+Cream, 1.5 oz, 64 ct - Item# 320886 Business Delivery$31.64$94.923 Austin
+Cookie & Cracker, Variety, 45 ct - Item# 452082Business Delivery$9.40$28.20
+2Mountain Dew, 12 oz, 24 ct - Item# 942Business Delivery$9.50$19.00 2CA
+REDEMP VAL T EE - Item# -996900000Business Delivery$1.20 $2.401Bigelow Tea,
+Variety, 28 Bags, 6 ct - Item# 291444Business Delivery $19.40$19.403Nestle
+Crunch, 1.55 oz, 36 ct - Item# 13179 Business Delivery$25.75$77.253 Nonni's
+Biscotti, Almond Chocolate, 25 ct - Item# 971380Business Delivery$11.75
+$35.25 1Solo Heavy Plastic Knife, White, 500 ct - Item# 127279Business
+Delivery$12.49 $12.491Solo Heavy Plastic Spoon, White, 500 ct - Item#
+127489Business
+Delivery $12.49$12.491Solo Heavy Plastic Fork, White, 500 ct - Item#
+127509 Business
+Delivery$12.49$12.491 Nature's Own 9" Paper Plates, White, 1200 ct - Item#
+17521Business Delivery$22.34$22.34 1Dixie Ultra Paper Bowl, 12 oz, 175 ct -
+Item# 1115Business Delivery$10.23 $10.231Softsoap Hand Soap, Variety, 11.25
+oz, 4 ct - Item# 597964Business Delivery $8.92$8.921N'Joy Pure Cane Sugar,
+22 oz, 8 ct - Item# 48431 Business Delivery$10.22$10.223 Dixie Java 12 oz
+Paper Hot Cups, 200 ct - Item# 92004Business Delivery$12.49$37.47 1Scotch-B=
+rite
+Heavy Duty Scrub Sponge, 21 ct (726437) - Item# 566788Business Delivery
+$15.28 $15.281Royal 5" Red Stripe Sip Stirrer, Plastic, 1000 ct (S1525) -
+Item# 204842Business Delivery $2.34$2.341Kirkland Signature Fat Free Milk,
+2/1 gal - Item# 12 Business Delivery$4.93$4.931 Kirkland Signature 1% Low
+Fat Milk, 2/1 gal - Item# 5Business Delivery$5.87$5.87 1Kirkland Signature
+2% Reduced Fat Milk, 2/1 gal - Item# 1Business Delivery$5.87 $5.871Bounty
+2-Ply Paper Towel Rolls, 10-1/4"W x 11"L, White 12 ct (PGC88197) - Item#
+893886Business Delivery $23.99$23.994Seventh Generation 1-Ply 100% Recycled
+Paper Napkins, 11-1/2"W x 12-1/2"L, White, 250 ct (SEV13713) - Item#
+498953 Business
+Delivery$4.79$19.161 Maintex Ultra Concentrated Dish Soap Liquid, 160 oz -
+Item# 345329Business Delivery$10.23$10.23
+
+*Are you missing out on our LIMITED TIME OFFERS and HOT BUYS?*
+Sign up to receive Costco.com e-mails on the My Account
+<https://www.costco.com/Common/Login.aspx?cm_mmc=3DTransactional-_-OrderRec=
+eived-_-BotNav-_-MyAccount&topnav=3D&whse=3DBC&ReturnUrl=3Dhttps://www.cost=
+co.com/Common/Registration.aspx?type=3Dbc&whse=3DBC&lang=3Den-US>
+page.
+
+*CostcoOffice Online* - Save more than 20% on your office supplies! Start
+Saving TODAY!
+<http://www.costco.com/Service/FeaturePage.aspx?ProductNo=3D11534623>
+
+*Earn Cash Back on your next Costco.com order* - and virtually everywhere
+else.
+Learn about the TrueEarnings=C2=AE Card from Costco & American Express.
+<https://www262.americanexpress.com/business-card-application/LandingPages/=
+245/OPEN-29380/CCSG-35649>
+
+What's New
+<http://www.costco.com/Common/Category.aspx?whse=3DBC&Ne=3D4000000&eCat=3DB=
+C%7C1482&N=3D4000486&ViewAll=3D999&Nr=3DP_CatalogName:BC&cat=3D1482&Ns=3DP_=
+Price%7C1%7C%7CP_SignDesc1&lang=3Den-US&topnav=3D&cm_mmc=3DTransactional-_-=
+OrderReceived-_-BotNav-_-WhatsNew>
+at Costco.com.
+  Subtotal: $2,864.75  Shipping & Handling: $0.00  Tax: $70.28  Order
+Total: $2,935.03
+
+*Shop Confidently*
+
+*Membership:* We will refund your membership fee in full at any time if you
+are dissatisfied.
+
+*Merchandise: *We guarantee your satisfaction on every product we sell with
+a full refund. The following must be returned within 90 days of purchase
+for a refund: televisions, projectors, computers, cameras, camcorders,
+touch screen tablets, MP3 players and cellular phones.
+
+*How to Return:* Simply return your purchase at any one of our Costco
+warehouses worldwide for a refund (including shipping and handling). If you
+are unable to return your order at one of our warehouses, please contact:
+
+*Costco.com Customer Service*
+<https://costco.egain.net/system/web/custom/initialPage.html?lang=3Den-US&t=
+opnav=3D&whse=3DBC>
+or call *1-800-955-2292 <1-800-955-2292>*
+
+ *Business Delivery Customer Service*
+<https://costco.egain.net/system/web/custom/initialPage.html?lang=3Den-US&t=
+opnav=3D&whse=3DBC>
+or call *1-800-788-9968 <1-800-788-9968>*
+
+To expedite the processing of your return, please reference your order
+number.
+
+If you request an item be picked up for return, the item must be packaged
+and available for pick up in the same manner as it was delivered.
+If your order was delivered =E2=80=9Ccurb side,=E2=80=9D it will need to be=
+ available for
+curb side pick up.
+If the item arrived to you in a box, it will need to be in a box at the
+time of pick up.
+
+View
+<http://shop.costco.com/Customer-Service/Frequently-Asked-Questions/Returns=
+-Replacements-Refunds.aspx>
+additional returns information.
+
+Please keep this email for future reference, and thank you for shopping at
+*Costco.com*.
+
+
+
+--=20
+Brown Rhodes Farinholt
+Computer Science & Engineering
+University of California, San Diego
+(804) 814-9556
+brown.farinholt@gmail.com
+
+--047d7bfeac76cb15a7050fc8967c
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr">NVM<div><br><div class=3D"gmail_quote">---------- Forwarde=
+d message ----------<br>From: <b class=3D"gmail_sendername"></b> <span dir=
+=3D"ltr">&lt;<a href=3D"mailto:orderstatus@costco.com">orderstatus@costco.c=
+om</a>&gt;</span><br>Date: Wed, Feb 18, 2015 at 11:44 AM<br>Subject: Your C=
+ostco.com Order Was Received. 259834530<br>To: <a href=3D"mailto:brown.fari=
+nholt@gmail.com">brown.farinholt@gmail.com</a><br><br><br>
+<table border=3D"0" cellpadding=3D"0" cellspacing=3D"0" width=3D"650"><tbod=
+y><tr><td><table border=3D"0"><tbody><tr valign=3D"top" cellspacing=3D"0" c=
+ellpadding=3D"0"><td><a href=3D"http://www.costco.com/home.aspx?cm_mmc=3DTr=
+ansactional-_-OrderReceived-_-TopNav-_-Logo" target=3D"_blank"><img src=3D"=
+http://www.costco.com/Images/Common/UserControls/top_costco_logo.gif" borde=
+r=3D"0"></a>
+  </td></tr></tbody></table><table border=3D"0"><tbody><tr valign=3D"top" c=
+ellspacing=3D"0" cellpadding=3D"0"><td><table border=3D"0" width=3D"100%"> =
+<tbody><tr valign=3D"top" cellspacing=3D"0" cellpadding=3D"0"><td><table bo=
+rder=3D"0" width=3D"300px" height=3D"50px"><tbody><tr><td style=3D"font-siz=
+e:19pt"><b>Order Received</b></td></tr></tbody></table></td><td style=3D"wi=
+dth:150px"></td><td><table border=3D"0" cellspacing=3D"0" cellpadding=3D"0"=
+ width=3D"100%"><tbody><tr><td style=3D"padding:0px 0px 3px 0px;text-align:=
+left;font-size:14px;color:#1c6699;font-weight:bold;vertical-align:bottom">S=
+TEPS FOR YOUR ORDER:</td></tr><tr><td style=3D"padding:2px 0px 2px 0px;bord=
+er-top:solid 1px #969696;border-bottom:solid 1px #969696">1. <b>Order Recei=
+ved</b>=C2=A0=C2=A0=C2=A0=C2=A0<span style=3D"color:#969696">2. Sent to Ful=
+fillment=C2=A0=C2=A0=C2=A0=C2=A03. Shipped</span></td></tr></tbody></table>=
+</td></tr></tbody></table></td></tr></tbody></table><table border=3D"0">
+<tbody><tr valign=3D"top" cellspacing=3D"0" cellpadding=3D"0"><td><table bo=
+rder=3D"0" cellpadding=3D"2" cellspacing=3D"2" height=3D"90" width=3D"250">=
+<tbody><tr><td style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;back=
+ground-color:#cee7ff;color:Black;font-weight:bold;font-size:12px;width:100p=
+x">Order Number:</td><td style=3D"font-family:Arial,Verdana,Helvetica,sans-=
+serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12p=
+x">259834530</td></tr><tr><td style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#cee7ff;color:Black;font-weight:bold;font-size:=
+12px;width:100px">Membership Number:</td><td style=3D"font-family:Arial,Ver=
+dana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:=
+normal;font-size:12px">111840744815</td></tr><tr><td style=3D"font-family:A=
+rial,Verdana,Helvetica,sans-serif;background-color:#cee7ff;color:Black;font=
+-weight:bold;font-size:12px;width:100px">Date Placed:</td><td style=3D"font=
+-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:B=
+lack;font-weight:normal;font-size:12px">2/18/2015</td></tr></tbody></table>=
+</td><td>
+		=09
+		=09
+		=09
+		=09
+			<table border=3D"0" cellpadding=3D"2" cellspacing=3D"2" height=3D"90" wi=
+dth=3D"250">
+				<tbody><tr>
+					<td style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#cee7ff;color:Black;font-weight:bold;font-size:12px">
+					=09
+								Shipping Address
+						=09
+					</td>
+				</tr>
+				<tr>
+						<td style=3D"background-color:#f0f0f0">
+						<table border=3D"0" cellspacing=3D"0" cellpadding=3D"0" width=3D"100%=
+" height=3D"100%">
+							<tbody><tr style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;b=
+ackground-color:#f0f0f0;color:Black;font-weight:bold;font-size:12px">
+								<td>
+									Brown
+									Farinholt
+								</td>
+							</tr>
+						=09
+								<tr style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:bold;font-size:12px">
+									<td>
+										UCSD/CSE
+									</td>
+								</tr>
+						=09
+							<tr style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgrou=
+nd-color:#f0f0f0;color:Black;font-weight:bold;font-size:12px">
+								<td>
+									9500 GILMAN DR BLDG EBU 3B
+								</td>
+							</tr>
+						=09
+								<tr style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:bold;font-size:12px">
+									<td>
+										ROOM 3127
+									</td>
+								</tr>
+						=09
+						=09
+							<tr style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgrou=
+nd-color:#f0f0f0;color:Black;font-weight:bold;font-size:12px">
+								<td>SAN DIEGO, CA 92093</td>
+							</tr>
+						</tbody></table>
+					</td>
+				</tr>
+			</tbody></table>
+		=09
+		=09
+		     </td><td><table border=3D"0" cellpadding=3D"2" cellspacing=3D"2" hei=
+ght=3D"90" width=3D"250"><tbody><tr><td style=3D"font-family:Arial,Verdana,=
+Helvetica,sans-serif;background-color:#cee7ff;color:Black;font-weight:bold;=
+font-size:12px">Note:</td></tr><tr><td style=3D"background-color:#f1f1f1"><=
+b>Note:</b> This email was automatically generated from a mailbox that is n=
+ot monitored.  If you have any questions, please visit <a href=3D"https://c=
+ostco.egain.net/system/web/custom/initialPage.html?lang=3Den-US&amp;topnav=
+=3D&amp;whse=3DBC" target=3D"_blank">customer service</a>.</td></tr></tbody=
+></table></td></tr></tbody></table><table border=3D"0"><tbody><tr valign=3D=
+"top" cellspacing=3D"0" cellpadding=3D"0"><td>Dear Brown Farinholt,</td></t=
+r></tbody></table><table border=3D"0"><tbody><tr valign=3D"top" cellspacing=
+=3D"0" cellpadding=3D"0"><td>Thank you for ordering from <b>
+<a href=3D"http://www.costco.com/home.aspx?cm_mmc=3DTransactional-_-OrderRe=
+ceived-_-Main-_-Intro" target=3D"_blank">Costco.com</a></b>. We have receiv=
+ed the order and, after processing it, will send it to the fulfillment faci=
+lity. Please keep this email for your records.</td></tr></tbody></table><ta=
+ble border=3D"0"><tbody><tr valign=3D"top" cellspacing=3D"0" cellpadding=3D=
+"0"><td><table border=3D"0" cellpadding=3D"2" cellspacing=3D"2" width=3D"76=
+0"><tbody><tr><td colspan=3D"6" style=3D"font-family:Arial,Verdana,Helvetic=
+a,sans-serif;background-color:#6495ed;color:White;font-weight:bold;font-siz=
+e:12px">Your Order</td></tr><tr><th align=3D"center" style=3D"font-family:A=
+rial,Verdana,Helvetica,sans-serif;background-color:#cee7ff;color:Black;font=
+-weight:bold;font-size:12px" width=3D"30">Qty</th>
+<th align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#cee7ff;color:Black;font-weight:bold;font-size:12px">Des=
+cription</th><th align=3D"center" style=3D"font-family:Arial,Verdana,Helvet=
+ica,sans-serif;background-color:#cee7ff;color:Black;font-weight:bold;font-s=
+ize:12px" width=3D"120">Shipping Method</th><th align=3D"center" style=3D"f=
+ont-family:Arial,Verdana,Helvetica,sans-serif;background-color:#cee7ff;colo=
+r:Black;font-weight:bold;font-size:12px" width=3D"100">Price</th><th align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#cee7ff;color:Black;font-weight:bold;font-size:12px" width=3D"120=
+">Item Total</th></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Tim&#39;s Cascade, Variety, 1.5 oz, 30 ct - Item# 633582</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business D=
+elivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helveti=
+ca,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-=
+size:12px">$12.93</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+12.93</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Progress=
+o Soup, Variety Chicken, 19 oz, 8 ct - Item# 924434</td><td align=3D"center=
+" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:=
+#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</t=
+d>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+12.93</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$12.93</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">Oreo Sandwich Cookie, 30/6 ct - Item# 455213</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$11.75</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$23.50</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">T=
+rident Layers Sugar Free Gum, Strawberry and Ctirus, 14 Pieces, 10 ct - Ite=
+m# 669276</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helve=
+tica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;fon=
+t-size:12px">Business Delivery</td><td align=3D"center" style=3D"font-famil=
+y:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;f=
+ont-weight:normal;font-size:12px">$8.58</td><td align=3D"center" style=3D"f=
+ont-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;colo=
+r:Black;font-weight:normal;font-size:12px">$8.58</td></tr><tr height=3D"5">=
+<td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Knotts Premium Shortbread Cookies, Raspberry, 2 oz, 24 ct - Item# 25424=
+5</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,san=
+s-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:1=
+2px">Business Delivery</td><td align=3D"center" style=3D"font-family:Arial,=
+Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weig=
+ht:normal;font-size:12px">$8.76</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+17.52</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Sunkist,=
+ 36/12 oz - Item# 2488</td><td align=3D"center" style=3D"font-family:Arial,=
+Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weig=
+ht:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+11.40</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$11.40</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">CA REDEMP VAL T EE - Item# -996900000</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$1.80</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$1.80</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">V=
+8 100% Vegetable Juice, 5.5 oz, 48 ct - Item# 2036</td><td align=3D"center"=
+ style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#=
+f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+$22.34</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetic=
+a,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-s=
+ize:12px">$22.34</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">CA REDEMP VAL N EE - Item# -996800000</td><td align=3D"center" style=3D=
+"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;co=
+lor:Black;font-weight:normal;font-size:12px">Business Delivery</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$2.40</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+$2.40</td>
+</tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"center" s=
+tyle=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0=
+f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Fuji Apples, 5.5 l=
+bs - Item# 21405</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">Business Delivery</td><td align=3D"center" style=3D"fon=
+t-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:=
+Black;font-weight:normal;font-size:12px">$6.81</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+6.81</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Snapple I=
+ced Tea, Variety, 20 oz, 24 ct - Item# 207679</td><td align=3D"center" styl=
+e=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f=
+0;color:Black;font-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+20.58</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$20.58</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">CA REDEMP VAL N EE - Item# -996900000</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$1.20</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">T=
+ropicana 100% Orange Juice, 10 oz, 24 ct - Item# 12529</td><td align=3D"cen=
+ter" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-col=
+or:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">$15.05</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helv=
+etica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;fo=
+nt-size:12px">$15.05</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><=
+tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">CA REDEMP VAL N EE - Item# -996800000</td><td align=3D"center" style=3D=
+"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;co=
+lor:Black;font-weight:normal;font-size:12px">Business Delivery</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.20</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+$1.20</td>
+</tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"center" s=
+tyle=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0=
+f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Act II Microwave P=
+opcorn, Butter Lovers, 2.75 oz, 36 ct - Item# 7611</td><td align=3D"center"=
+ style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#=
+f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+$11.28</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+11.28</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Lipton B=
+risk Iced Tea, Lemon, 12 oz, 24 ct - Item# 407</td><td align=3D"center" sty=
+le=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0=
+f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+9.50</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$19.00</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td=
+ align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;b=
+ackground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</t=
+d><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-se=
+rif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px"=
+>CA REDEMP VAL N EE - Item# -996900000</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$1.20</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$2.40</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">L=
+una Bar, Chocolate Dipped Coconut, 1.69 oz, 15 ct - Item# 634081</td><td al=
+ign=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;back=
+ground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Busines=
+s Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helv=
+etica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;fo=
+nt-size:12px">$17.28</td><td align=3D"center" style=3D"font-family:Arial,Ve=
+rdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight=
+:normal;font-size:12px">$17.28</td></tr><tr height=3D"5"><td height=3D"5"><=
+/td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Instant Savings
+									<br>
+								Propel Zero, Variety, 16.9 oz, 24 ct - Item# 52430</td><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Deli=
+very</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$13.87
+								<br>
+								Before $1 OFF</td><td align=3D"center" style=3D"font-family:Arial,V=
+erdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weigh=
+t:normal;font-size:12px">$13.87</td></tr><tr height=3D"5"><td height=3D"5">=
+</td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,Helve=
+tica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;fon=
+t-size:12px">1</td><td align=3D"center" style=3D"font-family:Arial,Verdana,=
+Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:norma=
+l;font-size:12px">CA REDEMP VAL N EE - Item# -996900000</td><td align=3D"ce=
+nter" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-co=
+lor:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Deliver=
+y</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+1.20</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Pop Tarts, Frosted Brown Sugar Cinnamon, 3.52 oz, 36 ct - Item# 501692</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$8.11</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$8.11</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">D=
+entyne Ice Sugar Free Gum, Spearmint, 16 Pieces, 12 ct - Item# 776660</td><=
+td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif=
+;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Bu=
+siness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana=
+,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:norm=
+al;font-size:12px">$8.58</td><td align=3D"center" style=3D"font-family:Aria=
+l,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-we=
+ight:normal;font-size:12px">$8.58</td></tr><tr height=3D"5"><td height=3D"5=
+"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Coca-Cola of Mexico, 12 oz, 24 ct - Item# 179571</td><td align=3D"cente=
+r" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color=
+:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">$24.38</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+24.38</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEM=
+P VAL T EE - Item# -996900000</td><td align=3D"center" style=3D"font-family=
+:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;fo=
+nt-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+1.20</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Nissin Cup Noodles Flavored Soup, Chicken, 2.5 oz, 24 ct - Item# 980978</td=
+>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$8.11</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$8.11</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">N=
+ature Valley Trail Mix Bar, Fruit &amp; Nut, 1.2 oz, 48 ct - Item# 1951</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Business Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verda=
+na,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:no=
+rmal;font-size:12px">$15.05</td><td align=3D"center" style=3D"font-family:A=
+rial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font=
+-weight:normal;font-size:12px">$15.05</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Nature Valley Sweet &#39;N Salty Nut Bar, Peanut, 1.2 oz, 48 ct - Item#=
+ 1952</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">Business Delivery</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$15.05</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+15.05</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Tropican=
+a 100% Ruby Red Grapefruit Juice, 10 oz, 24 ct - Item# 12530</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business D=
+elivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+15.87</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$15.87</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">CA REDEMP VAL N EE - Item# -996800000</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$1.20</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">A=
+rizona Iced Tea, Lemon, 23 oz, 24 ct - Item# 804916</td><td align=3D"center=
+" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:=
+#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</t=
+d><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-se=
+rif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px"=
+>$17.40</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helveti=
+ca,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-=
+size:12px">$17.40</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">CA REDEMP VAL N EE - Item# -996900000</td><td align=3D"center" style=3D=
+"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;co=
+lor:Black;font-weight:normal;font-size:12px">Business Delivery</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.20</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+$1.20</td>
+</tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"center" s=
+tyle=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0=
+f0f0;color:Black;font-weight:normal;font-size:12px">2</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Clif Builder&#39;s=
+ Bar, Chocolate Mint, 2.4 oz, 12 ct - Item# 501905</td><td align=3D"center"=
+ style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#=
+f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+$18.58</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+37.16</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Clif Bui=
+lder&#39;s Protein Bar, Variety, 2.4 oz, 18 ct - Item# 809750</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business D=
+elivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+22.34</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$44.68</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">Trident White Sugar Free Gum, Peppermint, 16 Pieces, 12 ct - Item# 776673=
+</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$8.58</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$8.58</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">N=
+issin Hot &amp; Spicy Noodle Bowl, Chicken, 3.32 oz, 12 ct - Item# 374959</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">Business Delivery</td><td align=3D"center" style=3D"font-family:Arial,Ver=
+dana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:=
+normal;font-size:12px">$9.40</td><td align=3D"center" style=3D"font-family:=
+Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;fon=
+t-weight:normal;font-size:12px">$9.40</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Red Bull Sugar Free Energy Drink, 12 oz, 24 ct - Item# 184570</td><td a=
+lign=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;bac=
+kground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Busine=
+ss Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Hel=
+vetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;f=
+ont-size:12px">$58.81</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+58.81</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEM=
+P VAL T EE - Item# -996900000</td><td align=3D"center" style=3D"font-family=
+:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;fo=
+nt-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+1.20</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Kellogg&#39;s Fruity Snacks, Variety, 2.5 oz, 36 ct - Item# 901400</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$12.81</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$12.81</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">F=
+amous Amos Cookies, Chocolate Chip, 2 oz, 42 ct - Item# 171859</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business =
+Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvet=
+ica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font=
+-size:12px">$15.64</td><td align=3D"center" style=3D"font-family:Arial,Verd=
+ana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:n=
+ormal;font-size:12px">$15.64</td></tr><tr height=3D"5"><td height=3D"5"></t=
+d></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">3=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Diet Pepsi, 12 oz, 24 ct - Item# 83</td><td align=3D"center" style=3D"f=
+ont-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;colo=
+r:Black;font-weight:normal;font-size:12px">Business Delivery</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$9.50</td>=
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+28.50</td></tr>
+<tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"center" style=
+=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0=
+;color:Black;font-weight:normal;font-size:12px">3</td><td align=3D"center" =
+style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f=
+0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEMP VAL T EE - I=
+tem# -996900000</td><td align=3D"center" style=3D"font-family:Arial,Verdana=
+,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:norm=
+al;font-size:12px">Business Delivery</td><td align=3D"center" style=3D"font=
+-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:B=
+lack;font-weight:normal;font-size:12px">$1.20</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+3.60</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Lays Oven=
+ Baked Chips, Variety, 30 ct - Item# 5497</td><td align=3D"center" style=3D=
+"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;co=
+lor:Black;font-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+13.75</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$13.75</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">Diet Coke, Caffeine Free, 12 oz, 32 ct - Item# 86</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$12.55</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$25.10</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">2</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">C=
+A REDEMP VAL T EE - Item# -996900000</td><td align=3D"center" style=3D"font=
+-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:B=
+lack;font-weight:normal;font-size:12px">Business Delivery</td><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.60</td><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$3.20=
+</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Darigold 2% Reduced Fat Milk, 12/16 oz - Item# 5763</td><td align=3D"ce=
+nter" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-co=
+lor:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Deliver=
+y</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,san=
+s-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:1=
+2px">$15.28</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+15.28</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">5</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Coca-Col=
+a, 12 oz, 32 ct - Item# 84</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+12.55</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$62.75</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">5</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">CA REDEMP VAL T EE - Item# -996900000</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$1.60</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$8.00</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">5</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">D=
+iet Coke, 12 oz, 32 ct - Item# 85</td><td align=3D"center" style=3D"font-fa=
+mily:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Blac=
+k;font-weight:normal;font-size:12px">Business Delivery</td><td align=3D"cen=
+ter" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-col=
+or:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$12.55</td><td al=
+ign=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;back=
+ground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$62.75<=
+/td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">5=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">CA REDEMP VAL T EE - Item# -996900000</td><td align=3D"center" style=3D=
+"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;co=
+lor:Black;font-weight:normal;font-size:12px">Business Delivery</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.60</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+$8.00</td>
+</tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"center" s=
+tyle=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0=
+f0f0;color:Black;font-weight:normal;font-size:12px">2</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Starbucks Frappucc=
+ino Coffee Drink, Mocha, 9.5 oz, 12 ct - Item# 158936</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery<=
+/td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-=
+serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12p=
+x">$16.00</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+32.00</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEM=
+P VAL N EE - Item# -996900000</td><td align=3D"center" style=3D"font-family=
+:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;fo=
+nt-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+0.60</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Sour Patch Kids, 24 ct - Item# 610626</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$17.05</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$17.05</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">P=
+ringles, Sour Cream &amp; Onion, 1.41 oz, 12 ct - Item# 720795</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business =
+Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvet=
+ica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font=
+-size:12px">$6.81</td><td align=3D"center" style=3D"font-family:Arial,Verda=
+na,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:no=
+rmal;font-size:12px">$6.81</td></tr><tr height=3D"5"><td height=3D"5"></td>=
+</tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Diet Snapple Iced Tea, Variety, 20 oz, 24 ct - Item# 207719</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business=
+ Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helve=
+tica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;fon=
+t-size:12px">$19.99</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+19.99</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEM=
+P VAL N EE - Item# -996900000</td><td align=3D"center" style=3D"font-family=
+:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;fo=
+nt-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+1.20</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Red Bull Sugar Free Energy Drink, 8.4 oz, 24 ct - Item# 711509</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$41.75</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$41.75</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">C=
+A REDEMP VAL T EE - Item# -996900000</td><td align=3D"center" style=3D"font=
+-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:B=
+lack;font-weight:normal;font-size:12px">Business Delivery</td><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.20</td><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.20=
+</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Royal Gala Apples, 5.5 lbs - Item# 49118</td><td align=3D"center" style=
+=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0=
+;color:Black;font-weight:normal;font-size:12px">Business Delivery</td><td a=
+lign=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;bac=
+kground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$6.24<=
+/td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-=
+serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12p=
+x">$12.48</td>
+</tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"center" s=
+tyle=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0=
+f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Red Baron Variety =
+Deep Dish Pizza, 12 ct - Item# 236170</td><td align=3D"center" style=3D"fon=
+t-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:=
+Black;font-weight:normal;font-size:12px">Business Delivery</td><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$12.34</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+12.34</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Kirkland=
+ Signature Premium Water, 35/16.9 oz - Item# 10134</td><td align=3D"center"=
+ style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#=
+f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</td=
+>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+3.65</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$3.65</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+CA REDEMP VAL N EE - Item# -996900000</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$1.75</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$1.75</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">3</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">J=
+ack Link&#39;s Beef Jerky, Variety, 1.25 oz, 9 ct - Item# 536593</td><td al=
+ign=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;back=
+ground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Busines=
+s Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helv=
+etica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;fo=
+nt-size:12px">$13.87</td><td align=3D"center" style=3D"font-family:Arial,Ve=
+rdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight=
+:normal;font-size:12px">$41.61</td></tr><tr height=3D"5"><td height=3D"5"><=
+/td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">M&amp;M&#39;s Peanut, 1.74 oz, 48 ct - Item# 1232</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery<=
+/td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-=
+serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12p=
+x">$34.11</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+34.11</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Clif Bar=
+, Crunchy Peanut Butter, 2.4 oz, 12 ct - Item# 417230</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery<=
+/td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+13.87</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$27.74</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">Dentyne Ice Sugar Free Gum, Peppermint, 16 Pieces, 12 ct - Item# 776654</=
+td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$8.58</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$8.58</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">2</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+ananas, 3 lbs - Item# 30669</td><td align=3D"center" style=3D"font-family:A=
+rial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font=
+-weight:normal;font-size:12px">Business Delivery</td><td align=3D"center" s=
+tyle=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0=
+f0f0;color:Black;font-weight:normal;font-size:12px">$1.58</td><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$3.16</td></tr=
+><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Lipton Original Tea, 312 Bags - Item# 251767</td><td align=3D"center" s=
+tyle=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0=
+f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</td><=
+td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif=
+;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1=
+1.16</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+11.16</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Knotts P=
+remium Shortbread Cookies, Strawberry, 2 oz, 24 ct - Item# 717747</td><td a=
+lign=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;bac=
+kground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Busine=
+ss Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+8.76</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$17.52</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td=
+ align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;b=
+ackground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</t=
+d><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-se=
+rif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px"=
+>Diet Dr Pepper, 32/12 oz - Item# 900827</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$12.55</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$25.10</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">2</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">C=
+A REDEMP VAL T EE - Item# -996900000</td><td align=3D"center" style=3D"font=
+-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:B=
+lack;font-weight:normal;font-size:12px">Business Delivery</td><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.60</td><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$3.20=
+</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">3=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Dr Pepper, 32/12 oz - Item# 900826</td><td align=3D"center" style=3D"fo=
+nt-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color=
+:Black;font-weight:normal;font-size:12px">Business Delivery</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$12.55</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+$37.65</td></tr>
+<tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"center" style=
+=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0=
+;color:Black;font-weight:normal;font-size:12px">3</td><td align=3D"center" =
+style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f=
+0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEMP VAL T EE - I=
+tem# -996900000</td><td align=3D"center" style=3D"font-family:Arial,Verdana=
+,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:norm=
+al;font-size:12px">Business Delivery</td><td align=3D"center" style=3D"font=
+-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:B=
+lack;font-weight:normal;font-size:12px">$1.60</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+4.80</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">4</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Keebler V=
+ienna Fingers Cookies, Creme Filled, 2 oz, 12 ct - Item# 77502</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business =
+Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+7.05</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$28.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td=
+ align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;b=
+ackground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</t=
+d><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-se=
+rif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px"=
+>Kirkland Signature Trail Mix, 2.5 oz, 18 ct - Item# 288976</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$14.41</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$14.41</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">2</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">C=
+lif Bar, Blueberry Crisp, 2.4 oz, 12 ct - Item# 466681</td><td align=3D"cen=
+ter" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-col=
+or:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">$13.87</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helv=
+etica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;fo=
+nt-size:12px">$27.74</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><=
+tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Clif Bar, Chocolate Chip, 2.4 oz, 12 ct - Item# 473783</td><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Deli=
+very</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$13.87</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+27.74</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Clif Bar=
+, Chocolate Brownie, 2.4 oz, 12 ct - Item# 285218</td><td align=3D"center" =
+style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f=
+0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+13.87</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$27.74</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">Goldfish Snack Crackers, Cheddar, 1.5 oz, 24 ct - Item# 393619</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$9.40</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$9.40</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">A=
+rizona Iced Tea, Raspberry, 23 oz, 24 ct - Item# 804919</td><td align=3D"ce=
+nter" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-co=
+lor:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Deliver=
+y</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,san=
+s-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:1=
+2px">$17.40</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Hel=
+vetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;f=
+ont-size:12px">$17.40</td></tr><tr height=3D"5"><td height=3D"5"></td></tr>=
+<tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">CA REDEMP VAL N EE - Item# -996900000</td><td align=3D"center" style=3D=
+"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;co=
+lor:Black;font-weight:normal;font-size:12px">Business Delivery</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.20</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+$1.20</td>
+</tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"center" s=
+tyle=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0=
+f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Red Bull Energy Dr=
+ink, 12 oz, 24 ct - Item# 184554</td><td align=3D"center" style=3D"font-fam=
+ily:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black=
+;font-weight:normal;font-size:12px">Business Delivery</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$58.81</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+58.81</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEM=
+P VAL T EE - Item# -996900000</td><td align=3D"center" style=3D"font-family=
+:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;fo=
+nt-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+1.20</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Kit Kat, 1.5 oz, 36 ct - Item# 24600</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$25.28</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$50.56</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">C=
+ampbell&#39;s Soup, Chicken Noodle, 10.75 oz, 12 ct - Item# 1226</td><td al=
+ign=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;back=
+ground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Busines=
+s Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helv=
+etica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;fo=
+nt-size:12px">$9.40</td><td align=3D"center" style=3D"font-family:Arial,Ver=
+dana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:=
+normal;font-size:12px">$9.40</td></tr><tr height=3D"5"><td height=3D"5"></t=
+d></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Snickers, 1.86 oz, 48 ct - Item# 707667</td><td align=3D"center" style=
+=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0=
+;color:Black;font-weight:normal;font-size:12px">Business Delivery</td><td a=
+lign=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;bac=
+kground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$34.11=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">$68.22</td>
+</tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"center" s=
+tyle=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0=
+f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Red Bull Energy Dr=
+ink, 8.4 oz, 24 ct - Item# 242668</td><td align=3D"center" style=3D"font-fa=
+mily:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Blac=
+k;font-weight:normal;font-size:12px">Business Delivery</td><td align=3D"cen=
+ter" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-col=
+or:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$41.75</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+41.75</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEM=
+P VAL T EE - Item# -996900000</td><td align=3D"center" style=3D"font-family=
+:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;fo=
+nt-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+1.20</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">3</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Reese&#39;s Peanut Butter Cups, 1.5 oz, 36 ct - Item# 44000</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$25.28</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$75.84</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">2</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">H=
+ansen&#39;s Natural Soda, Variety, 12 oz, 24 ct - Item# 75510</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business D=
+elivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helveti=
+ca,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-=
+size:12px">$9.38</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$18.76</td></tr><tr height=3D"5"><td height=3D"5"></td>=
+</tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">CA REDEMP VAL T EE - Item# -996900000</td><td align=3D"center" style=3D=
+"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;co=
+lor:Black;font-weight:normal;font-size:12px">Business Delivery</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.20</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+$2.40</td>
+</tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"center" s=
+tyle=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0=
+f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Gatorade Perform, =
+Variety, 20 oz, 24 ct - Item# 214226</td><td align=3D"center" style=3D"font=
+-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:B=
+lack;font-weight:normal;font-size:12px">Business Delivery</td><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$18.22</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+18.22</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEM=
+P VAL N EE - Item# -996900000</td><td align=3D"center" style=3D"font-family=
+:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;fo=
+nt-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+1.20</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Funyuns Onion Rings Chips, 1.25 oz, 64 - Item# 320871</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$31.64</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$31.64</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">P=
+ayDay, 1.85 oz, 24 ct - Item# 11343</td><td align=3D"center" style=3D"font-=
+family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Bl=
+ack;font-weight:normal;font-size:12px">Business Delivery</td><td align=3D"c=
+enter" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-c=
+olor:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$17.64</td><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$17.6=
+4</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Faygo Classic Root Beer, 12 oz, 24 ct - Item# 506211</td><td align=3D"c=
+enter" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-c=
+olor:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delive=
+ry</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sa=
+ns-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:=
+12px">$7.30</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+7.30</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEMP=
+ VAL T EE - Item# -996900000</td><td align=3D"center" style=3D"font-family:=
+Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;fon=
+t-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+1.20</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Clif Bar, Oatmeal Raisin Walnut, 2.4 oz, 12 ct - Item# 270382</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$13.87</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$13.87</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">I=
+nstant Savings
+									<br>
+								Pringles, Sour Cream &amp; Onion, 5.96 oz, 14 ct - Item# 721074</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Business Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verda=
+na,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:no=
+rmal;font-size:12px">$23.52
+								<br>
+								Before $4 OFF</td><td align=3D"center" style=3D"font-family:Arial,V=
+erdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weigh=
+t:normal;font-size:12px">$23.52</td></tr><tr height=3D"5"><td height=3D"5">=
+</td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,Helve=
+tica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;fon=
+t-size:12px">3</td><td align=3D"center" style=3D"font-family:Arial,Verdana,=
+Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:norma=
+l;font-size:12px">Twix, 1.79 oz, 36 ct - Item# 482832</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery<=
+/td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+25.28</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$75.84</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">Sun Chips Multigrain, Variety, 1.5 oz, 30 ct - Item# 571548</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$13.40</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$13.40</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">L=
+una Bar, LemonZest, 1.69 oz, 15 ct - Item# 333422</td><td align=3D"center" =
+style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f=
+0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</td>=
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+17.28</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$17.28</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Pop Tarts, Frosted Strawberry, 3.52 oz, 36 ct - Item# 355773</td><td al=
+ign=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;back=
+ground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Busines=
+s Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helv=
+etica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;fo=
+nt-size:12px">$8.11</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+8.11</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Clif Bar,=
+ White Chocolate Macadamia Nut, 2.4 oz, 12 ct - Item# 473886</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business D=
+elivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+13.87</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$13.87</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">Milky Way Simply Caramel, 1.91 oz, 24 ct - Item# 312094</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$17.16</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$17.16</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">L=
+ipton Green Tea, 100 Bags - Item# 560649</td><td align=3D"center" style=3D"=
+font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;col=
+or:Black;font-weight:normal;font-size:12px">Business Delivery</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$6.11</td>=
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+6.11</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Alpine Original Spiced Apple Cider, 0.74 oz, 60 ct - Item# 347649</td><=
+td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif=
+;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Bu=
+siness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana=
+,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:norm=
+al;font-size:12px">$8.22</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+8.22</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Milky Way=
+, Midnight Dark, 1.76 oz, 24 ct - Item# 1104</td><td align=3D"center" style=
+=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0=
+;color:Black;font-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+17.16</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$34.32</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">Arizona Peach Tea, 24/15.5 oz - Item# 326523</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$11.75</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$11.75</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">C=
+A REDEMP VAL N EE - Item# -996900000</td><td align=3D"center" style=3D"font=
+-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:B=
+lack;font-weight:normal;font-size:12px">Business Delivery</td><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.20</td><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.20=
+</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Grandma&#39;s Homestyle Cookies, Chocolate Chip, 2.5 oz, 33 ct - Item# =
+333622</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetic=
+a,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-s=
+ize:12px">Business Delivery</td><td align=3D"center" style=3D"font-family:A=
+rial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font=
+-weight:normal;font-size:12px">$10.93</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+21.86</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Dentyne =
+Ice Sugar Free Gum, Artic Chill, 16 Pieces, 12 ct - Item# 776658</td><td al=
+ign=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;back=
+ground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Busines=
+s Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+8.58</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$8.58</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Martinelli&#39;s Sparkling Apple Juice, 10 oz, 24 ct - Item# 90105</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$19.75</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$19.75</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">C=
+A REDEMP VAL N EE - Item# -996800000</td><td align=3D"center" style=3D"font=
+-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:B=
+lack;font-weight:normal;font-size:12px">Business Delivery</td><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.20</td><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.20=
+</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Martinelli&#39;s 100% Apple Juice, 10 oz, 24 ct - Item# 90102</td><td a=
+lign=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;bac=
+kground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Busine=
+ss Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Hel=
+vetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;f=
+ont-size:12px">$19.75</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+19.75</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEM=
+P VAL N EE - Item# -996800000</td><td align=3D"center" style=3D"font-family=
+:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;fo=
+nt-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+1.20</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Bigelow Herb Tea, Variety, 28 Bags, 6 ct - Item# 291446</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$19.40</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$19.40</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">3</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">J=
+ack Link&#39;s Beef Jerky, Teriyaki, 3.25 oz, 3 ct - Item# 5646</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business=
+ Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helve=
+tica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;fon=
+t-size:12px">$15.28</td><td align=3D"center" style=3D"font-family:Arial,Ver=
+dana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:=
+normal;font-size:12px">$45.84</td></tr><tr height=3D"5"><td height=3D"5"></=
+td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Nature Valley Crunchy Bar, Oat &#39;N Honey, 1.5 oz, 49 ct - Item# 8461=
+56</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sa=
+ns-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:=
+12px">Business Delivery</td><td align=3D"center" style=3D"font-family:Arial=
+,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-wei=
+ght:normal;font-size:12px">$15.05</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+15.05</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">3</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Pepsi, 1=
+2 oz, 24 ct - Item# 81</td><td align=3D"center" style=3D"font-family:Arial,=
+Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weig=
+ht:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+9.50</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$28.50</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td=
+ align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;b=
+ackground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">3</t=
+d><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-se=
+rif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px"=
+>CA REDEMP VAL T EE - Item# -996900000</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$1.20</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$3.60</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">S=
+tarbucks Frappuccino Coffee Drink, Caramel, 9.5 oz, 12 ct - Item# 363478</t=
+d><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-se=
+rif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px"=
+>Business Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verd=
+ana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:n=
+ormal;font-size:12px">$16.46</td><td align=3D"center" style=3D"font-family:=
+Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;fon=
+t-weight:normal;font-size:12px">$16.46</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">CA REDEMP VAL N EE - Item# -996900000</td><td align=3D"center" style=3D=
+"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;co=
+lor:Black;font-weight:normal;font-size:12px">Business Delivery</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$0.60</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+$0.60</td>
+</tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"center" s=
+tyle=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0=
+f0f0;color:Black;font-weight:normal;font-size:12px">2</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Sprite, 12 oz, 32 =
+ct - Item# 87</td><td align=3D"center" style=3D"font-family:Arial,Verdana,H=
+elvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal=
+;font-size:12px">Business Delivery</td><td align=3D"center" style=3D"font-f=
+amily:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Bla=
+ck;font-weight:normal;font-size:12px">$12.55</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+25.10</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEM=
+P VAL T EE - Item# -996900000</td><td align=3D"center" style=3D"font-family=
+:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;fo=
+nt-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+1.60</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$3.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Hot Pockets, Pepperoni Pizza, 4.5 oz, 17 ct - Item# 959901</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$14.11</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$14.11</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">4</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">K=
+eebler Sugar Wafers, Vanilla, 2.75 oz, 12 ct - Item# 356100</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business D=
+elivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helveti=
+ca,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-=
+size:12px">$7.05</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$28.20</td></tr><tr height=3D"5"><td height=3D"5"></td>=
+</tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Snapple Juice, Variety, 20 oz, 24 ct - Item# 207599</td><td align=3D"ce=
+nter" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-co=
+lor:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Deliver=
+y</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,san=
+s-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:1=
+2px">$20.58</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+20.58</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEM=
+P VAL N EE - Item# -996900000</td><td align=3D"center" style=3D"font-family=
+:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;fo=
+nt-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+1.20</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Zone Perfect Nutrition Bar, Variety, 1.76 oz, 12 ct - Item# 20358</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$19.99</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$39.98</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">3</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">C=
+oca-Cola Zero, 12 oz, 32 ct - Item# 1752</td><td align=3D"center" style=3D"=
+font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;col=
+or:Black;font-weight:normal;font-size:12px">Business Delivery</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$12.55</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+$37.65</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">3=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">CA REDEMP VAL T EE - Item# -996900000</td><td align=3D"center" style=3D=
+"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;co=
+lor:Black;font-weight:normal;font-size:12px">Business Delivery</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$1.60</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+$4.80</td>
+</tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"center" s=
+tyle=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0=
+f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Nature Valley Chew=
+y Granola Bar, Strawberry Yogurt, 1.2 oz, 16 ct - Item# 4310</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business D=
+elivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helveti=
+ca,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-=
+size:12px">$7.64</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+7.64</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Arizona G=
+reen Tea, Ginseng and Honey, 23 oz, 24 ct - Item# 804922</td><td align=3D"c=
+enter" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-c=
+olor:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delive=
+ry</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+17.40</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$17.40</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">CA REDEMP VAL N EE - Item# -996900000</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$1.20</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$1.20</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">N=
+utri-Grain Cereal Bars, Variety, 1.3 oz, 48 ct - Item# 698223</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business D=
+elivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helveti=
+ca,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-=
+size:12px">$14.69</td><td align=3D"center" style=3D"font-family:Arial,Verda=
+na,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:no=
+rmal;font-size:12px">$14.69</td></tr><tr height=3D"5"><td height=3D"5"></td=
+></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Pringles, The Original, 1.31 oz, 12 ct - Item# 720590</td><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Deliv=
+ery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,s=
+ans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size=
+:12px">$6.81</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+6.81</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Fig Newto=
+ns Cookies, 2 oz, 24 ct - Item# 767083</td><td align=3D"center" style=3D"fo=
+nt-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color=
+:Black;font-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+10.58</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$21.16</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">3</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">Ruffles Chips, Cheddar &amp; Sour Cream, 1.5 oz, 64 ct - Item# 320886</td=
+>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$31.64</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$94.92</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">3</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">A=
+ustin Cookie &amp; Cracker, Variety, 45 ct - Item# 452082</td><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Deliv=
+ery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,s=
+ans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size=
+:12px">$9.40</td><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">$28.20</td></tr><tr height=3D"5"><td height=3D"5"></td></tr=
+><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">2=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Mountain Dew, 12 oz, 24 ct - Item# 942</td><td align=3D"center" style=
+=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0=
+;color:Black;font-weight:normal;font-size:12px">Business Delivery</td><td a=
+lign=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;bac=
+kground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$9.50<=
+/td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-=
+serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12p=
+x">$19.00</td>
+</tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"center" s=
+tyle=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0=
+f0f0;color:Black;font-weight:normal;font-size:12px">2</td><td align=3D"cent=
+er" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-colo=
+r:#f0f0f0;color:Black;font-weight:normal;font-size:12px">CA REDEMP VAL T EE=
+ - Item# -996900000</td><td align=3D"center" style=3D"font-family:Arial,Ver=
+dana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:=
+normal;font-size:12px">Business Delivery</td><td align=3D"center" style=3D"=
+font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;col=
+or:Black;font-weight:normal;font-size:12px">$1.20</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+2.40</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Bigelow T=
+ea, Variety, 28 Bags, 6 ct - Item# 291444</td><td align=3D"center" style=3D=
+"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;co=
+lor:Black;font-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+19.40</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$19.40</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">3</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">Nestle Crunch, 1.55 oz, 36 ct - Item# 13179</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$25.75</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$77.25</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">3</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">N=
+onni&#39;s Biscotti, Almond Chocolate, 25 ct - Item# 971380</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business D=
+elivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helveti=
+ca,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-=
+size:12px">$11.75</td><td align=3D"center" style=3D"font-family:Arial,Verda=
+na,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:no=
+rmal;font-size:12px">$35.25</td></tr><tr height=3D"5"><td height=3D"5"></td=
+></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Solo Heavy Plastic Knife, White, 500 ct - Item# 127279</td><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Deli=
+very</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$12.49</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+12.49</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Solo Hea=
+vy Plastic Spoon, White, 500 ct - Item# 127489</td><td align=3D"center" sty=
+le=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#f0f0=
+f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+12.49</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$12.49</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">Solo Heavy Plastic Fork, White, 500 ct - Item# 127509</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$12.49</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$12.49</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">N=
+ature&#39;s Own 9&quot; Paper Plates, White, 1200 ct - Item# 17521</td><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Busin=
+ess Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">$22.34</td><td align=3D"center" style=3D"font-family:Arial,=
+Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weig=
+ht:normal;font-size:12px">$22.34</td></tr><tr height=3D"5"><td height=3D"5"=
+></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Dixie Ultra Paper Bowl, 12 oz, 175 ct - Item# 1115</td><td align=3D"cen=
+ter" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-col=
+or:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">$10.23</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+10.23</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Softsoap=
+ Hand Soap, Variety, 11.25 oz, 4 ct - Item# 597964</td><td align=3D"center"=
+ style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color:#=
+f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</td=
+>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+8.92</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$8.92</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+N&#39;Joy Pure Cane Sugar, 22 oz, 8 ct - Item# 48431</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$10.22</td><td align=3D"center" style=3D"font-family:Ar=
+ial,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-=
+weight:normal;font-size:12px">$10.22</td></tr><tr height=3D"5"><td height=
+=3D"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">3</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">D=
+ixie Java 12 oz Paper Hot Cups, 200 ct - Item# 92004</td><td align=3D"cente=
+r" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color=
+:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">$12.49</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvet=
+ica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font=
+-size:12px">$37.47</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr=
+>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Scotch-Brite Heavy Duty Scrub Sponge, 21 ct (726437) - Item# 566788</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Business Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verda=
+na,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:no=
+rmal;font-size:12px">$15.28</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+15.28</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D=
+"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td ali=
+gn=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backg=
+round-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Royal 5&=
+quot; Red Stripe Sip Stirrer, Plastic, 1000 ct (S1525) - Item# 204842</td><=
+td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif=
+;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Bu=
+siness Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+2.34</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,=
+sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-siz=
+e:12px">$2.34</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td =
+align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;ba=
+ckground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td=
+><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-ser=
+if;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">=
+Kirkland Signature Fat Free Milk, 2/1 gal - Item# 12</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$4.93</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$4.93</td></tr><tr height=3D"5"><td height=3D"=
+5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">K=
+irkland Signature 1% Low Fat Milk, 2/1 gal - Item# 5</td><td align=3D"cente=
+r" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-color=
+:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business Delivery</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">$5.87</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helveti=
+ca,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-=
+size:12px">$5.87</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1=
+</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans=
+-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12=
+px">Kirkland Signature 2% Reduced Fat Milk, 2/1 gal - Item# 1</td><td align=
+=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgro=
+und-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Business D=
+elivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helveti=
+ca,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-=
+size:12px">$5.87</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+5.87</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><td align=3D"=
+center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background-=
+color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">1</td><td alig=
+n=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;backgr=
+ound-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Bounty 2-=
+Ply Paper Towel Rolls, 10-1/4&quot;W x 11&quot;L, White 12 ct (PGC88197) - =
+Item# 893886</td><td align=3D"center" style=3D"font-family:Arial,Verdana,He=
+lvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;=
+font-size:12px">Business Delivery</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">$=
+23.99</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica=
+,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;font-si=
+ze:12px">$23.99</td></tr><tr height=3D"5"><td height=3D"5"></td></tr><tr><t=
+d align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;=
+background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">4</=
+td><td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-s=
+erif;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px=
+">Seventh Generation 1-Ply 100% Recycled Paper Napkins, 11-1/2&quot;W x 12-=
+1/2&quot;L, White, 250 ct (SEV13713) - Item# 498953</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">B=
+usiness Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdan=
+a,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:nor=
+mal;font-size:12px">$4.79</td><td align=3D"center" style=3D"font-family:Ari=
+al,Verdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-w=
+eight:normal;font-size:12px">$19.16</td></tr><tr height=3D"5"><td height=3D=
+"5"></td></tr><tr><td align=3D"center" style=3D"font-family:Arial,Verdana,H=
+elvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal=
+;font-size:12px">1</td>
+<td align=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-seri=
+f;background-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">M=
+aintex Ultra Concentrated Dish Soap Liquid, 160 oz - Item# 345329</td><td a=
+lign=3D"center" style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;bac=
+kground-color:#f0f0f0;color:Black;font-weight:normal;font-size:12px">Busine=
+ss Delivery</td><td align=3D"center" style=3D"font-family:Arial,Verdana,Hel=
+vetica,sans-serif;background-color:#f0f0f0;color:Black;font-weight:normal;f=
+ont-size:12px">$10.23</td><td align=3D"center" style=3D"font-family:Arial,V=
+erdana,Helvetica,sans-serif;background-color:#f0f0f0;color:Black;font-weigh=
+t:normal;font-size:12px">$10.23</td></tr><tr height=3D"5"><td height=3D"5">=
+</td></tr></tbody></table></td></tr></tbody></table><table border=3D"0"><tb=
+ody><tr valign=3D"top" cellspacing=3D"0" cellpadding=3D"0">
+<td><div style=3D"border:solid 1px #696969;padding:5px">
+  <p><strong>Are you missing out on our LIMITED TIME OFFERS and HOT BUYS?</=
+strong><br>
+    Sign up to receive Costco.com e-mails on the <a href=3D"https://www.cos=
+tco.com/Common/Login.aspx?cm_mmc=3DTransactional-_-OrderReceived-_-BotNav-_=
+-MyAccount&amp;topnav=3D&amp;whse=3DBC&amp;ReturnUrl=3Dhttps://www.costco.c=
+om/Common/Registration.aspx?type=3Dbc&amp;whse=3DBC&amp;lang=3Den-US" targe=
+t=3D"_blank">My Account</a> page.<br>
+    <br>
+    <strong>CostcoOffice Online</strong> - Save more than 20% on your offic=
+e supplies! <a href=3D"http://www.costco.com/Service/FeaturePage.aspx?Produ=
+ctNo=3D11534623" target=3D"_blank">Start Saving TODAY!</a> <br>
+    <br>
+    <strong>Earn Cash Back on your next Costco.com order</strong> - and vir=
+tually everywhere else. <br>
+    <a href=3D"https://www262.americanexpress.com/business-card-application=
+/LandingPages/245/OPEN-29380/CCSG-35649" target=3D"_blank">Learn about the =
+TrueEarnings=C2=AE Card from Costco &amp; American Express.</a><strong><br>
+    </strong><br>
+    <a href=3D"http://www.costco.com/Common/Category.aspx?whse=3DBC&amp;Ne=
+=3D4000000&amp;eCat=3DBC%7C1482&amp;N=3D4000486&amp;ViewAll=3D999&amp;Nr=3D=
+P_CatalogName:BC&amp;cat=3D1482&amp;Ns=3DP_Price%7C1%7C%7CP_SignDesc1&amp;l=
+ang=3Den-US&amp;topnav=3D&amp;cm_mmc=3DTransactional-_-OrderReceived-_-BotN=
+av-_-WhatsNew" target=3D"_blank">What&#39;s New</a> at Costco.com. <br>
+  </p>
+</div></td><td>
+			<table border=3D"0" cellpadding=3D"2" cellspacing=3D"2" width=3D"190">
+				<tbody><tr>
+					<td width=3D"220" style=3D"font-family:Arial,Verdana,Helvetica,sans-se=
+rif;background-color:#cee7ff;color:Black;font-weight:bold;font-size:12px" a=
+lign=3D"right">Subtotal: </td>
+					<td width=3D"120" style=3D"font-family:Arial,Verdana,Helvetica,sans-se=
+rif;background-color:#ffffcc;color:Black;font-weight:normal;font-size:12px"=
+ align=3D"right">$2,864.75</td>
+				</tr>
+				<tr>
+					<td style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#cee7ff;color:Black;font-weight:bold;font-size:12px" align=3D"right"=
+>Shipping &amp; Handling: </td>
+					<td style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#ffffcc;color:Black;font-weight:normal;font-size:12px" align=3D"righ=
+t">$0.00</td>
+				</tr>
+				<tr>
+					<td style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#cee7ff;color:Black;font-weight:bold;font-size:12px" align=3D"right"=
+>Tax: </td>
+					<td style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#ffffcc;color:Black;font-weight:normal;font-size:12px" align=3D"righ=
+t">$70.28</td>
+				</tr>
+			=09
+			=09
+			=09
+			=09
+				<tr>
+					<td style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#cee7ff;color:Black;font-weight:bold;font-size:12px" align=3D"right"=
+>Order Total: </td>
+					<td style=3D"font-family:Arial,Verdana,Helvetica,sans-serif;background=
+-color:#ffffcc;color:Black;font-weight:bold;font-size:12px" align=3D"right"=
+>$2,935.03</td>
+				</tr>
+			</tbody></table>
+		</td></tr></tbody></table><table border=3D"0"><tbody><tr valign=3D"top" c=
+ellspacing=3D"0" cellpadding=3D"0"><td><p><strong>Shop Confidently</strong>=
+</p>
+<p><b>Membership:</b> We will refund your membership fee in full at any tim=
+e if you are dissatisfied.</p>
+<p><strong>Merchandise: </strong>We guarantee your satisfaction on every pr=
+oduct we sell with a full refund. The following must be returned within 90 =
+days of purchase for a refund: televisions, projectors, computers, cameras,=
+ camcorders, touch screen tablets, MP3 players and cellular phones. </p>
+<p><b>How to Return:</b> Simply return your purchase at any one of our Cost=
+co warehouses worldwide for a refund (including shipping and handling). If =
+you are unable to return your order at one of our warehouses, please contac=
+t:</p>
+<p> <a href=3D"https://costco.egain.net/system/web/custom/initialPage.html?=
+lang=3Den-US&amp;topnav=3D&amp;whse=3DBC" target=3D"_blank"><strong>Costco.=
+com Customer Service</strong></a> or call <strong><a href=3D"tel:1-800-955-=
+2292" value=3D"+18009552292" target=3D"_blank">1-800-955-2292</a></strong><=
+/p>
+<p><strong></strong> <a href=3D"https://costco.egain.net/system/web/custom/=
+initialPage.html?lang=3Den-US&amp;topnav=3D&amp;whse=3DBC" target=3D"_blank=
+"><strong>Business Delivery Customer Service</strong></a> or call <strong><=
+a href=3D"tel:1-800-788-9968" value=3D"+18007889968" target=3D"_blank">1-80=
+0-788-9968</a></strong></p>
+<p>To expedite the processing of your return, please reference your order n=
+umber.</p>
+<p>If you request an item be picked up for return, the item must be package=
+d and   available for pick up in the same manner as it was delivered. <br>
+  If your order   was delivered =E2=80=9Ccurb side,=E2=80=9D it will need t=
+o be available for curb side pick up. <br>
+If the item arrived to you in a box, it will need to be in a box at the tim=
+e   of pick up.</p>
+<p><a href=3D"http://shop.costco.com/Customer-Service/Frequently-Asked-Ques=
+tions/Returns-Replacements-Refunds.aspx" target=3D"_blank">View</a>  additi=
+onal returns information.</p>
+<p>Please keep this email for future   reference, and thank you for shoppin=
+g at <strong>Costco.com</strong>.</p></td></tr></tbody></table></td></tr></=
+tbody></table>
+
+</div><br><br clear=3D"all"><div><br></div>-- <br><div class=3D"gmail_signa=
+ture"><div dir=3D"ltr">Brown Rhodes Farinholt<div>Computer Science &amp; En=
+gineering<br><div><div>University of California, San Diego</div><div>(804) =
+814-9556</div><div><a href=3D"mailto:brown.farinholt@gmail.com" target=3D"_=
+blank">brown.farinholt@gmail.com</a></div></div></div></div></div>
+</div></div>
+
+--047d7bfeac76cb15a7050fc8967c--
+

@@ -85,46 +85,36 @@ class AddItem(unittest.TestCase):
     def setUp(self):
         self.driver = webdriver.Firefox()
         self.driver.implicitly_wait(30)
-        self.base_url = "http://www2.costco.com/Browse/QuickOrderEntry.aspx?whse=BD_578&lang=en-US"
+        self.base_url = "http://www.costcobusinessdelivery.com"
         self.verificationErrors = []
         self.accept_next_alert = True
         self.username, self.password, self.order = self.handle_input()
 
     def test_add_item(self):
         driver = self.driver
-        driver.get(self.base_url + "/Browse/QuickOrderEntry.aspx?whse=BD_578&lang=en-US")
-        # The first time you go, it will not work. Costco has to set a cookie I believe
-        driver.get(self.base_url + "/Browse/QuickOrderEntry.aspx?whse=BD_578&lang=en-US")
+        driver.get(self.base_url + "/")
 
         # login start
-        driver.find_element_by_css_selector("img[alt=\"LOGIN\"]").click()
-        driver.find_element_by_id("_ctl0_EmailAddress").clear()
-        driver.find_element_by_id("_ctl0_EmailAddress").send_keys(self.username)
-        driver.find_element_by_id("_ctl0_Password").clear()
-        driver.find_element_by_id("_ctl0_Password").send_keys(self.password)
-        driver.find_element_by_id("_ctl0_SubmitLogin").click()
+        driver.find_element_by_id("logon").click()
+        driver.find_element_by_id("logonId").click()
+        driver.find_element_by_id("logonId").clear()
+        driver.find_element_by_id("logonId").send_keys(self.username)
+        driver.find_element_by_id("logonPassword").clear()
+        driver.find_element_by_id("logonPassword").send_keys(self.password)
+        driver.find_element_by_id("deliveryZipCode").clear()
+        driver.find_element_by_id("deliveryZipCode").send_keys("92093")
+        driver.find_element_by_css_selector("#LogonFormBD > div.form-item > button.submit.costco-button").click()
         # login done
 
         # ordering start
         for itemNo, qty in self.order.iteritems():
-            driver.find_element_by_id("QuickOrderEntry1_QuickOrderList__ctl1_ItemNo").clear()
-            driver.find_element_by_id("QuickOrderEntry1_QuickOrderList__ctl1_ItemNo").send_keys(itemNo)
-            driver.find_element_by_id("QuickOrderEntry1_QuickOrderList__ctl1_Qty").clear()
-            driver.find_element_by_id("QuickOrderEntry1_QuickOrderList__ctl1_Qty").send_keys(qty)
-            driver.find_element_by_id("QuickOrderEntry1_AddToOrder1").click()
-            # add a little pause here??
+            driver.find_element_by_id("headerOrderByItem").click()
+            driver.find_element_by_id("itemNumber").clear()
+            driver.find_element_by_id("itemNumber").send_keys(itemNo)
+            driver.find_element_by_id("itemQuantity").clear()
+            driver.find_element_by_id("itemQuantity").send_keys(qty)
+            driver.find_element_by_xpath("(//button[@type='submit'])[4]").click()
         # ordering done
-
-        # test order
-        # driver.find_element_by_id("QuickOrderEntry1_QuickOrderList__ctl1_ItemNo").clear()
-        # driver.find_element_by_id("QuickOrderEntry1_QuickOrderList__ctl1_ItemNo").send_keys('1')
-        # driver.find_element_by_id("QuickOrderEntry1_QuickOrderList__ctl1_Qty").clear()
-        # driver.find_element_by_id("QuickOrderEntry1_QuickOrderList__ctl1_Qty").send_keys('1')
-        # driver.find_element_by_id("QuickOrderEntry1_AddToOrder1").click()
-        # test order done
-
-        # go to cart
-        driver.find_element_by_id("TopNav1_ViewCartLink").click()
 
     def is_element_present(self, how, what):
         try: self.driver.find_element(by=how, value=what)
