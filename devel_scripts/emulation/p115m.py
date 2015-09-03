@@ -12,39 +12,43 @@ from threading import Thread, Lock
 from bitstruct import pack, unpack
 from serial import SerialDevice, writestr, writeln, readline, b2str, tobytes
 
-#Malformed Commands from Outside World
 class P115Exception(Exception):
     def __init__(self, msg):
         Exception.__init__(self)
         self._message = msg
-#Malformed Commands from P115M Board
+
 class P115MalformedCmd(P115Exception):  pass
 class P115NYI(P115Exception):  pass
-#Internal exception
 class P115ReturnCoin(P115Exception):
     def __init__(self, coin, msg):
         P115Exception.__init__(self, msg)
         self._coin = coin
+class P115TryAgain(P115Exception):  pass
 
 class P115Master(SerialDevice):
     POWERON_STR="***** JCA P115 PC-MDB Interface V4.0 *****"
 
-    # Coin Changegiver Configuration
+    # Coin Changegiver Configuration TODO: Set it from real config
     coin_values = [0.05, .10, .25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     tube_sizes = [0x10, 0x10, 0x10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    TUBE_BSET='u1'*len(coin_values)
+    WORD_BSET='u1'*len(coin_values)
     coin_routing = [ (1 if x != 0 else 0) for x in coin_values ]
     coin_to_type = { v:i for (i,v) in enumerate(coin_values) if v != 0 }
     type_to_coin = { v:k for k, v in coin_to_type.items() }
 
-    # Bill Reader Configuration
-    bill_to_type = { 1: "00", 5: "01", 10: "02", 20: "03", 50: "04", 100: "05" }
+    # Bill Reader Configuration TODO: Set it from real config
+    bill_values = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    bill_to_type = { v:i for (i,v) in enumerate(bill_values) if v != 0 }
     type_to_bill = { v:k for k, v in bill_to_type.items() }
+    stacker_size = 500
+    escrow_capable = True
 
+    # Some protocol metadata to ease message parsing
     TWO_LETTER_CMDS = ['R', 'S', 'T', 'P', 'E', 'D', 'K' ]
     TWO_LETTER_RESP = ['S', 'T']
     TWO_LETTER_EVTS = ['P']
     CMD_PAYLOAD_LEN = {
+        # Coin Changer Commands
         'R1':   0,
         'S1':   0,
         'S2':   0,
@@ -58,32 +62,21 @@ class P115Master(SerialDevice):
         'P1':   0,
         'E1':   0,
         'D1':   0,
-    }
-
-    RESP_PAYLOAD_LEN = {
-        'Z':    0,
-        'S1':   16,
-        'S2':   2,
-        'S3':   2,
-        'S4':   3,
-        'T1':   2,
-        'T2':   16,
-        'P1':   -1, # Read till <cr>
-    }
-
-    EVTS_PAYLOAD_LEN = {
-        'P1':   1,
-        'P2':   1,
-        'P3':   2,
-        'X':    1,
-        'W':    0,
-        'Q1':   1,
-        'Q2':   1,
-        'Q3':   1,
-        'Q4':   1,
-        'I1':   0,
-        'I2':   0,
-        'G':    0,
+        # Bill Reader Commands
+        'R2':   0,
+        'S5':   0,
+        'S6':   0,
+        'S7':   0,
+        'S8':   0,
+        'L':    2,
+        'J':    2,
+        'V':    2,
+        'P2':   0,
+        'E2':   0,
+        'D2':   0,
+        'K1':   0,
+        'K2':   0,
+        'Q':    0,
     }
 
     @staticmethod
@@ -112,43 +105,76 @@ class P115Master(SerialDevice):
     def readCmd(fd):
         return P115Master.read(fd, P115Master.TWO_LETTER_CMDS, P115Master.CMD_PAYLOAD_LEN)
 
-    @staticmethod
-    def readResp(fd):
-        return P115Master.read(fd, P115Master.TWO_LETTER_RESP, P115Master.RESP_PAYLOAD_LEN)
-
-    @staticmethod
-    def readEvt(fd):
-        return P115Master.read(fd, P115Master.TWO_LETTER_EVTS, P115Master.RESP_PAYLOAD_LEN)
-
     def __init__(self, slave_path):
         SerialDevice.__init__(self, slave_path)
         assert(len(self.coin_values) == 16)
 
         # Coin changer dynamic state
-        self._coinEnabled = False
-        # TODO: Is _coinEventMode needed? Or is it the same as _coinEnabled
-        self._coinEventMode = False
         self._tube_counts = [ 0 for x in self.coin_values ]
         self._collected_counts = [ 0 for x in self.coin_values ]
-        self._coin_acceptance_enable = [ True for x in self.coin_values]
-        self._coin_acceptance_enable_candidate = [ True for x in self.coin_values]
-        self._coin_dispense_enable = [ True for x in self.coin_values]
-        self._coin_dispense_enable_candidate = [ True for x in self.coin_values]
         self._coin_evt_q = []
+        self._resetCoinConfiguration()
 
         # Bill Reader dynamic state 
-        self._billEnabled = False
+        self._bill_evt_q = []
+        self._escrow = None
+        self._stacker = []
+        self._resetBillConfiguration()
 
         self.lock()
         writeln(self._mFd, self.POWERON_STR)
         self.unlock()
 
-    # External events
+    def _resetCoinConfiguration(self):
+        # TODO: What happens to the coin event queue on reset?
+        # TODO: Check default settings for coin enable/disable
+        self._coinEnabled = False;
+        self._coinEventMode = False;
+        self._coin_acceptance_enable = [ True for x in self.coin_values]
+        self._coin_dispense_enable = [ True for x in self.coin_values]
+        self._coin_acceptance_enable_candidate = [ True for x in self.coin_values]
+        self._coin_dispense_enable_candidate = [ True for x in self.coin_values]
+
+    def _resetBillConfiguration(self):
+        # TODO: What happens to the bill event queue on reset?
+        # TODO: Check default settings for bill enable/disable
+
+        self._billEnabled = False
+        self._billEventMode = False
+        self._bill_acceptance_enable = [ True for x in self.bill_values]
+        self._bill_acceptance_enable_candidate = [ True for x in self.bill_values]
+        self._bill_escrow = [ True for x in self.bill_values]
+        self._bill_escrow_canidate = [ True for x in self.bill_values]
+        self._bill_security = [ True for x in self.bill_values]
+
+    # External events and callbacks
     def billInput(self, bill):
-        raise P115NYI("bill input hw event")
+        try:
+            self.lock()
+            if (self._escrow != None):
+                raise P115TryAgain("Another bill is in escrow")
+
+            billType = self.bill_to_type[bill]
+
+            if (not self._bill_acceptance_enable[billType]):
+                self.send_bill_event('Q4', chr(billType))
+                return
+
+            if  (self.escrow_capable and self._bill_escrow[billType]):
+                # Do Escrow
+                self._escrow = billType
+                self.send_bill_event('Q1', chr(billType))
+            else:
+                # No Escrow. TODO: Do we still send a Q1 event here?
+                self._stacker.append(billType)
+                self.send_bill_event('Q2', chr(billType))
+        finally:
+            self.unlock()
+
+    def returnBill(self, bill): # Callback when a bill is returned
+        raise P115NYI("Must Override this callback")
 
     def coinInput(self, coin):
-        assert coin in self.coin_to_type
         coinType = self.coin_to_type[coin]
 
         try:
@@ -181,6 +207,9 @@ class P115Master(SerialDevice):
     def send_coin_event(self, evt, payload):
         self.send_event(evt, payload, not self._coinEventMode, self._coin_evt_q)
 
+    def send_bill_event(self, evt, payload):
+        self.send_event(evt, payload, not self._billEventMode, self._bill_evt_q)
+
     def do_work(self):
         # Lock already acquired
         # Read P115 Master commands
@@ -190,13 +219,7 @@ class P115Master(SerialDevice):
         writestr(self._mFd, '\x0a') #ACK
         # Coin changer commands
         if (l == b'R1'): # Reset coin acceptor & disable acceptance
-            # TODO: What happens to the coin event queue on reset?
-            self._coinEnabled = False;
-            self._coinEventMode = False;
-            self._coin_acceptance_enable = [ True for x in self.coin_values]
-            self._coin_dispense_enable = [ True for x in self.coin_values]
-            self._coin_acceptance_enable_candidate = [ True for x in self.coin_values]
-            self._coin_dispense_enable_candidate = [ True for x in self.coin_values]
+            self._resetCoinConfiguration();
             writeln(self._mFd, 'Z') #Respond
             self.send_coin_event('I1', '')
         elif (l == b'S1'): # Get Coin Values for 15 coin types
@@ -206,7 +229,7 @@ class P115Master(SerialDevice):
             s = bytes("S2",'ascii') + bytes([0x1, 0x2])
             writeln(self._mFd, s)
         elif (l == b'S3'): # Get Coin Routing
-            s = bytes("S3",'ascii') + pack(*([self.TUBE_BSET] + list(reversed(self.coin_routing))))
+            s = bytes("S3",'ascii') + pack(*([self.WORD_BSET] + list(reversed(self.coin_routing))))
             writeln(self._mFd, s)
         elif (l == b'S4'):
             # Get Remaining Information About Config. HW Level (8 bits - hardcoded to 3), BCD
@@ -218,7 +241,7 @@ class P115Master(SerialDevice):
             tubeFull = [ int(self._tube_counts[i] >= self.tube_sizes[i])
                 for i in range(len(self._tube_counts)) ]
 
-            s = bytes("T1", 'ascii') + pack(*([self.TUBE_BSET] + list(reversed(tubeFull))))
+            s = bytes("T1", 'ascii') + pack(*([self.WORD_BSET] + list(reversed(tubeFull))))
             writeln(self._mFd, s)
         elif (l == b'T2'): # Get Tube Counts
             s = bytes("T2",'ascii') + bytes(self._tube_counts)
@@ -226,13 +249,13 @@ class P115Master(SerialDevice):
         elif (l[0] == ord('N')): # Individual Coin Dispense Enable
             if len(l) != 3:
                 raise P115MalformedCmd("Bad N command: Expected 2 bytes afterwards")
-            bset = list(reversed(map(bool, unpack(self.TUBE_BSET, l[1:]))))
+            bset = list(reversed(list(map(bool, unpack(self.WORD_BSET, l[1:])))))
             self._coin_dispense_enable_candidate = bset
             writeln(self._mFd, 'Z')
         elif (l[0] == ord('M')): # Individual Manual Dispense Enable
             if len(l) != 3:
                 raise P115MalformedCmd("Bad M command: Expected 2 bytes afterwards")
-            bset = list(reversed(map(bool, unpack(self.TUBE_BSET, l[1:]))))
+            bset = list(reversed(list(map(bool, unpack(self.WORD_BSET, l[1:])))))
             self._coin_acceptance_enable_candidate = bset
             writeln(self._mFd, 'Z')
         elif (l[0] == ord('G')): # Dispense Coins
@@ -257,7 +280,7 @@ class P115Master(SerialDevice):
             else:
                 self._tube_counts[typ] -= cnt
                 self.send_coin_event('G', '')
-        elif (l == b'P1'): # Poll
+        elif (l == b'P1'): # Poll Coin Changegiver
             if not self._coinEventMode:
                 # TODO: Do we drain the queue one event at a time? Or do we bunch them up? For now
                 # just send them one at a time
@@ -281,7 +304,87 @@ class P115Master(SerialDevice):
             self._coinEnabled = False
             self._coinEventMode = False
             writeln(self._mFd, 'Z')
+        # Bill Reader Commands
+        elif (l == b'R2'): # Reset bill reader & disable acceptance
+            self._resetBillConfiguration()
+            writeln(self._mFd, 'Z')
+            self.send_bill_event('I2', '')
+        elif (l == b'S5'): # Bill Values
+            s = bytes("S5",'ascii') + bytes([(int(100*x)) for x in self.bill_values])
+            writeln(self._mFd, s)
+        elif (l == b'S6'): # Hardcoded Bill Scaling factor (1) and decimal points (2)
+            s = bytes("S6",'ascii') + bytes([0x0, 0x1, 0x2])
+            writeln(self._mFd, s)
+        elif (l == b'S7'): # Stacker Info - escrow capable 00/FF, # bills (2 bytes)
+            s = bytes("S7",'ascii') + bytes([(0xFF if self.escrow_capable else 0x00)]) + \
+                pack('u16', self.stacker_size)
+            writeln(self._mFd, s)
+        elif (l == b'S8'): # Miscelaneous Data
+            raise P115NYI("S8 Command NYI")
+        elif (l[0] == ord('L')): # Individual Bill Accept Enable
+            if len(l) != 3:
+                raise P115MalformedCmd("Bad L command: Expected 2 bytes afterwards")
+            bset = list(reversed(list(map(bool, unpack(self.WORD_BSET, l[1:])))))
+            self._bill_acceptance_enable_candidate = bset
+            writeln(self._mFd, 'Z')
+        elif (l[0] == ord('J')): # Individual Bill Escrow Setting
+            if len(l) != 3:
+                raise P115MalformedCmd("Bad J command: Expected 2 bytes afterwards")
+            bset = list(reversed(list(map(bool, unpack(self.WORD_BSET, l[1:])))))
+            self._bill_escrow_canidate = bset
+            writeln(self._mFd, 'Z')
+        elif (l[0] == ord('V')): # Individual Bill Escrow Setting
+            if len(l) != 3:
+                raise P115MalformedCmd("Bad V command: Expected 2 bytes afterwards")
+            bset = list(reversed(list(map(bool, unpack(self.WORD_BSET, l[1:])))))
+            self._bill_escrow_canidate = bset
+            writeln(self._mFd, 'Z')
+        elif (l == b'P2'): # Poll Bill Reader
+            if not self._billEventMode:
+                # TODO: Do we drain the queue one event at a time? Or do we bunch them up? For now
+                # just send them one at a time
+                if len(self._bill_evt_q) > 0:
+                    buf = bytes('', 'ascii')
+                    for (evt, payload) in self._bill_evt_q:
+                        buf += tobytes(evt) + tobytes(payload)
+
+                    writeln(self._mFd, buf)
+                else:
+                    writeln(self._mFd, 'Z')
+            else:
+                raise P115NYI("Calling poll P2 while we are in event mode")
+        elif (l == b'E2'): # Enable Bill Acceptance
+            self._bill_acceptance_enable = self._bill_acceptance_enable_candidate
+            self._bill_escrow = self._bill_escrow_canidate
+            self._billEnabled = True
+            self._billEventMode = True
+            writeln(self._mFd, 'Z')
+        elif (l == b'D2'): # Disable Coin Acceptance
+            self._billEnabled = False
+            self._billEventMode = False
+            writeln(self._mFd, 'Z')
+        elif (l == b'K1'): # Stack Bill
+            if (self._escrow == None):
+                raise P115NYI("K1 With no bill in escrow")
+            else:
+                self._stacker.append(self._escrow)
+                self._escrow = None
+                writeln(self._mFd, 'Z')
+        elif (l == b'K2'): # Return Bill
+            if (self._escrow == None):
+                raise P115NYI("K2 With no bill in escrow")
+            else:
+                self.returnBill(self._escrow)
+                billType = self._escrow
+                self._escrow = None
+                writeln(self._mFd, 'Z')
+                self.send_bill_event('Q4', chr(billType))
+        elif (l == b'Q'): # Stacker Status - Full/Not Full + # of bills
+            nbills = len(self._stacker)
+            s = bytes("F" if nbills >= self.stacker_size else "N" ,'ascii') + pack('u16', nbills)
+            writeln(self._mFd, s)
         else:
+            print ("Malformed command: ", l)
             raise P115MalformedCmd(l)
 
 # Barcode Scanner:

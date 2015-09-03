@@ -21,7 +21,7 @@ import os
 import cmd2
 from docopt import docopt
 from serial import readline, writeln, _setupPair
-from p115m import FakeBarcodeScanner, P115Master, P115ReturnCoin
+from p115m import FakeBarcodeScanner, P115Master, P115ReturnCoin, P115TryAgain
 
 args = docopt(__doc__, version="WTF")
 
@@ -38,7 +38,9 @@ class HWShell(cmd2.Cmd):
     if args['--simulate-p115m']:
         def do_put_coin(self, line):
             try:
-                mdb.coinInput(float(line))
+                coin = float(line)
+                assert coin in mdb.coin_to_type
+                mdb.coinInput(coin)
                 print ("Ok")
             except (ValueError, AssertionError):
                 print ("Error: Not a valid coin - %s" % line)
@@ -48,7 +50,18 @@ class HWShell(cmd2.Cmd):
         def do_press_coin_return(self, line):
             mdb.pressCoinReturn()
             print ("Ok")
-                
+
+        def do_put_bill(self, line):
+            try:
+                bill = float(line)
+                assert bill in mdb.bill_to_type
+                mdb.billInput(bill)
+                print ("Ok")
+            except (ValueError, AssertionError):
+                print ("Error: Not a valid bill - %s" % line)
+            except P115TryAgain as e:
+                print ("Can't put a coin in yet - another coin is in escrow")
+
     if args['--simulate-barcode']:
         def do_scan(self, line):
             print (line);
@@ -57,8 +70,12 @@ try:
     mdb_dev = args['--p115m-device']
     if args['--simulate-barcode']:
         barcode = FakeBarcodeScanner("/dev/barcode");
+
     if args['--simulate-p115m']:
         mdb = P115Master(mdb_dev);
+        def billReturned(bill):
+            print ("Bill ", bill, " was returned.")
+        mdb.returnBill = billReturned
 
     sys.argv=[sys.argv[0]]
     shell = HWShell()

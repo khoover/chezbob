@@ -117,5 +117,6 @@ class SerialDevice:
                 finally:
                     self.unlock()
 
+    # Implementing classes subclass this..
     def do_work(self):
         raise Exception("NYI")
