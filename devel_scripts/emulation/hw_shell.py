@@ -2,7 +2,7 @@
 """hw_shell, the fake hardware shell
 
 Usage:
-  hw_shell.py [--simulate-p115m] [--simulate-soda-barcode] [--p115m-device=<mdb_dev>]
+  hw_shell.py [--simulate-p115m] [--simulate-soda-barcode] [--simulate-handheld-barcode] [--p115m-device=<mdb_dev>]
   hw_shell.py (-h | --help)
   hw_shell.py --version
 
@@ -23,6 +23,7 @@ from docopt import docopt
 from serial import readline, writeln, _setupPair
 from p115m import P115Master, P115ReturnCoin, P115TryAgain
 from soda_barcode import SodaBarcodeScanner
+from handheld_barcode import HandheldBarcodeScanner
 
 args = docopt(__doc__, version="WTF")
 
@@ -67,10 +68,21 @@ class HWShell(cmd2.Cmd):
         def do_soda_scan(self, line):
             barcode.scan(line.strip())
 
+    if args['--simulate-handheld-barcode']:
+        def do_handheld_scan(self, line):
+            barcode = line.strip()
+            if (not barcodei.isValidBarcode(barcode)):
+                print ("%s is not a valid barcode." % barcode)
+                return 
+            barcodei.scan(barcode)
+
 try:
     mdb_dev = args['--p115m-device']
     if args['--simulate-soda-barcode']:
         barcode = SodaBarcodeScanner("/dev/barcode");
+
+    if args['--simulate-handheld-barcode']:
+        barcodei = HandheldBarcodeScanner("/dev/barcodei");
 
     if args['--simulate-p115m']:
         mdb = P115Master(mdb_dev);
@@ -89,3 +101,5 @@ finally:
         barcode.cleanup();
     if args['--simulate-p115m']:
         mdb.cleanup();
+    if args['--simulate-handheld-barcode']:
+        barcodei.cleanup()
