@@ -1,0 +1,6 @@
+---
+
+# this playbook deploys the chezbob site
+- hosts: soda-dev-machines
+  roles:
+      - dev
