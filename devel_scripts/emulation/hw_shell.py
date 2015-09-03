@@ -2,7 +2,7 @@
 """hw_shell, the fake hardware shell
 
 Usage:
-  hw_shell.py [--simulate-p115m] [--simulate-barcode] [--p115m-device=<mdb_dev>]
+  hw_shell.py [--simulate-p115m] [--simulate-soda-barcode] [--p115m-device=<mdb_dev>]
   hw_shell.py (-h | --help)
   hw_shell.py --version
 
@@ -11,7 +11,7 @@ Options:
   --version                 Show version.
   --simulate-p115m          Should we simulate p115m (if not, we can still
                             issue VDB commands to the real hardware)
-  --simulate-barcode        Should we simulate the barcode scanner (shouldn't
+  --simulate-soda-barcode        Should we simulate the barcode scanner (shouldn't
                             simulate when we have a real barcode scanner attached)
   --p115m-device=<mdb_dev>  Path to /dev node corresponding to P115M. [default: /dev/mdb] 
 """
@@ -21,7 +21,8 @@ import os
 import cmd2
 from docopt import docopt
 from serial import readline, writeln, _setupPair
-from p115m import FakeBarcodeScanner, P115Master, P115ReturnCoin, P115TryAgain
+from p115m import P115Master, P115ReturnCoin, P115TryAgain
+from soda_barcode import SodaBarcodeScanner
 
 args = docopt(__doc__, version="WTF")
 
@@ -62,14 +63,14 @@ class HWShell(cmd2.Cmd):
             except P115TryAgain as e:
                 print ("Can't put a coin in yet - another coin is in escrow")
 
-    if args['--simulate-barcode']:
-        def do_scan(self, line):
-            print (line);
+    if args['--simulate-soda-barcode']:
+        def do_soda_scan(self, line):
+            barcode.scan(line.strip())
 
 try:
     mdb_dev = args['--p115m-device']
-    if args['--simulate-barcode']:
-        barcode = FakeBarcodeScanner("/dev/barcode");
+    if args['--simulate-soda-barcode']:
+        barcode = SodaBarcodeScanner("/dev/barcode");
 
     if args['--simulate-p115m']:
         mdb = P115Master(mdb_dev);
@@ -84,7 +85,7 @@ except Exception(e):
     print (e)
     raise e
 finally:
-    if args['--simulate-barcode']:
+    if args['--simulate-soda-barcode']:
         barcode.cleanup();
     if args['--simulate-p115m']:
         mdb.cleanup();
