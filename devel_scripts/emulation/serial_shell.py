@@ -2,7 +2,7 @@
 """serial_shell, - simple serial shell for talking to a serial device directly. Mostly does pretty printing and allows for easy encoding of non-ascii charaters using hex.
 
 Usage:
-  serial_shell.py [--device=<dev>] [--noline]
+  serial_shell.py [--device=<dev>] [--noline] (--ascii|--hex)
   serial_shell.py (-h | --help)
   serial_shell.py --version
 
@@ -11,6 +11,8 @@ Options:
   --version                 Show version.
   --device=<dev>            Path to /dev node corresponding to P115M. [default: /dev/mdb] 
   --noline                  Don't wait for new line to display characters as they appear
+  --ascii                   Emit received data as ASCII
+  --hex                     Emit received data as HEX
 """
 
 import sys
@@ -27,21 +29,27 @@ args = docopt(__doc__, version="WTF")
 
 # Devices
 serial_fd = None
-printable = set(map(ord, set(string.printable) - set(string.whitespace)))
+printable = set(map(ord, set(string.printable)))
 
 noline = args['--noline']
 
 def ppb(b):
     if b in printable:
-        return "%02c " % chr(b)
+        return "%02c" % chr(b)
     else:
-        return "%02x " % b
+        return "%02x" % b
 
 def hexbs(s):
-    return ''.join(["%02x " % x for x in s])
+    return ''.join(["%02x" % x for x in s])
 
 def ppbs(s):
     return ''.join(map(ppb, s))
+
+def pp(s):
+    if (args['--ascii']):
+        return s.decode('ascii')
+    else:
+        return hexbs(s)
 
 class SerialShell(cmd2.Cmd):
     def do_cmd(self, line):
@@ -65,10 +73,8 @@ def lineReaderThr(fd):
     while (not done):
         s, dummy1, dummy2 = select([fd], [], [], 1)
         if (fd in s):
-            
             l =readline(fd)
-            print ("RECV[%03d]: %s" %(len(l), hexbs(l)))
-            print ("           %s" %ppbs(l))
+            print ("RECV[%03d]: %s" %(len(l), pp(l)))
 
 def rawReaderThr(fd):
     while (not done):
@@ -85,7 +91,7 @@ def rawReaderThr(fd):
                     else:
                         raise e
                 
-            print ("RECV[%03d]: %s" %(len(l), hexbs(l)))
+            print ("RECV[%03d]: %s" %(len(l), pp(l)))
 
 try:
     serial_fd = os.open(args['--device'], (os.O_RDWR | os.O_NOCTTY | (os.O_NONBLOCK if noline else 0)))

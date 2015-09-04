@@ -58,6 +58,15 @@ def tobytes(arg):
     else:
         assert False
 
+def SerialDeviceLocked(f):
+    def g(self, *args):
+        try:
+            self.lock()
+            return f(self, *args)
+        finally:
+            self.unlock()
+    return g
+
 class SerialDevice:
     """ A Fake Serial Device consists of:
         - a pseudo-terminal used for communicating with driver
