@@ -66,7 +66,7 @@ class SerialDevice:
         self._thr.start()
 
     def write(self, arg):
-        if (isinstance(arg, bytes)):
+        if (isinstance(arg, bytes) or isinstance(arg, bytearray)):
             os.write(self._mFd, arg)
         else:
             assert(isinstance(arg, str))
