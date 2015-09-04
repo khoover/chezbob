@@ -125,8 +125,13 @@ class P115Master(SerialDevice):
 
         billType = self.bill_to_type[bill]
 
+        if (not self._billEnabled):
+            self.returnBill(billType)
+            return
+
         if (not self._bill_acceptance_enable[billType]):
             self.send_bill_event('Q4', b2ahex([billType]))
+            self.returnBill(billType)
             return
 
         if  (self.escrow_capable and self._bill_escrow[billType]):
@@ -191,7 +196,11 @@ class P115Master(SerialDevice):
         l = l.decode('ascii') # All P115M Communication is ASCII
         l = l[:-1] # Skip <cr> at the end
         l = ''.join([x for x in l if x != ' ']) # P115M Ignores whitespace
-        P115Master.checkCmdWidth(l)
+        try:
+            P115Master.checkCmdWidth(l)
+        except:
+            raise P115MalformedCmd("Unknown command or wrong size: %s" % l)
+
         self.write('\x0a') #ACK
 
         # Coin changer commands

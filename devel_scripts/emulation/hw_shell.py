@@ -55,7 +55,7 @@ class HWShell(cmd2.Cmd):
 
         def do_put_bill(self, line):
             try:
-                bill = float(line)
+                bill = int(line)
                 assert bill in mdb.bill_to_type
                 mdb.billInput(bill)
                 print ("Ok")
@@ -114,10 +114,10 @@ try:
     if args['--simulate-p115m']:
         mdb = P115Master(mdb_dev)
         def billReturned(bill):
-            print ("Bill ", bill, " was returned.")
+            print ("Bill ", P115Master.type_to_bill[bill], "$ was returned.")
 
         def dispenseCoin(coin):
-            print ("Coin ", P115Master.type_to_coin[coin], " was returned.")
+            print ("Coin ", P115Master.type_to_coin[coin], "$ was returned.")
         mdb.returnBill = billReturned
         mdb.dispenseCoin = dispenseCoin 
 

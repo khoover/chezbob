@@ -69,9 +69,6 @@ class SerialDevice:
         # Open for business
         self._thr.start()
 
-    def slave(self):
-        return self._slavePath
-
     def write(self, arg):
         if (isinstance(arg, bytes)):
             os.write(self._mFd, arg)
@@ -119,16 +116,18 @@ class SerialDevice:
     def main_loop(self):
         while (not self._done):
             try:
-                self.lock()
-                self.do_work()
-            except SerialInterrupted:
-                pass # I go byebye
+                self._do_work()
             except SerialNYI:
                 # Subclass doesn't want to listen for data
                 return
-            finally:
-                self.unlock()
 
     # Implementing classes subclass this..
+    @SerialDeviceLocked
+    def _do_work(self):
+        try:
+            self.do_work()
+        except SerialInterrupted:
+            return
+
     def do_work(self):
         raise SerialNYI()
