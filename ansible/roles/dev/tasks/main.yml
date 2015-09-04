@@ -1,4 +1,7 @@
 ---
+- name: Make sure packages are up-to date
+  sudo: yes
+  shell: apt-get update
 
 - name: Install common packages
   apt: pkg={{ item }} state=present
@@ -28,15 +31,16 @@
     - sarge
     - bitstruct
     - cmd2
+    - evdev
 
 - name: Create sodasrv user
   action: user name=sodasrv state=present groups=dialout generate_ssh_key=yes
 
 - name: Add host key for dev
-  authorized_key: user=dev key="{{ lookup('file', '/home/dimo/.ssh/id_rsa.pub') }}"
+  authorized_key: user={{ REMOTE_USER }} key="{{ lookup('file', LOCAL_USER_SSH_KEY) }}"
 
 - name: Add host key for sodasrv
-  authorized_key: user=sodasrv key="{{ lookup('file', '/home/dimo/.ssh/id_rsa.pub') }}"
+  authorized_key: user=sodasrv key="{{ lookup('file', LOCAL_USER_SSH_KEY) }}"
 
 - name: Create git directory
   sudo: yes
@@ -47,7 +51,7 @@
 
 - name: Push Repository
   sudo: no
-  synchronize: src=/home/dimo/projects/chezbob/chezbob dest=/tmp/repo
+  synchronize: src={{ PATH_TO_REPO }} dest=/tmp/repo
   tags:
     - deploy
 
@@ -64,23 +68,3 @@
 - name: Deploy chezbob config
   sudo: yes
   template: src=etc/chezbob.json.j2 dest=/etc/chezbob.json
-
-# cb_fake_hw service deployment
-
-#- name: Deploy cb_fake_hw service template
-#  sudo: yes
-#  template: src=etc/init/cb_fake_hw.conf.j2 dest=/etc/init/cb_fake_hw.conf
-#  tags:
-#    - services
-
-#- name: Ensure cb_fake_hw service is stopped
-#  sudo: yes
-#  service: name=cb_fake_hw state=stopped
-#  tags:
-#    - services
-
-#- name: set service to start on boot and run
-#  service: name=cb_fake_hw enabled=yes state=started
-#  sudo: yes
-#  tags:
-#    - services
