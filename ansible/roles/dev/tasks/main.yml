@@ -6,6 +6,13 @@
    - git
    - python3-pip
 
+- name: Install node packages
+  apt: pkg={{ item }} state=present
+  with_items:
+   - nodejs
+   - nodejs-legacy
+   - npm
+
 - name: Install common packages with pip3
   pip: name={{item}} executable=pip3
   with_items:
@@ -54,9 +61,9 @@
   tags:
     - deploy
 
-#- name: Deploy chezbob config
-#  sudo: yes
-#  template: src=etc/chezbob.json.j2 dest=/etc/chezbob.json
+- name: Deploy chezbob config
+  sudo: yes
+  template: src=etc/chezbob.json.j2 dest=/etc/chezbob.json
 
 # cb_fake_hw service deployment
 

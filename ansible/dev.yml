@@ -4,3 +4,9 @@
 - hosts: soda-dev-machines
   roles:
       - dev
+      - redis
+      - barcodei-server
+      - barcode-server
+      - mdb-server
+      - vdb-server
+      - soda-server

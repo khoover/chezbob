@@ -2,7 +2,6 @@ import os
 import grp
 import stat
 import select
-import fcntl
 from termios import tcgetattr, tcsetattr, ECHO, ICANON, VMIN, VTIME, ICRNL, \
     TCSANOW, ISIG, ONLCR
 from errno import EAGAIN
@@ -51,9 +50,6 @@ class SerialDevice:
         setupFd(self._mFd)
         setupFd(self._sFd)
         _disableFlag(self._sFd, 1, ONLCR)
-        # Make _mFd non-blocking
-        oldFl = fcntl.fcntl(self._mFd, fcntl.F_GETFL)
-        fcntl.fcntl(self._mFd, fcntl.F_SETFL, oldFl & (~os.O_NONBLOCK))
         # Symlink the slave end of pty to desired /dev node
         self._slavePath = slave_path
         name = os.ttyname(self._sFd)
@@ -90,18 +86,12 @@ class SerialDevice:
             readSet, _, _ = select.select([self._mFd], [], [], 1)
             self.lock()
             if (self._mFd in readSet):
-                while 1:
-                    try:
-                        b = os.read(self._mFd, 1)
-                        res += b
+                b = os.read(self._mFd, 1)
+                res += b
 
-                        if (b == b'\x0d'):
-                            return res
-                    except IOError as e:
-                        if e.errno == EAGAIN:
-                            break
-                        else:
-                            raise e
+                if (b == b'\x0d'):
+                    return res
+
         # Only way to get here is if _done=True before we finish reading a line
         raise SerialInterrupted()
 

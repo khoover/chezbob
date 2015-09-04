@@ -15,8 +15,7 @@ class P115Slave(SerialDevice):
         # Read P115 Master commands
         l = self.interruptibleReadline()
         l = l.decode('ascii') # All comm seems to be ASCII
-        l = l.strip() # Screw \r and \n
-        #l = ''.join([x for x in l if x != '\n']) # Screw ACKs
+        l = l.strip() # Screw <cr> and acks - \r and \n
 
         self.write('\x0a') #ACK
 
