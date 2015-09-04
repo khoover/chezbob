@@ -1,5 +1,6 @@
 from struct import pack
-from evdev.ecodes import *
+from evdev.ecodes import KEY_0, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6,\
+    KEY_7, KEY_8, KEY_9, KEY_ENTER, EV_KEY
 from serial import SerialDevice
 
 keycode = {
@@ -18,12 +19,8 @@ keycode = {
 # Handheld Barcode Scanner:
 class HandheldBarcodeScanner(SerialDevice):
     def _sendKey(self, k):
-        data = pack('qqHHi', 0,0, EV_KEY, k, 0)
+        data = pack('qqHHi', 0, 0, EV_KEY, k, 0)
         self.write(data)
-
-    @staticmethod
-    def isValidBarcode(c):
-        return c.isdigit()
 
     def scan(self, barcode):
         for c in barcode:

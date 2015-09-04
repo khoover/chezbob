@@ -1,15 +1,12 @@
 import os
-import sys
-import shutil
-import struct
 import grp
 import stat
 import select
+import fcntl
 from termios import tcgetattr, tcsetattr, ECHO, ICANON, VMIN, VTIME, ICRNL, \
     TCSANOW, ISIG, ONLCR
-from collections import namedtuple
+from errno import EAGAIN
 from threading import Thread, Lock
-from bitstruct import pack, unpack
 
 dialout = grp.getgrnam("dialout")
 
@@ -23,40 +20,11 @@ def _setCCFlag(fd, ind, val):
     attrs[6][ind] = val 
     tcsetattr(fd, TCSANOW, attrs)
 
-def _setupPair(m, s):
-    for fd in [m,s]:
-        _disableFlag(fd, 3, (ECHO|ICANON|ISIG))
-        _disableFlag(fd, 0, (ICRNL))
-        _setCCFlag(fd, VMIN, 1)
-        _setCCFlag(fd, VTIME, 0)
-    _disableFlag(s, 1, ONLCR)
-
-def writestr(fd, s):
-  os.write(fd, bytes(s, "ascii"))
-
-def writeln(fd, s):
-  if (type(s) == bytes):
-    os.write(fd, s + bytes([0xd]))
-  else:
-    writestr(fd, s+'\x0d')
-
-def readline(fd):
-    res = b''
-    while 1:
-      b = os.read(fd, 1)
-      res += b
-
-      if (b == b'\x0d'):
-        return res
-
-def b2str(b):   return bytes.decode(b, 'ascii')
-def tobytes(arg):
-    if (type(arg) == str):
-        return bytes(arg, 'ascii')
-    elif (type(arg) == bytes):
-        return arg
-    else:
-        assert False
+def setupFd(fd):
+    _disableFlag(fd, 3, (ECHO|ICANON|ISIG))
+    _disableFlag(fd, 0, (ICRNL))
+    _setCCFlag(fd, VMIN, 1)
+    _setCCFlag(fd, VTIME, 0)
 
 def SerialDeviceLocked(f):
     def g(self, *args):
@@ -67,6 +35,8 @@ def SerialDeviceLocked(f):
             self.unlock()
     return g
 
+class SerialInterrupted(Exception): pass
+class SerialNYI(Exception): pass
 class SerialDevice:
     """ A Fake Serial Device consists of:
         - a pseudo-terminal used for communicating with driver
@@ -77,8 +47,13 @@ class SerialDevice:
     """
     def __init__(self, slave_path):
         # Create pty for communicating with driver
-        self._mFd, self._sFd = os.openpty();
-        _setupPair(self._mFd, self._sFd)
+        self._mFd, self._sFd = os.openpty()
+        setupFd(self._mFd)
+        setupFd(self._sFd)
+        _disableFlag(self._sFd, 1, ONLCR)
+        # Make _mFd non-blocking
+        oldFl = fcntl.fcntl(self._mFd, fcntl.F_GETFL)
+        fcntl.fcntl(self._mFd, fcntl.F_SETFL, oldFl & (~os.O_NONBLOCK))
         # Symlink the slave end of pty to desired /dev node
         self._slavePath = slave_path
         name = os.ttyname(self._sFd)
@@ -87,45 +62,73 @@ class SerialDevice:
         os.chown(slave_path, 0, dialout.gr_gid)
         os.chmod(slave_path, stat.S_IRWXU | stat.S_IRWXG)
 
-        # Another pipe for pining the main loop
-        self._rPingFd, self._wPingFd = os.pipe()
         # Synchronization and launch loop
-        self._L = Lock();
+        self._L = Lock()
         self._done = False
         self._thr = Thread(target=self.main_loop, args=[])
-        self._thr.start();
+        # Open for business
+        self._thr.start()
 
     def slave(self):
         return self._slavePath
 
-    def write(self, byteArr):
-        os.write(self._mFd, byteArr)
+    def write(self, arg):
+        if (isinstance(arg, bytes)):
+            os.write(self._mFd, arg)
+        else:
+            assert(isinstance(arg, str))
+            os.write(self._mFd, bytes(arg, "ascii"))
+
+    def writeln(self, arg):
+        if (isinstance(arg, bytes)):
+            self.write(arg + bytes([0xd]))
+        else:
+            assert(isinstance(arg, str))
+            self.write(arg + '\x0d')
+
+    def interruptibleReadline(self):
+        res = b''
+        while (not self._done):
+            self.unlock()
+            readSet, _, _ = select.select([self._mFd], [], [], 1)
+            self.lock()
+            if (self._mFd in readSet):
+                while 1:
+                    try:
+                        b = os.read(self._mFd, 1)
+                        res += b
+
+                        if (b == b'\x0d'):
+                            return res
+                    except IOError as e:
+                        if e.errno == EAGAIN:
+                            break
+                        else:
+                            raise e
+        # Only way to get here is if _done=True before we finish reading a line
+        raise SerialInterrupted()
 
     def cleanup(self):
         self._done = True
-        self.ping_main_loop()
         self._thr.join()
         os.unlink(self._slavePath)
-
-    def ping_main_loop(self):
-        writeln(self._wPingFd, "ping")
 
     def lock(self): self._L.acquire()
     def unlock(self): self._L.release()
 
     def main_loop(self):
         while (not self._done):
-            readSet, writeSet, xtrSet = select.select([self._mFd, self._rPingFd], [], [])
-            # Read exernal events
-            if (self._rPingFd in readSet):
-                assert (os.read(self._rPingFd, 5) == b'ping\x0d')
-            if (self._mFd in readSet):
+            try:
                 self.lock()
-                try:
-                    self.do_work();
-                finally:
-                    self.unlock()
+                self.do_work()
+            except SerialInterrupted:
+                pass # I go byebye
+            except SerialNYI:
+                # Subclass doesn't want to listen for data
+                return
+            finally:
+                self.unlock()
 
     # Implementing classes subclass this..
     def do_work(self):
-        raise Exception("NYI")
+        raise SerialNYI()

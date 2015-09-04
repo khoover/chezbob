@@ -1,6 +1,9 @@
 from bitstruct import pack
 from serial import SerialDevice
 
+def isValidBarcode(c):
+    return c.isdigit()
+
 # Soda Barcode Scanner:
 # The barcode scanner appears as a serial port on which
 # we enter barcodes 1 at a time as follows;

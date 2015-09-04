@@ -19,13 +19,31 @@ import sys
 import os
 import cmd2
 from docopt import docopt
-from serial import readline, writeln, _setupPair
+from serial import setupFd
 from threading import Thread
 from select import select
-from errno import *
+from errno import EAGAIN
 import string
 
 args = docopt(__doc__, version="WTF")
+
+def writeln(fd, s):
+    if (isinstance(s, bytes)):
+        os.write(fd, s + bytes([0xd]))
+    else:
+        assert(isinstance(s, str))
+        os.write(fd, bytes(s+'\x0d', 'ascii'))
+
+def readline(fd):
+    res = b''
+    while 1:
+        b = os.read(fd, 1)
+        res += b
+
+        if (b == b'\x0d'):
+            return res
+
+
 
 # Devices
 serial_fd = None
@@ -95,7 +113,7 @@ def rawReaderThr(fd):
 
 try:
     serial_fd = os.open(args['--device'], (os.O_RDWR | os.O_NOCTTY | (os.O_NONBLOCK if noline else 0)))
-    _setupPair(serial_fd, serial_fd)
+    setupFd(serial_fd)
 except OSError as e:
     print ("Couldn't open %s: %s" % (args['--device'], str(e)))
     sys.exit(-1)
@@ -109,4 +127,4 @@ try:
 finally:
     done = True
     os.close(serial_fd)
-    t.join();
+    t.join()

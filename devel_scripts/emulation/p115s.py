@@ -1,23 +1,6 @@
-import os
-import sys
-import shutil
-import struct
-import grp
-import stat
-import select
-from termios import tcgetattr, tcsetattr, ECHO, ICANON, VMIN, VTIME, ICRNL, \
-    TCSANOW, ISIG, ONLCR
-from collections import namedtuple
-from threading import Thread, Lock
-from bitstruct import pack, unpack
-from serial import SerialDevice, writestr, writeln, readline, b2str, tobytes, SerialDeviceLocked
+from serial import SerialDevice, SerialDeviceLocked
 
-class P115Exception(Exception):
-    def __init__(self, msg):
-        Exception.__init__(self)
-        self._message = msg
-
-class P115NYI(P115Exception):  pass
+class P115NYI(Exception):  pass
 
 # The P115Slave speaks the CardLink Protocol with the PC.
 # TODO: Find the manual for this. The current implementation
@@ -30,26 +13,24 @@ class P115Slave(SerialDevice):
     def do_work(self):
         # Lock already acquired
         # Read P115 Master commands
-        self.unlock()
-        l = readline(self._mFd)
-        self.lock()
+        l = self.interruptibleReadline()
         l = l.decode('ascii') # All comm seems to be ASCII
         l = l.strip() # Screw \r and \n
         #l = ''.join([x for x in l if x != '\n']) # Screw ACKs
 
-        writestr(self._mFd, '\x0a') #ACK
+        self.write('\x0a') #ACK
 
         if l == '':
             pass # The \n\n\n\n\r at the begining. Don't care.
         elif l == '\x1B':  # Reset request + bootup string
-            writeln(self._mFd, '* P208 Reset')
-            writeln(self._mFd, '*M 30 P208 v1.11 (c)2013 JCA Systems Ltd')
+            self.writeln('* P208 Reset')
+            self.writeln('*M 30 P208 v1.11 (c)2013 JCA Systems Ltd')
         elif l == 'W090001': # WTF1 ?
-            writeln(self._mFd, 'F')
+            self.writeln('F')
         elif l == 'W070001': # WTF2 ?
-            writeln(self._mFd, 'F')
+            self.writeln('F')
         elif l == 'WFF0000': # WTF3 ?
-            writeln(self._mFd, 'G')
+            self.writeln('G')
         elif l == 'X': # WTF3 ?
             pass # ACK. Don't care
         elif l == 'A': # Request Authorized
@@ -66,16 +47,16 @@ class P115Slave(SerialDevice):
 
     @SerialDeviceLocked
     def request_auth(self, col):
-        self._request_col = col;
-        writeln(self._mFd, 'R       %02d' % col)
+        self._request_col = col
+        self.writeln('R       %02d' % col)
 
     @SerialDeviceLocked
     def vend_ok(self):
-        writeln(self._mFd, 'K')
+        self.writeln('K')
 
     @SerialDeviceLocked
     def vend_failed(self):
-        writeln(self._mFd, 'L')
+        self.writeln('L')
 
     def authorized(self, col):
         raise P115NYI("Must override")
