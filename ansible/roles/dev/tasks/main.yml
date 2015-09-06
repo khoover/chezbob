@@ -120,7 +120,7 @@
 
 - name: Deploy boo .pgpass
   sudo: yes
-  template: src=files/home/sodasrv/.pgpass dest=/home/sodasrv/.pgpass owner=sodasrv mode=0600
+  template: src=home/sodasrv/.pgpass dest=/home/sodasrv/.pgpass owner=sodasrv mode=0600
   tags:
     - initial
 
