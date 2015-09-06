@@ -1,13 +1,11 @@
 ---
-- name: Make sure packages are up-to date
-  sudo: yes
-  shell: apt-get update
-
 - name: Install common packages
   apt: pkg={{ item }} state=present
   with_items:
    - git
    - python3-pip
+   - postgresql-server-dev-9.3
+   - python-dev
 
 - name: Install node packages
   apt: pkg={{ item }} state=present
@@ -15,6 +13,11 @@
    - nodejs
    - nodejs-legacy
    - npm
+
+- name: Install common packages with pip3
+  pip: name={{item}} executable=pip
+  with_items:
+    - psycopg2
 
 - name: Install common packages with pip3
   pip: name={{item}} executable=pip3
@@ -68,3 +71,27 @@
 - name: Deploy chezbob config
   sudo: yes
   template: src=etc/chezbob.json.j2 dest=/etc/chezbob.json
+
+- name: Deploy Postgres pg_hba.conf (allow access to all local users)
+  sudo: yes
+  template: src=etc/postgresql/9.3/main/pg_hba.conf.j2 dest=/etc/postgresql/9.3/main/pg_hba.conf
+
+- name: Create bob database
+  sudo: yes
+  sudo_user: postgres
+  postgresql_db: name=bob
+
+- name: Create bob database
+  sudo: yes
+  sudo_user: postgres
+  postgresql_db: name=django
+
+- name: Create bob user
+  sudo: yes
+  sudo_user: postgres
+  postgresql_user: name=bob
+
+- name: Create django user
+  sudo: yes
+  sudo_user: postgres
+  postgresql_user: name=django
