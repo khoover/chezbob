@@ -114,7 +114,13 @@
 - name: Create bob user
   sudo: yes
   sudo_user: postgres
-  postgresql_user: name=bob
+  postgresql_user: name=bob password=tralala
+  tags:
+    - initial
+
+- name: Deploy boo .pgpass
+  sudo: yes
+  template: src=files/home/sodasrv/.pgpass dest=/home/sodasrv/.pgpass owner=sodasrv mode=0600
   tags:
     - initial
 
