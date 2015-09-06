@@ -4,6 +4,7 @@
   with_items:
    - git
    - python3-pip
+   - python-pip
    - postgresql-server-dev-9.3
    - python-dev
 
