@@ -1,0 +1,26 @@
+---
+
+- name: Install common packages
+  apt: pkg={{ item }} state=present
+  with_items:
+   - chromium-browser
+   - slim
+  tags:
+   - initial
+
+- name: Create sodaui user
+  action: user name=sodaui state=present
+  tags:
+   - initial
+
+- name: Deploy sodaui .xinitrc
+  sudo: yes
+  template: src=xinitrc.j2 dest=/home/sodaui/.xinitrc owner=sodaui group=sodaui
+  tags:
+   - initial
+
+- name: Deploy slim.conf
+  sudo: yes
+  template: src=etc/slim.conf dest=/etc/slim.conf owner=root group=root mode=u=rw,g=r,o=r
+  tags:
+   - initial
