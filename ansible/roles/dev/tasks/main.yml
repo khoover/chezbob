@@ -1,0 +1,132 @@
+---
+- name: Install common packages
+  apt: pkg={{ item }} state=present
+  with_items:
+   - git
+   - python3-pip
+   - python-pip
+   - postgresql-server-dev-9.3
+   - python-dev
+  tags:
+   - initial
+
+- name: Install node packages
+  apt: pkg={{ item }} state=present
+  with_items:
+   - nodejs
+   - nodejs-legacy
+   - npm
+  tags:
+   - initial
+
+- name: Install common packages with pip3
+  pip: name={{item}} executable=pip
+  with_items:
+    - psycopg2
+  tags:
+    - initial
+
+- name: Install common packages with pip3
+  pip: name={{item}} executable=pip3
+  with_items:
+    - docopt
+    - flask
+    - flask_jsonrpc
+    - sqlalchemy
+    - flask-sqlalchemy
+    - flask-cors
+    - requests
+    - sqlalchemy-migrate
+    - pyserial
+    - sarge
+    - bitstruct
+    - cmd2
+    - evdev
+  tags:
+    - initial
+
+- name: Create sodasrv user
+  action: user name=sodasrv state=present groups=dialout generate_ssh_key=yes
+  tags:
+    - initial
+
+- name: Add host key for dev
+  authorized_key: user={{ REMOTE_USER }} key="{{ lookup('file', LOCAL_USER_SSH_KEY) }}"
+  tags:
+    - initial
+
+- name: Add host key for sodasrv
+  authorized_key: user=sodasrv key="{{ lookup('file', LOCAL_USER_SSH_KEY) }}"
+  tags:
+    - initial
+
+- name: Create git directory
+  sudo: yes
+  file: path=/git state=directory owner=sodasrv group=sodasrv
+  tags:
+    - initial
+
+- name: Clean old files
+  shell: rm -rf /tmp/repo /git/*
+
+- name: Push Repository
+  sudo: no
+  synchronize: src={{ PATH_TO_REPO }} dest=/tmp/repo
+  tags:
+    - deploy
+
+- name: Move repo in place
+  shell: cp -rf /tmp/repo/*/* /git
+  tags:
+    - deploy
+
+- name: Chown repo
+  shell: chown sodasrv:sodasrv -R /git
+  tags:
+    - deploy
+
+- name: Deploy chezbob config
+  sudo: yes
+  template: src=etc/chezbob.json.j2 dest=/etc/chezbob.json
+  tags:
+    - initial
+
+- name: Deploy Postgres pg_hba.conf (allow access to all local users)
+  sudo: yes
+  template: src=etc/postgresql/9.3/main/pg_hba.conf.j2 dest=/etc/postgresql/9.3/main/pg_hba.conf
+  tags:
+    - initial
+
+- name: Create bob database
+  sudo: yes
+  sudo_user: postgres
+  postgresql_db: name=bob
+  tags:
+    - initial
+
+- name: Create bob database
+  sudo: yes
+  sudo_user: postgres
+  postgresql_db: name=django
+  tags:
+    - initial
+
+- name: Create bob user
+  sudo: yes
+  sudo_user: postgres
+  postgresql_user: name=bob password=tralala
+  tags:
+    - initial
+
+- name: Deploy boo .pgpass
+  sudo: yes
+  template: src=home/sodasrv/.pgpass dest=/home/sodasrv/.pgpass owner=sodasrv mode=0600
+  tags:
+    - initial
+
+- name: Create django user
+  sudo: yes
+  sudo_user: postgres
+  postgresql_user: name=django
+  tags:
+    - initial

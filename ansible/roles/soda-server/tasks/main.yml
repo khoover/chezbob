@@ -5,6 +5,8 @@
     with_items:
         - nodejs
         - git
+    tags:
+        - initial
 
   - name: Install required npm packages
     npm: name={{ item }} state=present global=yes
@@ -14,33 +16,49 @@
         - gulp
         - typescript
         - bunyan
+    tags:
+        - initial
 
   - name: Ensure pid directory exists
     file: path=/run/chezbob group=sodasrv owner=sodasrv mode=755 state=directory
     sudo: yes
+    tags:
+        - initial
 
   - name: Ensure log directory exists
     file: path=/var/log/chezbob group=sodasrv owner=sodasrv mode=755 state=directory
     sudo: yes
+    tags:
+        - initial
 
   - name: Deploy service template
     template: src=etc/init/cb_sodad.conf.j2 dest=/etc/init/cb_sodad.conf mode=644
     sudo: yes
+    tags:
+        - services
 
   - name: Ensure service is stopped
     sudo: yes
     service: name=cb_sodad state=stopped
+    tags:
+        - services
 
   - name: Get package-level npm dependencies
     sudo: yes
     npm: path=/git/bob2k14/soda_server
     sudo_user: sodasrv
+    tags:
+        - initial
 
   - name: Build with gulp
     shell: gulp clean; gulp chdir=/git/bob2k14/soda_server
     sudo: yes
     sudo_user: sodasrv
+    tags:
+        - build_ts
 
   - name: set service to start on boot and run
     service: name=cb_sodad enabled=yes state=started
     sudo: yes
+    tags:
+        - services

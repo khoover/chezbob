@@ -1,0 +1,50 @@
+== Building the development VM from scratch
+
+   0. Checkout the chezbob repo. (if you're reading this, you probably did already.)
+
+   1. Install VirtualBox and ansible (on Ubuntu sudo-apt get install ansible)
+
+   2. Create an Ubuntu 14.04 Server VM in VirtualBox with one admin user we will refer to as dev
+
+   3. Create a host-only virtual network in Virtual Box (if you don't already have one). You can do this
+  in File->Preferences->Network->Host Only Networks. Lets call this network vboxnet0
+
+   4. Enable the second networking interface on your new VM (Settings (for the VM)->Network->Adapter 2). Set its type to Host-only Adapter and select from the dropdown menu below vboxnet0
+
+   5. ssh into your new vm and add the following lines to /etc/network/interfaces:
+
+      auto eth1 
+      iface eth1 inet dhcp
+
+   6. reboot your new vm and ssh into it. Write down its ip on eth1 lets assume its 192.168.56.101
+
+   7. Run sudo apt-get update upgrade in your new VM
+
+  --- At this point you have a blank VM to which we can deploy the ChezBob Development Config ---
+
+   8. In your Chezbob repo go into ansible/
+
+   9. Edit your hosts file so it looks like:
+
+     [soda-dev-machines]
+     192.168.56.101
+
+      In there put whatever the IP of your new VM is
+
+   10. Edit the vars section in dev.yml. For example mine looks like this:
+
+- hosts: soda-dev-machines
+  vars:
+      LOCAL_USER: "dimo"
+      LOCAL_USER_SSH_KEY: "/home/dimo/.ssh/id_rsa.pub"
+      REMOTE_USER: "dev"
+      PATH_TO_REPO: "/home/dimo/projects/chezbob/chezbob"
+
+   11. Do the initial deployment:
+      ansible-playbook dev.yml -i hosts -Kk -s -u <remote-admin-user>
+
+      If the above script fails, please re-run with -vvvv, capture output, and send to Dimo.
+
+    
+
+== Using Development VM
