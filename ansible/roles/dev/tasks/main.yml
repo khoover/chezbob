@@ -42,7 +42,7 @@
     - bitstruct
     - cmd2
     - evdev
-    - psyopg2
+    - psycopg2
   tags:
     - initial
 
