@@ -5,7 +5,7 @@
    - git
    - python3-pip
    - python-pip
-   - postgresql-server-dev-9.3
+   - postgresql
    - python-dev
   tags:
    - initial
