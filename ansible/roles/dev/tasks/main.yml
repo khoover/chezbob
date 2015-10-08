@@ -5,7 +5,7 @@
    - git
    - python3-pip
    - python-pip
-   - postgresql-server-dev-9.3
+   - postgresql
    - python-dev
   tags:
    - initial
@@ -98,6 +98,20 @@
   tags:
     - initial
 
+- name: Stop Postgres
+  sudo: yes
+  service: name=postgresql state=stopped
+  tags:
+    - initial
+    - services
+
+- name: Stop Postgres
+  sudo: yes
+  service: name=postgresql state=started
+  tags:
+    - initial
+    - services
+
 - name: Create bob database
   sudo: yes
   sudo_user: postgres
@@ -119,9 +133,15 @@
   tags:
     - initial
 
-- name: Deploy boo .pgpass
+- name: Deploy bob .pgpass
   sudo: yes
   template: src=home/sodasrv/.pgpass dest=/home/sodasrv/.pgpass owner=sodasrv mode=0600
+  tags:
+    - initial
+
+- name: Deploy remote .pgpass
+  sudo: yes
+  template: src=home/sodasrv/.pgpass dest=/home/{{ REMOTE_USER }}/.pgpass owner={{ REMOTE_USER }} mode=0600
   tags:
     - initial
 
