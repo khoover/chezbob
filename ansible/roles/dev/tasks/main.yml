@@ -6,6 +6,7 @@
    - python3-pip
    - python-pip
    - postgresql
+   - postgresql-server-dev-9.3
    - python-dev
   tags:
    - initial
