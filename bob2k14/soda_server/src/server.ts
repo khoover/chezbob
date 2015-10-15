@@ -763,14 +763,14 @@ class sodad_server {
                             S(roles.roles).parseCSV().forEach(function (role) {
                                 user.roles[role] = true;
                             });
+                            multi.hmset("sodads_roles:" + client, user.roles);
+                            multi.expire("sodads_roles:" + client, 600);
                         }
                         log.info("User roles loaded: ", user.roles);
 
                         multi.hset("sodads:" + client, "uid", user.userid); //TODO: deprecated key uid
                         multi.hmset("sodads:" + client, user)
-                        multi.hmset("sodads_roles:" + client, user.roles);
                         multi.expire("sodads:" + client, 600);
-                        multi.expire("sodads_roles:" + client, 600);
                         return multi.execAsync();
                     })
                 .then(function(success)
@@ -1518,7 +1518,7 @@ class sodad_server {
             {
                 var deferred = promise.defer();
                 models.Products.find(barcode)
-                    .complete(function(err, entry)
+                    .then(function(entry)
                             {
                                 deferred.resolve(entry.dataValues);
                             })
@@ -1655,10 +1655,9 @@ class sodad_server {
                                 username: user
                             }
                         })
-                            .complete(function (err,entry)
+                            .then(function (entry)
                             {
-                                if (err) { log.error(err); }
-                                else if (entry == null) {
+                                if (entry == null) {
                                     log.warn("Couldn't find user " + user + " for client " + client);
                                     server.clientchannels[client].displayerror("fa-warning", "User not found", "Login for account " + user + " not found.");
                                 }
@@ -1691,7 +1690,9 @@ class sodad_server {
 
                             deferred.resolve(true);
                             }
-                            );
+                            ).catch(function (err) {
+                                if (err) { log.error(err); }
+                            });
                 return deferred.promise;
             }
         });
