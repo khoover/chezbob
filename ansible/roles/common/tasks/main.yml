@@ -7,24 +7,36 @@
    - python-pip 
    - nodejs
    - nodejs-legacy
+  tags:
+   - initial
 
 - name: Install common packages with pip
   pip: name={{item}}
   with_items:
    - docopt
+  tags:
+   - initial
 
 - name: Create sodasrv user
   action: user name=sodasrv state=present groups=dialout
+  tags:
+   - initial
 
 - name: Create git directory
   sudo: yes
   file: path=/git state=directory owner=sodasrv group=sodasrv
+  tags:
+   - initial
 
 - name: Clone and update repository
   sudo: yes
   sudo_user: sodasrv
   git: repo=https://github.com/chezbob/chezbob.git dest=/git
+  tags:
+   - initial
 
 - name: Deploy chezbob config
   sudo: yes
   template: src=etc/chezbob.json.j2 dest=/etc/chezbob.json
+  tags:
+   - initial

@@ -1098,6 +1098,10 @@ class sodad_server {
     // TODO identify a fingerprint
     identifymode_fingerprint( server: sodad_server, client: string, identifymode: boolean)
     {
+        return; // TODO(DIMO): REMOVE THIS!. Temporary fix to get sodad running in VM. Need to:
+        // 1: Figure out why this fails in the absence of the fp server
+        // 2: Add fp emulation to the VM
+
         // Start identifying a fingerprint asynchronously
         if (identifymode == true)
         {
