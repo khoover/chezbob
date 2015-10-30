@@ -50,6 +50,9 @@ class BulkItem(models.Model):
                                        db_column='floor_location')
     product_id = models.CharField(max_length=255, blank=True)
 
+    bulkbarcode = models.CharField(max_length=32,
+                                   verbose_name="Bulk item barcode")
+
     def __unicode__(self):
         return self.description
 
