@@ -505,7 +505,7 @@ class sodad_server {
                                                     else
                                                     {
                                                         //no idea what this is.
-                                                       log.trace("Unknown barcode " + barcode + ", rejecting.")
+                                                       log.error("Unknown barcode " + barcode + ", rejecting.")
                                                        server.clientchannels[sessionid].displayerror("fa-warning", "Unknown Barcode", "Unknown barcode " + barcode + ", please scan again.");
                                                     }
                                                 })
