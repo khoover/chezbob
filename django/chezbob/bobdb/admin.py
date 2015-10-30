@@ -9,7 +9,7 @@ class BulkItemAdmin(admin.ModelAdmin):
     fieldsets = [
         ("Details", {'fields': ('description', 'product_id', 'quantity',
                                 'updated', 'source', 'reserve', 'active',
-                                'floor_location')}),
+                                'floor_location', 'bulkbarcode')}),
         ("Pricing", {'fields': (('price', 'taxable'),
                                 ('crv_per_unit', 'crv_taxable'))}),
     ]
@@ -17,7 +17,7 @@ class BulkItemAdmin(admin.ModelAdmin):
     list_filter = ['updated', 'active', 'source', 'floor_location']
     list_display = ['description', 'product_id', 'quantity', 'price',
                     'taxable', 'crv_per_unit', 'crv_taxable', 'updated', 'active',
-                    'source', 'floor_location']
+                    'source', 'floor_location', 'bulkbarcode']
     inlines = [ProductInline]
 admin.site.register(BulkItem, BulkItemAdmin)
 
