@@ -7,6 +7,22 @@ from django.db import models, connection, transaction
 # instead.
 TAX_RATE = Decimal("0.0875")
 
+class CharNullField(models.CharField):
+    """Courtesy of https://code.djangoproject.com/ticket/9590."""
+    description = "CharField that stores NULL but returns ''"
+    def to_python(self, value):
+        if isinstance(value, models.CharField):
+            return value 
+        if value==None:
+            return ""
+        else:
+            return value
+    def get_db_prep_value(self, value):
+        if value=="":
+            return None
+        else:
+            return value
+
 class ProductSource(models.Model):
     class Meta:
         db_table = 'product_source'
@@ -50,8 +66,9 @@ class BulkItem(models.Model):
                                        db_column='floor_location')
     product_id = models.CharField(max_length=255, blank=True)
 
-    bulkbarcode = models.CharField(max_length=32,
-                                   verbose_name="Bulk item barcode")
+    bulkbarcode = CharNullField(max_length=32,
+                                verbose_name="Bulk item barcode",
+                                null=True, blank=True)
 
     def __unicode__(self):
         return self.description
