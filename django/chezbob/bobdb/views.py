@@ -508,6 +508,11 @@ def estimate_order(request):
 
         if not p.active and not show_all: continue
 
+        # TODO: This is a hack, but without it, the system crashes when a
+        # bulkitem has never been inventoried before.
+        if p.bulkid not in inventory:
+            inventory[p.bulkid] = {"estimate": 0}
+
         info = {'type': p,
                 'inventory': inventory[p.bulkid],
                 'sales': sales.get(p.bulkid, 0),
