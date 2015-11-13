@@ -25,6 +25,10 @@ class AddItem(unittest.TestCase):
         # sample norm:  1    Arizona Peach Tea [15.5 oz] (#326523) 
         # sample weird: 1    Apples (#21405, #49118)
         for i in order_lines:
+            i = i.strip()
+            if not i:
+                continue
+
             # I suppose a cool regex could go here, but I'm not cool
             item = i.split()
             # only operate on this line if first number is a digit

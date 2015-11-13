@@ -13,7 +13,7 @@ export interface SequelizeModel {
 export class Models {
     sql;
 
-    //AggregatePurchases: SequelizeModel;
+    AggregatePurchases: SequelizeModel;
     BulkItems: SequelizeModel;
     FinanceAccounts: SequelizeModel;
     FinanceDepositSummary: SequelizeModel;
@@ -49,14 +49,19 @@ export class Models {
 /* TODO(dbounov): For know can't add AggregatePurchases since it doesn't have a
  primary key.
 
-	this.AggregatePurchases = sql.define('aggregate_purchases', {
-	   date: sequelize.DATE,
+ But we must!
+ */
+
+        // This *should* work, but of course I'm pushing it to production and
+        // praying.
+        this.AggregatePurchases = sql.define('aggregate_purchases', {
+           date: sequelize.DATE,
            barcode: sequelize.STRING,
            quantity: sequelize.INTEGER,
            price: sequelize.DECIMAL,
            builkid: sequelize.INTEGER,
-	}, {timestamps : false})
-*/
+        }, {timestamps : false})
+        this.AggregatePurchases.removeAttribute('id');
 
         this.BulkItems = sql.define('bulk_items', {
             bulkid: { type: sequelize.INTEGER, primaryKey: true },
@@ -98,7 +103,7 @@ export class Models {
             transaction_id: sequelize.INTEGER,
             account_id: sequelize.INTEGER,
             amount: sequelize.DECIMAL,
-	    memo: sequelize.STRING
+            memo: sequelize.STRING
         }, {timestamps : false});
 
         this.FinanceTransactions = sql.define('finance_transactions', {
@@ -121,7 +126,7 @@ export class Models {
             price: sequelize.DECIMAL,
         }, {timestamps : false});
 
-/* TODO: (dbounov) adding inventory is also problematic due to lack of a 
+/* TODO: (dbounov) adding inventory is also problematic due to lack of a
 single column primary key
         this.Inventory = sql.define('inventory', {
         }, {timestamps : false});
@@ -173,8 +178,8 @@ single column primary key
             coffee: sequelize.BOOLEAN
         }, {timestamps : false});
 
-	//(dbounov): Not including profiles since its likely to be deleted.
-	//TODO: Delete it.
+        //(dbounov): Not including profiles since its likely to be deleted.
+        //TODO: Delete it.
 
         this.Roles = sql.define('roles', {
             userid : {type: sequelize.INTEGER, primaryKey: true },
