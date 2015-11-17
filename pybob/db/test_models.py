@@ -1,7 +1,7 @@
 import sys
 from datetime import date, datetime
 from models import *
-from util import connect
+from util import connect_pgpass
 
 #
 # Simple test that for each table queries all entries, creates a new entry
@@ -56,7 +56,7 @@ default = {
 
 
 def main():
-    s = connect("postgresql://bob:tralala@localhost/bob")
+    s = connect_pgpass('localhost', 5432, 'bob', 'bob')
     tbls = (
             # AggregatePurchases,
             BulkItems,
