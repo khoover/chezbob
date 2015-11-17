@@ -1,12 +1,8 @@
-
 import sys
-
-sys.path.append('/git/pybob/db/')
-
 from datetime import date, datetime
 from models import *
+from util import connect
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://bob@localhost:5432/bob'
 #
 # Simple test that for each table queries all entries, creates a new entry
 # with default values, and then removes it.
@@ -21,11 +17,12 @@ valid_bulkid = 207
 valid_userid = 1757
 valid_orderid = 1
 valid_finance_transaction_id = 1
+unique_barcode = str(datetime.now())
 
 default = {
     # AggregatePurchases: ( ) ,
     BulkItems: ('description', 1.00, True, 1, 1.00, True, 1, 0, True,
-                1, 1, 1.00, 'barcode'),
+                1, 1, 1.00, unique_barcode),
     FinanceAccounts: ('D', 'name'),
     FinanceDepositSummary: (date(2015, 9, 10), 1.00, 1.00),
     FinanceInventorySummary: (date(2015, 9, 10), 1.00, 1.00),
@@ -59,7 +56,8 @@ default = {
 
 
 def main():
-    for tbl in (
+    s = connect("postgresql://bob:tralala@localhost/bob")
+    tbls = (
             # AggregatePurchases,
             BulkItems,
             FinanceAccounts,
@@ -82,17 +80,26 @@ def main():
             UCSDEmails,
             UserBarcodes,
             Users
-    ):
+    )
+
+
+    for tbl in tbls:
         print ("Testing ", tbl.__tablename__)
-        all = tbl.query.all()
+        all = s.query(tbl).all()
         print ("    Found %d entries" % len(all))
+    for tbl in tbls:
+        if (tbl in [FinanceSplits, FinanceDepositSummary]):
+            continue
         new = tbl(*default[tbl])
         print ("    Created a new entry")
-        db.session.add(new)
-        db.session.commit()
+        s.add(new)
+        s.commit()
         print ("    Inserted new entry")
-        db.session.delete(new)
-        db.session.commit()
+    for tbl in tbls:
+        if (tbl in [FinanceSplits, FinanceDepositSummary]):
+            continue
+        s.delete(new)
+        s.commit()
         print ("    Deleted new entry")
 
 if __name__ == "__main__":
