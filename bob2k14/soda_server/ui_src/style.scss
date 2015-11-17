@@ -59,7 +59,7 @@
 }
 
 body {
- margin-bottom: 60px;
+ //margin-bottom: 60px;
  overflow: hidden;
 }
 
@@ -111,18 +111,16 @@ body {
 }
 
 .background-image {
-//  background-image: url('../images/cse.jpg');
-  background-image: url('../images/mr_burns.png');
-  background-size: cover;
+  background: url('../images/chezbob.png'), #008484;
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
   display: block;
-  filter: blur(2px);
-  -webkit-filter: blur(2px);
-  height: 800px;
+  height: 100%;
   left: 0;
   position: fixed;
   right: 0;
   z-index: 1;
-  transform: scale(1.1);
 }
 
 .content {

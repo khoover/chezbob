@@ -1,3 +1,6 @@
 [submodule "externals/ansible"]
 	path = externals/ansible
 	url = https://github.com/ansible/ansible.git
+[submodule "externals/clippy.js"]
+	path = externals/clippy.js
+	url = https://github.com/smore-inc/clippy.js.git

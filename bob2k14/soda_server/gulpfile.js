@@ -115,12 +115,17 @@ gulp.task('css', ['bower'], function()
                          .pipe(gulp.dest('./build/ui/css'))
           })
 
+gulp.task('clippy.js', function()
+    {
+        return gulp.src('../../externals/clippy.js/build/*').pipe(gulp.dest('./build/ui/clippy.js/'));
+    })
+
 gulp.task('clean', function(cb) {
     del(['build', 'typings'], cb);
 });
 
 gulp.task('default', function() {
-    gulp.start('bower', 'html', 'icons', 'css', 'images', 'ui-ts-compile', 'ts-compile', 'ts-typings');
+    gulp.start('bower', 'html', 'icons', 'css', 'images', 'ui-ts-compile', 'ts-compile', 'ts-typings', 'clippy.js');
 });
 
 gulp.task('watch', ['ts-compile'], function() {

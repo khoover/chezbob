@@ -130,13 +130,13 @@ export class Client
                     {
                         client.server_channel.logout();
                     }
+                    if (client.time == 4)
+                    {
+                        window['agent'].play('GetAttention');
+                    }
                     if (client.time < 5)
                     {
                         $("body").css('background-color', '#ffaaaa');
-                        // We don't know when bills get inserted, only when they are validated,
-                        // so to prevent weird experiences disable bill acceptance when there
-                        // are less than 5 seconds left.
-                        //client.server_channel.disable_bill_acceptor();
                     }
                     else
                     {
@@ -148,7 +148,7 @@ export class Client
 
     extendTimeout(client: Client)
     {
-        if (client.timeout_timer != null)
+        if (client.timeout_timer != null && client.time < 20)
         {
             client.time = 20;
             $("#timeout").text(client.time+"s");
@@ -171,8 +171,10 @@ export class Client
     logout(client:Client)
     {
         client.stopTimeout(client);
+        $("body").removeClass('body-padded');
+        $(".navbar").addClass('hidden');
         $("#logout").addClass('hidden');
-        $("#login").removeClass('hidden');
+        //$("#login").removeClass('hidden');
         $("#loginpanel").addClass('hidden');
         $(".username").text("");
         $("#balancepanel").addClass('hidden');
@@ -183,13 +185,19 @@ export class Client
         client.time_pause = false;
         client.voice_speak(client, client.current_user.voice_settings.farewell);
         client.current_user = null;
+        window['agent'].stop();
+        window['agent'].hide();
     }
 
-    login(client: Client, logindata)
+    login(client: Client, logindata, animation)
     {
         client.current_user = logindata;
         client.voice_configure(client);
         client.voice_speak(client, logindata.voice_settings.welcome);
+
+        window['agent'].show();
+        window['agent'].stop();
+        window['agent'].play(animation);
 
         $("#login").addClass('hidden');
         $("#logout").removeClass('hidden');
@@ -200,6 +208,8 @@ export class Client
         $("#carousel").addClass('hidden');
         $("#mainui").removeClass('hidden');
         $("#purchases-table tbody").empty();
+        $("body").addClass('body-padded');
+        $(".navbar").removeClass('hidden');
         client.startTimeout(client);
         client.setUIscreen(client, "mainpurchase");
         client.time_pause = false;
@@ -380,9 +390,9 @@ export class Client
                     {
                         return {type: client.type, id: client.id };
                     },
-                    login: function (logindata)
+                    login: function (logindata, animation)
                     {
-                        client.login(client, logindata);
+                        client.login(client, logindata, animation);
                         return true;
                     },
                     logout: function()
@@ -411,6 +421,7 @@ export class Client
                         }
                         client.voice_speak(client, purchasedata.name + " for " + speakPrice);
                         client.setUIscreen(client,"mainpurchase");
+                        window['agent'].animate();
                         return true;
                     },
                     displayerror: function(icon, title, text)
@@ -430,6 +441,7 @@ export class Client
                         //TODO: use requested_soda to display logo.
                         $("#sodatext").text("Dispensing " + soda_name);
                         client.voice_speak(client, "Dispensing " + soda_name);
+                        window['agent'].play('EmptyTrash')
                         $("#sodadialog").modal('show');
                         client.time_pause = true;
                         return true;
@@ -481,6 +493,31 @@ export class Client
                     {
                         window.location.reload();
                         //return true; // if there's a typeerror, this is the cause
+                    },
+                    agentSpeak: function(text)
+                    {
+                        window['agent'].speak(text);
+                        return true;
+                    },
+                    agentPlay: function(animation)
+                    {
+                        window['agent'].play(animation);
+                        return true;
+                    },
+                    agentStop: function()
+                    {
+                        window['agent'].stop();
+                        return true;
+                    },
+                    agentShow: function()
+                    {
+                        window['agent'].show();
+                        return true;
+                    },
+                    agentHide: function()
+                    {
+                        window['agent'].hide();
+                        return true;
                     }
                 }
                 );
@@ -488,6 +525,10 @@ export class Client
 
     setup_ui(client: Client)
     {
+        $("#carousel").on('click', function(e) {
+            $("#login").removeClass('hidden');
+        });
+
         $("#loginform").submit(function(e) {
             client.log.debug("Begin login attempt...");
             e.preventDefault();
@@ -621,6 +662,11 @@ export class Client
         $("#logoutbtn").on('click', function() {
             client.server_channel.logout();
         });
+
+        $("#logoutbtn2").on('click', function() {
+            client.server_channel.logout();
+        });
+
         $("#moretimebtn").on('click', function() {
             client.time = client.time + 30;
             client.log.trace("User added 30 seconds to autologout");
@@ -807,6 +853,10 @@ export class Client
             $("#transfer-dollars").val("0");
             client.server_channel.transfer(amt, $("#transfer-user").val());
         })
+
+	$("#rain-btn").on('click', function() {
+	    client.server_channel.rain();
+	})
 
         $("#message_bug-form").on('submit', function(e) {
             e.preventDefault();
