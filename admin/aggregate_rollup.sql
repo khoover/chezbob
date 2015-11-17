@@ -6,10 +6,10 @@ BEGIN;
 INSERT INTO aggregate_purchases
     SELECT
         date(min(xacttime)),
-        transactions.barcode as barcode,
-        count(*) as quantity,
-        avg(xactvalue) as price,
-        min(bulkid) as bulkid
+        transactions.barcode AS barcode,
+        sum(*) AS quantity,
+        CAST (-1*sum(xactvalue) AS numeric(12,2)) AS price,
+        min(bulkid) AS bulkid
     FROM transactions INNER JOIN products
     ON products.barcode = transactions.barcode
     WHERE
