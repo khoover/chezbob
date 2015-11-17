@@ -151,14 +151,6 @@ sub make_purchase {
     $sth = $dbh->prepare(
         "UPDATE users SET balance = balance - ? WHERE userid = ?");
     $sth->execute($price, $userid);
-
-    if ($barcode) {
-        $sth = $dbh->prepare(
-            "INSERT INTO aggregate_purchases
-             SELECT now() AS date, barcode, 1 AS quantity, ? AS price, bulkid
-               FROM products WHERE barcode = ?");
-        $sth->execute($price, $barcode);
-    }
 }
 
 while (1) {
