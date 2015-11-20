@@ -1672,7 +1672,7 @@ class sodad_server {
                 models.Users.find(
                         {
                             where: {
-                                username: user
+                                username: user.toLowerCase()
                             }
                         })
                             .complete(function (err,entry)
