@@ -120,13 +120,20 @@ CREATE TABLE django_session (
 SET search_path = public, pg_catalog;
 SET default_with_oids = true;
 
-CREATE TABLE aggregate_purchases (
-    date date NOT NULL,
-    barcode text NOT NULL,
-    quantity integer NOT NULL,
-    price numeric(12,2),
-    bulkid integer
-);
+CREATE VIEW aggregate_purchases AS
+    SELECT
+        date(xacttime) AS date,
+        transactions.barcode AS barcode,
+        count(*) AS quantity,
+        CAST ( -1 * sum(xactvalue) AS numeric(12,2)) AS price,
+        bulkid AS bulkid
+    FROM transactions
+        INNER JOIN products
+            ON products.barcode = transactions.barcode
+    WHERE
+        bulkid IS NOT NULL
+        AND transactions.barcode IS NOT NULL
+    GROUP BY transactions.barcode, date(xacttime), bulkid;
 
 CREATE SEQUENCE transactions_id_seq
     INCREMENT BY 1
@@ -396,8 +403,6 @@ ALTER TABLE ONLY transactions
 ALTER TABLE ONLY users
     ADD CONSTRAINT users_pkey PRIMARY KEY (userid);
 
-CREATE INDEX aggregate_purchases_index1 ON aggregate_purchases USING btree (date, barcode);
-CREATE INDEX aggregate_purchases_index2 ON aggregate_purchases USING btree (barcode, date);
 CREATE INDEX finance_splits_account_index ON finance_splits USING btree (account_id);
 CREATE INDEX finance_splits_transaction_index ON finance_splits USING btree (transaction_id);
 CREATE UNIQUE INDEX inventory_index ON inventory USING btree (date, bulkid);
@@ -435,8 +440,6 @@ ALTER TABLE ONLY auth_message
 SET search_path = public, pg_catalog;
 ALTER TABLE ONLY products
     ADD CONSTRAINT "$1" FOREIGN KEY (bulkid) REFERENCES bulk_items(bulkid);
-ALTER TABLE ONLY aggregate_purchases
-    ADD CONSTRAINT aggregate_purchases_bulkid_fkey FOREIGN KEY (bulkid) REFERENCES bulk_items(bulkid);
 ALTER TABLE ONLY userbarcodes
     ADD CONSTRAINT barcode_userid_fkey FOREIGN KEY (userid) REFERENCES users(userid);
 ALTER TABLE ONLY bulk_items

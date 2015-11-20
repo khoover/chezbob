@@ -46,13 +46,6 @@ def user_details_byname(request, username):
 
   return render_or_error('users/user_details.html', messages)                               
 
-def add_aggregate_purchase(date, barcode, quantity, value, bulkid):
-  cursor = connection.cursor()
-  cursor.execute("""INSERT INTO aggregate_purchases 
-                    (date, barcode, quantity, price, bulkid) 
-                    VALUES (%s, %s, %s, %s, %s)""",
-                 (date, barcode, quantity, value, bulkid))
-
 @transaction.commit_manually
 def new_transaction(type, bound, user, messages):
   try:
@@ -67,8 +60,8 @@ def new_transaction(type, bound, user, messages):
     user.balance = F('balance') + tran.value
     if type in ['ADD', 'REFUND', 'DONATION', 'WRITEOFF']: pass
     elif type == 'BUY':
-      add_aggregate_purchase(tran.time.date(), tran.barcode.barcode, 1,
-                             -1 * tran.value, tran.barcode.bulk.bulkid)
+      # Nothing is required in this case.
+      pass
     elif type == 'TRANSFER':
       otran = Transaction()
       otran.user = bound.cleaned_data['other_user']
@@ -144,8 +137,8 @@ def delete_transaction(tran, messages):
     user.balance = F('balance') - tran.value
     if type in ['ADD', 'REFUND', 'DONATION', 'WRITEOFF']: pass
     elif type == 'BUY':
-      add_aggregate_purchase(tran.time.date(), tran.barcode.barcode, -1,
-                             tran.value, tran.barcode.bulk.bulkid)
+      # Nothing is required in this case.
+      pass
     elif type == 'TRANSFER':
       otrans = Transaction.objects.filter(time=tran.time, value=-1*tran.value)
       if len(otrans) == 1:

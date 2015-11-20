@@ -46,18 +46,6 @@ export class Models {
 
         this.sql = sql;
 
-/* TODO(dbounov): For know can't add AggregatePurchases since it doesn't have a
- primary key.
-
-	this.AggregatePurchases = sql.define('aggregate_purchases', {
-	   date: sequelize.DATE,
-           barcode: sequelize.STRING,
-           quantity: sequelize.INTEGER,
-           price: sequelize.DECIMAL,
-           builkid: sequelize.INTEGER,
-	}, {timestamps : false})
-*/
-
         this.BulkItems = sql.define('bulk_items', {
             bulkid: { type: sequelize.INTEGER, primaryKey: true },
             description: sequelize.STRING,

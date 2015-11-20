@@ -9,7 +9,6 @@ if [[ $# -eq 1 ]] ; then
 fi
 
 ssh -C dimo@soda.ucsd.edu -p 425 pg_dump -U bob --inserts bob \
-	-t aggregate_purchases       \
 	-t bulk_items                \
 	-t floor_locations           \
 	-t historical_prices         \
