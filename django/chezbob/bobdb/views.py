@@ -6,7 +6,8 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.http import HttpResponse, HttpResponseRedirect
-from chezbob.bobdb.models import BulkItem, Inventory, Product, ProductSource 
+from chezbob.bobdb.models import BulkItem, Inventory, Product, ProductSource
+from chezbob.bobdb.models import FloorLocations
 from chezbob.orders.models import Order, OrderItem
 
 def parse_date(datestr):
@@ -398,31 +399,9 @@ def take_inventory(request, date):
     counts = Inventory.get_inventory(date)
     inventory_summary = Inventory.get_inventory_summary(date-datetime.timedelta(days=1), include_latest=False)
 
-    locations = []
-    location = { 'name': 'Unknown',
-                 'items': []
-               }
-    locations.append(location);
-    location = { 'name': 'Shelves',
-                 'items': []
-               }
-    locations.append(location);
-    location = { 'name': 'Refrigerator',
-                 'items': []
-               }
-    locations.append(location);
-    location = { 'name': 'Freezer',
-                 'items': []
-               }
-    locations.append(location);
-    location = { 'name': 'Soda Machine',
-                 'items': []
-               }
-    locations.append(location);
-    location = { 'name': 'Terminal',
-                 'items': []
-               }
-    locations.append(location);
+    locations = FloorLocations.get_all_locations()
+    for location in locations:
+        location['items'] = []
 
     counter = 1
 

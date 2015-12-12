@@ -45,6 +45,23 @@ class FloorLocations(models.Model):
     def __unicode__(self):
         return self.name
 
+    @classmethod
+    def get_all_locations(cls):
+        """Return basic information about all floor locations.
+
+        The returned value is a list of dictionaries. Each dictionary has keys
+        for id, name and markup. id is also its index in the list.
+        """
+        cursor = connection.cursor()
+        cursor.execute("""SELECT id, name, markup
+                          FROM floor_locations ORDER BY id ASC""")
+
+        locations = []
+        for (fid, name, markup) in cursor.fetchall():
+            locations.append({'id': fid, 'name': name, 'markup': markup})
+        return locations
+
+
 class BulkItem(models.Model):
     class Meta:
         db_table = 'bulk_items'
