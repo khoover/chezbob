@@ -502,7 +502,7 @@ def estimate_order(request):
 
         # Calculate how many units of new product are needed
         needed = info['sales'] - max(info['inventory']['estimate'], 0)
-        needed += max(p.reserve, p.quantity / 5.0)
+        needed += Decimal(max(p.reserve, p.quantity / 5.0))
         needed = float(needed) / p.quantity
         # This product went out of stock, tweak in case we didn't order enough
         #if info['inventory']['estimate'] <= 0 and info['sales'] > 0:
@@ -516,7 +516,8 @@ def estimate_order(request):
         # Estimate how many days of product remain in inventory 
         # TODO: [nbales] This should really be in another view
         if info['inventory']['estimate'] > 0 and info['sales'] > 0:
-            sales_rate = float(info['sales']) / (date_to - date_from).days
+            sales_rate = Decimal(
+                float(info['sales']) / (date_to - date_from).days)
             days_remain = int(info['inventory']['estimate'] / sales_rate)
             info['exhausted_date'] = datetime.date.today() + datetime.timedelta(days=days_remain)
             if out_of_stock is None or info['exhausted_date'] < out_of_stock:
