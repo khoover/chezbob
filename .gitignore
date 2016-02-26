@@ -21,3 +21,4 @@ soda/src/lib/a.out
 *.swo
 deploy/
 devel_scripts/app.db
+*.idea*
