@@ -1,11 +1,11 @@
 <div id="mainpurchase" class="ui-screen">
     <div class="row">
         <div class="col-xs-5">
-            @@include('snippets/sidebutton.html', {
+            <!--@@include('snippets/sidebutton.html', {
                 "id" : "otheritemsbtn",
                 "fa" : "fa-plus-square",
                 "text" : "Other Items"
-            })
+            })-->
             @@include('snippets/sidebutton.html', {
                 "id" : "moretimebtn",
                 "fa" : "fa-clock-o",
@@ -24,6 +24,12 @@
                 "extraclasses" : "disabletimeout",
                 "fa" : "fa-bomb",
                 "text" : "Admin"
+            })
+            @@include('snippets/tsidebutton.html', {
+                "id" : "main-message-btn",
+                "target" : "message",
+                "fa" : "fa-envelope",
+                "text" : "Contact"
             })
             @@include('snippets/sidebutton.html', {
                 "id" : "logoutbtn2",
