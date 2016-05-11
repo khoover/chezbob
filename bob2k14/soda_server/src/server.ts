@@ -316,12 +316,12 @@ class sodad_server {
                                         }
                                         throw "Target user " + targetuser + " not found!"
                                     })
-                             })
-                        .catch(function (err)
-                            {
-                                log.error("Error committing transfer transaction for client " + client + ", rolling back: ", err);
-                                server.clientchannels[client].displayerror("fa-warning", "Transfer Error", err);
-                            });
+                             });
+                })
+                .catch(function (err)
+                {
+                    log.error("Error committing transfer transaction for client " + client + ", rolling back: ", err);
+                    server.clientchannels[client].displayerror("fa-warning", "Transfer Error", err);
                 });
             }
         });
@@ -378,12 +378,12 @@ class sodad_server {
                                         newbalance: user_updated.balance
                                     })
                                 });
-                             })
-                        .catch(function (err)
-                            {
-                                log.error("Error committing transaction for client " + client + ", rolling back: ", err);
-                                server.clientchannels[client].displayerror("fa-warning", "Transaction Error", err);
-                            });
+                             });
+                })
+                .catch(function (err)
+                {
+                    log.error("Error committing transaction for client " + client + ", rolling back: ", err);
+                    server.clientchannels[client].displayerror("fa-warning", "Transaction Error", err);
                 });
             }
         });
