@@ -1317,26 +1317,27 @@ class sodad_server {
                     redisclient.hgetallAsync("sodads:" + sessionid)
                         .then (function (session)
                             {
-                                if (session === null)
-                                {
-                                    log.info ("Vend request for " + requested_soda + " DENIED due to no session");
-                                    server.clientchannels[sessionid].displayerror("fa-warn", "Vend DENIED", "You must be logged in to buy soda.");
-                                    cb(null, false);
-                                }
-                                else
-                                {
-                                    log.info("Vend request for " + requested_soda + " AUTHORIZED for user " + session.username);
-                                    //get requested soda name...
-                                    models.Products.find({where : {barcode : server.initdata.sodamap[requested_soda] }})
-                                        .then(function (sodainfo)
+                                //get requested soda name...
+                                models.Products.find({where : {barcode : server.initdata.sodamap[requested_soda] }})
+                                    .then(function (sodainfo)
+                                    {
+                                        if (session === null)
+                                        {
+                                            log.info ("Vend request for " + requested_soda + " DENIED due to no session");
+                                            log.trace("Display price for product " + sodainfo.name + " due to barcode scan.");
+                                            server.clientchannels[sessionid].displayerror("fa-barcode", "Price Check", sodainfo.name + " costs " + sodainfo.price);
+                                            cb(null, false);
+                                        }
+                                        else
+                                        {
+                                            log.info("Vend request for " + requested_soda + " AUTHORIZED for user " + session.username);
+                                            server.clientchannels[sessionid].displaysoda(requested_soda, sodainfo.name);
+                                            redisclient.hsetAsync("sodads:" + sessionid, "activevend", true).then(function ()
                                             {
-                                                server.clientchannels[sessionid].displaysoda(requested_soda, sodainfo.name);
-                                                redisclient.hsetAsync("sodads:" + sessionid, "activevend", true).then(function ()
-                                                {
-                                                    cb(null, true);
-                                                });
+                                                cb(null, true);
                                             });
-                                }
+                                        }
+                                    });
                             }).catch(function (e)
                                 {
                                     log.error("Vend request for " + requested_soda + " DENIED due to lookup error " + e);
