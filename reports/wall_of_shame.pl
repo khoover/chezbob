@@ -65,8 +65,12 @@ sub format_table_rows {
 my $dbh = get_database_connection();
 
 my $sth = $dbh->prepare(
-    "SELECT username, balance FROM users
-     WHERE balance <= -5.00 ORDER BY balance"
+    "SELECT username, nickname, balance FROM users
+     WHERE
+        balance <= -5.00
+        AND NOT disabled
+        AND last_purchase_time > now() - INTERVAL '2 years'
+    ORDER BY balance"
 );
 $sth->execute();
 
@@ -90,7 +94,8 @@ paying for it. Tsk, tsk... for shame.
 
 <table width="75%" border="1" cellspacing="0">
 <tr>
-  <th>User Name</th>
+  <th>Username</th>
+  <th>Name</th>
   <th>Owes Bob (USD)</th>
 </tr>
 END
@@ -99,8 +104,8 @@ my @rows = ();
 my @row;
 my $owed = 0.0;
 while ((@row = $sth->fetchrow_array)) {
-    push @rows, [$row[0], sprintf("%.02f", -$row[1])];
-    $owed += -$row[1];
+    push @rows, [$row[0], $row[1], sprintf("%.02f", -$row[2])];
+    $owed += -$row[2];
 }
 format_table_rows @rows;
 
