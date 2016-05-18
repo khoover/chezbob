@@ -1,0 +1,125 @@
+<html>
+    <head>
+        <title>For shame...</title>
+        <meta http-equiv="refresh" content="300">
+        <script src="jquery-2.2.3.min.js"></script>
+        <script>
+            JSON_SOURCE = "json/shame.json";
+            JSON_UPDATE_INTERVAL = 50000;
+            SCREEN_UPDATE_INTERVAL = 5000;
+
+            var shame = [];
+            //total = options.map((a) => a[1]).reduce((a, b) => (a+b))
+             
+            function update_page(name, amount) {
+                $("#users-name").text(name);
+                $("#amount").text("$" + amount);
+            }
+
+            function update_data(on_complete) {
+                ($.getJSON(JSON_SOURCE, "")
+                    .done(function (data, textStatus, jqXHR) {
+                        console.log("Received updated data...");
+                        shame = data;
+                        if (on_complete != null) {
+                            on_complete();
+                        }
+                    })
+                );
+            }
+
+            function start() {
+                update_page("John", 44.3);
+            }
+
+            function choose_someone() {
+                var choice = shame[Math.floor(Math.random()*shame.length)];
+
+                if (choice != null) {
+                    update_page(choice[0], choice[1]);
+                }
+            }
+
+            function start() {
+                console.log("Starting...");
+                update_data(choose_someone);
+                setInterval(choose_someone, SCREEN_UPDATE_INTERVAL);
+                setInterval(update_data, JSON_UPDATE_INTERVAL);
+            }
+        </script>
+        <style>
+            body {
+                height: 100%;
+            }
+            p#shamebox {
+                vertical-align: middle;
+                text-align: center;
+                margin-left: auto;
+                margin-right: auto;
+                width: 100%;
+                margin-top: auto;
+                margin-bottom: auto;
+
+                font-family: Helvetica, sans-serif;
+                font-size: 48pt;
+
+
+                position: relative;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            span#users-name {
+                color: #aa0000;
+                font-weight: bold;
+            }
+            span#amount {
+                color: #aa0000;
+                font-weight: bold;
+            }
+
+            span#question {
+                display: block;
+            }
+
+            span#answer {
+                display: block;
+            }
+
+            span#shame {
+                font-weight: bold;
+                color: #FFAA00;
+                padding-top: 70px;
+                display: block;
+            }
+
+            span#plea {
+                font-size: 36pt;
+                margin-bottom: 10px;
+                display: block;
+                padding-bottom: 70px;
+            }
+
+            span#username {
+                font-style: italic;
+                margin-bottom: 10px;
+                display: block;
+            }
+        </style>
+    </head>
+    <body onload="start()">
+        <p id="shamebox">
+            <span id="plea">
+                Help Chez Bob function!
+            </span>
+            <span id="question">
+                Do you know <span id="users-name">So-and-so</span>?
+            </span>
+            <span id="answer">
+                They owe Chez Bob <span id="amount">$9001</span>!
+            </span>
+            <span id="shame">
+                For Shame!
+            </span>
+        </p>
+    </body>
+</html>
