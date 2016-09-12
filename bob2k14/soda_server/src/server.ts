@@ -903,15 +903,16 @@ class sodad_server {
         }
     }
 
-    handleBillDeposit(server: sodad_server, client : string, amt: string, user)
+    handleBillEscrow(server: sodad_server, client : string, amt: string, user)
     {
         if (user !== null)
         {
-            log.info("Bill type " + amt + " accepted");
-            server.balance_transaction(server, client, "ADD " + amt,
-                "Deposit " + amt, null, amt);
+            log.info("Trying to accept bill type " + amt);
             var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
             rpc_client.request("Mdb.command", [ "K1" ], function (err,response){});
+            // After we've sent the request to stack, we need to poll for the
+            // actual result.
+            rpc_client.request("Mdb.command", [ "P2" ], function (err,response){});
 
         }
         else
@@ -919,6 +920,21 @@ class sodad_server {
             log.warn("Bill type " + amt + " inserted, but no user is logged in, returning...")
             var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
             rpc_client.request("Mdb.command", [ "K2" ], function (err,response){});
+        }
+    }
+
+    handleBillStack(server: sodad_server, client : string, amt: string, user)
+    {
+        if (user !== null)
+        {
+            log.info("$" + amt + " bill accepted");
+            server.balance_transaction(
+                server, client, "ADD " + amt, "Deposit $" + amt, null, amt);
+        }
+        else
+        {
+            // Once a bill is stacked, it can't be unstacked.
+            log.error("Bill type " + amt + " accepted, but no user is logged in.")
         }
     }
 
@@ -1452,22 +1468,46 @@ class sodad_server {
                                 server.handleCoinDeposit(server, sessionid, "1.00", "03", user);
                                 break;
                             case "Q1 00":
-                                server.handleBillDeposit(server, sessionid, "1.00", user);
+                                server.handleBillEscrow(server, sessionid, "1.00", user);
                                 break;
                             case "Q1 01":
-                                server.handleBillDeposit(server, sessionid, "5.00", user);
+                                server.handleBillEscrow(server, sessionid, "5.00", user);
                                 break;
                             case "Q1 02":
-                                server.handleBillDeposit(server, sessionid, "10.00", user);
+                                server.handleBillEscrow(server, sessionid, "10.00", user);
                                 break;
                             case "Q1 03":
-                                server.handleBillDeposit(server, sessionid, "20.00", user);
+                                server.handleBillEscrow(server, sessionid, "20.00", user);
                                 break;
                             case "Q1 04":
-                                server.handleBillDeposit(server, sessionid, "50.00", user);
+                                server.handleBillEscrow(server, sessionid, "50.00", user);
                                 break;
                             case "Q1 05":
-                                server.handleBillDeposit(server, sessionid, "100.00", user);
+                                server.handleBillEscrow(server, sessionid, "100.00", user);
+                                break;
+                            case "Q2 00":
+                                server.handleBillStack(
+                                    server, sessionid, "1.00", user);
+                                break;
+                            case "Q2 01":
+                                server.handleBillStack(
+                                    server, sessionid, "5.00", user);
+                                break;
+                            case "Q2 02":
+                                server.handleBillStack(
+                                    server, sessionid, "10.00", user);
+                                break;
+                            case "Q2 03":
+                                server.handleBillStack(
+                                    server, sessionid, "20.00", user);
+                                break;
+                            case "Q2 04":
+                                server.handleBillStack(
+                                    server, sessionid, "50.00", user);
+                                break;
+                            case "Q2 05":
+                                server.handleBillStack(
+                                    server, sessionid, "100.00", user);
                                 break;
                             default:
                                 log.error("Unknown MDB command: " + command);
