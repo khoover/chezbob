@@ -11,7 +11,7 @@ set transaction isolation level serializable;
 create temp table date_cutoff (time timestamp with time zone)
     on commit drop;
 insert into date_cutoff
-    select date_trunc('day', now() - interval '24 months') as time;
+    select date_trunc('day', now() - interval '48 months') as time;
 
 create temp table initial_balances (userid int, balance numeric(12, 2))
     on commit drop;
