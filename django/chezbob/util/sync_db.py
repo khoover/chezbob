@@ -184,6 +184,8 @@ def sync_day(date):
             sum_writeoff += amt
         elif category == "REFUND":
             sum_refund -= amt
+        elif category == "WITHDRAW":  # Not sure this is the right response here...
+            sum_deposit -= amt
         else:
             raise ValueError("Unknown transaction: " + desc)
 
