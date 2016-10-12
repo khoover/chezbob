@@ -1,0 +1,121 @@
+body {
+    height: 100%;
+}
+#balance_box {
+    vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    margin-top: auto;
+    margin-bottom: auto;
+
+    font-family: Helvetica, sans-serif;
+    font-size: 68pt;
+
+    /*position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;*/
+}
+#loading, #all_clear {
+    vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    margin-top: 20%;
+    margin-bottom: auto;
+
+    font-family: Helvetica, sans-serif;
+    font-size: 68pt;
+
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+#loading {
+    vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+
+    font-family: Helvetica, sans-serif;
+    font-size: 68pt;
+
+    /*position: relative;
+    top: 50%;
+    transform: translateY(-50%);*/
+}
+#all_clear {
+    vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+
+    font-family: Helvetica, sans-serif;
+    font-size: 68pt;
+
+    /*position: relative;
+    top: 50%;
+    transform: translateY(-50%);*/
+}
+
+span#users-name {
+    color: #aa0000;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 10px;
+    padding-bottom: 70px;
+    margin-top: 70px;
+}
+span#amount {
+    color: #aa0000;
+    font-weight: bold;
+}
+
+span#answer {
+    display: block;
+    font-size: 36pt;
+}
+
+span#shame {
+    font-weight: bold;
+    color: #FFAA00;
+    padding-top: 70px;
+    display: block;
+}
+
+span#username {
+    font-style: italic;
+    margin-bottom: 10px;
+    display: block;
+}
+
+span#followup {
+    font-weight: normal;
+    /*color: #FFAA00;*/
+    padding-top: 70px;
+    display: block;
+    font-size: 36pt;
+}
+
+
+/* ///////////////////////////////////////////////////// */
+
+
+/* To start, hide everything. */
+/*div#bodybox>* {
+    display: none;
+}*/
+
+
+
+
+
+
+
+

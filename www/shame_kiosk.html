@@ -1,49 +1,95 @@
 <html>
     <head>
         <title>For shame...</title>
-        <meta http-equiv="refresh" content="300">
+        <meta http-equiv="refresh" content="3600">
         <script src="jquery-2.2.3.min.js"></script>
         <script>
             JSON_SOURCE = "json/shame.json";
-            JSON_UPDATE_INTERVAL = 50000;
-            SCREEN_UPDATE_INTERVAL = 5000;
+            JSON_UPDATE_INTERVAL = 10000;
+            //SCREEN_UPDATE_INTERVAL = 10000;
 
             var shame = [];
-            //total = options.map((a) => a[1]).reduce((a, b) => (a+b))
-             
+            var current_user = 0;
+            var minimum;
+
             function update_page(name, amount) {
                 $("#users-name").text(name);
                 $("#amount").text("$" + amount);
             }
 
             function update_data(on_complete) {
-                ($.getJSON(JSON_SOURCE, "")
-                    .done(function (data, textStatus, jqXHR) {
-                        console.log("Received updated data...");
-                        shame = data;
-                        if (on_complete != null) {
-                            on_complete();
-                        }
-                    })
-                );
-            }
 
-            function start() {
-                update_page("John", 44.3);
+                function on_update_received(data, textStatus, jqXHR) {
+                    console.log("Received updated data...");
+                    old_shame_length = shame.length;
+                    shame = data.debtors;
+                    threshold = data.threshold;
+
+                    if (shame.length == 0) {
+                        $("#loading").html(
+                            "<h2>Thanks for paying your Chez Bob balance!</h2>" +
+                            "<p>Please avoid owing Chez Bob more than $5</p>")
+                            //"<p>Thanks for keeping your balance below $" +
+                            //threshold + "!</p>")
+                        $("#shamebox").css("display", "none");
+                        $("#loading").css("display", "block");
+                    }
+                    else {
+                        // Fun fact: the ancient version of chromium in 12.04's
+                        // repos (... we should really upgrade) doesn't support
+                        // the => syntax sugar.
+                        function first(x) { return x[1]; }
+                        function min(x, y) { return Math.min(x, y); }
+                        minimum = shame.map(first).reduce(min);
+                        console.log("New minimum: " + minimum);
+
+                        if (old_shame_length == 0) {
+                            console.log("Forcing update since no old data");
+                            choose_someone();
+                        }
+
+                        $("#loading").css("display", "none");
+                        $("#shamebox").css("display", "block");
+                    }
+
+                    if (on_complete != null) {
+                        on_complete();
+                    }
+                }
+
+                $.ajax({
+                    dataType: "json",
+                    url: JSON_SOURCE,
+                    data: "",
+                    //crossDomain: false,
+                    headers: {'X-Requested-With': 'XMLHttpRequest'},
+                    success: on_update_received
+                });
+                //$.getJSON(JSON_SOURCE, "").done(on_update_received);
             }
 
             function choose_someone() {
-                var choice = shame[Math.floor(Math.random()*shame.length)];
+                if (shame == null || shame.length == 0) {
+                    console.log("Rescheduling update since null choice");
+                    setTimeout(choose_someone, 1000);
+                    return;
+                }
+
+                var choice = shame[current_user];
+                current_user = (current_user + 1) % shame.length;
 
                 if (choice != null) {
                     update_page(choice[0], choice[1]);
+                    delay = Math.floor(5000 + (choice[1] - minimum) * 500);
+                    console.log(
+                        "Switching from " + choice[0] + " in " + delay + " ms");
+                    setTimeout(choose_someone, delay);
                 }
             }
 
             function start() {
                 console.log("Starting...");
-                update_data(choose_someone);
-                setInterval(choose_someone, SCREEN_UPDATE_INTERVAL);
+                update_data();
                 setInterval(update_data, JSON_UPDATE_INTERVAL);
             }
         </script>
@@ -61,12 +107,32 @@
                 margin-bottom: auto;
 
                 font-family: Helvetica, sans-serif;
-                font-size: 48pt;
-
+                font-size: 68pt;
 
                 position: relative;
                 top: 50%;
                 transform: translateY(-50%);
+                display: none;
+            }
+            #loading {
+                vertical-align: middle;
+                text-align: center;
+                margin-left: auto;
+                margin-right: auto;
+                width: 100%;
+                margin-top: auto;
+                margin-bottom: auto;
+
+                font-family: Helvetica, sans-serif;
+                position: relative;
+                top: 50%;
+                transform: translateY(-50%);
+            }
+            #loading h2 {
+                font-size: 68pt;
+            }
+            #loading p {
+                font-size: 24pt;
             }
             span#users-name {
                 color: #aa0000;
@@ -104,22 +170,36 @@
                 margin-bottom: 10px;
                 display: block;
             }
+
+            span#followup {
+                font-weight: normal;
+                /*color: #FFAA00;*/
+                padding-top: 70px;
+                display: block;
+                font-size: 36pt;
+            }
         </style>
     </head>
     <body onload="start()">
+        <div id="loading">
+            Loading...
+        </div>
         <p id="shamebox">
             <span id="plea">
-                Help Chez Bob function!
+                Help Chez Bob stay afloat!
             </span>
             <span id="question">
-                Do you know <span id="users-name">So-and-so</span>?
+                Do you know <span id="users-name"></span>?
             </span>
             <span id="answer">
-                They owe Chez Bob <span id="amount">$9001</span>!
+                They owe Chez Bob <span id="amount"></span>!
             </span>
-            <span id="shame">
+            <span id="followup">
+                Please encourage them to pay Chez Bob back today!
+            </span>
+            <!--<span id="shame">
                 For Shame!
-            </span>
+            </span>-->
         </p>
     </body>
 </html>

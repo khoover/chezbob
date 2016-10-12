@@ -55,7 +55,11 @@ sub format_table_rows {
 
         printf qq[<tr class="%s">\n], ($i % 2 ? "odd" : "even");
         foreach (@row) {
-            print "  <td>", $_, "</td>\n";
+            print "  <td>";
+            if (length $_) {
+                print $_;
+            }
+            print "</td>\n";
         }
         print "</tr>\n";
         $i++;
@@ -82,21 +86,54 @@ print <<'END';
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <title>Chez Bob Wall of Shame</title>
-</head>
-<body bgcolor="#ffffff">
-<table border="0" cellspacing="0" width="100%" bgcolor="#CCCCFF"><tr>
-<td align=center><br><b>Chez Bob Wall of <font color=#ff000>Shame</font></b><br>
-These are the poor souls who have "purchased" $5 or more from Chez Bob without
-paying for it. Tsk, tsk... for shame. 
-<br><br></td>
-</tr></table>
-<br>
+<meta http-equiv="refresh" content="60">
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700|Dancing+Script' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="css/common.css">
+<style>
+.red {
+    color: #cc0000;
+}
 
-<table width="75%" border="1" cellspacing="0">
+#shame_table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid black;
+}
+
+#shame_table th {
+    text-align: left;
+    background-color: #dddddd;
+}
+
+#shame_table tr {
+    margin: 0px;
+}
+
+#shame_table td {
+    border-top: 1px solid black;
+    margin: 0px;
+    padding: 3px;
+}
+
+#shame_table tr.even {
+    background-color: #eeeeee;
+}
+
+</style>
+</head>
+<body>
+<h1>Chez Bob</h1>
+
+<div id="content-box">
+<h2>Wall of <font class="red">Shame</font></h2>
+<p>These are the poor souls who have "purchased" $5 or more from Chez Bob without
+paying for it. Tsk, tsk... for shame.</p>
+
+<table id='shame_table'>
 <tr>
   <th>Username</th>
   <th>Name</th>
-  <th>Owes Bob (USD)</th>
+  <th width="150">Owes Bob (USD)</th>
 </tr>
 END
 
@@ -110,7 +147,7 @@ while ((@row = $sth->fetchrow_array)) {
 format_table_rows @rows;
 
 $sth = $dbh->prepare(
-    "SELECT -sum(balance) FROM users WHERE balance < 0"
+    "SELECT -sum(balance) FROM users WHERE balance < 0 AND NOT disabled"
 );
 $sth->execute();
 @row = $sth->fetchrow_array;
@@ -124,6 +161,7 @@ print <<END;
 <p>Total owed to Chez Bob: \$@{[ sprintf("%.02f", $total_owed) ]}
 (@{[ sprintf("%.01f", 100.0 * $owed / $total_owed) ]}\% by users above)</p>
 <p>Last updated: $updated</p>
+</div>
 </body>
 </html>
 END

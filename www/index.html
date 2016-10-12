@@ -3,71 +3,76 @@
 
 <head>
 <title>
-Chez Bob 2001
+    Chez Bob
 </title>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700|Dancing+Script' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="css/common.css">
+</head>
 
-<body bgcolor=#FFFFFF>
+<body>
+<h1>Chez Bob</h1>
 
-</script>
 <script language="JavaScript1.1">
 
 image_src = new Array(
-  "images/porkrinds.png",
-  "images/animals.png",
-  "images/mugshot.png",
-  "images/smiling.png",
-  "images/creepy.png",
-  "images/dough.png"
-);
+        "images/porkrinds.png",
+        "images/animals.png",
+        "images/mugshot.png",
+        "images/smiling.png",
+        "images/creepy.png",
+        "images/dough.png"
+        );
 
 pics = new Array();
 for (var i=0;i<image_src.length; i++) {
-  pics[i] = new Image();
-  pics[i].src = image_src[i];
+    pics[i] = new Image();
+    pics[i].src = image_src[i];
 }
 
-function wo(x) {        
-  document.right.src = pics[x].src;
+function wo(x) {
+    document.right.src = pics[x].src;
 }
 </script>
 
 
 <center>
-<img src="images/bob_title.png">
-<table border=0> 
+    <!--<img src="images/bob_title.png">-->
+    <table border=0>
 
-<tr>
-<td align=center height=350 width=150>
-<i>
-<a  onMouseOver="wo(1);return true;" 
-        href="instr.html">Instructions</a>
-<br><br><a onMouseOver="wo(0);return true;" 
-        href="prices.html">Prices</a>
-<br><br><a onMouseOver="wo(2);return true;" 
-        href="wall_of_shame.html">Wall of Shame</a>
-<br><br><a onMouseOver="wo(3);return true;" 
-        href="faq.html">FAQ</a>
-<br><br><a onMouseOver="wo(4);return true;" 
-        href="credits.html">Credits and History</a>
-<br><br><a onMouseOver="wo(5);return true;" 
-        href="/payment">Pay Large Debts Online</a>
-</i>
-</td>
+        <tr>
+            <td align="center" height="350" width="150">
+                <a  onMouseOver="wo(1);return true;"
+                    href="https://docs.google.com/document/d/1X_2GpRDKCOCk1UaviOUPUzv0nCcfIsNKN1Xi5QFy36o/edit?usp=sharing">Instructions</a>
+                <!--<a  onMouseOver="wo(1);return true;"
+    href="instr.html">Instructions</a>-->
+                <br><br><a onMouseOver="wo(5);return true;"
+                    href="https://chezbob.ucsd.edu/payment">Make Deposit</a>
+                <br><br><a onMouseOver="wo(2);return true;"
+                    href="wall_of_shame.html">Wall of Shame</a>
+                <br><br><a onMouseOver="wo(0);return true;"
+                    href="prices.html">Prices</a>
+                <!--<br><br><a onMouseOver="wo(3);return true;"
+    href="faq.html">FAQ</a>-->
+                <br><br><a onMouseOver="wo(4);return true;"
+                    href="credits.html">History</a>
+            </td>
 
-<td align=center width=250 height=350>
-<img name="right" src="images/snacks.png"  >
-</td>
-</tr>
+            <td align=center width=250 height=350>
+                <img name="right" src="images/snacks.png"  >
+            </td>
+        </tr>
 
-</table>
+    </table>
 
-<P>Visit <A HREF=museum/><I>the Chez Bob Museum</I></A>!</P>
+    <p>Visit <a href=museum/>the Chez Bob Museum</a>!</p>
 
-<FONT SIZE=-1><P>More recent information <I>may</I> be available on the CSE-GSA Wiki's <A HREF="http://cse-gsa.ucsd.edu/csewiki/ChezBob">Chez Bob entry</A></FONT>
+    <!--<FONT SIZE=-1><P>More recent information <I>may</I> be available on the
+    CSE-GSA Wiki's <A HREF="http://cse-gsa.ucsd.edu/csewiki/ChezBob">Chez Bob
+    entry</A></FONT>-->
 
 </center>
 
 
 </body>
 
-</html> 
+</html>

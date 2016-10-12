@@ -10,18 +10,22 @@ import sys
 
 
 CONFIG_REL_PATH = "../db.conf"
+OUTFILE = "/git/www/json/shame.json"
+ANNOUNCE_PATH = "/git/www/json/wall_screen.json"
 
+
+THRESHOLD = 15.00
 
 QUERY = """
     SELECT
         username, nickname, balance
     FROM users
     WHERE
-        balance < -10
+        balance <= -{threshold}
         AND (NOT disabled)
         AND (last_purchase_time > now() - INTERVAL '6 months')
     ORDER BY balance ASC
-    LIMIT 15
+    LIMIT 20
 """
 
 
@@ -58,16 +62,38 @@ def main():
 
     conn = get_db(config_file)
     cursor = conn.cursor()
-    cursor.execute(QUERY)
+    cursor.execute(QUERY.format(threshold=THRESHOLD))
 
     results = []
-    for row in cursor:
+    for i, row in enumerate(cursor):
         results.append(
-            [row[1] if row[1] else row[0], "{:.2f}".format(-1 * row[2])])
+            [
+                row[1],
+                "{:.2f}".format(-1 * row[2]),
+                row[0],
+                i
+            ]
+        )
 
-    print json.dumps(results)
+    data = {
+        "debtors": results,
+        "threshold": THRESHOLD,
+    }
+
+    with open(OUTFILE, 'w') as f:
+        f.write(json.dumps(data))
+
+    with open(ANNOUNCE_PATH, 'w') as f:
+        if len(results):
+            f.write(
+                '{"url": "https://chezbob.ucsd.edu/shame_kiosk.html",'
+                ' "duration": 30.0,'
+                ' "hold": true}\n')
+        else:
+            f.write('{}\n')
+
+    # sys.stdout.write(json.dumps(data))
 
 
 if __name__ == "__main__":
     sys.exit(main())
-

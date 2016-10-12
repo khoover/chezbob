@@ -1,38 +1,274 @@
+<!DOCTYPE html>
 <html>
-<head>
-<title>Online payment</title>
-<style>
-* {
-    font-family: "Helvetica", "Georgia";
-}
-body {
-    margin-left: 20%;
-    margin-right: 20%;
-}
-img {
-    margin-left: auto;
-    margin-right: auto;
-}
-p {
-    font-size: 20pt;
-}
-ul {
-    font-size: 14pt;
-}
-</style>
-</head>
-<body>
-<center>
-<h1>Online Payment</h1>
-<img src="http://chezbob.ucsd.edu/images/dough.png" />
-</center>
-<p>Important notes:</p>
-<ul>
-    <li>Only use online payment in amounts of <strong>at least $20</strong>, or if you're <strong>no longer at UCSD</strong>.</li>
-    <li><strong>Include your Chez Bob username</strong> in the 'Optional Notes' field. If you don't, we won't know who to credit.</li>
-    <li>Payments without this info will be considered a donation.</li>
-    <li>Please allow at least 24 hours for your balance to be updated-- it's a manual process.</li>
-</ul>
-<center><h2><a href="https://cash.me/$ChezBob">Make payment</a></h2></center>
-</body>
+    <head>
+        <title>Deposit by Credit Card | Chez Bob</title>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700|Dancing+Script' rel='stylesheet' type='text/css'>
+        <script src="https://chezbob.ucsd.edu/js/jquery-2.2.3.min.js"></script>
+        <script src="https://checkout.stripe.com/checkout.js"></script>
+        <link rel="stylesheet" href="../css/common.css">
+        <style>
+            input {
+            }
+            input#amount {
+            }
+
+            .currency {
+                border: 1px solid #aaa;
+                /*border-bottom: 1px inset black;*/
+                width: 75px;
+                /*background-color: #C0FAFA;*/
+                padding: 0px;
+                display: inline-block;
+            }
+            .currency input {
+                /*background-color: #C0FAFA;*/
+                color: #000000;
+                width: 60px;
+                margin: 1px;
+                border: 0px;
+                font-size: 18px;
+                text-align: left;
+            }
+            #charge-amount {
+                font-weight: bold;
+                font-size: 14pt;
+                color: #880011;
+            }
+            #button-block {
+                text-align: center;
+            }
+
+            #username_error {
+                color: #ff0000;
+                display: none;
+            }
+
+            #balance_warning {
+                color: #cc3300;
+                display: none;
+            }
+
+            #username_error a {
+                color: #aa0000;
+            }
+        </style>
+        <script>
+            if (window.location.protocol != "https:")
+                window.location.href = "https:" +
+                window.location.href.substring(window.location.protocol.length);
+
+            credit_amount = 0;
+            charge_amount = 0;
+            charge_user = null;
+            var handler;
+
+            CHARGE_URL = (
+                "https://chezbob.ucsd.edu/webpayment/api/v0.1/stripe_deposit"
+            );
+            USERNAME_VALIDATE_URL = (
+                "https://chezbob.ucsd.edu/webpayment/api/v0.1/get_balance/"
+                //"https://chezbob.ucsd.edu/webpayment/api/v0.1/validate_user/"
+            );
+            ON_SUCCESS_URL = (
+                "https://chezbob.ucsd.edu/payment/thanks.html"
+            );
+
+            // Live key
+            STRIPE_PK = "pk_live_rwNywh9MAA7Fyqurc88FleI5";
+            //STRIPE_PK = 'pk_test_iQPJx6lD7p4n91WXPHbJsbb5';
+
+            function handle_deposit_result(result) {
+                if (result.success) {
+                    window.location.href = ON_SUCCESS_URL;
+                }
+                else {
+                    alert("Unable to complete request: " + result.error);
+                }
+            }
+
+            function isNumeric(n) {
+                return !isNaN(parseFloat(n)) && isFinite(n);
+            }
+
+            function show_hide_balance_warning(balance) {
+                if (balance < -1) {
+                    $("#balance").text("$" + (-1 * balance));
+                    $("#balance_warning").css("display", "inline");
+                    $("#amount").val(-1 * balance);
+                    update_charge();
+                }
+                else {
+                    $("#balance_warning").css("display", "none");
+                }
+            }
+
+            function get_url_supplied_user() {
+                // Terrible hack stolen from
+                //  https://gist.github.com/jlong/2428561
+                var parser = document.createElement('a');
+                parser.href = window.location.href;
+
+                console.log("Checking for user in " + parser.href);
+                console.log("Checking for user in " + parser.hash);
+
+                if (parser.hash.length > 1) {
+                    return parser.hash.substring(1);
+                }
+                return null;
+            }
+
+            function validate_and_update_user() {
+                new_charge_user = $("#charge_user").val();
+                console.log("Checking user: " + new_charge_user);
+                function update_charge_user(data) {
+                    if (isNumeric(data.balance)) {
+                        console.log("Username is valid.");
+                        charge_user = data.username;
+                        $("#username_error").css("display", "none");
+
+                        show_hide_balance_warning(data.balance);
+                    }
+                    else {
+                        console.log("Username is invalid.");
+                        charge_user = null;
+                        $("#username_error").css("display", "inline");
+                    }
+                }
+
+                if (new_charge_user == '') {
+                    return;
+                }
+
+                url = (
+                    USERNAME_VALIDATE_URL
+                    + new_charge_user),
+
+                $.getJSON(url, "", update_charge_user)
+                    .done(function() {
+                    })
+                    .fail(function(e) {
+                        console.log( "error" );
+                        console.log( e );
+                    });
+            }
+
+            function update_charge() {
+                console.log("Updating charge amount.");
+
+                value = $("#amount").val();
+                if (value < 1 || value > 500) {
+                    alert("Please select a value between $1 and $500");
+                    return;
+                }
+                credit_amount = value * 100;
+                charge_amount = Math.round((credit_amount + 30)/.971);
+                //charge_amount = Math.ceil(1.029 * credit_amount + 30);
+
+                $("#charge-amount").text("$" + charge_amount / 100.0);
+
+                new_charge_user = $("#charge_user").val();
+                if (charge_user != new_charge_user) {
+                    console.log("Spawned validate/update user.");
+                    validate_and_update_user();
+                }
+            }
+
+            function process_charge_result(token) {
+                // You can access the token ID with `token.id`.
+                // Get the token ID to your server-side code for use.
+                $.ajax({
+                    type: "POST",
+                    dataType: "json",
+                    url: CHARGE_URL,
+                    data: {
+                        "token": token.id,
+                        "credit_amount": credit_amount,
+                        "charged_amount": charge_amount,
+                        "username": charge_user,
+                    },
+                    success: handle_deposit_result,
+                });
+            }
+
+            function on_checkout_button_click(element) {
+                update_charge()
+                if (charge_user == null || charge_user == '') {
+                    alert("Valid username required");
+                    console.log("Found charge_user: " + charge_user);
+                    return;
+                }
+                // Open Checkout with further options:
+                handler.open({
+                    name: 'Chez Bob',
+                    description: "For username: " + charge_user,
+                    amount: charge_amount,
+                    zipCode: true,
+                    //data-image="/img/documentation/checkout/marketplace.png"
+                });
+                element.preventDefault();
+            }
+
+            function onload() {
+                update_charge();
+
+                handler = StripeCheckout.configure({
+                    key: STRIPE_PK,
+                    locale: 'auto',
+                    //image: '/img/documentation/checkout/marketplace.png',
+                    token: process_charge_result,
+                });
+
+                $('#checkout_button').on('click', on_checkout_button_click);
+
+                // Close Checkout on page navigation:
+                $(window).on('popstate', function() {
+                    handler.close();
+                });
+
+                var user = get_url_supplied_user();
+                if (user != null) {
+                    $("#charge_user").val(user);
+                    validate_and_update_user();
+                }
+
+            }
+
+            $(document).ready(onload);
+
+        </script>
+    </head>
+    <body>
+        <h1>Chez Bob</h1>
+        <div id="content-box">
+            <h2>Deposit by Credit/Debit Card</h2>
+            <p>
+            <strong>Please note</strong>: Our card processor charges us
+                <strong>2.9% + 30&cent;</strong>. So that we don't have to raise
+                prices on everyone, we charge those fees to you.
+            </p>
+            <p>
+            Username: <input type="text" id="charge_user"
+                        onchange="update_charge()">
+            <span id="username_error">Invalid Username
+                (<a href="#" onclick="validate_and_update_user()">recheck</a>)
+            </span>
+            <span id="balance_warning">
+                (current debt: <span id="balance"></span>)
+            </span>
+            </p>
+            <p>
+            How much would you like to add to your account?
+            <span class="currency">
+                $<input type="number" name="amount" id="amount" value="20"
+                onchange="update_charge()" min="1" max="500">
+            </span>
+            </p>
+            <p>
+            That means we'll charge your card <span id="charge-amount"></span>.
+            </p>
+            <p id="button-block">
+                <button id="checkout_button">Checkout</button>
+            </p>
+        </div>
+    </body>
 </html>
