@@ -4,7 +4,8 @@
 # lists the changes in account values over each month.  This can be used to
 # generate graphs such as monthly sales numbers.
 
-import re, sys
+import re
+import sys
 
 snapshots = []
 
@@ -23,7 +24,8 @@ for line in sys.stdin:
     values = [float(x) for x in m.group(2).split()]
     if len(snapshots) == 0 or re.match(r".*-01$", date):
         snapshots.append((date, values))
-if not re.match(r".*-01$", date):
+
+if date is not None and not re.match(r".*-01$", date):
     snapshots.append((date, values))
 
 for i in range(len(snapshots) - 1):
@@ -35,5 +37,7 @@ for i in range(len(snapshots) - 1):
     while len(balance1) < len(balance2):
         balance1.append(0.0)
 
-    delta = map(lambda x, y: y - x, balance1, balance2)
-    sys.stdout.write("%s\t%s\n" % (date, "\t".join("%.02f" % x for x in delta)))
+    delta = map(
+        lambda x, y: (y if y else 0) - (x if x else 0), balance1, balance2)
+    sys.stdout.write(
+        "%s\t%s\n" % (date, "\t".join("%.02f" % x for x in delta)))
