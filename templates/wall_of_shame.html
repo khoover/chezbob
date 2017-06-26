@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>Chez Bob Wall of Shame</title>
+<meta charset="UTF-8">
+<!--<meta http-equiv="refresh" content="60">-->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700|Dancing+Script' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="css/common.css">
+<script src="https://chezbob.ucsd.edu/js/jquery-2.2.3.min.js"></script>
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    width: 100vw;
+}
+
+.red {
+    color: #cc0000;
+}
+
+div#content-box {
+    width: 100%;
+    max-width: 900px;
+    /*text-align: center;*/
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 2vw;
+    padding-right: 2vw;
+}
+
+#shame_table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid black;
+}
+
+#shame_table th {
+    text-align: left;
+    background-color: #dddddd;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#shame_table tr {
+    margin: 0px;
+}
+
+#shame_table td {
+    border-top: 1px solid black;
+    margin: 0px;
+    /*padding: 3px;*/
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+#shame_table tr:nth-child(even) {
+    background-color: #eeeeee;
+}
+
+#shame_table img {
+    vertical-align: middle;
+    padding: 0px;
+}
+
+#dow_col {
+    white-space: nowrap;
+    width: 70px;
+    min-width: 70px;
+}
+#owe_col {
+    width: 100px;
+    min-width: 90px;
+    white-space: nowrap;
+}
+
+th#dow_col, th#owe_col {
+    text-align: right;
+}
+
+#shame_table td:nth-child(3), #shame_table td:nth-child(4), #shame_table td:nth-child(5), #shame_table td:nth-child(6) {
+    text-align: right;
+}
+
+.label {
+    text-align: right;
+    font-weight: bold;
+    page-break-after: avoid;
+}
+
+.label img {
+    vertical-align: middle;
+}
+
+#shame_table tr.warning {
+    background-color: #ffffaa;
+}
+
+#shame_table tr.error {
+    background-color: #ffaaaa;
+}
+
+#shame_table tr.unimportant {
+    /*color: #999999;*/
+    opacity: .5;
+}
+
+.subtext {
+    text-align: center;
+    color: #555555;
+    font-size: 75%;
+}
+
+</style>
+<script>
+var PAGE_UPDATE_INTERVAL = 15000;
+
+function init_update_check() {
+    console.log("Starting update checking intervals.");
+    function get_headers(cb) {
+        $.ajax(
+            document.location.href,
+            { method: "HEAD", complete: cb }
+        );
+    }
+    function reload_callback(resp) {
+        if (    last_updated !=
+                resp.getResponseHeader("Last-Modified")) {
+            location.reload();
+        }
+    }
+
+    var last_updated;
+
+    get_headers(function(resp) {
+        last_updated = resp.getResponseHeader("Last-Modified");
+    });
+
+    setInterval(
+        function () {
+            console.log("Checking for page updates.");
+            get_headers(reload_callback);
+        },
+        PAGE_UPDATE_INTERVAL);
+}
+$(init_update_check);
+</script>
+</head>
+<body>
+<h1 id='banner'>Chez Bob</h1>
+
+<div id="content-box">
+<h2>Wall of <font class="red">Shame</font></h2>
+<p align='center'>
+These poor souls have 'purchased' ${{ -1 * MIN_SHAME_BALANCE }} or more from
+Chez Bob without paying.
+</p>
+<p align='center'>
+Encourage them to pay back Chez Bob!
+</p>
+<!--<p align='center'>Tsk, tsk... <strong>for shame.</strong></p>-->
+<table id='shame_table'>
+    <thead>
+    <tr>
+      <th>Username</th>
+      <th>Name</th>
+      <th id='dow_col'>Days</th>
+      <th id='owe_col'>Owes</th>
+    </tr>
+    </thead>
+    <tbody>
+{% for user in users %}
+    <tr class='{% if user.error %}error{% elif user.warning %}warning{% elif user.unimportant %}unimportant{% endif %}'>
+        <td>{{ user.username }}</td>
+        <td>{{ user.nickname }}</td>
+        <td>
+            {% if user.days_on_wall >= WARNING_DAYS %}
+            <img src='/images/icons/error.png'>
+            {% endif %}
+            {{ user.days_on_wall }}
+        </td>
+        <td>
+            {% if user.balance <= WARNING_BALANCE %}
+            <img src='/images/icons/error.png'>
+            {% endif %}
+            ${{ '%0.2f' % (-1 * user.balance) }}
+        </td>
+    </tr>
+{% endfor %}
+    </tbody>
+</table>
+<!--<p class='subtext'>(rows are ordered by balance*days)</p>-->
+<p>
+<span class='label'><img style="padding-right: 15px;" src='/images/icons/error.png'></span> :
+    Owes &ge; ${{ '%0.2f' % (-1 * WARNING_BALANCE) }} or on wall for &ge;
+    {{ WARNING_DAYS }} days<br />
+<span class='label'>Days</span> : Days on Wall of Shame<br />
+</p>
+<p>
+<span class='label'>Total owed to Chez Bob</span>: ${{ '%0.2f' % total_debt }}
+({{ total_percentage|round(1) }}% or ${{ '%0.2f' % (-1 * wall_debt)}} by users above)
+<br />
+<!--<span class='label'>Last changed</span>: {{ last_updated }}<br />-->
+</p>
+</div>
+</body>
+</html>
+
