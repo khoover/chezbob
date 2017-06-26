@@ -3,91 +3,11 @@
     <head>
         <title>Payment Complete</title>
         <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700|Dancing+Script' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="../css/common.css">
         <script src="https://chezbob.ucsd.edu/js/jquery-2.2.3.min.js"></script>
-        <style>
-            body {
-                background-color: #ffffff;
-                margin: 0px;
-            }
-            * {
-                font-family: 'Open Sans', sans-serif;
-            }
-            h1,h2,h3,h4,h5,h6 {
-                text-align: center;
-            }
-            h1 {
-                font-family: 'Dancing Script', sans-serif;
-                margin-left: auto;
-                margin-right: auto;
-                display: block;
-                text-align: center;
-                border-bottom: 1px solid black;
-                padding-bottom: 10px;
-                padding-top: 10px;
-                margin-top: 0px;
-                background-color: #008080;
-                color: #FFFFFF;
-                font-size: 48px;
-            }
-            h2 {
-                border-bottom: 1px solid black;
-            }
-            div#content-box {
-                width: 55%;
-                min-width: 350px;
-                /*text-align: center;*/
-                margin-left: auto;
-                margin-right: auto;
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-            input {
-            }
-            input#amount {
-            }
-
-            .currency {
-                border: 1px solid #aaa;
-                /*border-bottom: 1px inset black;*/
-                width: 75px;
-                /*background-color: #C0FAFA;*/
-                padding: 0px;
-                display: inline-block;
-            }
-            .currency input {
-                /*background-color: #C0FAFA;*/
-                color: #000000;
-                width: 60px;
-                margin: 1px;
-                border: 0px;
-                font-size: 18px;
-                text-align: left;
-            }
-            #charge-amount {
-                font-weight: bold;
-                font-size: 14pt;
-                color: #880011;
-            }
-            #button-block {
-                text-align: center;
-            }
-
-            #username_error {
-                color: #ff0000;
-                display: none;
-            }
-
-            #username_error a {
-                color: #aa0000;
-            }
-
-            .center {
-                text-align: center;
-            }
-        </style>
     </head>
     <body>
-        <h1>Chez Bob</h1>
+        <h1 id='banner'>Chez Bob</h1>
         <div id="content-box">
             <h2>Payment Complete</h2>
             <p class="center">
@@ -96,6 +16,9 @@
             </p>
             <p class="center">
                 <a href="/payment">Make a new payment</a>
+            </p>
+            <p class="center">
+                <a href="/">Go home</a>
             </p>
         </div>
     </body>

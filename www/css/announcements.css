@@ -1,0 +1,43 @@
+body {
+    height: 100%;
+}
+#center_block {
+    vertical-align: middle;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    margin-top: auto;
+    margin-bottom: auto;
+
+    font-family: Helvetica, sans-serif;
+    position: relative;
+    top: 35%;
+    transform: translateY(-50%);
+}
+#center_block h2 {
+    font-size: 68pt;
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+#center_block h3 {
+    font-size: 48pt;
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+#center_block p {
+    font-size: 28pt;
+    margin-top: 1%;
+    /*font-size: 34pt;*/
+}
+
+#center_block ul {
+    font-size: 18pt;
+    /*font-size: 24pt;*/
+    margin-left: auto;
+    margin-right: auto;
+    text-align: left;
+    width: 80%;
+}

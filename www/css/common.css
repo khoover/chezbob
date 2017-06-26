@@ -8,7 +8,11 @@ body {
 h1,h2,h3,h4,h5,h6 {
     text-align: center;
 }
-h1 {
+h1#banner {
+    text-decoration: none;
+    font-weight: normal;
+}
+h1#banner {
     font-family: 'Dancing Script', sans-serif;
     margin-left: auto;
     margin-right: auto;
@@ -25,16 +29,13 @@ h1 {
 h2 {
     border-bottom: 1px solid black;
 }
-div#content-box {
-    width: 55%;
-    min-width: 350px;
-    /*text-align: center;*/
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 20px;
-    padding-right: 20px;
-}
 
 a, a:visited {
     color: #003355;
+}
+
+.center {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
 }

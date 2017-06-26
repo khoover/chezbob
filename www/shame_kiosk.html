@@ -2,54 +2,92 @@
     <head>
         <title>For shame...</title>
         <meta http-equiv="refresh" content="3600">
-        <script src="jquery-2.2.3.min.js"></script>
+        <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700|Dancing+Script' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="css/common.css">
+        <script src="/js/jquery-2.2.3.min.js"></script>
         <script>
             JSON_SOURCE = "json/shame.json";
             JSON_UPDATE_INTERVAL = 10000;
-            //SCREEN_UPDATE_INTERVAL = 10000;
+            MAXIMUM_DELAY_ADD = 5000;
+            BASE_DELAY = 3000;
 
-            var shame = [];
+            var details = null;
             var current_user = 0;
-            var minimum;
+            var max_weight;
 
-            function update_page(name, amount) {
-                $("#users-name").text(name);
-                $("#amount").text("$" + amount);
+            function get_weight(x) {
+                return -1 * x.balance * (x.days_on_wall + 1);
+            }
+
+            function get_factor(x) {
+                return get_weight(x) / max_weight;
+            }
+
+            function show_only(selector) {
+                $("#debtbox").css("display", "none");
+                $("#timebox").css("display", "none");
+                $("#loading").css("display", "none");
+                $(selector).css("display", "block");
+            }
+
+            function update_page(debtor) {
+                switch(debtor.type) {
+                    case "high_value":
+                        $("#debt-users-name").text(debtor.nickname);
+                        $("#debt-amount").text("$" + debtor.debt);
+
+                        show_only("#debtbox");
+                        break;
+                    case "delinquent":
+                        $("#delinquent-users-name").text(debtor.nickname);
+                        $("#wall-time").text(debtor.days_on_wall);
+
+                        show_only("#timebox");
+                        break;
+                    default:
+                        console.log("Unknown type of debtor:");
+                        console.log(JSON.stringify(debtor));
+                }
+            }
+
+            function display_thanks_message() {
+                $("#loading").html(
+                    "<h2>Thanks for paying your Chez Bob balance!</h2>" +
+                    "<p>Please avoid owing Chez Bob more than $5</p>")
+                    //"<p>Thanks for keeping your balance below $" +
+                    //details.threshold + "!</p>")
+                show_only("#loading");
             }
 
             function update_data(on_complete) {
 
                 function on_update_received(data, textStatus, jqXHR) {
-                    console.log("Received updated data...");
-                    old_shame_length = shame.length;
-                    shame = data.debtors;
-                    threshold = data.threshold;
+                    console.log(
+                        "Received updated data with " +
+                        data.debtors.length + " debtors");
 
-                    if (shame.length == 0) {
-                        $("#loading").html(
-                            "<h2>Thanks for paying your Chez Bob balance!</h2>" +
-                            "<p>Please avoid owing Chez Bob more than $5</p>")
-                            //"<p>Thanks for keeping your balance below $" +
-                            //threshold + "!</p>")
-                        $("#shamebox").css("display", "none");
-                        $("#loading").css("display", "block");
+                    if (details != null)
+                        old_debtors_length = details.debtors.length;
+                    else
+                        old_debtors_length = 0;
+
+                    details = data;
+
+                    if (details.debtors.length == 0) {
+                        display_thanks_message();
                     }
                     else {
                         // Fun fact: the ancient version of chromium in 12.04's
                         // repos (... we should really upgrade) doesn't support
                         // the => syntax sugar.
-                        function first(x) { return x[1]; }
-                        function min(x, y) { return Math.min(x, y); }
-                        minimum = shame.map(first).reduce(min);
-                        console.log("New minimum: " + minimum);
+                        function max(a, b) { return Math.max(a, b); }
+                        max_weight = (details.debtors.map(get_weight).reduce(max));
+                        console.log("New max_weight: " + max_weight);
 
-                        if (old_shame_length == 0) {
+                        if (old_debtors_length == 0) {
                             console.log("Forcing update since no old data");
                             choose_someone();
                         }
-
-                        $("#loading").css("display", "none");
-                        $("#shamebox").css("display", "block");
                     }
 
                     if (on_complete != null) {
@@ -69,20 +107,24 @@
             }
 
             function choose_someone() {
-                if (shame == null || shame.length == 0) {
+                if (details.debtors == null || details.debtors.length == 0) {
                     console.log("Rescheduling update since null choice");
                     setTimeout(choose_someone, 1000);
                     return;
                 }
 
-                var choice = shame[current_user];
-                current_user = (current_user + 1) % shame.length;
+                var choice = details.debtors[current_user];
+                var factor;
+                current_user = (current_user + 1) % details.debtors.length;
 
                 if (choice != null) {
-                    update_page(choice[0], choice[1]);
-                    delay = Math.floor(5000 + (choice[1] - minimum) * 500);
+                    update_page(choice);
+                    factor = get_factor(choice);
+                    delay = (BASE_DELAY +
+                             Math.floor(factor * MAXIMUM_DELAY_ADD));
                     console.log(
-                        "Switching from " + choice[0] + " in " + delay + " ms");
+                        "Switching from " + choice.username + " in " +
+                        delay + " ms (factor: " + factor + ")");
                     setTimeout(choose_someone, delay);
                 }
             }
@@ -97,7 +139,7 @@
             body {
                 height: 100%;
             }
-            p#shamebox {
+            p#debtbox, p#timebox {
                 vertical-align: middle;
                 text-align: center;
                 margin-left: auto;
@@ -107,10 +149,11 @@
                 margin-bottom: auto;
 
                 font-family: Helvetica, sans-serif;
-                font-size: 68pt;
+                font-size: 6vw;
+                /*font-size: 5.2em;*/
 
                 position: relative;
-                top: 50%;
+                top: 40%;
                 transform: translateY(-50%);
                 display: none;
             }
@@ -125,79 +168,104 @@
 
                 font-family: Helvetica, sans-serif;
                 position: relative;
-                top: 50%;
+                top: 40%;
                 transform: translateY(-50%);
             }
             #loading h2 {
-                font-size: 68pt;
+                font-size: 5.2em;
+                border-bottom: none;
             }
             #loading p {
-                font-size: 24pt;
+                font-size: 4em;
             }
-            span#users-name {
+            span.users-name {
                 color: #aa0000;
                 font-weight: bold;
             }
-            span#amount {
+            span.amount {
                 color: #aa0000;
                 font-weight: bold;
             }
 
-            span#question {
+            span.question {
                 display: block;
             }
 
-            span#answer {
+            span.answer {
                 display: block;
             }
 
-            span#shame {
+            span.shame {
                 font-weight: bold;
                 color: #FFAA00;
                 padding-top: 70px;
                 display: block;
             }
 
-            span#plea {
-                font-size: 36pt;
+            span.plea {
+                font-size: .6em;
                 margin-bottom: 10px;
                 display: block;
                 padding-bottom: 70px;
             }
 
-            span#username {
+            span.username {
                 font-style: italic;
                 margin-bottom: 10px;
                 display: block;
             }
 
-            span#followup {
+            span.followup {
                 font-weight: normal;
                 /*color: #FFAA00;*/
                 padding-top: 70px;
                 display: block;
-                font-size: 36pt;
+                font-size: .6em;
             }
         </style>
     </head>
     <body onload="start()">
+        <h1 id='banner'>Chez Bob</h1>
         <div id="loading">
-            Loading...
+            <p>
+                Loading...
+            </p>
         </div>
-        <p id="shamebox">
-            <span id="plea">
+        <p id="debtbox">
+            <span class="plea">
                 Help Chez Bob stay afloat!
             </span>
-            <span id="question">
-                Do you know <span id="users-name"></span>?
+            <span class="question">
+                Do you know
+                <span class="users-name" id="debt-users-name"></span>?
             </span>
-            <span id="answer">
-                They owe Chez Bob <span id="amount"></span>!
+            <span class="answer">
+                They owe Chez Bob
+                <span class="amount" id="debt-amount"></span>!
             </span>
-            <span id="followup">
+            <span class="followup">
                 Please encourage them to pay Chez Bob back today!
             </span>
-            <!--<span id="shame">
+            <!--<span class="shame">
+                For Shame!
+            </span>-->
+        </p>
+        <p id="timebox">
+            <span class="plea">
+                Help Chez Bob stay afloat!
+            </span>
+            <span class="question">
+                Do you know
+                <span class="users-name" id="delinquent-users-name"></span>?
+            </span>
+            <span class="answer">
+                They've been in debt for 
+                <span class="amount" id="wall-time"></span> days!
+            </span>
+            <span class="followup">
+                Please encourage them to pay Chez Bob back today!
+            </span>
+            <!--<span class="shame">
                 For Shame!
             </span>-->
         </p>

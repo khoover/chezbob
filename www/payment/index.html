@@ -12,6 +12,16 @@
             input#amount {
             }
 
+            div#content-box {
+                width: 55%;
+                min-width: 450px;
+                /*text-align: center;*/
+                margin-left: auto;
+                margin-right: auto;
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+
             .currency {
                 border: 1px solid #aaa;
                 /*border-bottom: 1px inset black;*/
@@ -50,6 +60,15 @@
 
             #username_error a {
                 color: #aa0000;
+            }
+            
+            p.important {
+                color: #990000;
+                font-size: 1.2em;
+                border: 2px solid #990000;
+                padding: 5px;
+                text-align: center;
+                background-color: #FFF9F9;
             }
         </style>
         <script>
@@ -94,7 +113,16 @@
                 if (balance < -1) {
                     $("#balance").text("$" + (-1 * balance));
                     $("#balance_warning").css("display", "inline");
-                    $("#amount").val(-1 * balance);
+
+                    // Update the charge amount if the current value
+                    // doesn't even cover their debt.
+                    //
+                    // Also, encourage them to go positive by doubling their
+                    // debt amount.
+                    if ($("#amount").val() < -1 * balance) {
+                        $("#amount").val(-2 * balance);
+                    }
+
                     update_charge();
                 }
                 else {
@@ -238,14 +266,26 @@
         </script>
     </head>
     <body>
-        <h1>Chez Bob</h1>
+        <h1 id='banner'>Chez Bob</h1>
         <div id="content-box">
             <h2>Deposit by Credit/Debit Card</h2>
+            <p class="important">
+            <strong>Reminder:</strong> You can deposit cash in person
+            <strong>for free</strong> at the soda machine.</strong>
+            </p>
             <p>
-            <strong>Please note</strong>: Our card processor charges us
+            <strong>Please note</strong>: Our card processor charges 
                 <strong>2.9% + 30&cent;</strong>. So that we don't have to raise
                 prices on everyone, we charge those fees to you.
             </p>
+            <!--<p>
+            That means:
+            <ul>
+                <li>You pay 9.2% extra for $5 credit.</li>
+                <li>You pay 4.6% extra for $20 credit.</li>
+                <li>You pay 3.3% extra for $100 credit.</li>
+            </ul>
+            </p>-->
             <p>
             Username: <input type="text" id="charge_user"
                         onchange="update_charge()">
@@ -257,7 +297,7 @@
             </span>
             </p>
             <p>
-            How much would you like to add to your account?
+            Amount to add to Chez Bob balance:
             <span class="currency">
                 $<input type="number" name="amount" id="amount" value="20"
                 onchange="update_charge()" min="1" max="500">
