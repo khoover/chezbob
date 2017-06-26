@@ -791,8 +791,8 @@ class sodad_server {
                             user.voice_settings = {};
                         }
 
-                        server.clientchannels[client].login(user, user.balance < 0 ? 'GetAttention' : 'Greeting');                   
-                             
+                        server.clientchannels[client].login(user, user.balance < 0 ? 'GetAttention' : 'Greeting');
+
                         // Enable bill acceptance if logged in to the soda machine.
                         // Is this really the best way to determine the client type?
                         if (server.clientidmap[ClientType.Soda][0] == client)
@@ -804,7 +804,11 @@ class sodad_server {
                             }
 
                             var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
+                            // Bill acceptor
                             rpc_client.request("Mdb.command", [ "E2" ], function (err,response){});
+
+                            // Coin acceptor
+                            rpc_client.request("Mdb.command", [ "E1" ], function (err,response){});
                             server.identifymode_fingerprint(server, client, false);
                         }
                 });
@@ -858,9 +862,14 @@ class sodad_server {
                             if (server.clientidmap[ClientType.Soda][0] == client)
                             {
                                 var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
+
+                                // Bill acceptor
                                 rpc_client.request("Mdb.command", [ "D2" ], function (err,response){});
 
-                                // while we're at it, let's de-activate any fingerprint 
+                                // Coin acceptor
+                                rpc_client.request("Mdb.command", [ "D1" ], function (err,response){});
+
+                                // while we're at it, let's de-activate any fingerprint
                                 // enrollment that has survived thus far...
                                 server.learnmode_fingerprint(server, client, false);
                                 //pause?
@@ -886,7 +895,7 @@ class sodad_server {
         rpc_client.request("Mdb.command", [ "G0204" ], function (err, response){});
         server.balance_transaction(server, client, "WITHDRAW 1.00", "Withdraw 1.00", null, "-1.00");
     }
- 
+
     handleCoinDeposit(server: sodad_server, client : string, amt: string, tube: string, user)
     {
         if (user !== null)
@@ -1011,7 +1020,7 @@ class sodad_server {
 
     /******** Begin fingerprint functions ********/
 
-    // Fingerprint enrollment function: 
+    // Fingerprint enrollment function:
     // - true starts enrollment asynchronously
     // - false ends an enrollment early if possible
     learnmode_fingerprint( server: sodad_server, client: string, learnmode: boolean)
@@ -1113,7 +1122,7 @@ class sodad_server {
                             // error in the stopping of enrollment
                             log.info("FRPINT: failure to stop enrollment user " + uid + " err = " + error.message);
                         } else if (response) {
-                            // result means successful 
+                            // result means successful
                             log.info("FPRINT: success, stopped enrollment for user " + uid);
                         } else {
                             // error, neither response nor error returned
@@ -1234,7 +1243,7 @@ class sodad_server {
                     // error in the stopping of enrollment
                     log.info("FRPINT: failure to stop identification, err = " + error.message);
                 } else if (response) {
-                    // result means successful 
+                    // result means successful
                     log.info("FPRINT: success, stopped identification");
                 } else {
                     // error, neither response nor error returned
@@ -1340,7 +1349,7 @@ class sodad_server {
                                         if (session === null)
                                         {
                                             log.info ("Vend request for " + requested_soda + " DENIED due to no session");
-                                            log.trace("Display price for product " + sodainfo.name + " due to barcode scan.");
+                                            log.trace("Display price for product " + sodainfo.name + " due to soda button push.");
                                             server.clientchannels[sessionid].displayerror("fa-barcode", "Price Check", sodainfo.name + " costs " + sodainfo.price);
                                             cb(null, false);
                                         }
@@ -1599,9 +1608,9 @@ class sodad_server {
                 server.balance_transaction(server, client, "ADD MANUAL",
                         "Manual Deposit", null,  amt);
             },
-	    rain: function()
+            rain: function()
             {
-	        var client = this.id;
+                var client = this.id;
                 server.handleRainRequest(server, client);
             },
             transfer: function(amt, user)
