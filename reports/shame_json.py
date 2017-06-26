@@ -1,40 +1,60 @@
-#!/usr/bin/python
+#!/usr/bin/python3.4
 """Super-fast hacky way to support an updateable shaming dashboard."""
 
-import ConfigParser
-import StringIO
+import configparser
+import io
 import json
 import os.path
 import psycopg2
+import psycopg2.extras
 import sys
 
 
 CONFIG_REL_PATH = "../db.conf"
 OUTFILE = "/git/www/json/shame.json"
-ANNOUNCE_PATH = "/git/www/json/wall_screen.json"
+ANNOUNCE_PATH = "/git/www/json/shame_screen.json"
 
 
-THRESHOLD = 15.00
+DEBT_THRESHOLD = 15.0
+DAYS_THRESHOLD = 28
 
-QUERY = """
+HIGH_DEBT_QUERY = """
     SELECT
-        username, nickname, balance
+        username,
+        nickname,
+        balance,
+        extract('days' from (now() - entered_wall)) as days_on_wall
     FROM users
     WHERE
-        balance <= -{threshold}
+        balance <= -{debt_threshold}
         AND (NOT disabled)
         AND (last_purchase_time > now() - INTERVAL '6 months')
     ORDER BY balance ASC
     LIMIT 20
 """
 
+DELINQUENT_QUERY = """
+    SELECT
+        username,
+        nickname,
+        balance,
+        extract('days' from (now() - entered_wall)) as days_on_wall
+    FROM users
+    WHERE
+        (NOT disabled)
+        AND entered_wall < now() - interval '{day_threshold} days'
+        AND (last_purchase_time > now() - INTERVAL '12 months')
+    ORDER BY balance ASC
+    LIMIT 20
+"""
+
 
 def get_db_info(config_file):
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     ini_str = '[DEFAULT]\n' + open(config_file, 'r').read()
-    ini_fp = StringIO.StringIO(ini_str)
+    ini_fp = io.StringIO(ini_str)
 
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     config.readfp(ini_fp)
 
     return {
@@ -53,7 +73,20 @@ def get_db(config_file):
     return conn
 
 
-def main():
+def prepare_debtor_set(cursor, query, type_name, **formatting):
+    cursor.execute(query.format(**formatting))
+    debtors = []
+    for i, row in enumerate(cursor):
+        debtor = dict(row)
+        debtor['balance'] = float(debtor['balance'])
+        debtor['debt'] = "{:.2f}".format(-1 * debtor['balance'])
+        debtor['index'] = i
+        debtor['type'] = type_name
+        debtors.append(debtor)
+    return debtors
+
+
+def generate_shame_json():
     config_file = os.path.abspath(
         os.path.join(
             os.path.dirname(__file__),
@@ -61,38 +94,38 @@ def main():
     )
 
     conn = get_db(config_file)
-    cursor = conn.cursor()
-    cursor.execute(QUERY.format(threshold=THRESHOLD))
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    results = []
-    for i, row in enumerate(cursor):
-        results.append(
-            [
-                row[1],
-                "{:.2f}".format(-1 * row[2]),
-                row[0],
-                i
-            ]
-        )
+    high_debt = prepare_debtor_set(
+        cursor, HIGH_DEBT_QUERY, "high_value", debt_threshold=DEBT_THRESHOLD)
+    delinquent = prepare_debtor_set(
+        cursor, DELINQUENT_QUERY, "delinquent", day_threshold=DAYS_THRESHOLD)
+
+    debtors = high_debt + delinquent
 
     data = {
-        "debtors": results,
-        "threshold": THRESHOLD,
+        "debtors": debtors,
+        "debt_threshold": DEBT_THRESHOLD,
+        "days_threshold": DAYS_THRESHOLD,
     }
 
     with open(OUTFILE, 'w') as f:
         f.write(json.dumps(data))
 
     with open(ANNOUNCE_PATH, 'w') as f:
-        if len(results):
+        if delinquent or high_debt:
             f.write(
-                '{"url": "https://chezbob.ucsd.edu/shame_kiosk.html",'
-                ' "duration": 30.0,'
-                ' "hold": true}\n')
+                '{"url": "https://chezbob.ucsd.edu/shame_kiosk_simple.html",'
+                ' "duration": ' + str(8 * len(debtors)) + ','
+                ' "hold_tags": ["bobwall", "chezbob"]}\n')
         else:
             f.write('{}\n')
 
     # sys.stdout.write(json.dumps(data))
+
+
+def main():
+    return generate_shame_json()
 
 
 if __name__ == "__main__":
