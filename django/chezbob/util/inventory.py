@@ -22,8 +22,8 @@ def extract(seq, date):
 
 def check_item(inv, bulkid, price_estimates):
     if bulkid not in inv:
-        price = price_estimates.get(bulkid, 0.0)
-        inv[bulkid] = {'count': 0, 'cost': 0.0, 'price': price}
+        price = price_estimates.get(bulkid, Decimal(0.0))
+        inv[bulkid] = {'count': 0, 'cost': Decimal(0.0), 'price': price}
 
 def to_decimal(f):
     """Convert a floating-point value to a decimal.
@@ -72,43 +72,44 @@ def generate_inventory_report(start, end=None):
     cursor.execute(
         """SELECT bulkid, cost / quantity AS price
            FROM
-             (SELECT bulkid, max(date) AS date
+             (SELECT bulkid, max(date::date) AS date
               FROM order_purchases_summary
-              WHERE date < %s GROUP BY bulkid) s1
+              WHERE date::date < %s GROUP BY bulkid) s1
            NATURAL JOIN order_purchases_summary
            ORDER BY price""",
         (start,))
     price_estimates = {}
     for (bulkid, price) in cursor.fetchall():
-        if bulkid not in price_estimates: price_estimates[bulkid] = float(price)
+        if bulkid not in price_estimates: price_estimates[bulkid] = Decimal(price)
 
     for (k, v) in Inventory.get_inventory_summary(start - ONE_DAY).items():
         check_item(inventory, k, price_estimates)
         inventory[k]['count'] = v['estimate']
         if v['estimate'] > 0:
-            inventory[k]['cost'] = v['estimate'] * inventory[k]['price']
+            inventory[k]['cost'] = (
+                v['estimate'] * Decimal(inventory[k]['price']))
         else:
-            inventory[k]['cost'] = 0.0
+            inventory[k]['cost'] = Decimal(0.0)
         yield {'t': 'initial', 'date': start, 'item': k,
                'count': inventory[k]['count'],
                'value': inventory[k]['cost']}
 
-    cursor.execute("""SELECT date, bulkid, SUM(quantity), SUM(price)
+    cursor.execute("""SELECT date::date as date, bulkid, SUM(quantity), SUM(price)
                       FROM aggregate_purchases
-                      WHERE date >= %s AND date <= %s
-                      GROUP BY date, bulkid
+                      WHERE date::date >= %s AND date::date <= %s
+                      GROUP BY date::date, bulkid
                       ORDER BY date""", (start, end))
     sales = cursor.fetchall()
 
-    cursor.execute("""SELECT date, bulkid, quantity, cost
+    cursor.execute("""SELECT date::date as date, bulkid, quantity, cost
                       FROM order_purchases_summary
-                      WHERE date >= %s AND date <= %s
+                      WHERE date::date >= %s AND date::date <= %s
                       ORDER BY date""", (start, end))
     purchases = cursor.fetchall()
 
-    cursor.execute("""SELECT date, bulkid, units
+    cursor.execute("""SELECT date::date as date, bulkid, units
                       FROM inventory
-                      WHERE date >= %s AND date <= %s
+                      WHERE date::date >= %s AND date::date <= %s
                       ORDER BY date""", (start, end))
     inventories = cursor.fetchall()
 
@@ -119,18 +120,19 @@ def generate_inventory_report(start, end=None):
         for p in extract(purchases, date):
             (_, bulkid, count, cost) = p
             if bulkid is None: continue
-            cost = float(cost)
+            cost = Decimal(cost)
             check_item(inventory, bulkid, price_estimates)
             inv = inventory[bulkid]
 
             # Special case when the starting inventory was negative, since we
             # were accounting for negative items at zero cost.
             if inv['count'] < 0:
-                cost = cost * (inv['count'] + count) / count
+                num = cost * Decimal(inv['count'] + count)
+                cost = (num / count) if num else 0.00
                 cost = max(cost, 0.0)
 
             inv['count'] += count
-            inv['cost'] += cost
+            inv['cost'] += Decimal(cost)
             updated.add(bulkid)
 
             yield {'t': 'receive', 'date': date, 'item': bulkid,
@@ -139,16 +141,16 @@ def generate_inventory_report(start, end=None):
         for s in extract(sales, date):
             (_, bulkid, count, cost) = s
             if bulkid is None: continue
-            cost = float(cost)
+            cost = Decimal(cost)
             check_item(inventory, bulkid, price_estimates)
             inv = inventory[bulkid]
             if inv['count'] == 0:
-                cogs = 0.0
+                cogs = Decimal(0.0)
             elif count == inv['count']:
                 cogs = inv['cost']
             else:
                 cogs = min(inv['cost'], count * (inv['cost'] / inv['count']))
-            inv['cost'] -= cogs
+            inv['cost'] -= Decimal(cogs)
             inv['count'] -= count
             updated.add(bulkid)
 
@@ -161,7 +163,7 @@ def generate_inventory_report(start, end=None):
                 inv['price'] = inv['cost'] / inv['count']
             assert inv['cost'] >= 0.0
             assert inv['price'] >= 0.0
-            if inv['count'] <= 0: assert inv['cost'] == 0.0
+            if inv['count'] <= 0: assert inv['cost'] == Decimal(0.0)
 
         for i in extract(inventories, date):
             (_, bulkid, count) = i
@@ -170,7 +172,7 @@ def generate_inventory_report(start, end=None):
             if count != inv['count']:
                 assert count >= 0
                 qty = inv['count'] - count
-                newcost = inv['price'] * count
+                newcost = Decimal(inv['price'] * count)
                 costchange = newcost - inv['cost']
                 inv['count'] = count
                 inv['cost'] = newcost
@@ -181,14 +183,22 @@ def generate_inventory_report(start, end=None):
         date += ONE_DAY
 
 @django.db.transaction.commit_manually
-def summary(start, end=None, commit_start=None):
+def summary(*args, **kwargs):
+    try:
+        return bad_summary(*args, **kwargs)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise
+
+def bad_summary(start, end=None, commit_start=None):
     date = None
-    losses = 0.0
-    inventory_value = 0.0
+    losses = Decimal(0.0)
+    inventory_value = Decimal(0.0)
 
     def commit_day():
         cursor.execute("""SELECT value FROM finance_inventory_summary
-                          WHERE date=%s""",
+                          WHERE date::date=%s""",
                        (date,))
         old_value = Decimal("0.00")
         for r in cursor.fetchall():
@@ -221,14 +231,14 @@ def summary(start, end=None, commit_start=None):
         if inv['date'] != date:
             if date is not None: commit_day()
             date = inv['date']
-            losses = 0.0
+            losses = Decimal(0.0)
 
-        inventory_value += inv['value']
+        inventory_value += Decimal(inv['value'])
         if inv['t'] == 'shrinkage':
             print "  LOSS: $%.02f (%d) %s" \
                 % (-inv['value'], -inv['count'],
                    BulkItem.objects.get(bulkid=inv['item']).description)
-            losses -= inv['value']
+            losses -= Decimal(inv['value'])
 
     commit_day()
     django.db.transaction.commit()
@@ -236,9 +246,9 @@ def summary(start, end=None, commit_start=None):
 def report_inventory(start, end=None):
     """Compute a summary of inventory values and shrinkage."""
 
-    value = 0.0
-    shrinkage = 0.0
-    profit = 0.0
+    value = Decimal(0.0)
+    shrinkage = Decimal(0.0)
+    profit = Decimal(0.0)
     last_date = None
 
     for inv in generate_inventory_report(start, end):
@@ -246,8 +256,8 @@ def report_inventory(start, end=None):
             print "%s: value=%.2f, shrinkage=%.2f profit=%.2f" % \
                 (last_date, value, shrinkage, profit)
             last_date = inv['date']
-            shrinkage = 0.0
-            profit = 0.0
+            shrinkage = Decimal(0.0)
+            profit = Decimal(0.0)
 
         value += inv['value']
         if inv['t'] == 'shrinkage':
@@ -261,9 +271,9 @@ def report_inventory(start, end=None):
 def item_report(start, end=None):
     """Compute a per-item summary of shrinkage and sales."""
 
-    value = 0.0
-    shrinkage = 0.0
-    profit = 0.0
+    value = Decimal(0.0)
+    shrinkage = Decimal(0.0)
+    profit = Decimal(0.0)
     last_date = None
 
     items = {}
@@ -271,7 +281,11 @@ def item_report(start, end=None):
     for inv in generate_inventory_report(start, end):
         id = inv['item']
         if id not in items:
-            items[id] = {'sales': 0.0, 'shrinkage': 0.0, 'cost': 0.0}
+            items[id] = {
+                'sales': Decimal(0.0),
+                'shrinkage': Decimal(0.0),
+                'cost': Decimal(0.0)
+            }
 
         if inv['t'] == 'sell':
             items[id]['sales'] += inv['income']
@@ -279,7 +293,7 @@ def item_report(start, end=None):
         elif inv['t'] == 'shrinkage':
             items[id]['shrinkage'] += -inv['value']
 
-    (sales, shrinkage, cost) = (0.0, 0.0, 0.0)
+    (sales, shrinkage, cost) = (Decimal(0.0), Decimal(0.0), Decimal(0.0))
     print "Item\tLocation\tSales\tCost\tShrinkage"
     for id in items:
         if not sum(abs(items[id][k]) for k in ('sales', 'shrinkage', 'cost')):
@@ -309,7 +323,11 @@ def category_report(start, end=None):
     for inv in generate_inventory_report(start, end):
         g = category(inv['item'])
         if g not in groups:
-            groups[g] = {'sales': 0.0, 'shrinkage': 0.0, 'cost': 0.0}
+            groups[g] = {
+                'sales': Decimal(0.0),
+                'shrinkage': Decimal(0.0),
+                'cost': Decimal(0.0)
+            }
 
         if inv['t'] == 'sell':
             groups[g]['sales'] += inv['income']
@@ -324,7 +342,8 @@ def category_report(start, end=None):
             print "    %s = %.2f" % (k, i[k])
         print "    profit = %.2f" % (i['sales'] - i['cost'] - i['shrinkage'],)
         try:
-            print "    loss_pct = %.2f%%" % \
-                (i['shrinkage'] / (i['shrinkage'] + i['cost']) * 100.0,)
+            print "    loss_pct = %.2f%%" % (
+                (i['shrinkage'] / (i['shrinkage'] + i['cost']) *
+                 Decimal(100.0),))
         except ZeroDivisionError:
             pass

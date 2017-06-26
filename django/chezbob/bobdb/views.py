@@ -18,7 +18,12 @@ def parse_date(datestr):
     """
 
     if isinstance(datestr, datetime.date): return datestr
-    return datetime.date(*strptime(datestr, "%Y-%m-%d")[0:3])
+
+    try:
+        return datetime.date(*strptime(datestr, "%Y-%m-%d")[0:3])
+    except ValueError:
+        pass
+    return datetime.date(*strptime(datestr, "%Y-%m-%d %H:%M:%S")[0:3])
 
 # It may be better to switch to a per-form key rather than a per-session key,
 # but this should provide some protection for now.
