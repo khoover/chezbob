@@ -1,13 +1,13 @@
-import datetime
 from decimal import Decimal
-from django.db import models, connection, transaction
+from django.db import models
 from chezbob.bobdb.models import BulkItem
 from chezbob.finance.models import Transaction
 
 # Current tax rate.  This is only used to compute current item prices.  For any
 # historical analysis, the per-order tax rate stored with each order is used
 # instead.
-TAX_RATE = Decimal("0.0875")
+TAX_RATE = Decimal("0.0775")
+
 
 class Order(models.Model):
     class Meta:
@@ -18,7 +18,7 @@ class Order(models.Model):
     description = models.CharField(max_length=256)
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     tax_rate = models.DecimalField(max_digits=6, decimal_places=4)
-    
+
     # Keep track of relevant financial gook
     inventory_adjust = models.DecimalField(max_digits=12, decimal_places=2)
     supplies_adjust = models.DecimalField(max_digits=12, decimal_places=2)
@@ -26,11 +26,12 @@ class Order(models.Model):
     supplies_nontaxed = models.DecimalField(max_digits=12, decimal_places=2)
     returns_taxed = models.DecimalField(max_digits=12, decimal_places=2)
     returns_nontaxed = models.DecimalField(max_digits=12, decimal_places=2)
-    
+
     finance_transaction = models.ForeignKey(Transaction)
 
     def __unicode__(self):
         return "%s %s" % (self.date, self.description)
+
 
 class OrderItem(models.Model):
     class Meta:
@@ -59,10 +60,14 @@ class OrderItem(models.Model):
     crv_per_unit = models.DecimalField(max_digits=12, decimal_places=2)
 
     # Flags to indicate if the product or the CRV is taxed (sales)
-    # Unfortunatly, the rules in CA for which products are taxed, and which 
+    # Unfortunatly, the rules in CA for which products are taxed, and which
     # product's CRV is taxed are different.
     is_cost_taxed = models.BooleanField()
     is_crv_taxed = models.BooleanField()
+
+    # Number of units scanned. Any time cases_scanned != cases_ordered, this
+    # order_item has a problem that needs resolution.
+    cases_scanned = models.IntegerField(db_column='n_scanned')
 
     def __unicode__(self):
         return "%d %s" % (self.cases_ordered, self.bulk_type)

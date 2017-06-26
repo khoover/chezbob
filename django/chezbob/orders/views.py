@@ -14,7 +14,7 @@ from chezbob.shortcuts import *
 
 from django.core.urlresolvers import reverse
 
-DEFAULT_SALES_TAX = 0.08
+DEFAULT_SALES_TAX = 0.0775
 
 def coerce_boolean(s):
   """Convert a string to a boolean value.
