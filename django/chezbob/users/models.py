@@ -55,6 +55,9 @@ class Transaction(models.Model):
     source  = models.CharField(db_column='source', max_length=255)
     barcode = models.ForeignKey(Product, db_column='barcode', max_length=255, 
                                 related_name='sales')
+    barcode = models.CharField(db_column='barcode', max_length=255)
+    #barcode = models.ForeignKey(Product, db_column='barcode', max_length=255, 
+    #                            related_name='sales')
     user    = models.ForeignKey(User, db_column='userid', 
                                 related_name='purchases')
     finance_trans = models.ForeignKey(FinanceTransaction, 

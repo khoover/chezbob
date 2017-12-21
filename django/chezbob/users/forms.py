@@ -3,6 +3,7 @@ from datetime import datetime
 from django import forms
 
 from chezbob.bobdb.models import Product
+from chezbob.bobdb.models import DynamicProduct
 from chezbob.finance.models import Account
 from chezbob.users.models import User
 
@@ -33,21 +34,31 @@ class UserTransactionForm(forms.Form):
   time       = forms.DateTimeField(initial=datetime.now)
 
 class BuyForm(UserTransactionForm):
-  barcode    = forms.ModelChoiceField(
-                   queryset=Product.objects.all().order_by("name"))
+  #barcode    = forms.ModelChoiceField(
+  #                 queryset=Product.objects.all().order_by("name"))
+  barcode    = forms.ModelChoiceField(queryset=None)
   price      = forms.DecimalField(required=False, 
                                   help_text="Leave empty for current price.")
+
+  def __init__(self, userid, *args, **kwargs):
+      super(BuyForm, self).__init__(*args, **kwargs)
+      #self.fields['barcode'].queryset = Product.objects.all().order_by("name")
+      self.fields['barcode'].queryset = (
+          DynamicProduct.objects.filter(userid=userid).order_by("name"))
+
 
   def set_transaction_fields(self, transaction, messages):
     if self.is_valid():
       transaction.time  = self.cleaned_data['time']
-      transaction.barcode = self.cleaned_data['barcode']
+      transaction.barcode = self.cleaned_data['barcode'].barcode
       if self.cleaned_data['price'] is not None:
         transaction.value = -1 * self.cleaned_data['price']
       else:
-        transaction.value = -1 * transaction.barcode.price
+        transaction.value = -1 * self.cleaned_data['barcode'].price
       transaction.source = "django"
-      transaction.type = "BUY " + transaction.barcode.name.upper()
+      transaction.type = "BUY " + self.cleaned_data['barcode'].name
+      if transaction.value > 0:
+        transaction.type = "ADD " + self.cleaned_data['barcode'].name
     else:
       messages.errors(self.errors)
   

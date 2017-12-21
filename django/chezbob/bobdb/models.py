@@ -138,6 +138,21 @@ class Product(models.Model):
                        [self.barcode])
         return cursor.fetchall()
 
+class DynamicProduct(models.Model):
+    """This is a view, and needs a userid specified to be tractable."""
+    class Meta:
+        db_table = 'dynamic_barcode_lookup'
+
+    barcode = models.CharField(max_length=32, primary_key=True)
+    name = models.CharField(max_length=256)
+    phonetic_name = models.CharField(max_length=256)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    bulk = models.ForeignKey(BulkItem, db_column='bulkid', null=True, blank=True)
+    userid = models.IntegerField(null=False, blank=False)
+
+    def __unicode__(self):
+        return "%s [%s]" % (self.name, self.barcode)
+
 class HistoricalPrice(models.Model):
     class Meta:
         db_table = 'historical_prices'

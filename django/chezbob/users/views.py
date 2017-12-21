@@ -178,14 +178,18 @@ def user_details(request, userid):
   
   barcodes = Barcode.objects.filter(user=user.id)
   
-  def make_form(type, title, form):
-    form_types[type] = {'title' : title,
-                        'type'  : type,
-                        'form'  : form,
-                        'fields': form(),
-                        'show'  : type + "_open" in request.POST }
+  def make_form(type, title, form, userid=None):
+    form_types[type] = {
+        'title' : title,
+        'type'  : type,
+        'form'  : form,
+        'fields': form(userid) if userid else form(),
+        'show'  : type + "_open" in request.POST,
+    }
+    if userid:
+        form_types[type]['constructor'] = lambda x: form(userid, x)
   form_types = {}  
-  make_form('BUY',       'Make Buy Transaction', BuyForm)
+  make_form('BUY',       'Make Buy Transaction', BuyForm, userid)
   make_form('TRANSFER',  'Make Transfer',        TransferForm)
   make_form('ADD',       'Add Cash',             AddUncountedForm)
   make_form('REIMBURSE', 'Issue Reimbursement',  ReimburseForm)
@@ -228,7 +232,8 @@ def user_details(request, userid):
   
   for type in form_types:
     if type + "_save" in request.POST:
-      bound = form_types[type]['form'](request.POST)
+      form_type = form_types[type]
+      bound = form_type.get('constructor', form_type['form'])(request.POST)
       if bound.data['id'] == 'new':
         new_transaction(type, bound, user, messages)
       else:

@@ -28,6 +28,7 @@ export class Models {
     Orders: SequelizeModel;
     ProductSoure: SequelizeModel;
     Products: SequelizeModel;
+    DynamicProducts: SequelizeModel;
     //Profiles: SequelizeModel;
     Roles: SequelizeModel;
     SodaInventory: SequelizeModel;
@@ -160,6 +161,16 @@ single column primary key
             bulkid: sequelize.INTEGER,
             coffee: sequelize.BOOLEAN
         }, {timestamps : false});
+
+        this.DynamicProducts = sql.define('dynamic_barcode_lookup', {
+            barcode: { type: sequelize.STRING, primaryKey: true },
+            name: sequelize.STRING,
+            phonetic_name: sequelize.STRING,
+            price: sequelize.DECIMAL,
+            bulkid: sequelize.INTEGER,
+            coffee: sequelize.BOOLEAN,
+            userid: sequelize.INTEGER
+        }, {timestamps : false, freezeTableName : true});
 
 	//(dbounov): Not including profiles since its likely to be deleted.
 	//TODO: Delete it.

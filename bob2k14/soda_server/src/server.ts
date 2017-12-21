@@ -443,72 +443,93 @@ class sodad_server {
                                         else
                                         {
                                             //maybe it's a product? price check.
-                                            return models.Products.find( { where: { barcode: barcode }})
-                                                .then( function (products)
+                                            var handler = function (products) {
+                                                if (products !== null && session === null)
                                                 {
-                                                    if (products !== null && session === null)
-                                                    {
-                                                        log.trace("Display price for product " + products.name + " due to barcode scan.");
-                                                        server.clientchannels[sessionid].displayerror("fa-barcode", "Price Check", products.name + " costs " + products.price);
-                                                    }
-                                                    else if (products !== null && session !== null)
-                                                    {
-                                                        log.info("Purchase " + products.name + " using barcode scan.");
-                                                        return models.Users.find( { where: { userid : session.uid }})
-                                                            .then( function (user)
-                                                            {
-                                                                var purchase_desc = user.pref_forget_which_product === "true" ? "BUY" : "BUY " + products.name;
-                                                                var purchase_barcode = user.pref_forget_which_product  === "true" ? null : products.barcode;
-                                                                server.balance_transaction(server, sessionid, purchase_desc,
-                                                                 products.name, purchase_barcode,  "-" + products.price);
-                                                            });
-
-                                                    }
-                                                    else if (session !== null && session.learn === "true")
-                                                    {
-                                                        //we are trying to learn this barcode
-                                                        log.trace("Learning mode on, add learned barcode.")
-                                                        models.Userbarcodes.find(
-                                                                    {
-                                                                        where : {
-                                                                        barcode: barcode,
-                                                                        userid: session.uid}
+                                                    log.trace("Display price for product " + products.name + " due to barcode scan.");
+                                                    server.clientchannels[sessionid].displayerror("fa-barcode", "Price Check", products.name + " costs " + products.price);
+                                                }
+                                                else if (products !== null && session !== null)
+                                                {
+                                                    log.info("Purchase " + products.name + " using barcode scan.");
+                                                    return models.Users.find( { where: { userid : session.uid }})
+                                                        .then( function (user)
+                                                        {
+                                                            // Look up the products again with the dynamic products list
+                                                            models.DynamicProducts.find( { where: { barcode: barcode, userid: session.uid }})
+                                                                .then( function (products) {
+                                                                    var purchase_desc;
+                                                                    var purchase_barcode = user.pref_forget_which_product  === "true" ? null : products.barcode;
+                                                                    var price = "-" + products.price;
+                                                                    if (parseFloat(products.price) < 0) {
+                                                                        // For dynamic pricing, we can have 'negative' priced products for, e.g., restocking credit.
+                                                                        price = (-1 * parseFloat(products.price)) + "";
+                                                                        log.info("Negative price:" + products.price);
+                                                                        log.info("Adjusted price:" + price);
+                                                                        purchase_desc = "ADD " + products.name;
                                                                     }
-                                                                ).then(function (exist_barcode) {
-                                                                    if (exist_barcode !== null)
-                                                                    {
-                                                                        throw "Barcode already learned!"
+                                                                    else {
+                                                                        purchase_desc = user.pref_forget_which_product === "true" ? "BUY" : "BUY " + products.name;
                                                                     }
-                                                                    return models.Userbarcodes.create(
-                                                                        {
-                                                                            barcode: barcode,
-                                                                            userid: session.uid
-                                                                        }
-                                                                    ).then(function (a)
-                                                                        {
-                                                                            log.info("Barcode " + barcode + " learned for client " + sessionid);
-                                                                            server.clientchannels[sessionid].displayerror("fa-barcode", "Barcode learned", "Barcode " + barcode + " learned");
-                                                                            server.clientchannels[sessionid].updatebarcodes();
-                                                                        })
+                                                                    log.info("Inserting transaction using price: " + price);
+                                                                    server.balance_transaction(server, sessionid, purchase_desc, products.name, purchase_barcode, price);
                                                                 })
-                                                                .catch(function (e)
+                                                        });
+
+                                                }
+                                                else if (session !== null && session.learn === "true")
+                                                {
+                                                    //we are trying to learn this barcode
+                                                    log.trace("Learning mode on, add learned barcode.")
+                                                    models.Userbarcodes.find(
+                                                                {
+                                                                    where : {
+                                                                    barcode: barcode,
+                                                                    userid: session.uid}
+                                                                }
+                                                            ).then(function (exist_barcode) {
+                                                                if (exist_barcode !== null)
+                                                                {
+                                                                    throw "Barcode already learned!"
+                                                                }
+                                                                return models.Userbarcodes.create(
                                                                     {
-                                                                        log.info("Barcode " + barcode + " NOT learned for client " + sessionid + " due to error: " + e);
-                                                                        server.clientchannels[sessionid].displayerror("fa-warning", "Learn failed", "Barcode " + barcode + " already learned by you or another user.");
+                                                                        barcode: barcode,
+                                                                        userid: session.uid
+                                                                    }
+                                                                ).then(function (a)
+                                                                    {
+                                                                        log.info("Barcode " + barcode + " learned for client " + sessionid);
+                                                                        server.clientchannels[sessionid].displayerror("fa-barcode", "Barcode learned", "Barcode " + barcode + " learned");
+                                                                        server.clientchannels[sessionid].updatebarcodes();
                                                                     })
-                                                    }
-                                                    else if (session !== null && session.detail)
-                                                    {
-                                                        //trying to get detailed info about this barcode
-                                                    }
-                                                    //default to purchase
-                                                    else
-                                                    {
-                                                        //no idea what this is.
-                                                       log.error("Unknown barcode " + barcode + ", rejecting.")
-                                                       server.clientchannels[sessionid].displayerror("fa-warning", "Unknown Barcode", "Unknown barcode " + barcode + ", please scan again.");
-                                                    }
-                                                })
+                                                            })
+                                                            .catch(function (e)
+                                                                {
+                                                                    log.info("Barcode " + barcode + " NOT learned for client " + sessionid + " due to error: " + e);
+                                                                    server.clientchannels[sessionid].displayerror("fa-warning", "Learn failed", "Barcode " + barcode + " already learned by you or another user.");
+                                                                })
+                                                }
+                                                else if (session !== null && session.detail)
+                                                {
+                                                    //trying to get detailed info about this barcode
+                                                }
+                                                //default to purchase
+                                                else
+                                                {
+                                                    //no idea what this is.
+                                                   log.error("Unknown barcode " + barcode + ", rejecting.")
+                                                   server.clientchannels[sessionid].displayerror("fa-warning", "Unknown Barcode", "Unknown barcode " + barcode + ", please scan again.");
+                                                }
+                                            };
+                                            if (session !== null)
+                                                return models.DynamicProducts.find(
+                                                    { where: { barcode: barcode , userid: session.uid } })
+                                                        .then( handler );
+                                            else
+                                                return models.Products.find(
+                                                    { where: { barcode: barcode } })
+                                                        .then( handler );
                                         }
                                 })
                         })
@@ -901,7 +922,7 @@ class sodad_server {
         if (user !== null)
         {
             log.info("Coin type " + amt + " accepted");
-            server.balance_transaction(server, client, "ADD " + amt,
+            server.balance_transaction(server, client, "ADD " + amt + " (coin)",
                 "Deposit " + amt, null, amt);
         }
         else
@@ -938,7 +959,7 @@ class sodad_server {
         {
             log.info("$" + amt + " bill accepted");
             server.balance_transaction(
-                server, client, "ADD " + amt, "Deposit $" + amt, null, amt);
+                server, client, "ADD " + amt + " (cash)", "Deposit $" + amt, null, amt);
         }
         else
         {
@@ -1343,8 +1364,19 @@ class sodad_server {
                         .then (function (session)
                             {
                                 //get requested soda name...
-                                models.Products.find({where : {barcode : server.initdata.sodamap[requested_soda] }})
-                                    .then(function (sodainfo)
+                                var lookup;
+                                if (session !== null) {
+                                    lookup = models.DynamicProducts.find(
+                                        {where: {
+                                            barcode: server.initdata.sodamap[requested_soda],
+                                            userid: session.uid }})
+                                }
+                                else {
+                                    lookup = models.Products.find(
+                                        {where: {
+                                            barcode: server.initdata.sodamap[requested_soda] }})
+                                }
+                                lookup.then(function (sodainfo)
                                     {
                                         if (session === null)
                                         {
@@ -1406,7 +1438,7 @@ class sodad_server {
                                                     {
                                                         if (success)
                                                         {
-                                                        models.Products.find({where : {barcode : server.initdata.sodamap[requested_soda] }})
+                                                        models.DynamicProducts.find({where : {barcode : server.initdata.sodamap[requested_soda], userid: session.uid }})
                                                             .then(function (sodainfo)
                                                             {
                                                                 log.info("Purchase " + sodainfo.name + " due to soda vend");
