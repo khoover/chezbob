@@ -69,18 +69,24 @@ def generate_inventory_report(start, end=None):
 
     # Look for an item price from near the start of the period, for computing
     # the initial inventory cost valuations.
-    cursor.execute(
-        """SELECT bulkid, cost / quantity AS price
-           FROM
-             (SELECT bulkid, max(date::date) AS date
-              FROM order_purchases_summary
-              WHERE date::date < %s GROUP BY bulkid) s1
-           NATURAL JOIN order_purchases_summary
-           ORDER BY price""",
-        (start,))
+    try:
+        cursor.execute(
+            """SELECT bulkid, cost / quantity AS price
+               FROM
+                 (SELECT bulkid, max(date::date) AS date
+                  FROM order_purchases_summary
+                  WHERE date::date < %s GROUP BY bulkid) s1
+               NATURAL JOIN order_purchases_summary
+               ORDER BY price""",
+            (start,))
+    except django.db.utils.DatabaseError as e:
+        sys.stderr.write("Caught database error at start: {}\n".format(start))
+        raise
+
     price_estimates = {}
     for (bulkid, price) in cursor.fetchall():
-        if bulkid not in price_estimates: price_estimates[bulkid] = Decimal(price)
+        if bulkid not in price_estimates:
+            price_estimates[bulkid] = Decimal(price)
 
     for (k, v) in Inventory.get_inventory_summary(start - ONE_DAY).items():
         check_item(inventory, k, price_estimates)
@@ -308,7 +314,7 @@ def item_report(start, end=None):
 
 def category_report(start, end=None):
     """Compute a per-category summary of shrinkage and sales.
-       
+
     This should be used to compute necessary per-category markups to cover
     losses."""
 
