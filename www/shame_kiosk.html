@@ -5,6 +5,7 @@
         <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700|Dancing+Script' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" href="css/common.css">
         <script src="/js/jquery-2.2.3.min.js"></script>
+        <script src="/js/jquery.fittext.js"></script>
         <script>
             JSON_SOURCE = "json/shame.json";
             JSON_UPDATE_INTERVAL = 10000;
@@ -15,6 +16,15 @@
             var current_user = 0;
             var max_weight;
 
+            var debt_user;
+            var debt_amount;
+            var delinquent_user;
+            var delinquent_time;
+
+            var debtbox;
+            var timebox;
+            var loadbox;
+
             function get_weight(x) {
                 return -1 * x.balance * (x.days_on_wall + 1);
             }
@@ -23,26 +33,31 @@
                 return get_weight(x) / max_weight;
             }
 
-            function show_only(selector) {
-                $("#debtbox").css("display", "none");
-                $("#timebox").css("display", "none");
-                $("#loading").css("display", "none");
-                $(selector).css("display", "block");
+
+            function show_only(box) {
+                debtbox.css("display", "none");
+                timebox.css("display", "none");
+                loadbox.css("display", "none");
+                box.css("display", "block");
             }
 
             function update_page(debtor) {
                 switch(debtor.type) {
                     case "high_value":
-                        $("#debt-users-name").text(debtor.nickname);
-                        $("#debt-amount").text("$" + debtor.debt);
+                        debt_user.text(debtor.nickname);
+                        debt_amount.text("$" + debtor.debt);
 
-                        show_only("#debtbox");
+                        show_only(debtbox);
+                        debt_user.fitText(1.5);
+                        $("#debtbox .answer").fitText(2.0);
                         break;
                     case "delinquent":
-                        $("#delinquent-users-name").text(debtor.nickname);
-                        $("#wall-time").text(debtor.days_on_wall);
+                        delinquent_user.text(debtor.nickname);
+                        delinquent_time.text(debtor.days_on_wall);
 
-                        show_only("#timebox");
+                        show_only(timebox);
+                        delinquent_user.fitText(1.5);
+                        $("#timebox .answer").fitText(2.0);
                         break;
                     default:
                         console.log("Unknown type of debtor:");
@@ -56,7 +71,7 @@
                     "<p>Please avoid owing Chez Bob more than $5</p>")
                     //"<p>Thanks for keeping your balance below $" +
                     //details.threshold + "!</p>")
-                show_only("#loading");
+                show_only(loadbox);
             }
 
             function update_data(on_complete) {
@@ -130,6 +145,16 @@
             }
 
             function start() {
+                debt_user = $("#debt-users-name");
+                debt_amount = $("#debt-amount");
+
+                delinquent_user = $("#delinquent-users-name");
+                delinquent_time = $("#wall-time");
+
+                debtbox = $("#debtbox");
+                timebox = $("#timebox");
+                loadbox = $("#loading");
+
                 console.log("Starting...");
                 update_data();
                 setInterval(update_data, JSON_UPDATE_INTERVAL);
@@ -139,7 +164,7 @@
             body {
                 height: 100%;
             }
-            p#debtbox, p#timebox {
+            div#debtbox, div#timebox {
                 vertical-align: middle;
                 text-align: center;
                 margin-left: auto;
@@ -178,21 +203,26 @@
             #loading p {
                 font-size: 4em;
             }
-            span.users-name {
-                color: #aa0000;
+
+            div.users-name {
+                color: #bb0000;
                 font-weight: bold;
+                width: 100%;
             }
+
             span.amount {
-                color: #aa0000;
+                color: #bb0000;
                 font-weight: bold;
+                font-size: 1.4em;
             }
 
-            span.question {
+            div.question {
                 display: block;
             }
 
-            span.answer {
+            div.answer {
                 display: block;
+                /*font-size: .7em;*/
             }
 
             span.shame {
@@ -215,7 +245,7 @@
                 display: block;
             }
 
-            span.followup {
+            div.followup {
                 font-weight: normal;
                 /*color: #FFAA00;*/
                 padding-top: 70px;
@@ -231,43 +261,35 @@
                 Loading...
             </p>
         </div>
-        <p id="debtbox">
-            <span class="plea">
-                Help Chez Bob stay afloat!
-            </span>
-            <span class="question">
-                Do you know
-                <span class="users-name" id="debt-users-name"></span>?
-            </span>
-            <span class="answer">
-                They owe Chez Bob
+        <div id="debtbox">
+            <div class="question">
+                <div class="users-name" id="debt-users-name"></div>
+            </div>
+            <div class="answer">
+                owes Chez Bob
                 <span class="amount" id="debt-amount"></span>!
-            </span>
-            <span class="followup">
-                Please encourage them to pay Chez Bob back today!
-            </span>
+            </div>
+            <div class="followup">
+                Encourage them to pay their debt today!
+            </div>
             <!--<span class="shame">
                 For Shame!
             </span>-->
-        </p>
-        <p id="timebox">
-            <span class="plea">
-                Help Chez Bob stay afloat!
-            </span>
-            <span class="question">
-                Do you know
-                <span class="users-name" id="delinquent-users-name"></span>?
-            </span>
-            <span class="answer">
-                They've been in debt for 
+        </div>
+        <div id="timebox">
+            <div class="question">
+                <div class="users-name" id="delinquent-users-name"></div>
+            </div>
+            <div class="answer">
+                has been in debt for
                 <span class="amount" id="wall-time"></span> days!
-            </span>
-            <span class="followup">
-                Please encourage them to pay Chez Bob back today!
-            </span>
+            </div>
+            <div class="followup">
+                Encourage them to pay their debt today!
+            </div>
             <!--<span class="shame">
                 For Shame!
             </span>-->
-        </p>
+        </div>
     </body>
 </html>

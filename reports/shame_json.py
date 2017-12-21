@@ -8,12 +8,16 @@ import os.path
 import psycopg2
 import psycopg2.extras
 import sys
+import time
 
 
 CONFIG_REL_PATH = "../db.conf"
 OUTFILE = "/git/www/json/shame.json"
 ANNOUNCE_PATH = "/git/www/json/shame_screen.json"
 
+URL_TO_KIOSK = "https://chezbob.ucsd.edu/shame_kiosk.html"
+DURATION_MULTIPLIER = 8
+HOLD_TAGS = ["bobwall", "chezbob"]
 
 DEBT_THRESHOLD = 15.0
 DAYS_THRESHOLD = 28
@@ -103,25 +107,29 @@ def generate_shame_json():
 
     debtors = high_debt + delinquent
 
-    data = {
+    debt_data = {
         "debtors": debtors,
         "debt_threshold": DEBT_THRESHOLD,
         "days_threshold": DAYS_THRESHOLD,
+        "as_of": time.time(),  # Cache busting
+    }
+    announce_data = {
+        "url": URL_TO_KIOSK,
+        "duration": DURATION_MULTIPLIER * len(debtors),
+        "hold_tags": HOLD_TAGS,
+        "as_of": time.time(),  # Cache busting
     }
 
     with open(OUTFILE, 'w') as f:
-        f.write(json.dumps(data))
+        json.dump(debt_data, f)
 
     with open(ANNOUNCE_PATH, 'w') as f:
         if delinquent or high_debt:
-            f.write(
-                '{"url": "https://chezbob.ucsd.edu/shame_kiosk_simple.html",'
-                ' "duration": ' + str(8 * len(debtors)) + ','
-                ' "hold_tags": ["bobwall", "chezbob"]}\n')
+            json.dump(announce_data, f)
         else:
             f.write('{}\n')
 
-    # sys.stdout.write(json.dumps(data))
+    # sys.stdout.write(json.dumps(debt_data))
 
 
 def main():
