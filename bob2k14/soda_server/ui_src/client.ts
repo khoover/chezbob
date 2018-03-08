@@ -84,7 +84,7 @@ export class Client
     voice_speak(client: Client , msg : string)
     {
         if ('speechSynthesis' in window) {
-            if (client.current_user.pref_speech)
+            if (client.current_user !== null && client.current_user.pref_speech)
             {
                 client.voice_msg.text = msg;
                 speechSynthesis.speak(client.voice_msg);
@@ -95,7 +95,7 @@ export class Client
     voice_forcespeak(client: Client, msg: string)
     {
         if ('speechSynthesis' in window) {
-            if (client.current_user.pref_speech)
+            if (client.current_user !== null && client.current_user.pref_speech)
             {
                 client.voice_msg.text = msg;
                 speechSynthesis.speak(client.voice_msg);
@@ -854,9 +854,9 @@ export class Client
             client.server_channel.transfer(amt, $("#transfer-user").val());
         })
 
-	$("#rain-btn").on('click', function() {
-	    client.server_channel.rain();
-	})
+        $("#rain-btn").on('click', function() {
+            client.server_channel.rain();
+        })
 
         $("#message_bug-form").on('submit', function(e) {
             e.preventDefault();

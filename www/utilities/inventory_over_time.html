@@ -1,0 +1,458 @@
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+
+        var API_HOST = "https://chezbob.ucsd.edu"
+        var SALES_URL = API_HOST + "/joe/api/v0.1/sales/get_inventory_steps";
+        var DETAILS_URL = API_HOST +  "/joe/api/v0.1/bulkitem/get_details";
+        var BULKITEMS_URL = API_HOST +  "/joe/api/v0.1/bulkitem/getall";
+        var CHART_WINDOW = 60;
+
+        var chart;
+        var chart_element;
+
+        var currently_charted_ids = {};
+        //var data_column_to_charted_index = {}
+
+        var bulk_items = {};
+
+        var mode = "case";  // among "case", "product", "cost";
+
+        google.charts.load('current', {'packages':['line']});
+
+
+        function get_url_supplied_bulkitems() {
+            // Terrible hack stolen from
+            //  https://gist.github.com/jlong/2428561
+            var parser = document.createElement('a');
+            parser.href = window.location.href;
+
+            var bulkids = [];
+            var local_mode = null;
+            if (parser.hash.length > 1) {
+                var parts = parser.hash
+                    .substring(1)
+                    .split(";");
+
+                if (parts.length > 1) {
+                    bulkids = parts[1].split(",");
+                    local_mode = parts[0];
+                }
+                else {
+                    bulkids = parts[1].split(",");
+                }
+
+                bulkids = bulkids.map(function(x) {return parseInt(x)}).sort();
+                console.log("Found in URL:", bulkids);
+            }
+
+            return {
+                bulkids: bulkids,
+                mode: local_mode,
+            };
+        }
+
+
+        function update_url() {
+            console.log(currently_charted_ids);
+            var ids = Object.keys(currently_charted_ids)
+                .map(function(x) {return parseInt(x)}).sort();
+            window.location.hash = "#" + mode + ";" + ids.join(",");
+        }
+
+
+        function on_url_changed_event() {
+            console.log("Detected hash change");
+            var url_sup = get_url_supplied_bulkitems();
+            var url_ids = url_sup.bulkids.sort();
+            var graphed_ids = Object.keys(currently_charted_ids).sort();
+
+            if (url_sup.mode != null && mode != url_sup.mode) {
+                console.log("Reloading due to mode difference");
+                location.reload();
+            }
+            
+            if (url_ids.length != graphed_ids.length) {
+                console.log("Reloading due to length difference");
+                location.reload();
+            }
+
+            for (var i = 0; i < url_ids.length; ++i) {
+                if (url_ids[i] != graphed_ids[i]) {
+                    console.log("Reloading due to difference in arrays");
+                    location.reload();
+                }
+            }
+        }
+
+
+        function add_url_bulkitems() {
+            var url_sup = get_url_supplied_bulkitems();
+            var bulkitems = url_sup.bulkids;
+
+            if (url_sup.mode !== null) {
+                mode = url_sup.mode;
+            }
+
+            // Not really the right place for this, but oh well...
+            var yLabel = "";
+            switch(mode) {
+                case "case":
+                    yLabel = "Cases Remaining";
+                    break;
+                case "product":
+                    yLabel = "Products Remaining";
+                    break;
+                case "cost":
+                    yLabel = "Bulk Cost Remaining";
+                    break;
+            }
+            chart.setOption("vAxis.title", yLabel);
+
+            var proms = [];
+            bulkitems.forEach(function(bulkid) {
+                var bulk_item = bulk_items[bulkid];
+                console.log("Adding from URL:", bulk_item);
+                if (bulk_item === undefined) {
+                    console.log("Invalid bulkid found in URL. Ignoring.");
+                    return;
+                }
+                proms.push(get_sales(bulk_item).then(add_bulkitem_to_chart));
+            });
+            Promise.all(proms).then(update_url);
+        }
+
+
+        function populate_select(bis) {
+            var promise = new Promise(function(resolve, reject) {
+                var select = $("#bulkitem_select");
+
+                function add_options(bis) {
+                    var bis = bis.sort(
+                            function(a, b) {
+                                return a.description < b.description ? -1 : 1; });
+                    for (var i = 0; i < bis.length; ++i) {
+                        var bulk_item = bis[i];
+
+                        if (!bulk_item.active) {
+                            //continue;
+                        }
+
+                        select.append($('<option>', {
+                            value: bulk_item.bulkid,
+                            text: (bulk_item.active ? "" : "[i] ") +
+                                  bulk_item.description,
+                        }));
+                        bulk_items[bulk_item.bulkid] = bulk_item;
+                    }
+                    resolve();
+                }
+
+                $.getJSON(BULKITEMS_URL, null, add_options).fail(
+                    function(err) {
+                        reject(Error("JSON request failed"));
+                    }
+                );
+
+                select.on("change", add_line_from_select);
+            });
+            return promise;
+        }
+
+        function add_line_from_select() {
+            var bulkid = $("#bulkitem_select").val();
+            var option = $("#bulkitem_select option:selected");
+
+            if (bulkid == "") {
+                console.log("Chose empty select option.");
+                return;
+            }
+
+            var bulk_item = bulk_items[bulkid];
+
+            console.log(bulk_item);
+
+            get_sales(bulk_item)
+                .then(add_bulkitem_to_chart)
+                .then(update_url);
+        };
+
+        function delete_column() {
+            console.log("Deleting column");
+
+            var selection = chart.getChart().getSelection();
+            var graph_data = chart.getDataTable();
+
+            if (selection.length != 1 || selection[0].row != null) {
+                console.log("Ignoring click on non-legend.");
+                return;
+            }
+
+            var column = selection[0].column
+            var bulkid = graph_data.getColumnProperty(column, "bulkid");
+
+            graph_data.removeColumn(column);
+
+            // TODO
+            var option = $("#bulkitem_select option[value=" + bulkid + "]");
+            option.prop("disabled", false);
+
+            delete currently_charted_ids[bulkid];
+
+            // Ditch the old value
+            //var indx = data_column_to_charted_index[column];
+            //currently_charted_ids.splice(indx, 1);
+
+            if (Object.keys(currently_charted_ids).length == 0) {
+                chart_visible(false);
+            } else {
+                chart.draw();
+            }
+            update_url();
+        }
+
+        function init_chart() {
+            var data = new google.visualization.DataTable();
+            data.addColumn('date', "Day");
+            data.addColumn({role: 'tooltip', type: 'string'});
+
+            var options = {
+                title: 'Sales',
+                legend: { position: 'right' },
+                vAxis: {
+                    viewWindowMode: 'maximized',
+                    title: "Remaining",
+                }
+            };
+
+
+            chart = new google.visualization.ChartWrapper(
+                {
+                    chartType: "Line",
+                    options: google.charts.Line.convertOptions(options),
+                    dataTable: data,
+                    containerId: 'sales_chart',
+                }
+            );
+
+            google.visualization.events.addListener(
+                chart, 'select', delete_column);
+        }
+
+        function chart_visible(visible) {
+            chart_element.css('display', visible ? 'block' : 'none');
+        }
+
+        function clean_name(name) {
+            var posn = name.search(" \\(#");
+            if (posn == -1)
+                return name;
+            return name.substring(0, posn);
+        }
+
+        function draw_chart(details) {
+            chart_visible(true);
+            var graph_data = chart.getDataTable();
+
+            var colid = graph_data.addColumn(
+                'number', clean_name(details.bulk_item.description));
+
+            graph_data.setColumnProperty(
+                colid, "bulkid", details.bulk_item.bulkid);
+
+            var sales = details.sales
+                .map(function (x) {
+                    x.date = new Date(x.date);
+                    return x;
+                        
+                    })
+                .sort((x, y) => x.date - y.date);
+            console.log(sales);
+
+            var rows = [];
+            var running = 0;
+            var offset = 0;
+
+            var begin = false;
+            for (var i = 0; i < sales.length; i++) {
+                var datum = sales[i];
+                var row = [datum.date, datum.type];
+
+                if (datum.type == 'inventory') {
+                    if (!begin) {
+                        begin = true;
+                        offset = datum.n - running;
+                    }
+
+                    console.log("Inventory:", datum.n, "Running:", running);
+                    console.log("Loss of:", running - datum.n);
+                    running = datum.n;
+                    //row[1] = 'Inventory';
+
+                    // If we're an inventory, and there's a previous transaction
+                    // and that transaction is pretty close to now, assume the
+                    // loss happened then to clean up the graph slightly.
+                    //if (i > 0 && rows[i] && rows[i][colid] &&
+                    //        rows[i][colid] > running &&
+                    //        rows[i][colid] < running + 5)
+                    //    rows[i][colid] = running;
+
+                    //offset += datum.n - running;
+                    //console.log("Adjustment:", datum.n-running, "offset:", offset);
+                }
+                else {
+                    //if (!begin)
+                    //    continue;
+
+                    running += datum.n;
+                }
+
+                row[colid] = running;
+                rows[i] = row;
+            }
+
+            for (var i = 0; i < sales.length; i++) {
+                if (rows[i] === undefined)
+                    rows[i] = null;
+                else if (sales[i].type == 'inventory') {
+                    break;
+                }
+                else {
+                    rows[i][colid] += offset;
+                }
+            }
+
+            var bi = details.bulk_item;
+            var per_unit_cost = bi.price / bi.quantity;
+
+            // Scale it down by case size
+            for (var i = 0; i < sales.length; i++) {
+                if (rows[i] === undefined || rows[i] === null)
+                    continue;
+
+                switch(mode) {
+                    case "case":
+                        rows[i][colid] /= details.bulk_item.quantity;
+                        break;
+                    case "product":
+                        //rows[i][colid] /= details.bulk_item.quantity;
+                        break;
+                    case "cost":
+                        rows[i][colid] *= per_unit_cost;
+                        break;
+                }
+            }
+
+            graph_data.addRows(rows);
+
+            chart.draw();
+            return colid;
+        }
+
+        function get_details(bulkid) {
+            var promise = new Promise(function(resolve, reject) {
+                console.log("Getting details.");
+                url = DETAILS_URL + "/" + bulkid;
+                $.getJSON(url, null,
+                function(data) { 
+                    console.log("I got data");
+                    resolve(data);
+                }).fail(
+                    function(err) {
+                        reject(Error("JSON request failed"));
+                    });
+            });
+            return promise;
+        }
+
+        function update_details(data) {
+            var promise = new Promise(function(resolve, reject) {
+                console.log(data);
+                bulk_item = data;
+                resolve(data);
+            });
+            return promise;
+        }
+
+        function get_sales(bulk_item) {
+            var promise = new Promise(function(resolve, reject) {
+                // do a thing, possibly async, then
+                console.log("Getting sales from", bulk_item);
+                url = SALES_URL + "/" + bulk_item.bulkid + "/" + CHART_WINDOW;
+                $.getJSON(
+                    url, null,
+                    function(sales) {
+                        console.log("I got sales data");
+                        details = {
+                            bulk_item: bulk_item,
+                            sales: sales,
+                        };
+                        resolve(details);
+                    }).fail(
+                    function() { reject(Error("JSON request failed")) });
+            });
+            return promise;
+        }
+
+        function add_bulkitem_to_chart(details) {
+            var bulkid = details.bulk_item.bulkid;
+            var option = $("#bulkitem_select option[value=" + bulkid + "]");
+            option.prop("disabled", true);
+            console.log(details);
+            var colid = draw_chart(details);
+            //data_column_to_charted_index[colid] = currently_charted_ids.length;
+            currently_charted_ids[details.bulk_item.bulkid] = true;
+        }
+
+        function setup_mode_select() {
+            var select = $("#mode_select");
+            var selected =$("#mode_select option[value=" + mode + "]");
+            console.log(select, selected);
+            selected.prop("selected", true);
+
+            console.log("Selected");
+            select.on("change",
+                function(event) {
+                    //console.log("This", this);
+                    //console.log("Event", event);
+                    mode = this.value;
+                    update_url();
+                    // Too lazy to redraw properly.
+                    location.reload();
+                }
+            );
+            console.log("setup");
+
+        }
+
+        google.charts.setOnLoadCallback(function() {
+            populate_select()
+                .then(init_chart)
+                .then(add_url_bulkitems)
+                .then(setup_mode_select);
+            window.addEventListener("hashchange", on_url_changed_event, false);
+            chart_element = $("#sales_chart");
+        });
+    </script>
+    <style>
+        #sales_chart {
+            margin-left: auto;
+            margin-right: auto; width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <select id="bulkitem_select">
+        <option value="">-- Select a bulk_item --</option>
+    </select>
+    <select id="mode_select">
+        <option value="case">Case</option>
+        <option value="cost">Cost</option>
+        <option value="product">Product</option>
+    </select>
+    <div id="sales_chart"></div>
+</body>
+</html>
