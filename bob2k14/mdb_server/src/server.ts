@@ -237,27 +237,24 @@ class mdb_server {
                                     clearTimeout(mdb.solicit_tm);
                                     cb_temp(null, mdb.last_buffer);
                                 }
+                                if (mdb.last_buffer[0] != "X")
+                                {
+                                //send to the remote endpoint.
+                                mdb.rpc_client.request("Soda.remotemdb", [mdb.last_buffer], function (err, response)
+                                        {
+                                            if (err)
+                                            {
+                                                log.error("Error contacting remote endpoint", err);
+                                            }
+                                            else
+                                            {
+                                                log.debug("remotemdb successful, response=", response);
+                                            }
+                                        });
+                                }
                                 else
                                 {
-                                    if (mdb.last_buffer[0] != "X")
-                                    {
-                                    //otherwise send to the remote endpoint.
-                                    mdb.rpc_client.request("Soda.remotemdb", [mdb.last_buffer], function (err, response)
-                                            {
-                                                if (err)
-                                                {
-                                                    log.error("Error contacting remote endpoint", err);
-                                                }
-                                                else
-                                                {
-                                                    log.debug("remotemdb successful, response=", response);
-                                                }
-                                            });
-                                    }
-                                    else
-                                    {
-                                        log.trace("Error ignored: " + mdb.last_buffer);
-                                    }
+                                    log.trace("Error ignored: " + mdb.last_buffer);
                                 }
                             }
                         });
