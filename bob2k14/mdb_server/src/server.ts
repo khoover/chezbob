@@ -26,6 +26,7 @@ class InitData {
     timeout: Number;
     remote_endpoint: String;
     rpc_port: number;
+    event_mode: boolean;
     config;
 
     loadVersion (initdata: InitData, callback: () => void) : void
@@ -110,16 +111,13 @@ class InitData {
         this.timeout = this.config.mdbd.timeout;
         this.remote_endpoint = this.config.sodad.endpoint;
         this.rpc_port = this.config.mdbd.port;
+        this.event_mode = this.config.mdbd.event_mode;
     }
 }
 
 class mdb_server {
     initdata : InitData; //initialization data
 
-    solicit: boolean; //whether or not current_buffer was solicited
-    solicit_cb; //callback for a solicitation
-    solicit_tm; //timer for solicitation timeout
-    last_buffer;
     current_buffer; //current data being read in
     port; // open port
     rpc_client;
@@ -156,27 +154,7 @@ class mdb_server {
     //a timeout occurs if data is not returned within the timeout.
     sendread = (data: String, cb) =>
     {
-        if (this.solicit)
-        {
-            //already someone waiting, fail
-            log.warn("Sendread failed, request in progress");
-            cb("Request in progress, please try again!", null);
-        }
-        else
-        {
-            this.solicit = true;
-            this.solicit_cb = cb;
-            this.solicit_tm = setTimeout(function(mdb:mdb_server){return function() {
-                log.error("sendread request failed, timeout!");
-                mdb.solicit_cb = null;
-                mdb.solicit_tm = null;
-                mdb.solicit = false;
-                cb("Request timed out!", null);
-            }}(this), this.initdata.timeout);
-
-
-            this.send(data, null);
-        }
+        this.send(data, null);
     }
 
     //asynchrnously sends a string over port
@@ -202,41 +180,59 @@ class mdb_server {
                 {
                     log.debug("serial port successfully opened.");
                     mdb.port.on('data', function(data : Buffer)
+                    {
+                        //it is highly unlikely that we got more than
+                        //1 byte, but if we did, make sure to process
+                        //each byte
+                        for (var i : number = 0; i < data.length; i++)
                         {
-                            //it is highly unlikely that we got more than
-                            //1 byte, but if we did, make sure to process
-                            //each byte
-                            var process_last : boolean = false;
-                            for (var i : number = 0; i < data.length; i++)
+                            //treat the port as an EventEmitter, have listeners for
+                            //certain types of messages on it.
+                            switch (data[i])
                             {
-                                switch (data[i])
-                                {
-                                    case 0xa:
-                                        log.debug("received ACK");
+                                case 0xa:
+                                    log.debug("received ACK");
+                                    process.nextTick(function () {
+                                        mdb.port.emit('ACK');
+                                    });
                                     break;
-                                    case 0xd:
-                                        mdb.last_buffer = mdb.current_buffer;
-                                        mdb.current_buffer = "";
-                                        log.debug("received " + mdb.last_buffer);
-                                        //mark that we need to send the last buffer
-                                        process_last = true;
-                                        break;
-                                    default:
-                                        mdb.current_buffer += data.toString('utf8', i, i+1);
-                                }
+                                case 0xd:
+                                    log.debug("received " + mdb.current_buffer);
+                                    process.nextTick((function (message: String) { return function () {
+                                        if (message.length === 1)
+                                        {
+                                            mdb.port.emit(message);
+                                        }
+                                        else
+                                        {
+                                            mdb.port.emit(message.slice(0, 2), message);
+                                        }
+                                    }})(mdb.current_buffer));
+                                    mdb.current_buffer = "";
+                                    break;
+                                default:
+                                    mdb.current_buffer += data.toString('utf8', i, i+1);
                             }
+                        }
+                    });
+                    if (mdb.initdata.event_mode)
+                    {
+                        //add listener for bill escrow messages
+                        mdb.port.on('Q1', function (message: String) {
+                        });
+                        //add listener for coin deposit messages
+                        mdb.port.on('P1', function (message: String) {
+                        });
+                        //add listener for logout button
+                        mdb.port.on('W', function () {
+                        });
+                    }
+                    else
+                    {
+                        //add polling calls to the bill and change acceptors
+                    }
                             if (process_last)
                             {
-                                //if this is a solicited request, clear the timer and
-                                //call the callback
-                                if (mdb.solicit)
-                                {
-                                    var cb_temp = mdb.solicit_cb;
-                                    mdb.solicit_cb = null;
-                                    mdb.solicit = false;
-                                    clearTimeout(mdb.solicit_tm);
-                                    cb_temp(null, mdb.last_buffer);
-                                }
                                 if (mdb.last_buffer[0] != "X")
                                 {
                                 //send to the remote endpoint.
@@ -257,7 +253,6 @@ class mdb_server {
                                     log.trace("Error ignored: " + mdb.last_buffer);
                                 }
                             }
-                        });
                     mdb.reset(mdb);
                     var server = jayson.server(
                             {
@@ -288,7 +283,6 @@ class mdb_server {
     constructor(initdata : InitData) {
         this.initdata = initdata;
         this.current_buffer = "";
-        this.solicit_cb = null;
         this.rpc_client = jayson.client.http(initdata.remote_endpoint);
     }
 }
