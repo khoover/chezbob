@@ -19,38 +19,36 @@ var ringbuffer;
 var redistransport;
 
 class InitData {
-    version: String;
-    longVersion: String;
+    version: string;
+    longVersion: string;
 
-    mdbport: String;
+    mdbport: string;
     timeout: Number;
-    remote_endpoint: String;
+    remote_endpoint: string;
     rpc_port: number;
     event_mode: boolean;
     config;
 
-    loadVersion (initdata: InitData, callback: () => void) : void
+    private loadVersion: (callback: () => void) => void = (cb: () => void) =>
     {
         log.debug("Getting version information...");
-        initdata.version = module.exports.version;
-        initdata.longVersion = module.exports.version;
+        this.version = module.exports.version;
+        this.longVersion = module.exports.version;
         //if we are in a git checkout, append the short SHA.
-        git.short(__dirname, function (initdata: InitData) {
-            return function (err, str)
+        git.short(__dirname, (err, str) =>
             {
                 if (err === null)
                 {
                     log.debug("Git checkout detected.");
-                    initdata.version += "+";
-                    initdata.longVersion += "/" + str;
+                    this.version += "+";
+                    this.longVersion += "/" + str;
                 }
-                log.info("mdb_server version " + initdata.longVersion);
-                callback();
-            }
-        }(initdata))
+                log.info("mdb_server version " + this.longVersion);
+                cb();
+            })
     }
 
-    prepareLogs = (initdata: InitData, callback: () => void) : void =>
+    private prepareLogs: (callback: () => void) => void = (cb: () => void) =>
     {
         ringbuffer = new bunyan.RingBuffer({ limit: 1000 });
         redistransport = new bunyanredis( {
@@ -82,17 +80,17 @@ class InitData {
                 }
                 );
         log.info("Logging system initialized");
-        callback();
+        cb();
     }
 
-    init = (initdata : InitData, callback: (err,res) => void) : void =>
+    init: (callback: (err,res) => void) => void = (cb: (err,res) => void) =>
     {
         async.series([
-                    function (cb) {initdata.prepareLogs(initdata, cb)},
-                    function (cb) {initdata.loadVersion(initdata, cb)},
+                    this.prepareLogs,
+                    this.loadVersion,
                     function (err, res)
                     {
-                        callback(null, initdata);
+                        cb(null, initdata);
                     }
                 ]);
     }
@@ -118,12 +116,14 @@ class InitData {
 class mdb_server {
     initdata : InitData; //initialization data
 
-    current_buffer; //current data being read in
+    current_buffer: string; //current data being read in
     port; // open port
+    port_lock: boolean; //lock for sending data to mdb device
+    port_queue: Array<() => void>; //queue of jobs waiting for the port to open
     rpc_client;
 
     //sends the commands to reset the mdb device
-    reset (mdb : mdb_server) {
+    reset (mdb: mdb_server): void {
         async.series([
                 // Reset the coin changer
                 function (cb) { mdb.sendread("R1", cb); },
@@ -150,36 +150,133 @@ class mdb_server {
                 );
     }
 
+    //creates a callback that filters for strings starting with a certain prefix
+    makeMessageCallback: (prefix: string, callback: () => void) => (message: string) => void = (prefix, callback) => {   
+        return (message) => {
+            if (message.startsWith(prefix)) { callback(message) }
+        };
+    }
+
+    //acquire the serial port for communication
+    //callback must not throw any errors
+    acquirePort (callback: () => void): void {
+        log.trace("acquiring port");
+        if (!this.port_lock)
+        {
+            this.port_lock = true;
+            callback();
+        }
+        else
+        {
+            this.port_queue.push(callback.bind(this));
+        }
+    }
+
+    //release the serial port after communication
+    releasePort: () => void = () => {
+        if (this.port_queue.length === 0)
+        {
+            this.port_lock = false;
+        }
+        else
+        {
+            process.nextTick(this.port_queue.shift());
+        }
+        log.trace("released port");
+    }
+
     //asynchronusly sends a string and returns the result in a callback
     //a timeout occurs if data is not returned within the timeout.
-    sendread = (data: String, cb) =>
+    sendread: (data: string, prefixes: string[], callback: () => void) => void = (data, prefixes, cb) =>
     {
-        this.send(data, null);
+        var cancelled: boolean = false;
+        var listeners: Array<(message: string) => void> = [];
+        //add a timeout for communication/acquiring the port.
+        var timeout = setTimeout(() => {
+            cancelled = true;
+            listeners.forEach((callback) => {
+                this.port.removeListener('message', callback);
+            });
+            listeners = [];
+            log.error("Serial communication timed out");
+            releasePort();
+            cb("timeout");
+        }, this.initdata.timeout);
+        acquirePort(() => {
+            log.trace("acquired port");
+            if (cancelled) { return releasePort(); }
+            try
+            {
+                //send the data
+                this.send(data, (err) => {
+                    if (err && !cancelled) {
+                        cancelled = true;
+                        listeners.forEach((callback) => {
+                            this.port.removeListener('message', callback);
+                        });
+                        listeners = [];
+                        clearTimeout(timeout);
+                        releasePort();
+                        cb(err);
+                    }
+                });
+                //add the ACK listener
+                this.port.once('ACK', () => {
+                    if (!cancelled) {
+                        //creates listeners for each of the message prefixes requested
+                        listeners = prefixes.map((prefix) => {
+                            return makeMessageCallback(prefix, (message) => {
+                                listeners.forEach((callback) => {
+                                    this.port.removeListener('message', callback);
+                                });
+                                listeners = [];
+                                if (!cancelled) {
+                                    clearTimeout(timeout);
+                                    releasePort();
+                                    cb(null, prefix, message);
+                                }
+                            });
+                        });
+                        //registers the listeners on the port
+                        listeners.forEach(this.port.on.bind(this.port, 'message'));
+                    }
+                });
+            }
+            catch (err) //catch any synchronous errors
+            {
+                log.error("Error during serial communication: ", e);
+                if (!cancelled) {
+                    cancelled = true;
+                    listeners.forEach((callback) => {
+                        this.port.removeListener('message', callback);
+                    });
+                    listeners = [];
+                    clearTimeout(timeout);
+                    releasePort();
+                    cb(err);
+                }
+            }
+        });
     }
 
     //asynchrnously sends a string over port
-    send = (data: String, cb) => {
+    send (data: string, cb = () => { }): void {
         log.debug("send: ", data);
-        this.port.write(data + '\r', function(error)
-                {
-                    if (typeof error !== 'undefined' && error && error !== null)
-                    {
-                        log.error("Couldn't write to serial port, " + error);
-                    }
-                    if (typeof cb !== 'undefined' && cb)
-                    {
-                        cb(error);
-                    }
-                })
+        this.port.write(data + '\r', (err, results) => {
+            if (err) {
+                log.error("Error while writing to serial port: ", err);
+            }
+            cb(err, results);
+        });
     }
 
-    start = () => {
+    start (): void {
         log.info("mdb_server starting, listening on " + this.initdata.mdbport);
         this.port = new serialport(this.initdata.mdbport);
-        this.port.on("open", function(mdb: mdb_server){ return function ()
+        this.port.on("open", () =>
                 {
                     log.debug("serial port successfully opened.");
-                    mdb.port.on('data', function(data : Buffer)
+                    this.port.on('data', (data : Buffer) =>
                     {
                         //it is highly unlikely that we got more than
                         //1 byte, but if we did, make sure to process
@@ -192,87 +289,74 @@ class mdb_server {
                             {
                                 case 0xa:
                                     log.debug("received ACK");
-                                    process.nextTick(function () {
-                                        mdb.port.emit('ACK');
-                                    });
+                                    this.port.emit('ACK');
                                     break;
                                 case 0xd:
-                                    log.debug("received " + mdb.current_buffer);
-                                    process.nextTick((function (message: String) { return function () {
-                                        if (message.length === 1)
-                                        {
-                                            mdb.port.emit(message);
-                                        }
-                                        else
-                                        {
-                                            mdb.port.emit(message.slice(0, 2), message);
-                                        }
-                                    }})(mdb.current_buffer));
-                                    mdb.current_buffer = "";
+                                    log.debug("received " + this.current_buffer);
+                                    var message = this.current_buffer;
+                                    this.current_buffer = "";
+                                    this.port.emit('message', message);
                                     break;
                                 default:
-                                    mdb.current_buffer += data.toString('utf8', i, i+1);
+                                    this.current_buffer += data.toString('utf8', i, i+1);
                             }
                         }
                     });
-                    if (mdb.initdata.event_mode)
+                    if (this.initdata.event_mode)
                     {
                         //add listener for bill escrow messages
-                        mdb.port.on('Q1', function (message: String) {
-                        });
+                        this.port.on('message', this.makeMessageCallback('Q1', (message: string) => {
+                        }));
                         //add listener for coin deposit messages
-                        mdb.port.on('P1', function (message: String) {
+                        this.port.on('P1', (message: string) => {
                         });
                         //add listener for logout button
-                        mdb.port.on('W', function () {
+                        this.port.on('W', () => {
                         });
                     }
                     else
                     {
                         //add polling calls to the bill and change acceptors
                     }
-                            if (process_last)
-                            {
-                                if (mdb.last_buffer[0] != "X")
-                                {
-                                //send to the remote endpoint.
-                                mdb.rpc_client.request("Soda.remotemdb", [mdb.last_buffer], function (err, response)
-                                        {
-                                            if (err)
-                                            {
-                                                log.error("Error contacting remote endpoint", err);
-                                            }
-                                            else
-                                            {
-                                                log.debug("remotemdb successful, response=", response);
-                                            }
-                                        });
-                                }
-                                else
-                                {
-                                    log.trace("Error ignored: " + mdb.last_buffer);
-                                }
-                            }
-                    mdb.reset(mdb);
+//                            if (process_last)
+//                            {
+//                                if (this.last_buffer[0] != "X")
+//                                {
+//                                //send to the remote endpoint.
+//                                this.rpc_client.request("Soda.remotethis", [this.last_buffer], function (err, response)
+//                                        {
+//                                            if (err)
+//                                            {
+//                                                log.error("Error contacting remote endpoint", err);
+//                                            }
+//                                            else
+//                                            {
+//                                                log.debug("remotethis successful, response=", response);
+//                                            }
+//                                        });
+//                                }
+//                                else
+//                                {
+//                                    log.trace("Error ignored: " + this.last_buffer);
+//                                }
+//                            }
+                    this.reset();
                     var server = jayson.server(
                             {
-                                "Mdb.command": function(mdb : mdb_server) { return function (command: String, callback)
+                                "Mdb.command": (command: string, callback) =>
                                 {
                                     log.debug("remote request: " + command);
-                                    mdb.sendread(command, function(err, result)
-                                        {
-                                            callback(err, result);
-                                        });
-                                }}(mdb),
+                                    this.sendread(command, callback);
+                                },
                                 "Mdb.logs": function (callback)
                                 {
                                     callback(null, ringbuffer.records);
                                 }
                             }
                             )
-                    server.http().listen(mdb.initdata.rpc_port);
-                    log.info("rpc endpoint listening on port " + mdb.initdata.rpc_port);
-                }}(this));
+                    server.http().listen(this.initdata.rpc_port);
+                    log.info("rpc endpoint listening on port " + this.initdata.rpc_port);
+                });
         this.port.on("error", function (error)
                 {
                     log.error("Fatal serial port error - " + error);
@@ -284,6 +368,8 @@ class mdb_server {
         this.initdata = initdata;
         this.current_buffer = "";
         this.rpc_client = jayson.client.http(initdata.remote_endpoint);
+        this.port_lock = false;
+        this.port_queue = [];
     }
 }
 export class App {
@@ -292,13 +378,11 @@ export class App {
     main(args: string[])
     {
         this.initdata = new InitData(args);
-        this.initdata.init(this.initdata,
-                function (err, res: InitData)
+        this.initdata.init(function (err, res: InitData)
                 {
                     var mdb = new mdb_server(res);
                     mdb.start();
-                }
-                );
+                });
     }
 
     constructor () {}
