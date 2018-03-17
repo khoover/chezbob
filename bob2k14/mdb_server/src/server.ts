@@ -352,7 +352,11 @@ class mdb_server {
                                     }
                                     this.sendread(command, '', (err, message) => {
                                         if (err) {
-                                            callback(server.error(500, 'Serial port error, see attached object.', err));
+                                            if (typeof err === "string" && err == "timeout") {
+                                                callback(server.error(504, 'Serial port communication timed out.'));
+                                            } else {
+                                                callback(server.error(500, 'Serial port error, see attached object.', err));
+                                            }
                                         } else {
                                             callback(null, message);
                                         }
