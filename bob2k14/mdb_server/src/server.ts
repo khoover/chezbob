@@ -348,8 +348,7 @@ class mdb_server {
                                 {
                                     log.debug("remote request: " + command);
                                     if (command.includes('\r')) {
-                                        var error = server.error(-32602, 'Multiple commands in single request.');
-                                        return callback(error);
+                                        return callback(server.error(-32602, 'Multiple commands in single request.'));
                                     }
                                     this.sendread(command, '', (err, message) => {
                                         if (err) {
