@@ -210,7 +210,7 @@ class mdb_server {
             this.releasePort();
             cb("timeout");
         }, this.initdata.timeout);
-        acquirePort(() => {
+        this.acquirePort(() => {
             log.trace("acquired port");
             if (cancelled) { return; }
             try
