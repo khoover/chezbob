@@ -200,6 +200,7 @@ class mdb_server {
     //a timeout occurs if data is not returned within the timeout.
     sendread (data: string, prefix: string | string[], cb: (error: any, message?: string, prefix?: string) => void): void {
         var cancelled: boolean = false;
+        var port_acquired: boolean = false;
         var listener_event: string;
         var listener: (message?: string) => void;
         //add a timeout for communication/acquiring the port.
@@ -207,12 +208,13 @@ class mdb_server {
             if (typeof listener !== "undefined") this.port.removeListener(listener_event, listener);
             cancelled = true;
             log.error("Serial communication timed out");
-            this.releasePort();
+            if (port_acquired) this.releasePort();
             cb("timeout");
         }, this.initdata.timeout);
         this.acquirePort(() => {
+            port_acquired = true;
             log.trace("acquired port");
-            if (cancelled) { return; }
+            if (cancelled) return this.releasePort(); //timed out, release port now
             try
             {
                 listener_event = 'ACK';
