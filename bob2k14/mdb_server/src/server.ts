@@ -198,7 +198,7 @@ class mdb_server {
 
     //asynchronusly sends a string and returns the result in a callback
     //a timeout occurs if data is not returned within the timeout.
-    sendread (data: string, prefix: string | string[], cb: (error: any, message: string, prefix?: string) => void): void {
+    sendread (data: string, prefix: string | string[], cb: (error: any, message?: string, prefix?: string) => void): void {
         var cancelled: boolean = false;
         var listener_event: string;
         var listener: (message?: string) => void;
