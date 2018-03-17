@@ -123,22 +123,22 @@ class mdb_server {
     rpc_client;
 
     //sends the commands to reset the mdb device
-    reset (mdb: mdb_server): void {
+    reset (): void {
         async.series([
                 // Reset the coin changer
-                function (cb) { mdb.sendread("R1", cb); },
-                function (cb) { mdb.sendread("N FFFF", cb); },
-                function (cb) { mdb.sendread("M FFFF", cb); },
-                function (cb) { mdb.sendread("P1", cb); },
-                function (cb) { mdb.sendread("E1", cb); },
+                function (cb) { this.sendread("R1", cb); },
+                function (cb) { this.sendread("N FFFF", cb); },
+                function (cb) { this.sendread("M FFFF", cb); },
+                function (cb) { this.sendread("P1", cb); },
+                function (cb) { this.sendread("E1", cb); },
                 // Reset the bill reader
-                function (cb) { mdb.sendread("R2", cb); },
-                function (cb) { mdb.sendread("P2", cb); },
-                function (cb) { mdb.sendread("L FFFF", cb); },
-                function (cb) { mdb.sendread("V 0000", cb); },
-                function (cb) { mdb.sendread("J FFFF", cb); },
-                function (cb) { mdb.sendread("S7", cb); }
-                //function (cb) { mdb.sendread("E2", cb); }
+                function (cb) { this.sendread("R2", cb); },
+                function (cb) { this.sendread("P2", cb); },
+                function (cb) { this.sendread("L FFFF", cb); },
+                function (cb) { this.sendread("V 0000", cb); },
+                function (cb) { this.sendread("J FFFF", cb); },
+                function (cb) { this.sendread("S7", cb); }
+                //function (cb) { this.sendread("E2", cb); }
                 ],
                 function (error, result)
                 {
@@ -153,7 +153,7 @@ class mdb_server {
     //creates a callback that filters for strings starting with either a single prefix or one of a list
     //if prefix is a string, assumes callback does not expect the prefix
     //if prefix is an array, gives the matched prefix back along with the message; no prefix should match any other
-    makeMessageListener: (prefix: string | string[], callback: (message: string, prefix?: string) => void) => (message: string) => void = (prefix, callback) => {
+    makeMessageListener (prefix: string | string[], callback: (message: string, prefix?: string) => void): (message: string) => void {
         if (typeof prefix === "string" {
             return (message) => {
                 if (message.startsWith(prefix)) { callback(message) }
@@ -184,7 +184,7 @@ class mdb_server {
     }
 
     //release the serial port after communication
-    releasePort: () => void = () => {
+    releasePort (): void {
         if (this.port_queue.length === 0)
         {
             this.port_lock = false;
@@ -198,13 +198,12 @@ class mdb_server {
 
     //asynchronusly sends a string and returns the result in a callback
     //a timeout occurs if data is not returned within the timeout.
-    sendread: (data: string, prefix: string | string[], callback: (error: any, message: string, prefix?: string) => void) => void = (data, prefix, cb) =>
-    {
+    sendread (data: string, prefix: string | string[], cb: (error: any, message: string, prefix?: string) => void): void {
         var cancelled: boolean = false;
         var listener_event: string;
         var listener: (message?: string) => void;
         //add a timeout for communication/acquiring the port.
-        var timeout = setTimeout(() => {
+        const timeout = setTimeout(() => {
             if (typeof listener !== "undefined") this.port.removeListener(listener_event, listener);
             cancelled = true;
             log.error("Serial communication timed out");
@@ -348,7 +347,17 @@ class mdb_server {
                                 "Mdb.command": (command: string, callback) =>
                                 {
                                     log.debug("remote request: " + command);
-                                    this.sendread(command, callback);
+                                    if (command.includes('\r')) {
+                                        var error = server.error(-32602, 'Multiple commands in single request.');
+                                        return callback(error);
+                                    }
+                                    this.sendread(command, '', (err, message) => {
+                                        if (err) {
+                                            callback(server.error(500, 'Serial port error, see attached object.', err));
+                                        } else {
+                                            callback(null, message);
+                                        }
+                                    });
                                 },
                                 "Mdb.logs": function (callback)
                                 {
