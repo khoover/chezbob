@@ -150,11 +150,22 @@ class mdb_server {
                 );
     }
 
-    //creates a callback that filters for strings starting with a certain prefix
-    makeMessageCallback: (prefix: string, callback: () => void) => (message: string) => void = (prefix, callback) => {   
-        return (message) => {
-            if (message.startsWith(prefix)) { callback(message) }
-        };
+    //creates a callback that filters for strings starting with either a single prefix or one of a list
+    //if prefix is a string, assumes callback does not expect the prefix
+    //if prefix is an array, gives the matched prefix back along with the message; no prefix should match any other
+    makeMessageListener: (prefix: string | string[], callback: (message: string, prefix?: string) => void) => (message: string) => void = (prefix, callback) => {
+        if (typeof prefix === "string" {
+            return (message) => {
+                if (message.startsWith(prefix)) { callback(message) }
+            };
+        } else {
+            return (message) => {
+                var matched: string[] = prefix.filter(pre => message.startsWith(pre));
+                if (matched.length === 1) {
+                    callback(message, matched[0]);
+                }
+            };
+        }
     }
 
     //acquire the serial port for communication
@@ -187,58 +198,52 @@ class mdb_server {
 
     //asynchronusly sends a string and returns the result in a callback
     //a timeout occurs if data is not returned within the timeout.
-    sendread: (data: string, prefixes: string[], callback: () => void) => void = (data, prefixes, cb) =>
+    sendread: (data: string, prefix: string | string[], callback: (error: any, message: string, prefix?: string) => void) => void = (data, prefix, cb) =>
     {
         var cancelled: boolean = false;
-        var listeners: Array<(message: string) => void> = [];
+        var listener_event: string;
+        var listener: (message?: string) => void;
         //add a timeout for communication/acquiring the port.
         var timeout = setTimeout(() => {
+            if (typeof listener !== "undefined") this.port.removeListener(listener_event, listener);
             cancelled = true;
-            listeners.forEach((callback) => {
-                this.port.removeListener('message', callback);
-            });
-            listeners = [];
             log.error("Serial communication timed out");
-            releasePort();
+            this.releasePort();
             cb("timeout");
         }, this.initdata.timeout);
         acquirePort(() => {
             log.trace("acquired port");
-            if (cancelled) { return releasePort(); }
+            if (cancelled) { return; }
             try
             {
+                listener_event = 'ACK';
+                //creates the ACK listener
+                listener = () => {
+                    if (!cancelled) {
+                        listener_event = 'message';
+                        //creates the message listener
+                        listener = this.makeMessageListener(prefix, (message, prefix) => {
+                            this.port.removeListener('message', listener);
+                            if (!cancelled) {
+                                clearTimeout(timeout);
+                                this.releasePort();
+                                cb(null, message, prefix);
+                            }
+                        });
+                        //registers the listener on the port
+                        this.port.on('message', listener);
+                    }
+                };
+                //add the ACK listener before sending data; avoids case of missing the ACK
+                this.port.once('ACK', listener);
                 //send the data
                 this.send(data, (err) => {
                     if (err && !cancelled) {
+                        if (typeof listener !== "undefined") this.port.removeListener(listener_event, listener);
                         cancelled = true;
-                        listeners.forEach((callback) => {
-                            this.port.removeListener('message', callback);
-                        });
-                        listeners = [];
                         clearTimeout(timeout);
-                        releasePort();
+                        this.releasePort();
                         cb(err);
-                    }
-                });
-                //add the ACK listener
-                this.port.once('ACK', () => {
-                    if (!cancelled) {
-                        //creates listeners for each of the message prefixes requested
-                        listeners = prefixes.map((prefix) => {
-                            return makeMessageCallback(prefix, (message) => {
-                                listeners.forEach((callback) => {
-                                    this.port.removeListener('message', callback);
-                                });
-                                listeners = [];
-                                if (!cancelled) {
-                                    clearTimeout(timeout);
-                                    releasePort();
-                                    cb(null, prefix, message);
-                                }
-                            });
-                        });
-                        //registers the listeners on the port
-                        listeners.forEach(this.port.on.bind(this.port, 'message'));
                     }
                 });
             }
@@ -246,13 +251,10 @@ class mdb_server {
             {
                 log.error("Error during serial communication: ", e);
                 if (!cancelled) {
+                    if (typeof listener !== "undefined") this.port.removeListener(listener_event, listener);
                     cancelled = true;
-                    listeners.forEach((callback) => {
-                        this.port.removeListener('message', callback);
-                    });
-                    listeners = [];
                     clearTimeout(timeout);
-                    releasePort();
+                    this.releasePort();
                     cb(err);
                 }
             }
@@ -260,7 +262,7 @@ class mdb_server {
     }
 
     //asynchrnously sends a string over port
-    send (data: string, cb = () => { }): void {
+    send (data: string, cb = (err, results) => { }): void {
         log.debug("send: ", data);
         this.port.write(data + '\r', (err, results) => {
             if (err) {
@@ -305,13 +307,13 @@ class mdb_server {
                     if (this.initdata.event_mode)
                     {
                         //add listener for bill escrow messages
-                        this.port.on('message', this.makeMessageCallback('Q1', (message: string) => {
+                        this.port.on('message', this.makeMessageListener('Q1', (message: string) => {
                         }));
                         //add listener for coin deposit messages
-                        this.port.on('P1', (message: string) => {
+                        this.port.on('message', this.makeMessageListener('P1', (message: string) => {
                         });
                         //add listener for logout button
-                        this.port.on('W', () => {
+                        this.port.on('message', this.makeMessageListener('W', () => {
                         });
                     }
                     else
