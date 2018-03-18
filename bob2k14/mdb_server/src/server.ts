@@ -286,8 +286,6 @@ class mdb_server {
                         //each byte
                         for (var i : number = 0; i < data.length; i++)
                         {
-                            //treat the port as an EventEmitter, have listeners for
-                            //certain types of messages on it.
                             switch (data[i])
                             {
                                 case 0xa:
@@ -296,9 +294,9 @@ class mdb_server {
                                     break;
                                 case 0xd:
                                     log.debug("received " + this.current_buffer);
-                                    var message = this.current_buffer;
+                                    if (this.current_buffer.startsWith('X')) log.error("got an error message: ", this.current_buffer);
+                                    this.port.emit('message', this.current_buffer);
                                     this.current_buffer = "";
-                                    this.port.emit('message', message);
                                     break;
                                 default:
                                     this.current_buffer += data.toString('utf8', i, i+1);
@@ -346,6 +344,7 @@ class mdb_server {
                     this.reset();
                     var server = jayson.server(
                             {
+                                //TODO: allow callers to optionally specify what messages from the board they're listening for after the command
                                 "Mdb.command": (command: string, callback) =>
                                 {
                                     log.debug("remote request: " + command);
@@ -354,7 +353,7 @@ class mdb_server {
                                     }
                                     this.sendread(command, '', (err, message) => {
                                         if (err) {
-                                            if (typeof err === "string" && err == "timeout") {
+                                            if (typeof err === "string" && err === "timeout") {
                                                 callback(server.error(504, 'Serial port communication timed out.'));
                                             } else {
                                                 callback(server.error(500, 'Serial port error, see attached object.', err));
