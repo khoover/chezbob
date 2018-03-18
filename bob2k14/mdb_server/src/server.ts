@@ -126,7 +126,7 @@ class mdb_server {
     reset (): void {
         async.series([
                 // Reset the coin changer
-                function (cb) { this.sendread("R1", cb); },
+                function (cb) { this.sendread("R1", 'Z', cb); },
                 function (cb) { this.sendread("N FFFF", cb); },
                 function (cb) { this.sendread("M FFFF", cb); },
                 function (cb) { this.sendread("P1", cb); },
@@ -139,15 +139,16 @@ class mdb_server {
                 function (cb) { this.sendread("J FFFF", cb); },
                 function (cb) { this.sendread("S7", cb); }
                 //function (cb) { this.sendread("E2", cb); }
-                ],
-                function (error, result)
-                {
-                    if (error !== null)
-                    {
-                        log.info("Coin reader and bill reader successfully reset.", result);
-                    }
-                }
-                );
+           ],
+           function (error, result)
+           {
+               if (error === null) {
+                   log.info("Coin reader and bill reader successfully reset.", result);
+               } else {
+                   log.error("Coin and bill reader encountered error while resetting.", error);
+                   throw error;
+               }
+           });
     }
 
     //creates a callback that filters for strings starting with either a single prefix or one of a list
@@ -203,6 +204,7 @@ class mdb_server {
         var port_acquired: boolean = false;
         var listener_event: string;
         var listener: (message?: string) => void;
+
         //add a timeout for communication/acquiring the port.
         const timeout = setTimeout(() => {
             if (typeof listener !== "undefined") this.port.removeListener(listener_event, listener);
@@ -211,6 +213,7 @@ class mdb_server {
             if (port_acquired) this.releasePort();
             cb("timeout");
         }, this.initdata.timeout);
+
         this.acquirePort(() => {
             port_acquired = true;
             log.trace("acquired port");
@@ -237,6 +240,7 @@ class mdb_server {
                 };
                 //add the ACK listener before sending data; avoids case of missing the ACK
                 this.port.once('ACK', listener);
+
                 //send the data
                 this.send(data, (err) => {
                     if (err && !cancelled) {
@@ -303,6 +307,7 @@ class mdb_server {
                             }
                         }
                     });
+
                     if (this.initdata.event_mode)
                     {
                         //add listener for bill escrow messages
@@ -341,7 +346,9 @@ class mdb_server {
 //                                    log.trace("Error ignored: " + this.last_buffer);
 //                                }
 //                            }
+
                     this.reset();
+
                     var server = jayson.server(
                             {
                                 //TODO: allow callers to optionally specify what messages from the board they're listening for after the command
