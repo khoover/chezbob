@@ -351,28 +351,28 @@ class mdb_server {
 
                     var server = jayson.server(
                             {
-                                "Mdb.command": jayson.Method((argobj: Object, callback) =>
-                                    {
-                                        var command: string = argobj.command;
-                                        if (command === '') {
-                                            return callback(server.error(-32602, 'Empty command given.'));
-                                        }
-                                        var prefixes: string = argobj.response_prefixes
-                                        log.debug("remote request: " + command);
-                                        if (command.includes('\r')) {
-                                            return callback(server.error(-32602, 'Multiple commands in single request.'));
-                                        }
-                                        this.sendread(command, prefixes, (err, message) => {
-                                            if (err) {
-                                                if (typeof err === "string" && err === "timeout") {
-                                                    callback(server.error(504, 'Serial port communication timed out.'));
-                                                } else {
-                                                    callback(server.error(500, 'Serial port error, see attached object.', err));
-                                                }
+                                "Mdb.command": jayson.Method((argobj: Object, callback) => {
+                                    //type checking
+                                    if (typeof argobj.command !== "string" ||
+                                           (typeof argobj.response_prefixes !== "string" &&
+                                               (!Array.isArray(argobj.response_prefixes) ||
+                                                argobj.response_prefixes.any(str => typeof str !== "string")))) return callback(server.error(-32602));
+                                    const command: string = argobj.command;
+                                    if (command === '') return callback(server.error(-32602, 'Empty command given.'));
+                                    log.debug("remote request: " + command);
+                                    if (command.includes('\r')) return callback(server.error(-32602, 'Multiple commands in single request.'));
+                                    const prefixes: string = argobj.response_prefixes
+                                    this.sendread(command, prefixes, (err, message) => {
+                                        if (err) {
+                                            if (typeof err === "string" && err === "timeout") {
+                                                callback(server.error(504, 'Serial port communication timed out.'));
                                             } else {
-                                                callback(null, message);
+                                                callback(server.error(500, 'Serial port error, see attached object.', err));
                                             }
-                                        });
+                                        } else {
+                                            callback(null, message);
+                                        }
+                                    });
                                 }, {
                                     collect: true,
                                     params: { command: '', response_prefixes: '' }
