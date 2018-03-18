@@ -351,25 +351,32 @@ class mdb_server {
 
                     var server = jayson.server(
                             {
-                                //TODO: allow callers to optionally specify what messages from the board they're listening for after the command
-                                "Mdb.command": (command: string, callback) =>
-                                {
-                                    log.debug("remote request: " + command);
-                                    if (command.includes('\r')) {
-                                        return callback(server.error(-32602, 'Multiple commands in single request.'));
-                                    }
-                                    this.sendread(command, '', (err, message) => {
-                                        if (err) {
-                                            if (typeof err === "string" && err === "timeout") {
-                                                callback(server.error(504, 'Serial port communication timed out.'));
-                                            } else {
-                                                callback(server.error(500, 'Serial port error, see attached object.', err));
-                                            }
-                                        } else {
-                                            callback(null, message);
+                                "Mdb.command": jayson.Method((argobj: Object, callback) =>
+                                    {
+                                        var command: string = argobj.command;
+                                        if (command === '') {
+                                            return callback(server.error(-32602, 'Empty command given.'));
                                         }
-                                    });
-                                },
+                                        var prefixes: string = argobj.response_prefixes
+                                        log.debug("remote request: " + command);
+                                        if (command.includes('\r')) {
+                                            return callback(server.error(-32602, 'Multiple commands in single request.'));
+                                        }
+                                        this.sendread(command, prefixes, (err, message) => {
+                                            if (err) {
+                                                if (typeof err === "string" && err === "timeout") {
+                                                    callback(server.error(504, 'Serial port communication timed out.'));
+                                                } else {
+                                                    callback(server.error(500, 'Serial port error, see attached object.', err));
+                                                }
+                                            } else {
+                                                callback(null, message);
+                                            }
+                                        });
+                                }, {
+                                    collect: true,
+                                    params: { command: '', response_prefixes: '' }
+                                }),
                                 "Mdb.logs": function (callback)
                                 {
                                     callback(null, ringbuffer.records);
