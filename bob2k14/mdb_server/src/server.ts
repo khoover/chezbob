@@ -122,33 +122,78 @@ class mdb_server {
     port_queue: Array<() => void>; //queue of jobs waiting for the port to open
     rpc_client;
 
+    accepting: boolean; //should the mdb server be accepting deposits
+
+    disableAcceptance (cb = err => { }): void {
+        if (accepting) {
+        }
+    }
+
     //sends the commands to reset the mdb device
     reset (): void {
         async.series([
-                // Reset the coin changer
-                function (cb) { this.sendread("R1", 'Z', cb); },
-                function (cb) { this.sendread("N FFFF", cb); },
-                function (cb) { this.sendread("M FFFF", cb); },
-                function (cb) { this.sendread("P1", cb); },
-                function (cb) { this.sendread("E1", cb); },
-                // Reset the bill reader
-                function (cb) { this.sendread("R2", cb); },
-                function (cb) { this.sendread("P2", cb); },
-                function (cb) { this.sendread("L FFFF", cb); },
-                function (cb) { this.sendread("V 0000", cb); },
-                function (cb) { this.sendread("J FFFF", cb); },
-                function (cb) { this.sendread("S7", cb); }
-                //function (cb) { this.sendread("E2", cb); }
-           ],
-           function (error, result)
-           {
-               if (error === null) {
-                   log.info("Coin reader and bill reader successfully reset.", result);
-               } else {
-                   log.error("Coin and bill reader encountered error while resetting.", error);
-                   throw error;
-               }
-           });
+            // Reset the coin changer
+            this.sendread.bind(this, 'R1', 'Z'),
+            cb => {
+                //have a set number of retries for if the P1 returns Z
+                var retries: number = 2;
+                var sr_callback: (err: any, message?: string, prefix?: string) => null = (err, msg, prefix) => {
+                    if (err) return cb(err);
+                    if (prefix === 'I' && msg === 'I 1') return cb(null, msg);
+                    if (prefix === 'X') {
+                        cb('R1 -> ' + msg);
+                    } else {
+                        if (retries > 0) {
+                            retries = retries - 1;
+                            setTimeout(this.sendread.bind(this, 'P1', ['X', 'Z', 'I', 'P1', 'P2', 'P3', 'W', 'G'], sr_callback), 400);
+                        } else {
+                            cb('The R1 message was dropped.');
+                        }
+                    }
+                };
+                this.sendread('P1', ['X', 'Z', 'I', 'P1', 'P2', 'P3', 'W', 'G'], sr_callback);
+            },
+            this.sendread.bind(this, 'N FFFF', 'Z'),
+            this.sendread.bind(this, 'M FFFF', 'Z'),
+            // Reset the bill reader
+            this.sendread.bind(this, 'R2', 'Z'),
+            cb => {
+                //have a set number of retries for if the P1 returns Z
+                var retries: number = 2;
+                var sr_callback: (err: any, message?: string, prefix?: string) => null = (err, msg, prefix) => {
+                    if (err) return cb(err);
+                    if (prefix === 'I' && msg === 'I 2') return cb(null, msg);
+                    if (prefix === 'X') {
+                        cb('R2 -> ' + msg);
+                    } else {
+                        if (retries > 0) {
+                            retries = retries - 1;
+                            setTimeout(this.sendread.bind(this, 'P2', ['X', 'Z', 'I', 'Q1', 'Q2', 'Q3', 'Q4'], sr_callback), 400);
+                        } else {
+                            cb('The R1 message was dropped.');
+                        }
+                    }
+                };
+                this.sendread('P2', ['X', 'Z', 'I', 'Q1', 'Q2', 'Q3', 'Q4'], sr_callback);
+            },
+            this.sendread.bind(this, 'L FFFF', 'Z'),
+            this.sendread.bind(this, 'V 0000', 'Z'),
+            this.sendread.bind(this, 'J FFFF', 'Z'),
+            function (cb) { this.sendread("S7", cb); },
+            // Enables bill and coin acceptance.
+            this.sendread.bind(this, 'E1', 'Z'),
+            this.sendread.bind(this, 'E2', 'Z')
+        ],
+        (error, result) => {
+            if (error === null) {
+                log.info("Coin reader and bill reader successfully reset.");
+                this.disableAcceptance();
+            } else {
+                log.error("Coin or bill acceptor encountered error while resetting.", error);
+                this.disableAcceptance();
+                throw error;
+            }
+        });
     }
 
     //creates a callback that filters for strings starting with either a single prefix or one of a list
@@ -356,12 +401,13 @@ class mdb_server {
                                     if (typeof argobj.command !== "string" ||
                                            (typeof argobj.response_prefixes !== "string" &&
                                                (!Array.isArray(argobj.response_prefixes) ||
-                                                argobj.response_prefixes.any(str => typeof str !== "string")))) return callback(server.error(-32602));
+                                                argobj.response_prefixes.any(s => typeof s !== "string")))) return callback(server.error(-32602));
                                     const command: string = argobj.command;
                                     if (command === '') return callback(server.error(-32602, 'Empty command given.'));
                                     log.debug("remote request: " + command);
                                     if (command.includes('\r')) return callback(server.error(-32602, 'Multiple commands in single request.'));
-                                    const prefixes: string = argobj.response_prefixes
+                                    const prefixes: string = argobj.response_prefixes;
+
                                     this.sendread(command, prefixes, (err, message) => {
                                         if (err) {
                                             if (typeof err === "string" && err === "timeout") {
@@ -399,6 +445,7 @@ class mdb_server {
         this.rpc_client = jayson.client.http(initdata.remote_endpoint);
         this.port_lock = false;
         this.port_queue = [];
+        this.accepting = false;
     }
 }
 export class App {
