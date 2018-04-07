@@ -237,7 +237,9 @@ export class Client
         {
             $("#balancepanel a").css('color', '#ff0000');
             $("#balancewarn").removeClass('hidden');
-            $("#balancewarn").tooltip('show');
+            setTimeout(function() {
+                $("#balancewarn").tooltip('show')
+            }, 500);
             setTimeout(function() {
                 $("#balancewarn").tooltip('hide')
             }, 3000);
