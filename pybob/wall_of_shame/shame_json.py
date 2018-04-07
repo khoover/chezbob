@@ -2,11 +2,16 @@
 """Super-fast hacky way to support an updateable shaming dashboard."""
 
 import json
+import os
+import os.path
 import psycopg2
 import psycopg2.extras
 import sys
 import time
 
+if __name__ == "__main__":
+    BOB_PATH = os.environ.get('CHEZ_BOB_PATH', '/git')
+    sys.path.insert(0, os.path.join(BOB_PATH, 'pybob'))
 
 from private_api import db
 
