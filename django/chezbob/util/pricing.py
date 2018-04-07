@@ -90,7 +90,7 @@ def update_price_listing(out, update=True):
 // <![CDATA[
 $(document).ready(function() {
   $(".tablesorter").tablesorter();
-}
+})
 // ]]>
 </script>
 """)
