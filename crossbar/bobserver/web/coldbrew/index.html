@@ -1,0 +1,79 @@
+<html>
+    <head>
+      <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+      <script type="text/javascript">
+          var COLDBREW_MAXIMUM = 85;
+      </script>
+      <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+      <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+      <script type="text/javascript" src="coldbrew.js"></script>
+      <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700|Dancing+Script' rel='stylesheet' type='text/css'>
+      <link rel="stylesheet" href="https://chezbob.ucsd.edu/css/common.css">
+      <link rel="stylesheet" href="https://chezbob.ucsd.edu/css/announcements.css">
+      <script src="/js/autobahn.min.js"></script>
+      <title>Cold Brew Stock</title>
+      <style>
+body {
+    background: white;
+}
+#instructions
+{
+    width: 86%;
+    height: 300px;
+    top: 700px;
+    margin-right: 7%;
+    margin-left: 7%;
+    font: Open Sans;
+    font-size: 44px;
+}
+
+#chart_div
+{
+    margin: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 650px;
+    height: 650px;
+}
+
+#out_of_order_overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(180,30,30,0.9);
+    text-align: center;
+    font-size: 8em;
+    z-index: 1001;
+    padding-top: 30%;
+    color: white;
+}
+
+.hidden {
+    display: none;
+}
+      </style>
+    </head>
+<body style="width: 100%; height: 100%;">
+<h1 id='banner'>Chez Bob</h1>
+<div id="chart_container">
+<div id="chart_div" style=""></div>
+</div>
+<div id="instructions">
+    <ol>
+        <li>Grab a cup from the cup dispenser.</li>
+        <li>Pull right tap forward until full.</li>
+        <li>Pay at terminal by scanning barcode on the wall for "Cold Brew Coffee".</li>
+    </ol>
+    <p><b>Current Coffee: <span id="coffee_name"></span></b><br>
+    <span id="coffee_description"></span></p>
+    <p><b>Problem?</b>
+      Email coldbrew@cs.ucsd.edu</p>
+</div>
+<div id="out_of_order_overlay" class="hidden">OUT<br>OF<br>ORDER</div>
+<script type="text/javascript">
+    $(coldbrew.init);
+</script>
+</body></html>

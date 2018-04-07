@@ -1,0 +1,125 @@
+<html>
+<head>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700|Dancing+Script' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/announcements.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+
+        var API_HOST = "https://chezbob.ucsd.edu"
+        var SALES_URL = API_HOST + "/api/stats/v0.1/get_hourly_stats";
+
+        var chart;
+
+        google.charts.load('current', {'packages':['corechart']});
+
+        function init_chart() {
+            var data = new google.visualization.DataTable();
+            data.addColumn('number', "Hour");
+            data.addColumn('number', "Avg. Sales");
+            data.addColumn('number', "Avg. Deposits");
+            data.addColumn('number', "Today's Sales");
+            //data.addColumn('number', "Today's Deposits");
+
+            var options = {
+                title: 'Sales and Deposits by Hour',
+                legend: { position: 'right' },
+                //curveType: 'function',
+                lineWidth: 4,
+                pointSize: 3,
+                //theme: 'maximized',
+                vAxis: {
+                    viewWindowMode: 'maximized',
+                    title: 'USD',
+                    /*
+                    viewWindow: { 
+                       max: 20,
+                       min: 0,
+                    },
+                    max: 20,*/
+                },
+                hAxis: {
+                    ticks: [
+                        {v: 0, f:'Midnight'},
+                        {v: 3, f:'3am'},
+                        {v: 6, f:'6am'},
+                        {v: 9, f: '9am'},
+                        {v: 12, f: 'Noon'},
+                        {v: 15, f: '3pm'},
+                        {v: 18, f:'6pm'},
+                        {v: 21, f: '9pm'},
+                        //{v: 23, f: '11pm'},
+                    ],
+                    minorGridlines: {
+                        count: 2,
+                    },
+                    title: 'Time of Day',
+                }
+            };
+
+            chart = new google.visualization.ChartWrapper(
+                {
+                    chartType: "LineChart",
+                    options: options,
+                    dataTable: data,
+                    containerId: 'sales_chart',
+                }
+            );
+
+            get_sales().then(update_chart);
+        }
+
+        function draw_chart(sales) {
+            var graph_data = chart.getDataTable();
+
+            var rows = sales.map(
+                function(x) {
+                    return [
+                        x.hour,
+                        x.avg_sales, x.avg_deposits,
+                        x.today_sales //, x.today_deposits
+                    ];
+                });
+
+            console.log(rows);
+
+            graph_data.addRows(rows);
+            chart.draw();
+        }
+
+        function get_sales() {
+            var promise = new Promise(function(resolve, reject) {
+                console.log("Getting sales");
+                url = SALES_URL;
+                $.getJSON(url, null, resolve).fail(
+                    function() { reject(Error("JSON request failed")) });
+            });
+            return promise;
+        }
+
+        function update_chart(sales) {
+            console.log(sales);
+            draw_chart(sales);
+        }
+
+        google.charts.setOnLoadCallback(function() {
+            init_chart();
+        });
+    </script>
+    <style>
+        #sales_chart {
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: -32px;
+            width: 100%;
+            height: 90%;
+            z-index: -100;
+        }
+    </style>
+</head>
+<body>
+    <h1 id='banner'>Chez Bob</h1>
+    <div id="sales_chart"></div>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<html>
+    <head>
+        <script src="https://chezbob.ucsd.edu/js/jquery-2.2.3.min.js"></script>
+        <script src="/js/autobahn.min.js"></script>
+        <script src="/js/barcode_catcher.js"></script>
+        <script src="/js/sounds.js"></script>
+        <script src="js/keypad.js"></script>
+        <script src="js/search.js"></script>
+        <script src="js/tabs.js"></script>
+        <script src="js/cache.js"></script>
+        <script src="js/server_inventory.js"></script>
+        <script src="js/incremental_inventory.js"></script>
+        <script src="js/common.js"></script>
+        <link rel="stylesheet" type="text/css" href="css/keypad.css">
+        <link rel="stylesheet" type="text/css" href="css/icons.css">
+        <link rel="stylesheet" type="text/css" href="css/tabs.css">
+        <link rel="stylesheet" type="text/css" href="css/toggle.css">
+        <link rel="stylesheet" type="text/css" href="css/common.css">
+        <link rel="stylesheet" type="text/css" href="css/snackbar.css">
+        <link rel="stylesheet" type="text/css" href="css/search.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <ul id="tab_bar">
+            <li id="incr_tab_btn"><i class="material-icons">exposure_plus_1</i>
+            <li id="disa_tab_btn"><i class="material-icons">highlight_off</i>
+            <li id="kypd_tab_btn"><i class="material-icons">grid_on</i>
+            <li id="srch_tab_btn"><i class="material-icons">search</i>
+            <li id="gear_tab_btn"><i class="material-icons">settings</i>
+        </ul>
+        <div class="tab_body" id="incremental_tab">
+            <div id="incremental_body" class="pending">
+                <div id="incremental_name">[waiting for barcode]</div>
+                <div>Product
+                    <label class="switch">
+                        <input type="checkbox" id="product_case_toggle">
+                        <div class="slider round"></div>
+                    </label>
+                    Case
+                </div>
+                <div id="incremental_count">
+                    <span id="inc_b">-</span> / <span id="inc_l">-</span> =
+                    <span id="inc_t">-</span>
+                </div>
+                <div class="small left">
+                    <p>First set toggle:
+                        <ul>
+                            <li>"Product" adds one to count.</li>
+                            <li>"Case" adds full case to count.</li>
+                        </ul>
+                    </p>
+                    <p>Scan barcode to increment inventory.</p>
+                    <p>Scan product or case.</p>
+                </div>
+            </div>
+        </div>
+        <div class="tab_body" id="disable_tab">
+            <div id="disable_body" class="pending">
+                <div id="disable_name">[waiting for barcode]</div>
+                <div>
+                    Ignore
+                    <label class="switch">
+                        <input type="checkbox" id="disable_toggle">
+                        <div class="slider round"></div>
+                    </label>
+                    Count
+                </div>
+                <div class="small left">
+                    <p>First set toggle:
+                        <ul>
+                            <li>'Ignore' means system prevents inventory
+                            for this product.</li>
+                            <li>'Count' undoes that.</li>
+                        </ul>
+                    </p>
+                    <p>Use this when you don't want to count small items
+                    (e.g. tea, mints, etc.).</p>
+                </div>
+            </div>
+        </div>
+        <div class="tab_body" id="search_tab">
+            <table id="uninventoried">
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div class="tab_body" id="settings_tab">
+            <div id="settings_body" class="pending">
+                <div>
+                    <p>Set uninventoried items to zero:</p>
+                    <div id="zeros_btn" class="button">Set Zeros</div>
+                </div>
+                <div>
+                    <p>Unprotect all items:</p>
+                    <div id="reset_btn" class="button">Reset Protections</div>
+                </div>
+            </div>
+        </div>
+        <div class="tab_body" id="keypad_tab">
+            <div id="abovepad" class="pending">
+                <div id="keypad_item_name">[waiting for barcode]</div>
+                <div id="item_desc">
+                    <span id="item_set">
+                        <span class="label">Prev:</span>
+                        <span id="bi_qs">-</span> / <span id="p_qs">-</span> =
+                        <span id="to_qs">-</span>
+                    </span>
+                    <span class="buffer"></span>
+                    <span id="item_temp">
+                        <span class="label">Add:</span>
+                        <span id="bi_qt">-</span> / <span id="p_qt">-</span> =
+                        <span id="to_qt">-</span>
+                    </span>
+                </div>
+            </div>
+            <div id="keypad">
+                <div class="row">
+                    <button id="btn_bp" class="s1x1" value="testing"><i class="material-icons">&#xE145;&#xE3EC;</i></button>
+                    
+                    <button id="btn_bm" class="s1x1" value="testing"><i class="material-icons">&#xE15B;&#xE3EC;</i></button>
+                    <button id="btn_pp" class="s1x1" value="testing"><i class="material-icons">&#xE145;</i></button>
+                    <button id="btn_pm" class="s1x1" value="testing"><i class="material-icons">&#xE15B;</i></button>
+                </div>
+                <div class="row">
+                    <button id="btn_1" class="s1x1" value="testing">1</button>
+                    <button id="btn_2" class="s1x1" value="testing">2</button>
+                    <button id="btn_3" class="s1x1" value="testing">3</button>
+                    <button id="btn_0" class="s1x1" value="testing">0</button>
+                </div>
+                <div class="row">
+                    <button id="btn_4" class="s1x1" value="testing">4</button>
+                    <button id="btn_5" class="s1x1" value="testing">5</button>
+                    <button id="btn_6" class="s1x1" value="testing">6</button>
+                    <button id="btn_bs" class="s1x1 red" value="testing">&#9003;</button>
+                </div>
+                <div class="row">
+                    <button id="btn_7" class="s1x1" value="testing">7</button>
+                    <button id="btn_8" class="s1x1" value="testing">8</button>
+                    <button id="btn_9" class="s1x1" value="testing">9</button>
+                    <button id="btn_c" class="s1x1 green" value="testing">&#10003;</button>
+                </div>
+            </div>
+        </div>
+        <div id="snackbar"></div>
+        <script>$(init);</script>
+    </body>
+</html>

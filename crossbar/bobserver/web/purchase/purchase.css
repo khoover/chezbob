@@ -1,0 +1,79 @@
+body {
+    font-family: "Helvetica", Arial, sans-serif;
+    background-color: #444;
+    color: white;
+}
+
+#btn_panel {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    font-size: 1.8em;
+}
+
+#btn_panel button {
+    border: 1px solid #888;
+    background-color: #eee;
+    border-radius: calc(.5vw + 1vh);
+    padding: calc(1vw + 2vh);
+    font-size: .6em;
+    width: 70vw;
+    height: 5vh;
+    min-width: 100px;
+    min-height: 50px;
+    text-align: center;
+}
+
+#btn_panel p {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#btn_panel button.half {
+    width: 35vw;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#btn_panel button.dim {
+    background-color: #333;
+    border-color: #ccc;
+    color: #ccc;
+}
+
+#btn_panel button:disabled {
+    background-color: #ddd;
+}
+
+#overlay {
+    display: block;
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 100;
+    text-align: center;
+    font-size: 2em;
+    background-color: #444;
+    padding-top: 30vh;
+}
+
+#overlay.hidden {
+    display: none;
+}
+
+#purchase_table {
+    font-size: .6em;
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#purchase_table td:nth-child(1) {
+    text-align: left;
+}
+
+#purchase_table td:nth-child(2) {
+    text-align: right;
+}

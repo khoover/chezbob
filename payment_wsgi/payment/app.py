@@ -2,10 +2,11 @@ import sys
 
 import stripe
 
-from bob_api import BobApi
-from creds import DB_CREDS, STRIPE_API_KEY_LIVE
-
 from flask import Flask, jsonify, request
+
+from .bob_api import BobApi
+from .creds import DB_CREDS, STRIPE_API_KEY_LIVE
+
 app = Flask(__name__)
 
 bobapi = BobApi(DB_CREDS)

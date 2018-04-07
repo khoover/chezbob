@@ -1,0 +1,6 @@
+
+This folder contains the crossbar/WAMP daemon that controls the esresso grinder
+actuator.
+
+It should be run on the raspberry pi that runs the actuator.
+

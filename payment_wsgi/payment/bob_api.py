@@ -26,7 +26,7 @@ class BobApi(object):
         self.cursor.execute(query, [username])
 
         if self.cursor.rowcount > 0:
-            return self.cursor.fetchone()[0]
+            return float(self.cursor.fetchone()[0])
         return None
 
     def get_userid(self, username):

@@ -1,0 +1,3 @@
+
+- keypad.js angry-beeps when it gets an update for a disabled item.  That means
+  that we angry-beep when we disable an item... which isn't very intuitive.

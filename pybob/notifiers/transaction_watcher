@@ -1,0 +1,232 @@
+#!/usr/bin/env python3.4
+"""
+Script that watches transactions as they happen, and (among other things),
+regenerates the Wall of Shame any time it needs to change.
+"""
+import datetime
+import os
+import os.path
+import psycopg2
+import psycopg2.extras
+import sys
+
+BOB_PATH = os.environ.get('CHEZ_BOB_PATH', '/git')
+sys.path.insert(0, os.path.join(BOB_PATH, 'pybob'))
+
+from listen_transactions import watch_transactions, get_detailed_details
+
+from bobslack import private_slack, public_slack
+
+from wall_of_shame.wall_of_shame import regenerate_wall_of_shame
+from wall_of_shame.shame_json import generate_shame_json
+
+WALL_THRESHOLD = -5
+
+BIG_SHAME_DOLLARS = -15
+BIG_SHAME_DAYS = 21
+SECONDS_IN_30DAYS = 60 * 60 * 24 * 30
+DELINQUENT_CHANNEL = "#delinquents"
+CASHOUT_CHANNEL = "#cashout"
+
+RESTOCKER_CODE = 'restock'
+
+EMPTY_SODA_BARCODE = '482665976515'
+RESTOCKER_BARCODE = '491744838774'
+COLDBREW_OUT_OF_ORDER_BARCODE = '487846576652'
+COLDBREW_IN_ORDER_BARCODE = '409001323468'
+COLDBREW_FLAVORS = {'437808566160', '460517013267', '468619857642',
+                    '403308835198', '482031628314'}
+
+floating_messages = {}
+
+
+def get_days_since(dt):
+    if not dt:
+        return None
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    delta = now - dt
+    return delta.total_seconds() / (SECONDS_IN_30DAYS)
+
+
+def regenerate_wall_of_shame_if_needed(record):
+    if (record['balance'] < WALL_THRESHOLD or
+            record['balance'] - record['xactvalue'] < WALL_THRESHOLD):
+        generate_shame_json()
+        regenerate_wall_of_shame()
+
+
+def get_outstanding_messages(userid, conn):
+    """Retrieves known slack shame messages from local db for user."""
+    QUERY = "SELECT * FROM outstanding_slack_messages WHERE userid = %s"
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute(QUERY, [userid])
+    if not cursor.rowcount:
+        return []
+    return cursor.fetchall()
+
+
+def delete_outstanding_messages(userid, conn):
+    """Deletes known slack shame messages from local db for user."""
+    QUERY = "DELETE FROM outstanding_slack_messages WHERE userid = %s"
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute(QUERY, [userid])
+    conn.commit()
+
+
+def delete_slack_messages_if_needed(conn, record):
+    """Deletes public shaming from Slack if a user is now off the Wall."""
+
+    # This only happens on transitions off the wall.
+    if not (record['balance'] > WALL_THRESHOLD and
+            record['balance'] - record['xactvalue'] <= WALL_THRESHOLD):
+        return
+
+    for msg in get_outstanding_messages(record['userid'], conn):
+        public_slack.delete_msg(msg)
+    delete_outstanding_messages(record['userid'], conn)
+
+
+def announce_automatic_restocking(conn, record):
+    if record['barcode'] != RESTOCKER_BARCODE:
+        return
+
+    if record['xactvalue'] == 0:
+        private_slack.send_msg(
+            "{} restocked for free.".format(record['username']),
+            "#restock_log")
+        return
+
+    private_slack.send_msg(
+        ("{} restocked and received ${} credit.".format(
+            record['username'], record['xactvalue'])),
+        "#restock_log")
+
+
+def announce_coldbrew_ooo(conn, record):
+    if record['barcode'] == COLDBREW_OUT_OF_ORDER_BARCODE:
+        public_slack.send_msg(
+            "{} reports that coldbrew is out of order!".format(
+                record.get('nickname', record['username'])),
+            channel="#coldbrew")
+
+    elif record['barcode'] is not None and (
+            record['barcode'] == COLDBREW_IN_ORDER_BARCODE):
+        public_slack.send_msg(
+            "{} reports that coldbrew is back in order!".format(
+                record.get('nickname', record['username'])),
+            channel="#coldbrew")
+
+    elif record['barcode'] in COLDBREW_FLAVORS:
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        query = ("select name from coldbrew_varieties where barcode = %s")
+        cursor.execute(query, [record['barcode']])
+
+        if not cursor.rowcount:
+            return
+        name = cursor.fetchone()[0]
+
+        public_slack.send_msg(
+            "{} just tapped a sweet new keg of {}!".format(
+                record.get('nickname', record['username']),
+                name),
+            channel="#coldbrew")
+
+
+def announce_cashout_if_needed(conn, record):
+    """Announce expected value of soda machine when it's emptied."""
+    if record['barcode'] != EMPTY_SODA_BARCODE:
+        return
+
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    QUERY = """
+(SELECT
+    xactvalue::integer::text as value,
+    count(*) as n,
+    (count(*)*xactvalue) as total
+from transactions
+where
+    xactvalue >= 1
+    and xacttime > (
+            select xacttime from (
+                select
+                    xacttime,
+                    rank() over (partition by barcode order by xacttime desc)
+                        as r
+                    from transactions where barcode = '482665976515') s
+            where r = 2)
+    and xacttime < (
+            select xacttime from (
+                select
+                    xacttime,
+                    rank() over (partition by barcode order by xacttime desc)
+                        as r
+                    from transactions where barcode = '482665976515') s
+            where r = 1)
+    and source = 'bob2k14.2'
+    and xacttype like 'ADD %.00 (cash)'
+group by xactvalue
+order by xactvalue
+)
+UNION ALL
+(
+SELECT
+    'TOTAL',
+    count(*) as n,
+    sum(xactvalue) as total
+from transactions
+where
+    xactvalue >= 1
+    and xacttime > (
+        select xacttime from (
+            select
+                xacttime,
+                rank() over (partition by barcode order by xacttime desc)
+                    as r
+                from transactions where barcode = '482665976515') s
+        where r = 2)
+    and xacttime < (
+            select xacttime from (
+                select
+                    xacttime,
+                    rank() over (partition by barcode order by xacttime desc)
+                        as r
+                    from transactions where barcode = '482665976515') s
+            where r = 1)
+    and source = 'bob2k14.2'
+    and xacttype like 'ADD %.00 (cash)'
+)
+    """
+
+    msg = "Cash emptied!\n```Denom |   N |  Value\n--------------------\n"
+    cursor.execute(QUERY)
+    for row in cursor:
+        msg += "{:5} | {:3} | {:6}\n".format(
+            row['value'], row['n'], row['total'])
+    msg += "```"
+
+    private_slack.send_msg(msg, CASHOUT_CHANNEL)
+
+
+def handle_transaction(conn, tid):
+    record = get_detailed_details(conn, tid)
+
+    regenerate_wall_of_shame_if_needed(record)
+
+    announce_cashout_if_needed(conn, record)
+    announce_automatic_restocking(conn, record)
+    announce_coldbrew_ooo(conn, record)
+
+    delete_slack_messages_if_needed(conn, record)
+
+
+def main():
+    # Generate wall of shame once, just in case we missed any changes.
+    generate_shame_json()
+    regenerate_wall_of_shame()
+
+    watch_transactions(handle_transaction)
+
+if __name__ == '__main__':
+    sys.exit(main())

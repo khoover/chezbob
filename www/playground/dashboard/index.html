@@ -1,0 +1,203 @@
+<html>
+<head>
+    <title>Chez Bob Dashboard</title>
+    <link href='https://fonts.googleapis.com/css?family=Oswald' rel='stylesheet' type='text/css'>
+    <!--<link rel="stylesheet" href="/css/common.css">-->
+    <!--<link rel="stylesheet" href="/css/announcements.css">-->
+    <link rel="stylesheet" href="dashboard.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="dashboard.js"></script>
+    <script src="revenue_stats.js"></script>
+    <script src="transaction_stats.js"></script>
+    <script src="top_products.js"></script>
+    <script src="stats.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(on_load);
+
+    </script>
+</head>
+<body>
+    <div id="loading_overlay">&mdash; LOADING &mdash;</div>
+    <div class="columned">
+    <div class="column halfheight">
+        <div class="label">DEPOSITS - PURCHASES</div> 
+        <div class="stat">
+            <span class="value">
+                <span id="revenue_value_day"></span> / 
+                <span id="revenue_value_week"></span> / 
+                <span id="revenue_value_month"></span>
+            </span>
+        </div>
+        <hr>
+        <div class="chart" id="revenue_chart">Chart Loading...</div>
+    </div>
+    <div class="column halfheight">
+        <div class="label">DAILY SALES</DIV> 
+        <div class="stat">
+            <span class="value" id="sales_today"></span> 
+            <span class="paren_value">
+                ( <span class="percentage" id="sales_vs_week"></span>
+                / 
+                <span class="percentage" id="sales_vs_month"></span> )</span>
+        </div>
+        <hr>
+        <div class="chart" id="sales_chart">Chart Loading...</div>
+    </div>
+    <div class="column halfheight">
+        <div class="label">STATS</DIV> 
+        <div class="stat">
+        </div>
+        <hr>
+        <div class="chart" id="user_stats">
+            <!--<div class="sublabel">TOP REVENUE PRODUCTS TODAY</div> -->
+            <div>
+                <table id="user_stats_table" class='dash_table'>
+                    <thead>
+                        <tr>
+                            <th>USERS</th>
+                            <th colspan="3">Max</th>
+                            <th colspan="3">Mean</th>
+                            <th colspan="3">Median</th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <table id="product_stats_table" class='dash_table'>
+                    <thead>
+                        <tr>
+                            <th>PRODUCTS</th>
+                            <th colspan="3">Max</th>
+                            <th colspan="3">Mean</th>
+                            <th colspan="3">Median</th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="column halfheight">
+        <div class="label">TOP PRODUCTS</DIV> 
+        <div class="stat">
+        </div>
+        <hr>
+        <div class="chart" id="products">
+            <!--<div class="sublabel">TOP REVENUE PRODUCTS TODAY</div> -->
+            <div>
+                <table id="top_product_revenue_today" class='dash_table'>
+                    <thead>
+                        <tr>
+                            <th>BY REVENUE</th>
+                            <th colspan="3">Revenue</th>
+                            <th colspan="3">N. Sold</th>
+                            <th colspan="3">Users</th>
+                        </tr>
+                        <tr>
+                            <th>Product</th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <!--<div class="sublabel">TOP VOLUME PRODUCTS TODAY</DIV> -->
+            <div>
+                <table id="top_product_volume_today" class='dash_table'>
+                    <thead>
+                        <tr>
+                            <th>BY VOLUME</th>
+                            <th colspan="3">Revenue</th>
+                            <th colspan="3">N. Sold</th>
+                            <th colspan="3">Users</th>
+                        </tr>
+                        <tr>
+                            <th>Product</th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <!--<div class="sublabel">TOP REVENUE PRODUCTS TODAY</div> -->
+            <!--
+            <!-<div class="sublabel">PRODUCTS WITH MOST USERS TODAY</DIV>->
+            <div>
+                <table id="top_product_users_today" class='dash_table'>
+                    <thead>
+                        <tr>
+                            <th>PRODUCTS WITH MOST USERS TODAY</th>
+                            <th colspan="3">Revenue</th>
+                            <th colspan="3">N. Sold</th>
+                            <th colspan="3">Users</th>
+                        </tr>
+                        <tr>
+                            <th>Product</th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                            <th>Day</th>
+                            <th>Week</th>
+                            <th>Month</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        -->
+    </div>
+</body>
+</html>

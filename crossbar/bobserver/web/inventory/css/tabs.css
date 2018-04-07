@@ -1,0 +1,40 @@
+
+#tab_bar {
+    padding: 0px;
+    margin: 0px;
+    text-align: center;
+    list-style: none;
+    border-bottom: 1px solid black;
+}
+
+#tab_bar li {
+    display: inline-block;
+    width: 20%;
+    margin: 0px;
+    text-align: center;
+    border: 0px solid black;
+    height: 10%;
+    vertical-align: center;*/
+}
+
+#tab_bar li i {
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2em;
+}
+
+div.tab_body {
+    display: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+div.tab_body.visible {
+    display: block;
+}
+
+#tab_bar li.active {
+    background-color: #DDDDDD;
+    margin-bottom: 1;
+}

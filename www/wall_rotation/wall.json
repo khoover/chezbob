@@ -1,0 +1,49 @@
+{
+  "urls": [
+    {
+      "duration": 20, 
+      "force_refresh": false, 
+      "tags": [ "bobwall" ], 
+      "type": "remote", 
+      "url": "https://chezbob.ucsd.edu/json/shame_screen.json", 
+      "url_id": 24, 
+      "user": "chezbob"
+    }, 
+    {
+      "duration": 20, 
+      "force_refresh": false, 
+      "tags": [ "bobwall" ], 
+      "type": "remote", 
+      "url": "https://chezbob.ucsd.edu/playground/order_watch.json", 
+      "url_id": 94, 
+      "user": "chezbob"
+    }, 
+    {
+      "duration": 30, 
+      "force_refresh": false, 
+      "tags": [ "bobwall" ], 
+      "type": "iframe", 
+      "url": "https://chezbob.ucsd.edu/playground/daily_average.html", 
+      "url_id": 80, 
+      "user": "chezbob"
+    }, 
+    {
+      "duration": 120, 
+      "force_refresh": false, 
+      "tags": [ "bobwall" ], 
+      "type": "iframe", 
+      "url": "https://chezbob.ucsd.edu/playground/dashboard/", 
+      "url_id": 82, 
+      "user": "chezbob"
+    },
+    {
+      "duration": 30, 
+      "force_refresh": false, 
+      "tags": [ "bobwall" ], 
+      "type": "iframe", 
+      "url": "https://chezbob.ucsd.edu/playground/daily_agg.html", 
+      "url_id": 84, 
+      "user": "chezbob"
+    } 
+  ]
+}

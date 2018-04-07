@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<title>{{ title }} Cheat Sheet</title>
+<meta charset="UTF-8">
+<!--<meta http-equiv="refresh" content="60">-->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700|Dancing+Script' rel='stylesheet' type='text/css'>
+<!--<link rel="stylesheet" href="css/common.css">-->
+<!--<script src="https://chezbob.ucsd.edu/js/jquery-2.2.3.min.js"></script>-->
+<style>
+
+* {
+    box-sizing: border-box;
+    font-family: sans-serif;
+    font-family: 'Open Sans', sans-serif;
+}
+
+h1,h2,h3,h4,h5,h6 {
+    font-weight: normal;
+    text-align: center;
+}
+
+body {
+    width: 100vw;
+}
+
+.red {
+    color: #cc0000;
+}
+
+table {
+    border-collapse: collapse;
+    margin-left: auto;
+    margin-right: auto;
+    word-break: keep-all;
+}
+
+td, th {
+    /*border-bottom: 1px solid black;*/
+    padding: 5px;
+}
+
+tbody tr {
+    background-color: #e8e8e8;
+    /*
+    border-right: 1px solid black;
+    border-left: 1px solid black;*/
+}
+
+tbody tr:nth-child(even) {
+    background-color: #f8f8f8;
+}
+
+</style>
+</head>
+<body>
+<h1>Chez Bob {{ title }} Cheat Sheet</h1>
+<table id='shame_table'>
+    <thead>
+    <tr>
+      <th>Barcode</th>
+      <th>Est.</th>
+      <!--<th>Cases</th>-->
+      <th>Last</th>
+      <th>ID</th>
+      <th>Description</th>
+    </tr>
+    </thead>
+    <tbody>
+{% for row in to_inventory %}
+    <tr class=''>
+        <td><img src='data:image/png;base64,{{ row.barcode_img }}' width="130" /></td>
+        <td>{{ row.remaining }}</td>
+        <!--<td>{{ row.cases_rem }}</td>-->
+        <td>{{ row.inventoried }}</td>
+        <td>{{ row.bulkid }}</td>
+        <td>{{ row.description }}</td>
+    </tr>
+{% endfor %}
+    </tbody>
+</table>
+</body>
+</html>
+

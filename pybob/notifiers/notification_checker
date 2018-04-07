@@ -1,0 +1,479 @@
+#!/usr/bin/python3.4
+"""Hacky script to send reminders/notifications triggered by cron."""
+
+import datetime
+import os
+import os.path
+import psycopg2
+import psycopg2.extras
+import psycopg2.extensions
+import sys
+
+from collections import Iterable, defaultdict
+
+from sh import mail
+
+BOB_PATH = os.environ.get('CHEZ_BOB_PATH', '/git')
+sys.path.insert(0, os.path.join(BOB_PATH, 'pybob'))
+
+from private_api import db, bob_api
+
+from bobslack import public_slack, private_slack
+
+
+ORDER_WATCHER_FILE = "/git/www/playground/order_watch.json"
+ORDER_WATCHER_FILE_CONTENTS = (
+    """{"url": "https://chezbob.ucsd.edu:8095/accept_order/watcher/", """
+    """"duration": 300, "hold_tags": ["bobwall", "chezbob"]}""")
+
+TEMPLATE_DIR = os.path.join(BOB_PATH, "pybob/notifiers/mail_templates")
+TEMPLATE_EXT = ".msg"
+
+# Send notifications on slack when the soda machine is above this threshold
+SODA_MACHINE_N_BILLS_EMPTY_THRESHOLD = 110
+
+# Path to database configuration file
+DB_CONFIG_FILE = os.path.join(BOB_PATH, "db.conf")
+
+# Email notification infno
+FROM_ADDRESS = "Chez Bob <bobbot@chezbob.ucsd.edu>"
+REPLY_TO_ADDRESS = "Chez Bob <chezbob@cs.ucsd.edu>"
+DEFAULT_SUBJECT = "Chez Bob debt reminder"
+
+# For a convenience function
+SECONDS_IN_UNIT = {
+    "second": 1,
+    "minute": 60,
+    "5minutes": 300,
+    "15minutes": 900,
+    "30minutes": 1800,
+    "hour": 3600,
+    "day": 3600 * 24,
+    "week": 3600 * 24 * 7,
+    "month": 3600 * 24 * 30,
+}
+
+
+# Eww, global variable database connection
+conn = None
+
+
+def send_mail(values, template_file, subject):
+    """We probably ought not rely on /usr/bin/mail, but this works for now."""
+
+    with open(os.path.join(TEMPLATE_DIR, template_file + TEMPLATE_EXT)) as f:
+        message_template = f.read()
+
+    msg = message_template.format(**values)
+    subject = subject.format(**values)
+    to = "{nickname} <{email}>".format(**values)
+
+    mail('-a', "From: {}".format(FROM_ADDRESS),
+         '-a', "Reply-To: {}".format(REPLY_TO_ADDRESS),
+         '-s', subject,
+         to,
+         _in=msg)
+
+
+def get_n_units(values, units):
+    """How many units have passed since they entered the wall of shame?"""
+    return int(values['time_on_wall'].total_seconds() / SECONDS_IN_UNIT[units])
+
+
+def save_outstanding_message(userid, result):
+    channelid = result['channel']
+    ts = result['ts']
+
+    QUERY = "INSERT INTO outstanding_slack_messages VALUES (%s, %s, %s)"
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cursor.execute(QUERY, [userid, channelid, ts])
+    conn.commit()
+
+
+def get_slack_notifier(channel, message):
+    """Slack-message-sending notifier closure."""
+    def notify(values):
+        guesses = [
+            values['username'],
+            values['email'][:values['email'].find("@")]
+        ]
+        slack_id = public_slack.get_slack_id(guesses)
+        if slack_id:
+            values = dict(values)  # We modify a copy instead.
+            values['username'] = "{} / <@{}>".format(
+                values['username'], slack_id)
+        result = public_slack.send_msg(message.format(**values), channel)
+        save_outstanding_message(values['userid'], result)
+    return notify
+
+
+def get_email_notifier(template, subject=DEFAULT_SUBJECT):
+    """Email-sending notifier closure."""
+    def notify(values):
+        send_mail(values, template, subject)
+    return notify
+
+
+SLACK_DEBT_MESSAGE_10 = (
+    "Do you know *{nickname}* ({username})? They owe Chez Bob ${debt}!")
+
+SLACK_DEBT_MESSAGE_15_PUBLIC = (
+    "Do you know *{nickname}* ({username})? They owe Chez Bob ${debt}!"
+    "\n\nPlease encourage them to pay back the co-op!")
+
+SLACK_DEBT_MESSAGE_15_ONGOING = (
+    "*Important:* Please help us find *{nickname}* ({username})!"
+    " They still owe ${debt}!")
+
+SLACK_DEBT_MESSAGE_15_PRIVATE = (
+    "We just asked #general about *{nickname}* ({username}), "
+    "since they owe Chez Bob ${debt}.")
+
+SLACK_LOCAL_TIME_MESSAGE = (
+    "Do you know *{nickname}* ({username})? "
+    "They've owed Chez Bob money for {days_on_wall} days!")
+
+SLACK_PUBLIC_TIME_MESSAGE_ANNOUNCE = (
+    "Do you know *{nickname}* ({username})? "
+    "They've owed Chez Bob money for {days_on_wall} days!")
+
+SLACK_PUBLIC_TIME_MESSAGE_ANNOUNCE_2 = (
+    "Chez Bob is still looking for *{nickname}* ({username}), "
+    "as they still owe Chez Bob after {days_on_wall} days!")
+
+SLACK_PUBLIC_TIME_MESSAGE_ANNOUNCE_3 = (
+    "*Important:* *{nickname}* ({username}) has not paid "
+    "their Chez Bob debt after {days_on_wall} days. Please help us find them.")
+
+SLACK_PUBLIC_TIME_MESSAGE_ALERT = (
+    "We just asked #general about {nickname} ({username}), since "
+    "they've owed Chez Bob money for {days_on_wall} days!")
+
+
+# These are mostly used for the time-based checks
+POLL_NOTIFICATIONS = {
+    "hour": {
+        # Email them at 7-days
+        7 * 24: get_email_notifier("walltime"),
+
+        # Tell slack and email them at the 14-day mark
+        14 * 24: [
+            get_slack_notifier("#chezbob", SLACK_LOCAL_TIME_MESSAGE),
+            get_email_notifier(
+                "walltime",
+                "Another Chez Bob debt reminder"),
+        ],
+
+        # Warn them by email at 20 days
+        20 * 24: get_email_notifier(
+            "walltime_warning",
+            "Warning: Public Chez Bob debt shaming incoming!"),
+
+        # Yell on slack and email them at 21, 28 and 30 days
+        21 * 24: [
+            get_slack_notifier("#general",
+                               SLACK_PUBLIC_TIME_MESSAGE_ANNOUNCE),
+            #get_slack_notifier("#chezbob", SLACK_PUBLIC_TIME_MESSAGE_ALERT),
+            get_email_notifier("walltime",
+                               "Promptly paying your debt is important.")
+        ],
+        28 * 24: [
+            get_slack_notifier("#general",
+                               SLACK_PUBLIC_TIME_MESSAGE_ANNOUNCE_2),
+            #get_slack_notifier("#chezbob", SLACK_PUBLIC_TIME_MESSAGE_ALERT),
+            get_email_notifier("walltime",
+                               "Chez Bob needs you to pay off your debt.")
+        ],
+        31 * 24: [
+            get_slack_notifier("#general",
+                               SLACK_PUBLIC_TIME_MESSAGE_ANNOUNCE_2),
+            get_email_notifier("walltime_severe",
+                               "Pay off your Chez Bob debt.")
+        ],
+    }
+}
+
+
+def balance_crossed_threshold(values, threshold):
+    """Did user's purchases make their balance cross the given threshold?"""
+    return values['balance'] < threshold and values['old_balance'] > threshold
+
+
+# These are notifications triggered by recent purchases
+# These need to be in roughly descending order-- the system will consider each
+#   condition in order, and will stop if the third argument is True. It's thus
+#   usually best to order by most severe first.
+RECENT_PURCHASE_NOTIFICATIONS = [
+    # Email them and yell on slack when they cross $15
+    (lambda x: balance_crossed_threshold(x, -15),
+     [get_slack_notifier("#general", SLACK_DEBT_MESSAGE_15_PUBLIC),
+      #get_slack_notifier("#chezbob", SLACK_DEBT_MESSAGE_15_PRIVATE),
+      get_email_notifier("debt_recent_purchase",
+                         "Why haven't you paid off your debt yet?")],
+     True),
+
+    # Email them and tell slack after every purchase beyond $15 of debt
+    (lambda x: x['balance'] < -15,
+     [get_slack_notifier("#chezbob", SLACK_DEBT_MESSAGE_15_ONGOING),
+      get_email_notifier("debt_recent_purchase",
+                         "You still haven't paid your debt.")],
+     True),
+
+    # Email them when they cross $14 as a warning
+    (lambda x: balance_crossed_threshold(x, -13.50),
+     get_email_notifier("debt_warning",
+                        "Heads up! Your debt is really high!"),
+     False),
+
+    # Tell slack when they cross $12
+    (lambda x: balance_crossed_threshold(x, -12),
+     [get_slack_notifier("#chezbob", SLACK_DEBT_MESSAGE_10)],
+     False),
+
+    # Email them again when they cross $10
+    (lambda x: balance_crossed_threshold(x, -10),
+     [get_email_notifier("debt_recent_purchase")],
+     True),
+
+    # Email them when they enter the wall of shame
+    (lambda x: balance_crossed_threshold(x, -5),
+     get_email_notifier("newly_entered_wall"),
+     True),
+]
+
+
+# Just a handy summary template for debugging
+SIMPLE_DESC = """==============
+Nickname:      {nickname}
+Balance:       ${balance}
+Days on wall:  {days_on_wall}
+Hours on wall: {hours_on_wall}
+Last purchase: {last_purchase_time}
+"""
+
+
+def handle_debtpoll(cursor, frequency):
+    """Find debtors who haven't paid their debts so that we can remind them.
+
+    """
+
+    TIME_QUERY = """
+        SELECT
+            t.userid,
+            username,
+            nickname,
+            email,
+            balance,
+            last_purchase_time,
+            max(xacttime) as last_transaction,
+            entered_wall,
+            now() - entered_wall as time_on_wall
+        FROM transactions AS t INNER JOIN users AS u ON u.userid = t.userid
+        WHERE
+            NOT disabled
+            AND entered_wall IS NOT NULL
+        GROUP BY t.userid, u.userid
+    """
+
+    cursor.execute(TIME_QUERY)
+
+    for i, row in enumerate(cursor):
+        values = dict(row)
+
+        # Calculate special values
+        values['debt'] = (-values['balance']) if values['balance'] < 0 else 0.0
+        if not values['time_on_wall']:
+            values['time_on_wall'] = datetime.timedelta()
+        values['days_on_wall'] = values['time_on_wall'].days
+        values['hours_on_wall'] = values['time_on_wall'].total_seconds() / 3600
+
+        #print(SIMPLE_DESC.format(**values))
+
+        notifiers = POLL_NOTIFICATIONS.get(frequency, {}).get(
+            get_n_units(values, "hour"), [])
+
+        if not isinstance(notifiers, Iterable):
+            notifiers = [notifiers]
+
+        for notifier in notifiers:
+            notifier(values)
+
+
+def handle_recentpurchase(cursor):
+    """Handles queries related to recent (but not real-time) purchases.
+
+    Runs every 5 minutes. Collects users who transacted 5-10 minutes ago.
+    """
+    DEBT_QUERY = """
+        SELECT
+            sum(xactvalue) as change,
+            balance,
+            balance - sum(xactvalue) as old_balance,
+            t.userid,
+            username,
+            nickname,
+            email,
+            last_purchase_time,
+            max(xacttime) as last_transaction,
+            entered_wall,
+            case
+                when entered_wall is not null then (now() - entered_wall)
+                else null
+            end as time_on_wall
+        FROM transactions AS t INNER JOIN users AS u ON u.userid = t.userid
+        WHERE
+            xacttime <= date_trunc('minute', now()) - interval '5 minutes'
+            AND xacttime > date_trunc('minute', now()) - interval '10 minutes'
+            AND NOT u.disabled
+        GROUP BY t.userid, u.userid
+    """
+    cursor.execute(DEBT_QUERY)
+
+    for i, row in enumerate(cursor):
+        values = dict(row)
+
+        # Calculate special values
+        values['debt'] = (-values['balance']) if values['balance'] < 0 else 0.0
+        if not values['time_on_wall']:
+            values['time_on_wall'] = datetime.timedelta()
+        values['days_on_wall'] = values['time_on_wall'].days
+        values['hours_on_wall'] = values['time_on_wall'].total_seconds() / 3600
+
+        #print(SIMPLE_DESC.format(**values))
+
+        for (check, notifiers, stop) in RECENT_PURCHASE_NOTIFICATIONS:
+            # Skip over until we find an applicable notification
+            if not check(values):
+                continue
+
+            if not isinstance(notifiers, Iterable):
+                notifiers = [notifiers]
+
+            for notifier in notifiers:
+                notifier(values)
+
+            # Trigger only on first applicable condition-- ordering matters!
+            if stop:
+                break
+
+
+def thank_restockers(cursor):
+    """Run weekly, post to slack the names of the last week's restockers."""
+    QUERY = """
+    SELECT DISTINCT
+        xacttime::date as date,
+        nickname, email, username
+    from transactions as tl inner join users u on u.userid = tl.userid
+    where
+        tl.barcode = '491744838774'
+        and tl.xacttime > now() - interval '7 days'
+    order by xacttime::date asc, nickname asc;
+    """
+    cursor.execute(QUERY)
+
+    if not cursor.rowcount:
+        return
+
+    dates = defaultdict(list)
+
+    for i, row in enumerate(cursor):
+        guesses = [
+            row['username'],
+            row['email'][:row['email'].find("@")]
+        ]
+        row = dict(row)
+        row['slack_id'] = public_slack.get_slack_id(guesses)
+        dates[row['date']].append(row)
+
+    msg = "Huge thanks to last week's restockers!"
+    for date, people in sorted(dates.items()):
+        formatted_users = []
+        for person in people:
+            formatted = person['nickname']
+            if person['slack_id']:
+                formatted += " (<@{}>)".format(person['slack_id'])
+            formatted_users.append(formatted)
+        msg += "\n - {:20}:\t {}".format(
+            date.strftime("*%A* (%m/%d)"), ", ".join(formatted_users))
+
+    msg += "\n\nChez Bob literally couldn't function without you."
+
+    public_slack.send_msg(msg, "#chezbob")
+
+
+def set_order_watcher_file():
+    if os.path.exists(ORDER_WATCHER_FILE):
+        return
+
+    with open(ORDER_WATCHER_FILE, 'w') as f:
+        f.write(ORDER_WATCHER_FILE_CONTENTS.strip())
+
+
+def clear_order_watcher_file():
+    if os.path.exists(ORDER_WATCHER_FILE):
+        os.unlink(ORDER_WATCHER_FILE)
+
+
+def set_order_watcher(conn):
+    """If there's an incomplete order today, add sentinel file for kiosk."""
+    query = """
+        select count(*)
+        from orders o inner join order_items oi on oi.order_id = o.id
+        where date = current_date and n_scanned != number
+    """
+
+    cursor = conn.cursor()
+    cursor.execute(query)
+
+    row = cursor.fetchone()
+    if row[0] > 0:
+        set_order_watcher_file()
+    else:
+        clear_order_watcher_file()
+
+
+def handle_deposit_check(bobapi):
+    """Message slack when the soda machine needs to be emptied.
+
+    Notifies whenever there's still too much cash, so run it infrequently, eh?
+    """
+    rows = bobapi.get_deposited_cash()
+    total = sum([x[2] for x in rows])
+    n_bills = sum([x[1] for x in rows])
+    if n_bills > SODA_MACHINE_N_BILLS_EMPTY_THRESHOLD:
+        private_slack.send_msg(
+            "Empty the soda machine! It has {} bills (${}) in it.".format(
+                n_bills, total),
+            channel="#cashout")
+
+
+def main():
+    global conn
+
+    conn = db.get_conn(DB_CONFIG_FILE)
+    bobapi = bob_api.BobApi(conn)
+    cursor = db.get_cursor(conn)
+
+    if len(sys.argv) < 2:
+        sys.stderr.write("Required command not found.\n")
+        sys.exit(1)
+
+    elif sys.argv[1] == 'weekly':
+        thank_restockers(cursor)
+
+    elif sys.argv[1] == 'hourly':
+        handle_debtpoll(cursor, 'hour')
+
+    elif sys.argv[1] == 'sunjay':
+        handle_deposit_check(bobapi)
+
+    elif sys.argv[1] == 'every15':
+        set_order_watcher(conn)
+
+    elif sys.argv[1] == 'every5':
+        handle_recentpurchase(cursor)
+
+
+if __name__ == "__main__":
+    sys.exit(main())
+

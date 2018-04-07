@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Order Scanner</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+        <!--<link rel="stylesheet" href="css/foundation.css">-->
+        <link rel="stylesheet" href="css/main.css">
+        <script src="https://chezbob.ucsd.edu/js/jquery-2.2.3.min.js"></script>
+        <script src="/js/autobahn.min.js"></script>
+        <script src="/js/sounds.js"></script>
+        <script src="/js/barcode_catcher.js"></script>
+        <script src="js/scanner.js"></script>
+        <!--<script src="/"></script>-->
+        <script>
+            $(function() {
+                var endpoint;
+                if (document.location.origin == "file://") {
+                   endpoint = "ws://127.0.0.1:8090/ws";
+
+                } else {
+                   endpoint = (document.location.protocol === "http:" ? "ws:" : "wss:") + "//" +
+                       document.location.host + "/ws";
+                }
+                var fn_name = "chezbob.accept_order.scan";
+                var id = "chezbob.order.scanner.test";
+                sounds.init();
+                remote_scanner.init(fn_name, endpoint, id);
+                barcode_catcher.init(remote_scanner.on_data);
+            });
+        </script>
+    </head>
+    <body>
+        <div id="container" class="warning">
+            <div id="header">[waiting]</div>
+            <div id="details">Scan barcode to begin</div>
+        </div>
+    </body>
+</html>

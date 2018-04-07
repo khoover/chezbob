@@ -1,0 +1,4 @@
+
+#uninventoried tr:nth-child(even) {background: #CCC}
+#uninventoried tr:nth-child(odd) {background: #FFF}
+

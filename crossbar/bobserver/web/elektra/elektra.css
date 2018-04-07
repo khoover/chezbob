@@ -1,0 +1,155 @@
+body {
+    font-family: "Helvetica", Arial, sans-serif;
+    background-color: #444;
+    color: white;
+    font-size: 2em;
+    text-align: center;
+    width: 100vw;
+    margin: 0;
+}
+
+#btn_panel {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    display: flex;
+    width: 85vw;
+}
+
+#btn_panel .column {
+    width: 50%;
+    margin: 0;
+    padding: 0;
+}
+
+#btn_panel button {
+    border: 1px solid #888;
+    background-color: #eee;
+    border-radius: calc(1vw + 2vh);
+    padding: calc(1vw + 2vh);
+    font-size: 1em;
+    width: 80%;
+    height: 10vh;
+    min-width: 200px;
+    min-height: 80px;
+    text-align: center;
+    margin-top: 1vh;
+}
+
+#btn_panel p {
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    font-size: .8em;
+}
+
+#btn_panel button.half {
+    width: 35%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#btn_panel button.dim {
+    background-color: #333;
+    border-color: #ccc;
+    color: #ccc;
+}
+
+#btn_panel button:disabled {
+    background-color: #ddd;
+}
+
+#overlay {
+    display: block;
+    position: absolute;
+    width: 90vw;
+    height: 90vh;
+    left: 0;
+    top: 0;
+    z-index: 100;
+    text-align: center;
+    font-size: 1.0em;
+    background-color: #444;
+    padding: 5vw;
+    padding-top: 35vh;
+}
+
+#overlay h2 {
+    font-size: 1.2em;
+}
+
+#overlay.hidden {
+    display: none;
+}
+
+#title {
+    margin-top: 4vh;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 0;
+    border-bottom: 2px solid white;
+    padding: 0;
+    padding-bottom: 2vh;
+    text-align: center;
+    width: 84vw;
+}
+
+#title p {
+    margin: 0;
+}
+#btn_panel p.label {
+    width: 80%;
+    text-align: left;
+    padding-left: 5vw;
+    padding-right: 25vw;
+    margin-top: 6vh;
+}
+
+
+
+/* Blatantly stolen snackbar from w3schools. */
+/* The snackbar - position it at the bottom and in the middle of the screen */
+#snackbar {
+    visibility: hidden; /* Hidden by default. Visible on click */
+    width: 50vw;
+    background-color: #333; /* Black background color */
+    color: #fff; /* White text color */
+    text-align: center; /* Centered text */
+    border-radius: 15px; /* Rounded borders */
+    padding: 16px; /* Padding */
+    position: fixed; /* Sit on top of the screen */
+    z-index: 1000; /* Add a z-index if needed */
+    left: 25vw; /* Center the snackbar */
+    bottom: 30px; /* 30px from the bottom */
+}
+
+/* Show the snackbar when clicking on a button (class added with JavaScript) */
+#snackbar.show {
+    visibility: visible; /* Show the snackbar */
+
+/* Add animation: Take 0.5 seconds to fade in and out the snackbar. 
+However, delay the fade out process for 2.5 seconds */
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+/* Animations to fade the snackbar in and out */
+@-webkit-keyframes fadein {
+    from {bottom: 0; opacity: 0;} 
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {bottom: 30px; opacity: 1;} 
+    to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}

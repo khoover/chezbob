@@ -1,0 +1,203 @@
+#!/usr/bin/python
+"""
+Enters an (unverified) Costco Business Delivery order into Chez Bob's system.
+
+Also updates prices, if asked.
+
+Expects input file in the form of:
+    %COSTCO_ID% %QUANTITY% %PRICE% [%CRV%]
+    ...
+    [SAVE 1 %SAVED_PRICE%]
+    TOTAL 1 %TOTAL_PRICE%
+
+Inserts with n_scanned == 0. Built to facilitate the crossbar.io-based
+interactive order scanners.
+
+"""
+from __future__ import print_function
+
+import argparse
+from datetime import datetime
+import decimal
+import sys
+
+import psycopg2
+import psycopg2.extras
+
+DB_CREDS = {"database": 'bob', "user": 'django', "host": 'localhost'}
+
+TAX_RATE = 0.0775
+
+
+class ChezBobException(Exception):
+    pass
+
+
+def read_in_order(f):
+    saved = 0
+    total = 0
+    items = []
+
+    for line in f:
+        line = line.strip()
+        if not line or line[0] == "#":
+            continue
+
+        #productid, quantity = line.split(" ")
+        fields = line.split(" ")
+        productid, quantity = fields[0:2]
+
+        price = None
+        if len(fields) > 2:
+            price = fields[2]
+            if price.startswith("$"):
+                price = price[1:]
+            price = decimal.Decimal(price.replace(",", ""))
+
+        if productid == "TOTAL":
+            #total = price
+            continue
+        elif productid == "SAVED":
+            #saved = price
+            continue
+        else:
+            productid = int(productid)
+            quantity = int(quantity)
+            total += (price * quantity)
+
+            items.append((productid, quantity, price))
+
+    # This is a temporary hack b/c the other script doesn't distinguish between
+    # costco cash card-based savings and savings because of sales.
+    #return items, total, saved
+    return items, total - saved, 0
+
+
+def update_bulkitem_price(cursor, bulkid, new_price):
+    query = ("UPDATE bulk_items SET price = %s, updated = now()::date"
+             " WHERE bulkid = %s")
+    cursor.execute(query, [new_price, bulkid])
+
+
+def get_bulkitem_from_productid(db, productid):
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    query = ("SELECT * FROM bulk_items WHERE product_id = %s")
+    cursor.execute(query, [str(productid)])
+
+    if cursor.rowcount:
+        return dict(cursor.fetchone())
+    return None
+
+
+def is_order_on_date(db, delivery_date):
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    query = ("SELECT COUNT(*) FROM orders WHERE date = %s")
+    cursor.execute(query, [delivery_date])
+    return cursor.fetchone()[0]
+
+
+def create_order_shell(db, total, saved, delivery_date, description):
+
+    if is_order_on_date(db, delivery_date):
+        raise ChezBobException("Pre-existing order on that date.")
+
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    query = (
+        "INSERT INTO orders"
+        "   (date, description, amount, tax_rate, inventory_adjust, sourceid)"
+        "   VALUES (%s, %s, %s, %s, %s, 1) RETURNING id")
+
+    cursor.execute(query,
+                   [delivery_date, description, total, TAX_RATE, saved])
+    return cursor.fetchone()[0]
+
+
+def insert_order_item(db, order_id, bi, quantity, price):
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    query = (
+        "INSERT INTO order_items"
+        "(order_id, bulk_type_id, quantity, number, case_cost, crv_per_unit,"
+        " is_cost_taxed, is_crv_taxed, is_cost_migrated, n_scanned)"
+        "   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+
+    cursor.execute(
+        query,
+        [order_id, bi['bulkid'], bi['quantity'], quantity, price,
+            bi['crv_per_unit'], bi['taxable'], bi['crv_taxable'], True, 0])
+
+
+def get_args():
+    def date_type(s):
+        try:
+            return datetime.strptime(s, "%Y-%m-%d")
+        except ValueError:
+            msg = "Not a valid date: '{0}'.".format(s)
+            raise argparse.ArgumentTypeError(msg)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--description', default="Standard order",
+                        help="Description of order")
+    parser.add_argument('-u', '--update_prices', action="store_true",
+                        help="Additionally, update prices of items")
+    parser.add_argument('order_file', type=argparse.FileType('r'),
+                        help="File storing order details from email")
+    parser.add_argument('delivery_date', type=date_type,
+                        help="Date of delivery, in YYYY-MM-DD format")
+    return parser.parse_args()
+
+
+def main():
+
+    args = get_args()
+
+    db = psycopg2.connect(**DB_CREDS)
+
+    items, total, saved = read_in_order(args.order_file)
+    cursor = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    errors = []
+
+    # Create the order
+    order_id = create_order_shell(
+        db, total, saved, args.delivery_date, args.description)
+
+    print("=" * 10, "Items:")
+    for productid, quantity, price in items:
+        # Check if it's a valid item
+        bulk_item = get_bulkitem_from_productid(db, productid)
+        if not bulk_item:
+            error = (
+                "ERROR: Unrecognized productid {}".format(productid))
+            errors.append(error)
+            continue
+
+        # Print out a quick summary
+        if price == bulk_item['price']:
+            print("{}x {:>4}  {:>8}  ${:>5.2f}                {}".format(
+                quantity, bulk_item['bulkid'], productid, price,
+                bulk_item['description']))
+        else:
+            print("{}x {:>4}  {:>8}  ${:>5.2f}->{:>5.2f} ({:>5.2f}) {}".format(
+                quantity, bulk_item['bulkid'], productid,
+                bulk_item['price'], price, price - bulk_item['price'],
+                bulk_item['description']))
+
+        # Update the price
+        if args.update_prices:
+            update_bulkitem_price(cursor, bulk_item['bulkid'], price)
+
+        # Add the order_item
+        insert_order_item(db, order_id, bulk_item, quantity, price)
+
+    db.commit()
+
+    for error in errors:
+        sys.stderr.write(error + "\n")
+
+    sys.stderr.write("\nDon't forget to finalize this order online!\n\n")
+
+
+if __name__ == '__main__':
+    main()
+
+

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+        <script src="/js/autobahn.min.js"></script>
+        <script src="https://chezbob.ucsd.edu/js/jquery-2.2.3.min.js"></script>
+        <style>
+body {
+    font-family: "Helvetica", Arial, sans-serif;
+    background-color: #444;
+    color: white;
+}
+
+#overlay {
+    display: block;
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 100;
+    text-align: center;
+    font-size: 3em;
+    background-color: #444;
+    padding-top: 30vh;
+}
+
+#overlay.hidden {
+    display: none;
+}
+
+        </style>
+    </head>
+   <body>
+       <div id="overlay">
+           <p>Scan ID to log in.</p>
+       </div>
+       <div id="content">
+           <p>Logged in as: <span id="username"></span></p>
+           <p>Remaining: <span id="time_remaining"></span></p>
+           <p><button onclick="logout()">Log out</button></p>
+           <p><button onclick="extend_login()">Extend login</button></p>
+       </div>
+       <!--<script>AUTOBAHN_DEBUG = true;</script>-->
+       <script>
+
+            var FN_NAME = "chezbob.espresso.grinder.actuate_for";
+            var NODE_NAME = 'elektra';
+
+            var BOB_HOST = "https://chezbob.ucsd.edu";
+            var LOGIN_URL = BOB_HOST + "/api/userauth/authenticate_from_bc/";
+            var EXTEND_URL = BOB_HOST + "/api/userauth/renew_token";
+            var BUY_URL = BOB_HOST + "/api/buy/by_barcode";
+
+            var AUTOLOGOUT_TIME_S = 30;
+
+            var current_user = null;
+            var overlay = null;
+            var username_text = null;
+            var remaining_text = null;
+
+            // the URL of the WAMP Router (Crossbar.io)
+            //
+            var wsuri;
+            if (document.location.origin == "file://") {
+               wsuri = "ws://127.0.0.1:8090/ws";
+
+            } else {
+              wsuri = (
+                 (document.location.protocol === "http:" ? "ws:" : "wss:") +
+                 "//" + document.location.host + "/ws");
+            }
+
+            // the WAMP connection to the Router
+            //
+            var connection = new autobahn.Connection({
+               url: wsuri,
+               realm: "chezbob"
+            });
+
+            var heartbeat;
+
+            function on_barcode(args) {
+               var barcode = args[0];
+               console.log("Barcode:", barcode);
+
+               if (current_user == null)
+                   try_login(barcode);
+               else
+                   try_purchase(barcode);
+            }
+
+            function logout() {
+                console.log("Logging out.");
+                current_user = null;
+
+                overlay.removeClass("hidden");
+                username_text.text("");
+
+                if (logout_timer) {
+                    clearTimeout(logout_timer);
+                }
+            }
+
+            function get_remaining() {
+                var now = new Date();
+                var etime = now.getTime() / 1000;
+                return current_user.exp - etime;
+            }
+
+            function extend_login() {
+                if (current_user === null)
+                    return;
+
+                console.log("Extending time.", current_user);
+
+                function extended(info) {
+                    console.log("Received:", info);
+                    current_user.token = info.new_token;
+                    current_user.exp = info.exp;
+                    if (logout_timer)
+                        clearTimeout(logout_timer);
+                    logout_timer = logoutTimer(AUTOLOGOUT_TIME_S);
+
+                    console.log("Remaining:", get_remaining());
+                }
+
+                $.ajax({
+                    method: "POST",
+                    dataType: "json",
+                    url: EXTEND_URL,
+                    data: {token: current_user.token},
+                    success: extended
+                }).fail(function() { reject("renewal request failed"); });
+            }
+
+            function try_purchase(barcode) {
+                if (current_user === null)
+                    return;
+
+                function purchased(info) {
+                    console.log("Received:", info);
+
+                    if (info.result == "success") {
+                        console.log("Purchase succeeded.");
+                    }
+                    else if (info.result == "error" &&
+                             info.error == "Invalid barcode") {
+                        console.log("Invalid product barcode. Trying login.");
+                        try_login(barcode);
+                    }
+                }
+
+                $.ajax({
+                    method: "POST",
+                    dataType: "json",
+                    url: BUY_URL,
+                    data: {token: current_user.token, barcode: barcode},
+                    success: purchased
+                }).fail(function() { reject("purchase request failed"); });
+            }
+
+            function logoutTimer(t) {
+                function lessOne() {
+                    t--;
+                    remaining_text.text(t);
+                    if (t == 0) {
+                        logout();
+                    }
+                }
+                remaining_text.text(t);
+                return setInterval(lessOne, 1000);
+            }
+
+            function switch_user(new_user) {
+                console.log("new_user:", new_user);
+                if (new_user === null) {
+                    //todo - show modal or something
+                    console.log("Invalid barcode for logging in.");
+                    return;
+                }
+
+                current_user = new_user;
+
+                overlay.addClass("hidden");
+                username_text.text(current_user.username);
+
+                logout_timer = logoutTimer(AUTOLOGOUT_TIME_S);
+
+                console.log("Remaining:", get_remaining());
+            };
+
+            function try_login(barcode) {
+                var url = LOGIN_URL + barcode;
+                $.getJSON(url, null, switch_user)
+                    .fail(function() { reject("login request failed"); });
+            }
+
+            // fired when connection is established and session attached
+            //
+            connection.onopen = function (session, details) {
+                console.log("Connected");
+
+                session.subscribe('chezbob.scanner.elektra.barcode',
+                                  on_barcode).then(
+                   function (sub) {
+                      console.log('Subscribed to barcodes');
+                   },
+                   function (err) {
+                      console.log('Failed to subscribe to barcodes', err);
+                   }
+                );
+
+            };
+
+            connection.onclose = function (reason, details) {
+               console.log("Connection lost: " + reason);
+            }
+
+            connection.open();
+
+            $(function() {
+                overlay = $("#overlay");
+                username_text = $("#username");
+                remaining_text = $("#time_remaining");
+            });
+
+        </script>
+    </body>
+</html>

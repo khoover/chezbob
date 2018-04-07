@@ -1,0 +1,191 @@
+* {
+    font-family: 'Oswald', sans-serif;
+}
+
+body {
+    background-color: black;
+    color: white;
+}
+
+div.halfheight {
+    height: 47vh;
+}
+
+div.thirdheight {
+    height: 30vh;
+}
+
+div.fullheight {
+    height: 90vh;
+}
+
+div.quarterheight {
+    height: 23vh;
+}
+
+div.threequarterheight {
+    height: 68vh;
+}
+
+div.column {
+    width: 100%;
+    margin: 0;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1vh;
+    margin-top: 1vh;
+    padding: 0;
+    display: inline-block;
+}
+
+div.columned {
+    column-count: 2;
+    -webkit-column-gap: 1vw; /* Chrome, Safari, Opera */
+    -moz-column-gap: 1vw; /* Firefox */
+    column-gap: 1vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+div.chart {
+    margin: 0;
+
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    height: 90%;
+    z-index: -100;
+    padding: 0;
+}
+
+div.stat {
+    display: block;
+}
+
+div.label {
+    font-size: 1.8em;
+    font-variant: small-caps;
+    display: inline-block;
+}
+
+hr {
+    border: 0;
+    width: 100%;
+    border-bottom: 2px solid white;
+    margin: 0;
+}
+
+div.sublabel {
+    font-size: 1.4em;
+    font-variant: small-caps;
+    display: block;
+    margin-top: 2vh;
+    margin-bottom: .5vh;
+    border-bottom: 1px solid white;
+    margin-left: 1vw;
+}
+
+div.stat {
+    float: right;
+
+}
+
+div.stat span.value {
+    font-size: 1.8em;
+}
+
+div.stat span.positive:before {
+    content: "\25b2";
+}
+
+div.stat span.negative:before {
+    content: "\25bc";
+}
+
+div.stat span.positive {
+    color: #33DD33;
+}
+
+div.stat span.negative {
+    color: #EE4433;
+}
+
+div.stat span.paren_value {
+    font-size: 1.3em;
+}
+
+table.dash_table {
+    margin-top: 1vh;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1vh;
+    width: 95%;
+    border-collapse: collapse;
+    font-size: .78em;
+    font-weight: lighter;
+}
+
+table.dash_table td, table.dash_table th {
+    font-size: 1.5em;
+    text-align: right;
+}
+
+table.dash_table th {
+    text-align: center;
+}
+
+table.dash_table thead tr {
+    padding: 0px;
+}
+
+table.dash_table thead th {
+    border: 0px;
+    border-bottom: 1px solid white;
+    margin-right: 0px;
+    margin-left: 0px;
+    text-align: right;
+    width: 7%;
+}
+
+table.dash_table thead tr:first-child th {
+    border-bottom: 1px solid white;
+    text-align: center;
+}
+
+table.dash_table thead tr:first-child th:first-child {
+    border: 0px;
+    text-align: left;
+    font-size: 1.8em;
+    padding-bottom: .8vh;
+}
+
+table.dash_table td:first-child {
+    text-align: right;
+    padding-right: .5vw;
+}
+
+table.dash_table thead th:first-child {
+    width: 37%;
+    text-align: center;
+}
+
+table.dash_table td:nth-child(1), table.dash_table th:nth-child(1) {
+    border-right: 1px solid white;
+}
+
+table.dash_table td {
+}
+
+#loading_overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75); /*dim the background*/
+    z-index: 10;
+    text-align: center;
+    padding-top: 40vh;
+    font-size: 10vh;
+}

@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <script src="https://chezbob.ucsd.edu/js/jquery-2.2.3.min.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="/js/barcode_catcher.js"></script>
+        <script>
+            function on_barcode(bc) {
+                alert(bc);
+            }
+            $(function() {
+                barcode_catcher.init(on_barcode);
+            });
+        </script>
+        <style>
+a {
+    color: black;
+    border: 1px solid black;
+    padding: calc(2vw + 2vw);
+    text-decoration: none;
+    background-color: #ddd;
+    width: 70vw;
+    display: block;
+    margin: 0;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 5px;
+}
+body {
+    padding: 0;
+    padding-top: 5vh;
+    padding-bottom: 5vh;
+    margin: 0;
+    text-align: center;
+    font-size: 2em;
+    background-color: #444;
+}
+p {
+    width: 100vw;
+}
+        </style>
+    </head>
+    <body>
+        <p><a href="/inventory">Inventory</a></p>
+        <p><a href="/accept_order/scanner">Scan Order</a></p>
+        <p><a href="/purchase">Mobile Purchase</a></p>
+    </body>
+</html>
