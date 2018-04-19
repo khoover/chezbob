@@ -39,35 +39,40 @@ fi
 
 if $MDB ; then
 	pushd $BASE/bob2k14/mdb_server
+	npm cache clean
 	npm install
-	gulp
+	./node_modules/gulp/bin/gulp.js
 	popd
 fi
 
 if $VDB ; then
 	pushd $BASE/bob2k14/vdb_server
+	npm cache clean
 	npm install
-	gulp
+	./node_modules/gulp/bin/gulp.js
 	popd
 fi
 
 if $BARCODE ; then
 	pushd $BASE/bob2k14/barcode_server
+	npm cache clean
 	npm install
-	gulp
+	./node_modules/gulp/bin/gulp.js
 	popd
 fi
 
 if $BARCODEI ; then
 	pushd $BASE/bob2k14/barcodei_server
+	npm cache clean
 	npm install
-	gulp
+	./node_modules/gulp/bin/gulp.js
 	popd
 fi
 
 if $SODA ; then
 	pushd $BASE/bob2k14/soda_server
+	npm cache clean
 	npm install
-	gulp
+	./node_modules/gulp/bin/gulp.js
 	popd
 fi
