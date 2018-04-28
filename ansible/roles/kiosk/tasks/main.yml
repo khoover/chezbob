@@ -25,7 +25,7 @@
 
 - name: Deploy slim.conf
   sudo: yes
-  template: src=etc/slim.conf.j2 dest=/etc/slim.conf owner=root group=root mode=u=rw,g=r,o=r
+  template: src=etc/slim.conf.j2 dest=/etc/slim.conf owner=root group=root mode=0644
   tags:
    - initial
    - kiosk
