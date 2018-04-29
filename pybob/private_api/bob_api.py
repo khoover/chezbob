@@ -117,6 +117,26 @@ class BobApi(object):
         rows = cursor.fetchall()
         return rows
 
+    def add_fingerprint_data(self, userid, fp_data):
+        """Adds fingerprint enrollment data to the database."""
+        query = ("INSERT INTO fingerprints (userid, fp_data) VALUES(%s, %s)")
+        cursor = self._get_cursor()
+        cursor.execute(query, [userid, fp_data])
+        self.db.commit()
+
+    def get_fingerprint_data(self):
+        """Returns a list of enrolled fingerprints."""
+        query = ("SELECT * FROM fingerprints")
+        cursor = self._get_cursor()
+        try:
+            cursor.execute(query)
+        except:
+            import traceback
+            traceback.print_exc()
+
+        rows = cursor.fetchall()
+        return rows
+
     def _get_last_soda_empty(self):
         query = (
             " SELECT"
