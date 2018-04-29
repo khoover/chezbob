@@ -330,9 +330,6 @@ export class Client
     }
 
 
-
-    /**** Begin fingerprint functions ****/
-
     // Builds the "Set Fingerprint" menu dynamically for the user
     updateFingerprints(client: Client)
     {
@@ -358,10 +355,6 @@ export class Client
             }
         )
     }
-
-    /**** End fingerprint functions ****/
-
-
 
     connect(client: Client)
     {
