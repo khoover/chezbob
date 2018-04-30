@@ -20,6 +20,7 @@ export class Models {
     FinanceInventorySummary: SequelizeModel;
     FinanceSpits: SequelizeModel;
     FinanceTransactions: SequelizeModel;
+    Fingerprints: SequelizeModel;
     FloorLocations: SequelizeModel;
     HistoricalPrices: SequelizeModel;
     //Inventory: SequelizeModel;
@@ -96,6 +97,12 @@ export class Models {
             description: sequelize.STRING,
             auto_generated: sequelize.BOOLEAN,
         }, {timestamps : false});
+
+        this.Fingerprints = sql.define('fingerprints', {
+            fpid: { type: sequelize.INTEGER, primaryKey: true},
+            userid: sequelize.INTEGER,
+            created: sequelize.DATE
+        }, {timestamps: false});
 
         this.FloorLocations = sql.define('floor_locations', {
             id: { type: sequelize.INTEGER, primaryKey: true },
