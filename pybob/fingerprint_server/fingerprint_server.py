@@ -63,7 +63,6 @@ class FingerprintInterface:
         self.load_db()
         if self.state == FingerprintState.IDENTIFYING:
             self.state = FingerprintState.IDENTIFY_STARTING
-            print("State is IDENTIFY_STARTING")
             self.cancel_identify()
 
     def enroll_progress_callback(self, result, pd):
@@ -77,52 +76,41 @@ class FingerprintInterface:
         self.send_api.send_enroll_progress(result)
 
     def _start_enroll(self):
-        print("_start_enroll")
         self.dev.enroll_start(self.bound_enroll_progress_callback)
         self.state = FingerprintState.ENROLLING
-        print("State is now ENROLLING")
 
     def begin_enroll(self, enrolling_userid):
-        print("begin_enroll")
         self.enrolling_userid = enrolling_userid
         if self.state != FingerprintState.IDLE:
             self._cancel()
             self.state = FingerprintState.ENROLL_STARTING
-            print("State is now ENROLL_STARTING")
         else:
             self._start_enroll()
 
     def cancel_enroll(self):
-        print("cancel_enroll")
         self.dev.enroll_stop(self.bound_stop_callback)
 
     def identify_callback(self, result, offset):
-        print("Identify callback: {0} {1}".format(result, offset))
         userid = -1
         if result == 1:
             userid = self.userids[offset]
         else:
             self.state = FingerprintState.IDENTIFY_STARTING
-            print("State is now IDENTIFY_STARTING")
         self.send_api.send_identify_result(result, userid)
         self.cancel_identify()
 
     def _start_identify(self):
         self.dev.identify_start(self.bound_identify_callback, self.templates)
         self.state = FingerprintState.IDENTIFYING
-        print("State is now IDENTIFYING")
 
     def begin_identify(self):
-        print("begin_identify")
         if self.state != FingerprintState.IDLE:
             self._cancel()
             self.state = FingerprintState.IDENTIFY_STARTING
-            print("State is now IDENTIFY_STARTING")
         else:
             self._start_identify()
 
     def cancel_identify(self):
-        print("cancel_identify")
         self.dev.identify_stop(self.bound_stop_callback)
 
     def stop_callback(self):
@@ -133,20 +121,16 @@ class FingerprintInterface:
         if self.state == FingerprintState.IDENTIFY_STARTING:
             self.loop.call_soon(self._start_identify)
         self.state = FingerprintState.IDLE
-        print("State is IDLE")
 
     def _cancel(self):
-        print("_cancel")
         if self.state == FingerprintState.ENROLLING:
             self.cancel_enroll()
         elif self.state == FingerprintState.IDENTIFYING:
             self.cancel_identify()
 
     def idle(self):
-        print("idle")
         self._cancel()
         self.state = FingerprintState.IDLE
-        print("State is now IDLE")
 
 class FingerprintDaemon:
     def __init__(self):
