@@ -55,6 +55,7 @@ export class Client
     time_pause: boolean;
     transactionindex : number;
     currenttransactions;
+    fp_enroll_stages_left : number;
 
     voice_msg;
 
@@ -199,6 +200,7 @@ export class Client
         window['agent'].stop();
         window['agent'].play(animation);
 
+        $("#errordialog").modal('hide');
         $("#login").addClass('hidden');
         $("#logout").removeClass('hidden');
         $("#loginpanel").removeClass('hidden');
@@ -329,31 +331,67 @@ export class Client
                 )
     }
 
-
-    // Builds the "Set Fingerprint" menu dynamically for the user
     updateFingerprints(client: Client)
     {
-        // Asks the soda server for the client's stored fingerprints
         client.server_channel.get_fingerprints().then(
             function (fingerprints)
             {
-                // For each fingerprint, add an item to the table
-                // allowing user to view and de-register any and all
-                // stored fingerprints
                 $("#fingerprints-table tbody").empty();
                 $.each(fingerprints, function (idx, fingerprint)
                     {
-                        $("#fingerprints-table tbody").append('<tr><td>' + fingerprint.id + '</td><td><a href="#" class="btn btn-danger deregisterbarcode" data-barcode="' + fingerprint.id + '">Forget</a></td></tr>');
+                        $("#fingerprints-table tbody").append('<tr><td>' + fingerprint.created + '</td><td><a href="#" class="btn btn-danger deregisterfingerprint" data-fpid="' + fingerprint.fpid + '">Forget</a></td></tr>');
                     });
-                // Upon selecting to deregister a fingerprint
                 $(".deregisterfingerprint").on('click', function(e)
                     {
-                        var fingerprint = $(this).data('fid');
-                        // Tell the soda server to forget selected fingerprint for the user
-                        client.server_channel.forget_fingerprint(fingerprint);
-                    })
+                        var fpid = $(this).data('fpid');
+                        client.server_channel.forget_fingerprint(fpid).then(function() {
+                            client.updateFingerprints(client);
+                        });
+                    });
             }
         )
+    }
+
+    checkFPEnrollCapability(client: Client)
+    {
+        client.server_channel.check_fp_enroll_capability().then(
+            function (canEnroll)
+            {
+                if (canEnroll) {
+                    $("#fp-enrollment").show();
+                } else {
+                    $("#fp-enrollment").hide();
+                }
+            }
+        )
+    }
+
+    fingerprintEnrollProgress(client: Client, status: number)
+    {
+        switch (status) {
+        case 1:
+            $("#enrollfingerprintdialog").modal('hide');
+            $("#errortext").text("Fingerprint enrolled successfully!");
+            $("#errortitle").text("Enrolling Fingerprint...");
+            $("#erroricon").removeClass().addClass("fa-5x fa fa-thumbs-up");
+            $("#errordialog").modal('show');
+            client.updateFingerprints(client);
+            break;
+        case 2:
+            $("#enrollfingerprintdialog").modal('hide');
+            $("#errortext").text("Fingerprint enrolled successfully!");
+            $("#errortitle").text("Enrolling Fingerprint...");
+            $("#erroricon").removeClass().addClass("fa-5x fa fa-thumbs-down");
+            $("#errordialog").modal('show');
+            break;
+        case 3:
+            client.fp_enroll_stages_left--;
+            $("#enrollfingerprinttext").text("Press a finger on the reader " + client.fp_enroll_stages_left + " more times");
+            break;
+        default:
+            $("#enrollfingerprinttext").text("Try again");
+            break;
+        }
     }
 
     connect(client: Client)
@@ -470,18 +508,9 @@ export class Client
                         }
                         return true;
                     },
-                    acceptfingerprint: function(image)
+                    fingerprintEnrollProgress: function(status)
                     {
-                        // display the print
-                        $("#acceptfingerprintimg").html('<img src="data:image/png;base64,' + image + '"/>"');
-                        $("#acceptfingerprintdialog").modal('show');
-                        return true;
-                    },
-                    rejectfingerprint: function(dialog)
-                    {
-                        // print the error
-                        $("#rejectfingerprinterr").html('<p>' + dialog + '</p>');
-                        $("#rejectfingerprintdialog").modal('show');
+                        client.fingerprintEnrollProgress(client, status);
                         return true;
                     },
                     reload: function()
@@ -701,54 +730,23 @@ export class Client
             client.server_channel.learnmode_barcode(true);
         });
 
-
-        /**** begin fingerprint modals ****/
-
-        $("#acceptfingerprintdialog").modal({show:false});
-        $("#acceptfingerprintdialog").on('shown.bs.modal', function () {
-            setTimeout(function()
-                {
-                    $("#acceptfingerprintdialog").modal('hide');
-                }, 3000);
-        });
-
-        $("#rejectfingerprintdialog").modal({show:false});
-        $("#rejectfingerprintdialog").on('shown.bs.modal', function () {
-            setTimeout(function()
-                {
-                    $("#rejectfingerprintdialog").modal('hide');
-                }, 3000);
-        });
-
-        /**** end fingerprint modals ****/
-
-        /******** Begin fingerprint event triggers ********/
-
-        // In the user profile menu, clicking on the button labelled
-        // "Set Fngerprint" will trigger this function
-        $("#profilefingerprint-btn").on('click', function()
-        {
-            // Dyanmically build the fingerprint menu for the user
-            client.updateFingerprints(client);
-
-            // Tell the soda server to tell the fingerprint server to START ENROLLMENT
-            client.server_channel.learnmode_fingerprint(true);
-        });
-
-        // In the Set Fingerprint menu, clicking on the button labelled
-        // "Exit" will trigger this functon
-        $("#setfingerprint-exitbtn").on('click', function()
-        {
-            // Tell the soda server to tell the fingerprint server to STOP ENROLLMENT
-            client.server_channel.learnmode_fingerprint(false);
-        });
-
-        /******** End fingerprint event triggers ********/
-
-
         $("#setbarcode-exitbtn").on('click', function()
         {
             client.server_channel.learnmode_barcode(false);
+        });
+
+        $("#profilefingerprint-btn").on('click', function()
+        {
+            client.updateFingerprints(client);
+            client.checkFPEnrollCapability(client);
+        });
+
+        $("#enrollfingerprintbtn").on('click', function() {
+            client.server_channel.begin_fp_enrollment().then(function() {
+                client.fp_enroll_stages_left = 5; // TODO: Don't hardcode this
+                $("#enrollfingerprinttext").text("Press a finger on the reader 5 more times");
+                $("#enrollfingerprintdialog").modal('show');
+            });
         });
 
         $("#profilepassword-btn").on('click', function()

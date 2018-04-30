@@ -11,14 +11,19 @@
             </div>
         </div>
         <div class="col-xs-7">
-            <p class="lead">To associate a fingerprint with your account, scan your finger now.</p>
+            <div id="fp-enrollment">
+                <div class="list-group">
+                    <a href="#" class="list-group-item sidebutton" id="enrollfingerprintbtn">
+                        <i class="fa-4x fa fa-thumbs-up"></i>
+                        <h1> Enroll Fingerprint</h1>
+                    </a>
+                </div>
+            </div>
             <p class="lead">A list of fingerprints associated with your account can be found below:</p>
-
             <div id="learned-fingerprint">
                 <table class="table table-striped h3" id="fingerprints-table">
                     <thead>
-                        <th>Fingerprint</th>
-                        <th>View</th>
+                        <th>Timestamp</th>
                         <th>Forget</th>
                     </thead>
                     <tbody>

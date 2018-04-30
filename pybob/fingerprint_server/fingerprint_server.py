@@ -5,6 +5,11 @@ from aiohttp import web
 import asyncio
 import fprint
 import json
+import os
+import sys
+
+BOB_PATH = os.environ.get('CHEZ_BOB_PATH', '/git')
+sys.path.insert(0, os.path.join(BOB_PATH, 'pybob'))
 
 import bob_send
 import private_api
@@ -30,7 +35,7 @@ class FingerprintInterface:
         self.bound_identify_callback = self.identify_callback
         self.bound_stop_callback = self.stop_callback
 
-        db = private_api.db.get_conn("/home/supersat/db.conf")
+        db = private_api.db.get_conn()
         self.db_api = private_api.bob_api.BobApi(db)
         self.load_db()
         endpoint = "http://127.0.0.1:8080/api"
