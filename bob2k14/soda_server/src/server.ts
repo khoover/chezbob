@@ -194,7 +194,7 @@ class InitData {
         this.cbemail = "chezbob@cs.ucsd.edu";
         this.sodamap = this.config.sodamap;
         this.mdbendpoint = "http://localhost:8081";
-        this.fpendpoint = "http://localhost:8089";
+        this.fpendpoint = "http://192.168.1.30:8089";
     }
 }
 
