@@ -8,11 +8,14 @@ import json
 import os
 import sys
 
+DEFAULT_ENDPOINT = "http://192.168.1.10:8080/api"
+
 BOB_PATH = os.environ.get('CHEZ_BOB_PATH', '/git')
 sys.path.insert(0, os.path.join(BOB_PATH, 'pybob'))
 
 import bob_send
 import private_api
+
 
 class FingerprintState(Enum):
     IDLE = 0
@@ -20,6 +23,7 @@ class FingerprintState(Enum):
     ENROLL_STARTING = 2
     IDENTIFYING = 3
     IDENTIFY_STARTING = 4
+
 
 class FingerprintInterface:
     dev = None
@@ -38,14 +42,16 @@ class FingerprintInterface:
         db = private_api.db.get_conn()
         self.db_api = private_api.bob_api.BobApi(db)
         self.load_db()
-        endpoint = "http://127.0.0.1:8080/api"
+        endpoint = DEFAULT_ENDPOINT
         self.send_api = bob_send.BobApi(endpoint, 1, 0)
 
         self.loop = asyncio.get_event_loop()
         fprint.init()
         ddevs = fprint.DiscoveredDevices()
         if len(ddevs) != 1:
-            raise Exception("Unexpected number of fingerprint devices: {0}".format(len(ddevs)))
+            raise Exception(
+                "Unexpected number of fingerprint devices: {0}".format(
+                    len(ddevs)))
         self.dev = fprint.Device.open(ddevs[0])
         fds = self.dev.get_pollfds()
         for fd in fds:
@@ -137,11 +143,12 @@ class FingerprintInterface:
         self._cancel()
         self.state = FingerprintState.IDLE
 
+
 class FingerprintDaemon:
     def __init__(self):
         self.fp_interface = FingerprintInterface()
         self.app = web.Application()
-        self.app.add_routes([web.post('/', self.rpc),
+        self.app.router.add_routes([web.post('/', self.rpc),
                             web.get('/enroll/{uid}', self.enroll),
                             web.get('/identify', self.identify)])
 
@@ -171,9 +178,11 @@ class FingerprintDaemon:
         self.fp_interface.begin_identify()
         return web.Response(text="identifying")
 
+
 def main():
     daemon = FingerprintDaemon()
     daemon.run()
+
 
 if __name__ == '__main__':
     main()

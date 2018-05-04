@@ -11,3 +11,6 @@ This directory is diverse. While it is configured to be mostly include-able
 from python, it contains a bunch of distinct elements. Hopefully many of them
 have READMEs of their own.
 
+
+If you try to install the dependencies and it fails because Cython is missing,
+install Cython first. This is a dependency ordering issue with pip.
