@@ -194,7 +194,7 @@ class InitData {
         this.cbemail = "chezbob@cs.ucsd.edu";
         this.sodamap = this.config.sodamap;
         this.mdbendpoint = "http://localhost:8081";
-        this.fpendpoint = "http://localhost:8089";
+        this.fpendpoint = "http://192.168.1.30:8089";
     }
 }
 
@@ -778,20 +778,21 @@ class sodad_server {
             models.Roles.find({ where : { userid: user.userid }})
                 .then(function(roles)
                     {
+                        multi.hset("sodads:" + client, "uid", user.userid); //TODO: deprecated key uid
+                        multi.hmset("sodads:" + client, user)
+                        multi.expire("sodads:" + client, 600);
+
                         user.roles = {};
                         if (roles != null)
                         {
                             S(roles.roles).parseCSV().forEach(function (role) {
                                 user.roles[role] = true;
                             });
+                            multi.hmset("sodads_roles:" + client, user.roles);
+                            multi.expire("sodads_roles:" + client, 600);
+                            log.info("User roles loaded: ", user.roles);
                         }
-                        log.info("User roles loaded: ", user.roles);
 
-                        multi.hset("sodads:" + client, "uid", user.userid); //TODO: deprecated key uid
-                        multi.hmset("sodads:" + client, user)
-                        multi.hmset("sodads_roles:" + client, user.roles);
-                        multi.expire("sodads:" + client, 600);
-                        multi.expire("sodads_roles:" + client, 600);
                         return multi.execAsync();
                     })
                 .then(function(success)
@@ -824,13 +825,17 @@ class sodad_server {
                                 server.clientchannels[client].agentSpeak("It looks like you're trying to buy some soda! Just press the button for the soda you want!");
                             }
 
-                            var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
+                            var mdb_client = jayson.client.http(server.initdata.mdbendpoint);
+
                             // Bill acceptor
-                            rpc_client.request("Mdb.command", [ "E2" ], function (err,response){});
+                            mdb_client.request("Mdb.command", [ "E2" ], function (err,response){});
 
                             // Coin acceptor
-                            rpc_client.request("Mdb.command", [ "E1" ], function (err,response){});
-                            server.identifymode_fingerprint(server, client, false);
+                            mdb_client.request("Mdb.command", [ "E1" ], function (err,response){});
+
+                            // Fingerprint reader
+                            var fp_client = jayson.client.http(server.initdata.fpendpoint);
+                            fp_client.request("fp.idle", [], function (err, response){});
                         }
                 });
 
@@ -882,19 +887,17 @@ class sodad_server {
                             // Is this really the best way to determine the client type?
                             if (server.clientidmap[ClientType.Soda][0] == client)
                             {
-                                var rpc_client = jayson.client.http(server.initdata.mdbendpoint);
+                                var mdb_client = jayson.client.http(server.initdata.mdbendpoint);
 
                                 // Bill acceptor
-                                rpc_client.request("Mdb.command", [ "D2" ], function (err,response){});
+                                mdb_client.request("Mdb.command", [ "D2" ], function (err,response){});
 
                                 // Coin acceptor
-                                rpc_client.request("Mdb.command", [ "D1" ], function (err,response){});
+                                mdb_client.request("Mdb.command", [ "D1" ], function (err,response){});
 
-                                // while we're at it, let's de-activate any fingerprint
-                                // enrollment that has survived thus far...
-                                server.learnmode_fingerprint(server, client, false);
-                                //pause?
-                                server.identifymode_fingerprint(server, client, true);
+                                // Fingerprint reader
+                                var fp_client = jayson.client.http(server.initdata.fpendpoint);
+                                fp_client.request("fp.identify", [], function (err, response){});
                             }
 
                             return redisclient.delAsync("sodads:" + client)
@@ -1038,263 +1041,82 @@ class sodad_server {
                 });
     }
 
-
-    /******** Begin fingerprint functions ********/
-
-    // Fingerprint enrollment function:
-    // - true starts enrollment asynchronously
-    // - false ends an enrollment early if possible
-    learnmode_fingerprint( server: sodad_server, client: string, learnmode: boolean)
+    handle_fp_identified(server: sodad_server, type: ClientType, num: number, userid: number)
     {
-        // Start enrolling a fingerprint asynchronously
-        if (learnmode == true)
+        var sessionid;
+        if (server.clientmap[type][num] !== undefined )
         {
-            log.info("FPRINT: learnmode has been set to TRUE");
-
-            // get the client's userid
-            redisclient.hgetAsync("sodads:" + client, "userid").then(
-
-                // after getting the userid, run this function
-                function (uid)
-                {
-                    log.info("FPRINT: begin fingerprint enrollment for user " + uid);
-
-                    // open a channel to the fingerprint server
-                    var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
-
-                    // send an enrollment request to the fingerprint server
-                    // TODO handle error here
-                    fp_rpc_client.request("fp.enroll", [ uid ], function (err, error, response)
-                    {
-                        // err in request response
-                        if(err) {
-                            server.clientchannels[client].rejectfingerprint(err.message);
-                            log.info("FPRINT: error, fingerprint enrollment communication err = " + err.message);
-                        } else if (error) {
-                            server.clientchannels[client].rejectfingerprint(error.message);
-                            log.info("FPRINT: failure, fingerprint enrollment err = " + error.message);
-                        } else if (response) {
-
-                            log.info("FPRINT: success, fingerprint enrollment complete for user " + uid);
-
-                            // get result from the response
-                            //var result = response.result;
-                            var result = response;
-
-                            // TODO we should make sure all elements of result are set
-                            var png = new PNG({
-                                width: result.width,
-                                height: result.height
-                            });
-                            log.info(result.height);
-                            log.info(typeof result.fpimage);
-                            var gsPixels = new Buffer(result.fpimage, 'base64');
-                            var rgbPixels = new Buffer(parseInt(result.width) * parseInt(result.height) * 4); //RGBA
-                            log.info("Built fpimage buffer " + rgbPixels.length + ", " + gsPixels.length);
-                            for (var i = 0; i < gsPixels.length; i++)
-                            {
-                                rgbPixels[(i*4)] = gsPixels[i];     // R
-                                rgbPixels[(i*4) + 1] = gsPixels[i]; // G
-                                rgbPixels[(i*4) + 2] = gsPixels[i]; // B
-                                rgbPixels[(i*4) + 3] = 255;         // A
+            sessionid = server.clientidmap[type][num];
+            log.trace("Mapping session for " + ClientType[type] + "/" + num + " to " + server.clientidmap[type][num]);
+            redisclient.hgetallAsync("sodads:" + sessionid)
+                .then(function (session) {
+                    return models.Users.find( { where: { userid : userid }})
+                        .then(function (user) {
+                            if (user !== null) {
+                                server.handle_login(server, sessionid, "fingerprint", user.dataValues);
+                            } else {
+                                throw "ERROR: fingerprint mapped to nonexistent user!";
                             }
-                            png.data = rgbPixels;
-                            var chunks = [];
-                            png.on('data', function(chunk) {
-                                chunks.push(chunk);
-                            });
-                            png.on('end', function(chunk) {
-                                var res = Buffer.concat(chunks);
-                                server.clientchannels[client].acceptfingerprint(res.toString('base64'));
-                            })
-                            png.pack();
-
-                        } else {
-                            server.clientchannels[client].rejectfingerprint("Internal error: 003");
-                            log.info("FPRINT: major error, fingerprint enrollment received nothing");
-                        }
-                    });
-                }
-                )
-        }
-        // If there is an enrollment running currently, stop it
-        else // if (learnmode == False)
-        {
-            log.info("FPRINT: learnmode has been set to FALSE");
-
-            // get the client's userid
-            redisclient.hgetAsync("sodads:" + client, "userid").then(
-
-                // after getting the userid, run this function
-                function (uid)
-                {
-                    log.info("FPRINT: begin stopping fingerprint enrollment for user " + uid);
-
-                    // open a channel to the fingerprint server
-                    var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
-
-                    // send an enrollment request to the fingerprint server
-                    fp_rpc_client.request("fp.stopenroll", [ uid ], function (err, error, response){
-
-                        if (err) {
-                            // error in the actual request / response process
-                            log.info("FPRINT: error in request to stop enrollment for user " + uid + " err = " + err.message);
-                        } else if (error) {
-                            // error in the stopping of enrollment
-                            log.info("FRPINT: failure to stop enrollment user " + uid + " err = " + error.message);
-                        } else if (response) {
-                            // result means successful
-                            log.info("FPRINT: success, stopped enrollment for user " + uid);
-                        } else {
-                            // error, neither response nor error returned
-                            log.info("FPRINT: error, no response in request to stop enrollment for user " + uid);
-                        }
-                    });
-                }
-            )
-        }
-    }
-
-    // TODO identify a fingerprint
-    identifymode_fingerprint( server: sodad_server, client: string, identifymode: boolean)
-    {
-        return; // TODO(DIMO): REMOVE THIS!. Temporary fix to get sodad running in VM. Need to:
-        // 1: Figure out why this fails in the absence of the fp server
-        // 2: Add fp emulation to the VM
-
-        // Start identifying a fingerprint asynchronously
-        if (identifymode == true)
-        {
-            log.info("FPRINT: identifymode has been set to TRUE");
-            log.info("FPRINT: begin fingerprint identify");
-
-            // open a channel to the fingerprint server
-            var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
-
-            // send an enrollment request to the fingerprint server
-            fp_rpc_client.request("fp.identify", [], function (err, error, response)
-            {
-                // *** TODO restart the identification process if it errors out (not asked to cancel)
-                if(err) {
-                    //server.clientchannels[client].rejectfingerprint(err.message);
-                    log.info("FPRINT: error, fingerprint identify communication err = " + err.message);
-                    //server.identifymode_fingerprint(server, client, true);
-                } else if (error) {
-                    //server.clientchannels[client].rejectfingerprint(error.message);
-                    log.info("FPRINT: failure, fingerprint identify err = " + error.message);
-                    //server.identifymode_fingerprint(server, client, true);
-                } else if (response) {
-
-                    log.info("FPRINT: success, fingerprint identify complete");
-
-                    // get result from the response
-                    var result = response;
-
-                    log.info("FPRINT: matched_userid = " + result.fpuserid)
-
-                    models.Users.find( { where: { userid : result.fpuserid }})
-                        .then( function (user)
-                            {
-                                if (user !== null)
-                                {
-                                    server.handle_login(server, server.clientidmap[ClientType.Soda][0], "fprint", user);
-                                }
-                                else
-                                {
-                                    throw "ERROR: fprint mapped to nonexistent user!";
-                                }
-                            })
-                        .catch( function (err) {
-                            // TODO tell user id failed
-                            log.info(err)
                         })
-
-
-
-                    // TODO we should make sure all elements of result are set
-                    var png = new PNG({
-                        width: result.width,
-                        height: result.height
-                    });
-                    log.info(result.height);
-                    log.info(typeof result.fpimage);
-                    var gsPixels = new Buffer(result.fpimage, 'base64');
-                    var rgbPixels = new Buffer(parseInt(result.width) * parseInt(result.height) * 4); //RGBA
-                    log.info("Built fpimage buffer " + rgbPixels.length + ", " + gsPixels.length);
-                    for (var i = 0; i < gsPixels.length; i++)
-                    {
-                        rgbPixels[(i*4)] = gsPixels[i];     // R
-                        rgbPixels[(i*4) + 1] = gsPixels[i]; // G
-                        rgbPixels[(i*4) + 2] = gsPixels[i]; // B
-                        rgbPixels[(i*4) + 3] = 255;         // A
-                    }
-                    png.data = rgbPixels;
-                    var chunks = [];
-                    png.on('data', function(chunk) {
-                        chunks.push(chunk);
-                    });
-                    png.on('end', function(chunk) {
-                        var res = Buffer.concat(chunks);
-                        server.clientchannels[client].acceptfingerprint(res.toString('base64'));
-                    })
-                    png.pack();
-
-                } else {
-                    server.clientchannels[client].rejectfingerprint("Internal error: 003");
-                    log.info("FPRINT: major error, fingerprint identify received nothing");
-                }
-            });
-        }
-        // If there is an identification running currently, stop it
-        else // if (identifymode == False)
-        {
-            log.info("FPRINT: identifymode has been set to FALSE");
-            log.info("FPRINT: begin stopping fingerprint identification");
-
-            // open a channel to the fingerprint server
-            var fp_rpc_client = jayson.client.http(server.initdata.fpendpoint);
-
-            // send an enrollment request to the fingerprint server
-            fp_rpc_client.request("fp.stopidentify", [], function (err, error, response){
-
-                if (err) {
-                    // error in the actual request / response process
-                    log.info("FPRINT: error in request to stop identification, err = " + err.message);
-                } else if (error) {
-                    // error in the stopping of enrollment
-                    log.info("FRPINT: failure to stop identification, err = " + error.message);
-                } else if (response) {
-                    // result means successful
-                    log.info("FPRINT: success, stopped identification");
-                } else {
-                    // error, neither response nor error returned
-                    log.info("FPRINT: error, no response in request to stop identification");
-                }
-            });
+                });
         }
     }
 
-    // Should "return" all the fingerprints associated with the given client
-    // "return" may require calling a function on the client server
-    // TODO
     get_fingerprints( server: sodad_server, client: string )
     {
-        return null;
+        return redisclient.hgetAsync("sodads:" + client, "uid")
+            .then(function (uid) {
+                     return models.Fingerprints.findAll( { where : { userid: uid }})
+        })
     }
 
-    // Should remove the fingerprint associated with the given client
-    // TODO
-    forget_fingerprint( server: sodad_server, client: string, fingerprint: string )
+    forget_fingerprint( server: sodad_server, client: string, fpid: number )
     {
-        return null;
+       return redisclient.hgetAsync("sodads:" + client, "uid")
+           .then(function (uid) {
+               return models.Fingerprints.find( { where : { userid: uid, fpid: fpid }})
+                   .then(function (result) {
+                       if (result === null) { throw "Invalid fpid" }
+                       result.destroy().then(function (deleted) {
+                           server.clientchannels[client].displayerror("fa-trash", "Fingerprint deleted", "Fingerprint data has been deleted");
+                           var fp_client = jayson.client.http(server.initdata.fpendpoint);
+                           fp_client.request("fp.reload", [], function (err, response){});
+                       })
+                   })
+           })
     }
 
-    /******** End fingerprint functions ********/
+    check_fp_enroll_capability( server: sodad_server, client: string )
+    {
+        // For now, only the single soda machine has a fingerprint reader
+        return (server.clientidmap[ClientType.Soda][0] == client);
+    }
 
+    begin_fp_enrollment( server: sodad_server, client: string )
+    {
+        if (!server.check_fp_enroll_capability(server, client))
+            return false;
+
+        return redisclient.hgetAsync("sodads:" + client, "uid")
+            .then(function (uid) {
+                var fp_client = jayson.client.http(server.initdata.fpendpoint);
+                fp_client.request("fp.enroll", [uid], function (err, response){});
+                return true;
+        })
+    }
+
+    cancel_fp_enrollment( server: sodad_server, client: string )
+    {
+        if (!server.check_fp_enroll_capability(server, client))
+            return false;
+
+        var fp_client = jayson.client.http(server.initdata.fpendpoint);
+        fp_client.request("fp.idle", [], function (err, response){});
+    }
 
     savespeech(server: sodad_server, client: string, voice: string, welcome: string, farewell: string)
     {
-        return redisclient.hgetAsync("sodads:" + client, "userid")
+        return redisclient.hgetAsync("sodads:" + client, "uid")
                     .then(function(uid)
                             {
                                 models.Users.find({ where: { userid : uid }})
@@ -1348,6 +1170,31 @@ class sodad_server {
             {
                 log.trace("Got remote barcode "  + barcode);
                 server.handle_barcode(server, ctype, id, type, barcode);
+                cb(null);
+            },
+            "Soda.fp_enroll_progress" : function (ctype, id, result, cb)
+            {
+                log.trace("Got fingerprint enrollment status " + result + " for " + ClientType[ctype] + "/" + id);
+                var sessionid = server.clientidmap[ctype][id];
+                server.clientchannels[sessionid].fingerprintEnrollProgress(result);
+                cb(null);
+            },
+            "Soda.fp_identify_result" : function (ctype, id, result, userid, cb)
+            {
+                log.trace("Got fingerprint identification result " + result + " for " + ClientType[ctype] + "/" + id);
+                var sessionid = server.clientidmap[ctype][id];
+                switch (result)
+                {
+                    case 0:
+                        server.clientchannels[sessionid].displayerror("fa-warning", "Access Denied", "Sorry, we didn't recognize that fingerprint.");
+                        break;
+                    case 1:
+                        server.handle_fp_identified(server, ctype, id, userid);
+                        break;
+                    default:
+                        server.clientchannels[sessionid].displayerror("fa-warning", "Access Denied", "Please try again.");
+                        break;
+                }
                 cb(null);
             },
             "Soda.vdbauth" : function (requested_soda, cb)
@@ -1615,7 +1462,7 @@ class sodad_server {
             {
                 var deferred = promise.defer();
                 models.Products.find(barcode)
-                    .complete(function(err, entry)
+                    .then(function(entry)
                             {
                                 deferred.resolve(entry.dataValues);
                             })
@@ -1669,29 +1516,41 @@ class sodad_server {
                 log.info("Forget barcode requested for client "  + client);
                 return server.forget_barcode(server, client, barcode);
             },
+            learnmode_barcode: function(mode)
+            {
+                var client = this.id;
+                log.info("Setting learn mode to " + mode  + " for client " + client);
+                return server.learnmode_barcode(server, client, mode);
+            },
             get_fingerprints: function()
             {
                 var client = this.id;
                 log.info("Getting fingerprints registered for client " + client);
                 return server.get_fingerprints(server, client);
             },
-            learnmode_fingerprint: function(mode)
+            forget_fingerprint: function(fpid)
             {
                 var client = this.id;
-                log.info("Setting fingerprint learn mode to " + mode + " for client " + client);
-                return server.learnmode_fingerprint(server, client, mode);
+                log.info("Forgetting fingerprint " + fpid + " for client " + client);
+                return server.forget_fingerprint(server, client, fpid)
             },
-            identifymode_fingerprint: function(mode)
+            check_fp_enroll_capability: function()
             {
                 var client = this.id;
-                log.info("Setting fingerprint identify mode to " + mode + " for client " + client);
-                return server.identifymode_fingerprint(server, client, mode);
+                log.info("Checking fingerprint enrollment capability for client " + client);
+                return server.check_fp_enroll_capability(server, client);
             },
-            learnmode_barcode: function(mode)
+            begin_fp_enrollment: function()
             {
                 var client = this.id;
-                log.info("Setting learn mode to " + mode  + " for client " + client);
-                return server.learnmode_barcode(server, client, mode);
+                log.info("Beginning fingerprint enrollment for client " + client);
+                return server.begin_fp_enrollment(server, client);
+            },
+            cancel_fp_enrollment: function()
+            {
+                var client = this.id;
+                log.info("Cancelling fingerprint enrollment for client " + client);
+                return server.cancel_fp_enrollment(server, client);
             },
             bug_report: function(report)
             {
@@ -1757,10 +1616,9 @@ class sodad_server {
                                 username: user.toLowerCase()
                             }
                         })
-                            .complete(function (err,entry)
+                            .then(function (entry)
                             {
-                                if (err) { log.error(err); }
-                                else if (entry == null) {
+                                if (entry == null) {
                                     log.warn("Couldn't find user " + user + " for client " + client);
                                     server.clientchannels[client].displayerror("fa-warning", "User not found", "Login for account " + user + " not found.");
                                 }
@@ -1793,7 +1651,9 @@ class sodad_server {
 
                             deferred.resolve(true);
                             }
-                            );
+                            ).catch(function (err) {
+                                if (err) { log.error(err); }
+                            });
                 return deferred.promise;
             }
         });
@@ -1807,12 +1667,6 @@ class sodad_server {
                     fns.gettype().then(function (typedata){
                         server.clientmap[typedata.type][typedata.id] = fns;
                         server.clientidmap[typedata.type][typedata.id] = socket.id;
-
-                        // fprint
-                        // Put the fp_server in id mode off the bat
-                        if (typedata.type == ClientType.Soda) {
-                            server.identifymode_fingerprint(server, server.clientidmap[ClientType.Soda][0], true);
-                        }
 
                         log.info("Registered client channel type (" + ClientType[typedata.type] + "/"
                             + typedata.id + ") for client " + socket.id);

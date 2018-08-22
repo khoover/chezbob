@@ -8,6 +8,7 @@ from django.db import models
 # transaction must be zero.  This constraint is not currently enforced by the
 # database, and so must be maintained by any code editing the database.
 
+
 class Account(models.Model):
     class Meta:
         db_table = 'finance_accounts'
@@ -26,10 +27,10 @@ class Account(models.Model):
         LIABILITY: "Liability",
     }
 
-    type = models.CharField(max_length=1, choices=TYPES.items())
+    type = models.CharField(max_length=1, choices=list(TYPES.items()))
     name = models.CharField(max_length=256)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s [%s]" % (self.name, self.TYPES[self.type])
 
     def is_reversed(self):
@@ -62,6 +63,7 @@ class Account(models.Model):
 
         return result
 
+
 class Transaction(models.Model):
     class Meta:
         db_table = 'finance_transactions'
@@ -78,7 +80,7 @@ class Transaction(models.Model):
     # to false will never be touched by the automated systems.
     auto_generated = models.BooleanField()
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s %s" % (self.date, self.description)
 
     @classmethod
@@ -103,7 +105,9 @@ class Transaction(models.Model):
         if not include_auto:
             extra_conditions += "AND NOT finance_transactions.auto_generated "
         if account is not None:
-            extra_conditions += "AND finance_transactions.id IN (SELECT transaction_id FROM finance_splits WHERE account_id = %s) "
+            extra_conditions += (
+                "AND finance_transactions.id IN (SELECT transaction_id FROM"
+                " finance_splits WHERE account_id = %s) ")
             extra_arguments.append(account.id)
         if end_date is not None:
             extra_conditions += "AND finance_transactions.date <= %s "
@@ -117,14 +121,16 @@ class Transaction(models.Model):
                           finance_splits.amount,
                           finance_splits.memo
                    FROM finance_transactions, finance_splits
-                   WHERE finance_splits.transaction_id = finance_transactions.id
+                   WHERE
+                        finance_splits.transaction_id = finance_transactions.id
                          %s
                    ORDER BY finance_transactions.date,
                             finance_transactions.id""" % (extra_conditions,)
         cursor.execute(query, extra_arguments)
 
         transaction = None
-        for (id, date, desc, auto, split_id, acct, amt, memo) in cursor.fetchall():
+        for (id, date, desc, auto, split_id, acct, amt, memo
+             ) in cursor.fetchall():
             if transaction is None or transaction[0].id != id:
                 if transaction is not None:
                     result.append(transaction)
@@ -153,10 +159,10 @@ class Transaction(models.Model):
     def balance_before(cls, trans, account):
         balance = Decimal("0.00")
 
-        objects = val = Split.objects.filter(account=account)\
-                                 .exclude(transaction__date__gt=trans.date)\
-                                 .exclude(transaction__date__exact=trans.date,
-                                         transaction__pk__gte=trans.pk)
+        objects = val = Split.objects.filter(account=account).exclude(
+            transaction__date__gt=trans.date).exclude(
+                transaction__date__exact=trans.date,
+                transaction__pk__gte=trans.pk)
 
         val = objects.aggregate(amount_total=models.Sum('amount'))
         if val['amount_total'] is not None:
@@ -167,6 +173,7 @@ class Transaction(models.Model):
         else:
             return balance
 
+
 class Split(models.Model):
     class Meta:
         db_table = 'finance_splits'
@@ -176,8 +183,9 @@ class Split(models.Model):
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     memo = models.CharField(max_length=256, blank=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%.2f %s" % (self.amount, self.account)
+
 
 # The "Bank of Bob Liabilities" account does not separate out positive-balance
 # accounts from negative- ones, and merely records the total.  But this
@@ -193,8 +201,9 @@ class DepositBalances(models.Model):
     positive = models.DecimalField(max_digits=12, decimal_places=2)
     negative = models.DecimalField(max_digits=12, decimal_places=2)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s +%.2f -%.2f" % (self.date, self.positive, self.negative)
+
 
 # Estimated value of Chez Bob inventory is not tracked as a core part of the
 # finance system.  We can compute it (approximately) from inventory data and
@@ -211,5 +220,6 @@ class InventorySummary(models.Model):
     value = models.DecimalField(max_digits=12, decimal_places=2)
     shrinkage = models.DecimalField(max_digits=12, decimal_places=2)
 
-    def __unicode__(self):
-        return "%s value=%.2f shrinkage=%.2f" % (self.date, self.value, self.shrinkage)
+    def __str__(self):
+        return "%s value=%.2f shrinkage=%.2f" % (
+            self.date, self.value, self.shrinkage)

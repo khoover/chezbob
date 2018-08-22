@@ -1,14 +1,17 @@
-import base64, datetime, math
+import base64
+import datetime
+import math
 from decimal import Decimal
 from time import strptime
 
 from django.shortcuts import render_to_response, get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from chezbob.bobdb.models import BulkItem, Inventory, Product, ProductSource
 from chezbob.bobdb.models import FloorLocations
 from chezbob.orders.models import Order, OrderItem
+
 
 def parse_date(datestr):
     """Parse a string representation of a date into a datetime.Date object.
@@ -17,13 +20,15 @@ def parse_date(datestr):
     future it might be extended to other formats, and auto-detect.
     """
 
-    if isinstance(datestr, datetime.date): return datestr
+    if isinstance(datestr, datetime.date):
+        return datestr
 
     try:
         return datetime.date(*strptime(datestr, "%Y-%m-%d")[0:3])
     except ValueError:
         pass
     return datetime.date(*strptime(datestr, "%Y-%m-%d %H:%M:%S")[0:3])
+
 
 # It may be better to switch to a per-form key rather than a per-session key,
 # but this should provide some protection for now.
@@ -42,12 +47,13 @@ def get_session_key(request):
 
     KEY_FIELD = 'chezbob_session_key'
     if KEY_FIELD not in session:
-        random_bytes = open('/dev/urandom').read(9)
-        session[KEY_FIELD] = base64.b64encode(random_bytes)
+        random_bytes = open('/dev/urandom', 'rb').read(9)
+        session[KEY_FIELD] = base64.b64encode(random_bytes).decode('utf-8')
 
     return session[KEY_FIELD]
 
-##### Product summary information #####
+
+# Product summary information #
 @login_required
 def products(request):
     products = list(Product.objects.all())
@@ -61,10 +67,11 @@ def products(request):
         except AttributeError:
             pass
 
-    if request.GET.has_key('short'):
+    if r'short' in request.GET:
         def filter(p):
             try:
-                if not p.bulk.active: return False
+                if not p.bulk.active:
+                    return False
             except ObjectDoesNotExist:
                 return False
             return True
@@ -83,14 +90,15 @@ def products(request):
                 return p.markup_amt
             elif key == 4:
                 return p.markup_pct
-        except:
+        except:  # noqa
             return None
-    products.sort(lambda x, y: cmp(sort_field(x), sort_field(y)))
+    products.sort(key=sort_field)
 
     return render_to_response('bobdb/product_list.html',
                               {'user': request.user,
                                'title': "Products Overview",
                                'products': products})
+
 
 @login_required
 def product_detail(request, barcode):
@@ -98,7 +106,8 @@ def product_detail(request, barcode):
 
     try:
         product.markup_amt = product.price - product.bulk.unit_price()
-        product.markup_pct = (float(product.price / product.bulk.unit_price()) - 1.0) * 100
+        product.markup_pct = (
+            float(product.price / product.bulk.unit_price()) - 1.0) * 100
     except ObjectDoesNotExist:
         pass
 
@@ -107,9 +116,11 @@ def product_detail(request, barcode):
                                'title': "Product Detail",
                                'product': product})
 
-##### Order tracking #####
+
+# Order tracking #
 edit_orders_required = \
     user_passes_test(lambda u: u.has_perm('bobdb.edit_orders'))
+
 
 @login_required
 def view_order(request, order):
@@ -121,6 +132,7 @@ def view_order(request, order):
                                'title': "Order Summary",
                                'order': order,
                                'items': items})
+
 
 @edit_orders_required
 def update_order(request, order):
@@ -137,9 +149,12 @@ def update_order(request, order):
         while True:
             n = str(int(n) + 1)
 
-            try: number = int(request.POST['number.' + n])
-            except ValueError: number = 0
-            if number < 0: number = 0
+            try:
+                number = int(request.POST['number.' + n])
+            except ValueError:
+                number = 0
+            if number < 0:
+                number = 0
 
             # Update to existing item in the database.  If quantity has
             # been cleared, then delete this item.  Otherwise, make any
@@ -148,7 +163,8 @@ def update_order(request, order):
             try:
                 id = int(request.POST['id.' + n])
                 order_item = OrderItem.objects.get(id=id)
-            except: pass
+            except:  # noqa
+                pass
 
             if order_item:
                 if not number:
@@ -166,8 +182,9 @@ def update_order(request, order):
 
             # Filling in details for an entry.  If complete, save to the
             # database.
-            if request.POST.has_key('type_code.' + n):
-                if not number: continue
+            if 'type_code.' + n in request.POST:
+                if not number:
+                    continue
 
                 try:
                     bulk_code = int(request.POST['type_code.' + n])
@@ -182,7 +199,7 @@ def update_order(request, order):
                                            cost_taxable=taxable,
                                            cost_nontaxable=nontaxable)
                     order_item.save()
-                except:
+                except:  # noqa
                     pass
 
                 continue
@@ -191,9 +208,11 @@ def update_order(request, order):
             # items, and add them to new_items so the user can fill in the rest
             # of the details.
             name = request.POST['type.' + n]
-            if not name: continue
+            if not name:
+                continue
 
-            if not number: number = ""
+            if not number:
+                number = ""
             matches = BulkItem.objects.filter(description__icontains=name)
 
             # If there were no matches, re-present the query to the user.
@@ -202,7 +221,8 @@ def update_order(request, order):
                                   'type': name})
 
             # Force user to re-enter numbers if multiple matches occurred.
-            if len(matches) > 1: number = ""
+            if len(matches) > 1:
+                number = ""
 
             for m in matches:
                 new_items.append({'blank': False,
@@ -248,7 +268,8 @@ def update_order(request, order):
                                'total_tax': total_tax,
                                'total': total})
 
-##### Sales Stats by Bulk Type #####
+
+# Sales Stats by Bulk Type #
 @login_required
 def inventory(request):
     bulk = BulkItem.objects.order_by('description')
@@ -257,6 +278,7 @@ def inventory(request):
                               {'user': request.user,
                                'title': "Inventory Overview",
                                'items': bulk})
+
 
 @login_required
 def inventory_detail(request, bulkid):
@@ -273,19 +295,21 @@ def inventory_detail(request, bulkid):
     daily_stats = {}
     for p in products:
         for (date, sales) in p.sales_stats():
-            if not daily_stats.has_key(date): daily_stats[date] = [0, 0]
+            if date not in daily_stats:
+                daily_stats[date] = [0, 0]
             daily_stats[date][0] += sales
 
     for order in item.orderitem_set.all():
         date = order.order.date
-        if not daily_stats.has_key(date): daily_stats[date] = [0, 0]
+        if date not in daily_stats:
+            daily_stats[date] = [0, 0]
         daily_stats[date][1] += order.number * order.quantity
 
     # Produce a flattened version of the daily sales stats: convert it to a
     # list, sorted by date, of dictionaries with keys ('date', 'sales',
     # 'purchases').
     daily_stats_list = []
-    dates = daily_stats.keys()
+    dates = list(daily_stats.keys())
     dates.sort()
     for d in dates:
         stats = daily_stats[d]
@@ -296,7 +320,7 @@ def inventory_detail(request, bulkid):
     # time.
     try:
         since = datetime.date(*strptime(request.GET['since'], "%Y-%m-%d")[0:3])
-    except:
+    except:  # noqa
         since = None
 
     if since:
@@ -321,9 +345,11 @@ def inventory_detail(request, bulkid):
                                'raw_stats': daily_stats,
                                'stats': daily_stats_list})
 
-##### Inventory Tracking and Order Estimation #####
-inventory_perm_required = \
-    user_passes_test(lambda u: u.has_perm('bobdb.change_inventory'))
+
+# Inventory Tracking and Order Estimation #
+inventory_perm_required = (
+    user_passes_test(lambda u: u.has_perm('bobdb.change_inventory')))
+
 
 @inventory_perm_required
 def list_inventories(request):
@@ -333,11 +359,12 @@ def list_inventories(request):
                                'today': datetime.date.today(),
                                'dates': Inventory.all_inventories()})
 
+
 @inventory_perm_required
 def take_inventory(request, date):
     date = parse_date(date)
 
-    show_all= request.GET.has_key('all')
+    show_all = 'all' in request.GET
 
     # If a POST request was submitted, apply any updates to the inventory data
     # in the database before rendering the response.
@@ -361,15 +388,19 @@ def take_inventory(request, date):
                 try:
                     cases = float(request.POST['cases.' + n])
                     count += int(round(cases * multiplier))
-                    if request.POST['cases.' + n] != request.POST['old_cases.' + n]: modified = True
-                except:
+                    if (request.POST['cases.' + n] !=
+                            request.POST['old_cases.' + n]):
+                        modified = True
+                except:  # noqa
                     pass
 
                 try:
                     loose = int(request.POST['items.' + n])
                     count += loose
-                    if request.POST['items.' + n] != request.POST['old_items.' + n]: modified = True
-                except:
+                    if (request.POST['items.' + n] !=
+                            request.POST['old_items.' + n]):
+                        modified = True
+                except:  # noqa
                     pass
 
                 # If both inventory fields are clear, then we want to delete
@@ -390,7 +421,7 @@ def take_inventory(request, date):
 
                     if count != old_count:
                         modified = True
-                except:
+                except:  # noqa
                     pass
 
                 if modified:
@@ -402,7 +433,8 @@ def take_inventory(request, date):
             pass
 
     counts = Inventory.get_inventory(date)
-    inventory_summary = Inventory.get_inventory_summary(date-datetime.timedelta(days=1), include_latest=False)
+    inventory_summary = Inventory.get_inventory_summary(
+        date - datetime.timedelta(days=1), include_latest=False)
 
     locations = FloorLocations.get_all_locations()
     for location in locations:
@@ -422,7 +454,9 @@ def take_inventory(request, date):
 
         if item.bulkid in counts:
             (count, cases, loose, case_size) = counts[item.bulkid]
-            if cases == None and loose == None: #if this is the old style database entry then compute the values
+
+            # if this is the old style database entry then compute the values
+            if cases is None and loose is None:
                 cases = count // case_size
                 loose = count % case_size
             elif not cases and not loose:
@@ -438,11 +472,16 @@ def take_inventory(request, date):
         # active is set to True if the count for this item is non-zero,
         # if the bulkidem is anntated 'active' in the database, or if
         # there have been any purchases or sales since the last inventory.
-        active = inventory['activity'] or item.active or (count > 0 and count != "")
+        active = inventory['activity'] or item.active or (
+            count != "" and int(count) > 0)
 
-        if not active and not show_all: continue #no reason to inventory item
+        if not active and not show_all:
+            continue  # no reason to inventory item
 
-        estimate = inventory['old_count'] + inventory['purchases'] - inventory['sales']
+        estimate = (
+            inventory['old_count'] +
+            inventory['purchases'] -
+            inventory['sales'])
 
         info = {'type': item,
                 'prev_date': inventory['date'],
@@ -455,8 +494,7 @@ def take_inventory(request, date):
                 'count_cases': cases,
                 'count_items': loose,
                 'multiplier': case_size,
-                'counter': counter
-               }
+                'counter': counter}
 
         counter += 1
 
@@ -469,13 +507,15 @@ def take_inventory(request, date):
                                'locations': locations,
                                'session_key': get_session_key(request)})
 
+
 @inventory_perm_required
 def estimate_order(request):
     #query string
     source = int(request.GET.get("source", 1))
     date_to = parse_date(request.GET.get("to", datetime.date.today()))
-    date_from = parse_date(request.GET.get("from", date_to - datetime.timedelta(days=14)))
-    show_all= request.GET.has_key('all')
+    date_from = parse_date(
+        request.GET.get("from", date_to - datetime.timedelta(days=14)))
+    show_all = 'all' in request.GET
 
     #database
     products = BulkItem.objects.order_by('description')
@@ -488,9 +528,11 @@ def estimate_order(request):
     items = []
 
     for p in products:
-        if p.source.id != source: continue
+        if p.source.id != source:
+            continue
 
-        if not p.active and not show_all: continue
+        if not p.active and not show_all:
+            continue
 
         # TODO: This is a hack, but without it, the system crashes when a
         # bulkitem has never been inventoried before.
@@ -518,13 +560,14 @@ def estimate_order(request):
         info['cost'] = needed * p.total_price()
         cost += info['cost']
 
-        # Estimate how many days of product remain in inventory 
+        # Estimate how many days of product remain in inventory
         # TODO: [nbales] This should really be in another view
         if info['inventory']['estimate'] > 0 and info['sales'] > 0:
             sales_rate = Decimal(
                 float(info['sales']) / (date_to - date_from).days)
             days_remain = int(info['inventory']['estimate'] / sales_rate)
-            info['exhausted_date'] = datetime.date.today() + datetime.timedelta(days=days_remain)
+            info['exhausted_date'] = (
+                datetime.date.today() + datetime.timedelta(days=days_remain))
             if out_of_stock is None or info['exhausted_date'] < out_of_stock:
                 out_of_stock = info['exhausted_date']
         elif info['inventory']['estimate'] == 0 and info['sales'] > 0:
@@ -533,22 +576,25 @@ def estimate_order(request):
         items.append(info)
 
     for info in items:
-        try: #FIXME [nbales] Why is there a try here?
-            if not info['exhausted'] and (info['exhausted_date'] - out_of_stock).days <= 2:
+        try:  # FIXME [nbales] Why is there a try here?
+            if not info['exhausted'] and (
+                    info['exhausted_date'] - out_of_stock).days <= 2:
                 info['exhausted_soon'] = True
-        except:
+        except:  # noqa
             pass
 
-    return render_to_response('bobdb/estimate_order.html',
-                              {'user': request.user,
-                               'title': "Order Estimatation",
-                               'source': source,
-                               'sources': ProductSource.objects.order_by('description'),
-                               'date_from': date_from,
-                               'date_to': date_to,
-                               'items': items,
-                               'cost': cost,
-                               'out_of_stock': out_of_stock})
+    return render_to_response(
+        'bobdb/estimate_order.html',
+        {'user': request.user,
+         'title': "Order Estimatation",
+         'source': source,
+         'sources': ProductSource.objects.order_by('description'),
+         'date_from': date_from,
+         'date_to': date_to,
+         'items': items,
+         'cost': cost,
+         'out_of_stock': out_of_stock})
+
 
 @inventory_perm_required
 def display_order(request):

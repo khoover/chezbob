@@ -1,0 +1,12 @@
+flask
+flask-cors
+flask-limiter
+psycopg2-binary
+slackclient
+stripe
+python-jose
+sh
+arrow
+aiohttp
+Cython
+-e git+https://github.com/supersat/fprint#egg=fprint-0.1

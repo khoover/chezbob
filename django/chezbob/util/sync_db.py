@@ -4,11 +4,14 @@ Read the transaction data from the traditional Chez Bob database tables, and
 insert daily aggregate amounts into the main finance ledger.
 """
 
-import datetime, time, re, sys
+from __future__ import print_function
+
+import datetime
+
 from decimal import Decimal
 
 from chezbob.finance.models import Account, Split, Transaction, DepositBalances
-from chezbob.cashout.models import Entity, CashOut, CashCount
+from chezbob.cashout.models import Entity, CashOut
 
 dry_run = False
 
@@ -30,21 +33,27 @@ cashout_entity_box = Entity.objects.get(id=2)
 # description, followed by a list of splits to include, as (multiplier,
 # account) pairs.
 auto_transactions = {
-    'deposit':    ["Deposits", (+1, acct_cash), (-1, acct_deposits)],
-    'donate':     ["Donations", (+1, acct_deposits), (-1, acct_donations)],
-    'purchase':   ["Purchases", (+1, acct_deposits), (-1, acct_purchases)],
-    'socialhour': ["Social Hour Donations",
-                   (+1, acct_deposits), (-1, acct_social_donations),
-                   (+1, acct_social_restricted), (-1, acct_bank)],
-    'writeoff':   ["Debt Written Off",
-                   (+1, acct_writeoff), (-1, acct_deposits)],
-    'refund':     ["Refunds", (+1, acct_deposits), (-1, acct_cash)],
+    'deposit': [
+        "Deposits", (+1, acct_cash), (-1, acct_deposits)],
+    'donate': [
+        "Donations", (+1, acct_deposits), (-1, acct_donations)],
+    'purchase': [
+        "Purchases", (+1, acct_deposits), (-1, acct_purchases)],
+    'socialhour': [
+        "Social Hour Donations",
+        (+1, acct_deposits), (-1, acct_social_donations),
+        (+1, acct_social_restricted), (-1, acct_bank)],
+    'writeoff': [
+        "Debt Written Off", (+1, acct_writeoff), (-1, acct_deposits)],
+    'refund': [
+        "Refunds", (+1, acct_deposits), (-1, acct_cash)],
 }
+
 
 def insert_transaction(date, type, amount):
     info = auto_transactions[type]
 
-    print "Insert %s, %s" % (info[0], amount)
+    print("Insert %s, %s" % (info[0], amount))
 
     if dry_run:
         return
@@ -56,8 +65,10 @@ def insert_transaction(date, type, amount):
         s = Split(transaction=t, account=i[1], amount=amt)
         s.save()
 
+
 # A running total of Bank of Bob liabilities (in dollars)
 bob_liabilities = Decimal("0.00")
+
 
 def update_day(date, amounts):
     old_transactions = list(Transaction.objects.filter(date=date,
@@ -110,7 +121,7 @@ def update_day(date, amounts):
             # If the transaction doesn't match what is needed, delete it.  It
             # will then be recreated below.
             if amounts[ty] == 0 or mismatch:
-                print "Deleting", old
+                print("Deleting", old)
                 if not dry_run:
                     old.delete()
                 old = None
@@ -141,7 +152,7 @@ def update_day(date, amounts):
                           WHERE balance < 0""", (date,))
         negative = cursor.fetchone()[0]
 
-        print "Update balances summary: +%s -%s" % (positive, negative)
+        print("Update balances summary: +%s -%s" % (positive, negative))
         # FIXME: Deletion through the database API didn't seem to work (problem
         # with date as a primary key?)
         cursor.execute("DELETE FROM finance_deposit_summary WHERE date=%s",
@@ -152,7 +163,8 @@ def update_day(date, amounts):
     # If there were any transactions found that weren't matched at all, report
     # them
     if old_transactions:
-        print "Unmatched transactions:", old_transactions
+        print("Unmatched transactions:", old_transactions)
+
 
 def sync_day(date):
     global bob_liabilities
@@ -160,12 +172,12 @@ def sync_day(date):
     from django.db import connection
     cursor = connection.cursor()
 
-    print date
+    print(date)
     cursor.execute("""SELECT xactvalue, xacttype FROM transactions
                       WHERE xacttime::date = %s""", (date,))
 
-    (sum_deposit, sum_donate, sum_purchase, sum_socialhour, sum_writeoff, sum_refund) \
-        = tuple([Decimal("0.00")] * 6)
+    (sum_deposit, sum_donate, sum_purchase,
+     sum_socialhour, sum_writeoff, sum_refund) = tuple([Decimal("0.00")] * 6)
 
     for (amt, desc) in cursor.fetchall():
         bob_liabilities += amt
@@ -184,7 +196,7 @@ def sync_day(date):
             sum_writeoff += amt
         elif category == "REFUND":
             sum_refund -= amt
-        elif category == "WITHDRAW":  # Not sure this is the right response here...
+        elif category == "WITHDRAW":  # Is the right response here?
             sum_deposit -= amt
         else:
             raise ValueError("Unknown transaction: " + desc)
@@ -195,6 +207,7 @@ def sync_day(date):
                       'socialhour': sum_socialhour,
                       'writeoff': sum_writeoff,
                       'refund': sum_refund})
+
 
 def sync():
     global bob_liabilities
@@ -212,6 +225,7 @@ def sync():
         sync_day(date)
         date += datetime.timedelta(days=1)
 
+
 def check_cash():
     from django.db import connection
     cursor = connection.cursor()
@@ -228,12 +242,13 @@ def check_cash():
 
     cash_deltas = {'soda': Decimal("0.00"), 'chezbob': Decimal("0.00")}
 
-    print "Starting cash: %s on %s" % (balance, last_date)
-    print
+    print("Starting cash: %s on %s" % (balance, last_date))
+    print()
 
     source_totals = {}
-    for cashout in CashOut.objects.filter(datetime__gte=last_date).order_by('datetime'):
-        print cashout
+    for cashout in CashOut.objects.filter(
+            datetime__gte=last_date).order_by('datetime'):
+        print(cashout)
         cursor.execute("""SELECT source, sum(xactvalue)
                           FROM transactions
                           WHERE (xacttype = 'ADD' OR xacttype = 'REFUND')
@@ -241,10 +256,11 @@ def check_cash():
                           GROUP BY source""",
                        [last_date, cashout.datetime])
         for (source, amt) in cursor.fetchall():
-            print "    Deposit: %s (%s)" % (amt, source)
+            print("    Deposit: %s (%s)" % (amt, source))
             balance += amt
             if source is not None:
-                source_totals[source] = source_totals.get(source, Decimal("0.00")) + amt
+                source_totals[source] = source_totals.get(
+                    source, Decimal("0.00")) + amt
 
         cursor.execute("""SELECT sum(amount)
                           FROM finance_splits s JOIN finance_transactions t
@@ -254,35 +270,36 @@ def check_cash():
                             AND date::timestamp < %s""",
                        [acct_cash.id, last_date, cashout.datetime])
         (other,) = cursor.fetchone()
-        if other is None: other = Decimal("0.00")
+        if other is None:
+            other = Decimal("0.00")
         balance += other
-        print "    Other: %s" % (other,)
+        print("    Other: %s" % (other,))
 
         cashcount = False
         for c in cashout.cashcount_set.all():
-            if c.entity in (cashout_entity_soda, cashout_entity_box) \
-                and c.total > 0:
-                print "  Cash Count: %s (%s)" % (c.total, c.entity.name)
+            if c.entity in (
+                    cashout_entity_soda, cashout_entity_box) and c.total > 0:
+                print("  Cash Count: %s (%s)" % (c.total, c.entity.name))
                 cashcount = True
                 if c.entity == cashout_entity_soda:
                     cash_deltas['soda'] += c.total
                 else:
                     cash_deltas['chezbob'] += c.total
         if cashcount:
-            print "  Expected:"
+            print("  Expected:")
             for (s, t) in source_totals.items():
-                print "    %s %s" % (t, s)
+                print("    %s %s" % (t, s))
                 if s not in cash_deltas:
                     cash_deltas[s] = Decimal("0.00")
                 cash_deltas[s] -= t
             source_totals.clear()
 
-            print "  Cumulative Errors:"
+            print("  Cumulative Errors:")
             for (s, t) in cash_deltas.items():
-                print "    %s %s" % (t, s)
+                print("    %s %s" % (t, s))
 
             if abs(balance) >= 20:
-                print "**********"
-            print "  BALANCE: %s" % (balance,)
+                print("**********")
+            print("  BALANCE: %s" % (balance,))
 
         last_date = cashout.datetime

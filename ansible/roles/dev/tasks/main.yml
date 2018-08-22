@@ -6,6 +6,7 @@
    - python3-pip
    - python-pip
    - postgresql
+   - postgresql-server-dev-9.3
    - python-dev
   tags:
    - initial
@@ -87,7 +88,7 @@
 
 - name: Deploy chezbob config
   sudo: yes
-  template: src=etc/chezbob.json.j2 dest=/etc/chezbob.json
+  template: src=etc/chezbob.json.j2 dest=/etc/chezbob.json owner=sodasrv mode=0644
   tags:
     - initial
 
@@ -96,6 +97,18 @@
   template: src=etc/postgresql/9.3/main/pg_hba.conf.j2 dest=/etc/postgresql/9.3/main/pg_hba.conf
   tags:
     - initial
+
+- name: Stop postgres server
+  sudo: yes
+  service: name=postgresql state=stopped
+  tags:
+      - initial
+
+- name: Start postgres server (to reload pg_hba)
+  sudo: yes
+  service: name=postgresql state=started
+  tags:
+      - initial
 
 - name: Create bob database
   sudo: yes
@@ -118,9 +131,15 @@
   tags:
     - initial
 
-- name: Deploy boo .pgpass
+- name: Deploy bob .pgpass
   sudo: yes
   template: src=home/sodasrv/.pgpass dest=/home/sodasrv/.pgpass owner=sodasrv mode=0600
+  tags:
+    - initial
+
+- name: Deploy remote user .pgpass
+  sudo: yes
+  template: src=home/sodasrv/.pgpass dest="/home/{{ REMOTE_USER }}/.pgpass" owner="{{ REMOTE_USER }}" mode=0600
   tags:
     - initial
 
@@ -128,5 +147,19 @@
   sudo: yes
   sudo_user: postgres
   postgresql_user: name=django
+  tags:
+    - initial
+
+- name: Push devel database
+  sudo: yes
+  sudo_user: "{{ REMOTE_USER }}"
+  copy: src={{ DEVEL_DB }} dest=/home/{{ REMOTE_USER }}/bob_devel.sql
+  tags:
+    - initial
+
+- name: Import devel database
+  sudo: yes
+  sudo_user: "{{ REMOTE_USER }}"
+  shell: psql -U bob bob < ~/bob_devel.sql
   tags:
     - initial
