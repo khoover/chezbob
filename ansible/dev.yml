@@ -2,11 +2,6 @@
 
 # this playbook deploys the chezbob site
 - hosts: soda-dev-machines
-  vars:
-      LOCAL_USER: "dimo"
-      LOCAL_USER_SSH_KEY: "/home/dimo/.ssh/id_rsa.pub"
-      REMOTE_USER: "dev"
-      PATH_TO_REPO: "/home/dimo/projects/chezbob/chezbob"
   roles:
       - dev
       - redis

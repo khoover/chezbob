@@ -69,7 +69,7 @@ exports.mdbFactory = function(port) {
       if (t == undefined)
         throw "Bad coin value " + value + 
                             " must be one of 0.05, 0.1, 0.25"
-      dev.sendStr("P1" + t)
+      dev.sendStr("P1 " + t)
     },
     pressCoinReturn: function() {
       dev.sendStr("W");

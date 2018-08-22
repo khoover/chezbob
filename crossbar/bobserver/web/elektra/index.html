@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+        <script src="/js/autobahn.min.js"></script>
+        <script src="https://chezbob.ucsd.edu/js/jquery-2.2.3.min.js"></script>
+        <script src="elektra.js"></script>
+        <link rel="stylesheet" type="text/css" href="elektra.css" />
+        <title>Elektra Control</title>
+    </head>
+    <body>
+        <div id="overlay">
+            <h2>You must be trained to use this machine.</h2>
+            <p>Already trained? Scan your ID.</p>
+            <!--
+            <ol>
+                <li><strong>Machine on and hot?</strong><br />
+                    <small>If not hot, flush water and wait for the boiler to
+                           stop.</small>
+               </li>
+               <li><strong>Portafilter on grinder fork under funnel?</strong>
+               </li>
+               <li><strong>Scan ID</strong>
+               </li>
+               <li><strong>Select shot size</strong><br />
+                    <small>Grinding begins immediately</small>.
+               </li>
+               <li><strong>Use tamper to pack grinds down.</strong><br />
+                   <small>Put a decent force while keeping grounds even.</small>
+               </li>
+               <li><strong>Lock portafilter into grouphead.</strong>
+               </li>
+               <li><strong>No plastic cups.</strong>
+               </li>
+               <li><strong>Push appropriate button on machine.</strong>
+               </li>
+               <li><strong>"Smack" grounds from portafilter into box.</strong><br />
+                   <small><b>DO NOT</b> dump into sink. </small>
+               </li>
+               <li>
+                   Remove remaining grounds <em>into trash</em>. and clean portafilter 
+                   by flushing, then dry portafilter.
+               </li>
+               <li><strong>Place <em>clean</em> portafilter top of machine.</strong>
+               </li>
+            </ol>
+            -->
+        </div>
+        <div id="title">
+            <p>Elektra Grind Control</p>
+        </div>
+        <div id="btn_panel">
+            <div class="column">
+                <p>
+                    <button class="grinder_btn" duration="10.0" barcode="034707031043">
+                        Espresso, Normale (7g)</button>
+                </p>
+                <p>
+                    <button class="grinder_btn" duration="19.5" barcode="075678356124">
+                        Espresso, Double (17g)</button>
+                </p>
+                <p>
+                    <button class="grinder_btn" duration="10.0" barcode="093624835028">
+                        Latte, Single</button>
+                </p>
+                <p>
+                    <button class="grinder_btn" duration="19.5" barcode="042491500010">
+                        Latte, Double</button>
+               </p>
+            </div>
+            <div class="column">
+                <p>
+                    <button class="dim" onclick="extend_login()">Add time</button>
+                </p>
+                <p>
+                    <button class="dim" onclick="logout()">Log out</button>
+                </p>
+                <p class="label">User: <span id="username"></span></p>
+                <p class="label">Balance: <span id="balance"></span></p>
+                <p class="label">Logging out in <span id="time_remaining"></span>s</p>
+            </div>
+        </div>
+        <div id="snackbar"></div>
+    </body>
+</html>

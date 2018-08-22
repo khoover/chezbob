@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Order Acceptance Status</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+        <link rel="stylesheet" href="css/bigger.css">
+        <script src="https://chezbob.ucsd.edu/js/jquery-2.2.3.min.js"></script>
+        <script src="/js/autobahn.min.js"></script>
+        <script src="js/watcher.js"></script>
+        <script>
+            $(function() {
+                var endpoint;
+                if (document.location.origin == "file://") {
+                   endpoint = "ws://127.0.0.1:8090/ws";
+
+                } else {
+                   endpoint = (document.location.protocol === "http:" ? "ws:" : "wss:") + "//" +
+                       document.location.host + "/ws";
+                }
+
+                var id = "chezbob.accept_order.watcher";
+
+                console.log("Calling init()");
+                watcher.init(endpoint, id);
+                console.log("Called init()");
+            });
+        </script>
+    </head>
+    <body>
+        <h2>Order Acceptance Status</h2>
+        <div id="overlay" class="hidden">
+            Order Complete!
+        </div>
+        <div id="container">
+            <div>
+                <table id="problems">
+                    <tr>
+                        <th colspan="3">Scan</th>
+                        <th colspan="2">Ord</th>
+                        <th>P#</th>
+                        <th>Item</th>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </body>
+</html>

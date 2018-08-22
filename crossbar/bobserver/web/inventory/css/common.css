@@ -1,0 +1,76 @@
+body {
+    width: 100vw;
+}
+
+#disable_body, #incremental_body {
+    text-align: center;
+    width: 90vw;
+    padding: 5vw;
+
+    margin: 0;
+    font-size: 1.5em;
+    height: 85vh;
+    border: 0;
+
+    background-color: #CCFFCC;
+}
+
+#disable_body>div, #incremental_body>div {
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+#disable_body>div.small, #incremental_body>div.small {
+    font-size: .8em;
+}
+
+div.left {
+    text-align: left;
+}
+
+#disable_body.error, #incremental_body.error {
+    background-color: #FFAAAA;
+}
+
+#disable_body.pending, #incremental_body.pending {
+    background-color: #FFFFCC;
+}
+
+#settings_body {
+    padding: 5vh;
+}
+
+#settings_body div {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#settings_body>div {
+    /*width: 95vw;*/
+    margin-bottom: 5vh;
+}
+
+#settings_body .button {
+    width: 40vw;
+    height: 5vh;
+    border: 2px solid #0000aa;
+    background-color: #aaaaff;
+    vertical-align: middle;
+    line-height: 5vh;
+}
+
+#settings_body .button.pending {
+    border-color: #aaaa00;
+    background-color: #ffffaa;
+}
+
+#settings_body .button.success {
+    border-color: #00aa00;
+    background-color: #aaffaa;
+}
+
+#settings_body .button.error {
+    border-color: #aa0000;
+    background-color: #ffaaaa;
+}

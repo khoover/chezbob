@@ -1,0 +1,9 @@
+
+Upstart is the init used on the elderly server that we're trying to replace.
+
+The raspberry pis and the new server use systemd instead.
+
+These should be copied into /etc/init as needed.
+
+Upstart doesn't support symlinks.
+

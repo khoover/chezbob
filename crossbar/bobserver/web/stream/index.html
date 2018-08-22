@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="/js/autobahn.min.js"></script>
+        <script src="https://chezbob.ucsd.edu/js/jquery-2.2.3.min.js"></script>
+        <style>
+body {
+    background-color: black;
+    color: white;
+    font-family: "Helvetica" sans-serif;
+}
+#write_body {
+    text-align: center;
+    font-size: 2em;
+}
+        </style>
+    </head>
+   <body>
+       <div>
+       </div>
+       <div id="write_body"></div>
+       <!--<script>AUTOBAHN_DEBUG = true;</script>-->
+       <script>
+           var NODE_NAME = 'transaction_watch';
+
+           // the URL of the WAMP Router (Crossbar.io)
+           //
+           var wsuri;
+           if (document.location.origin == "file://") {
+              wsuri = "ws://127.0.0.1:8090/ws";
+
+           } else {
+             wsuri = (
+                (document.location.protocol === "http:" ? "ws:" : "wss:") +
+                "//" + document.location.host + "/ws");
+           }
+
+           // the WAMP connection to the Router
+           //
+           var connection = new autobahn.Connection({
+              url: wsuri,
+              realm: "chezbob"
+           });
+
+
+           // timers
+           //
+           var heartbeat, t2;
+
+
+           var write_body;
+
+           function updateScroll(){
+               window.scrollTo(0,document.body.scrollHeight);
+           }
+
+           function on_transaction(args) {
+              var transaction = args[0];
+              console.log("Transaction:", transaction);
+
+              var str;
+              if (transaction.xactvalue > 0) {
+                  str = (
+                      transaction.nickname + " deposited $"
+                      + transaction.xactvalue);
+              }
+              else {
+                  str = (
+                      transaction.nickname + " bought a " + transaction.name
+                      + " for $" + (0 - transaction.xactvalue));
+              }
+              write_body.append(str + "<br />\n");
+              updateScroll();
+           }
+
+           // fired when connection is established and session attached
+           //
+           connection.onopen = function (session, details) {
+               console.log("Connected");
+
+               session.subscribe('chezbob.transaction', on_transaction).then(
+                  function (sub) {
+                     console.log('Subscribed to transactions');
+                  },
+                  function (err) {
+                     console.log('Failed to subscribe to transactions', err);
+                  }
+               );
+
+               heartbeat = setInterval(function () {
+                  session.publish('chezbob.heartbeat', [NODE_NAME]);
+               }, 1000);
+           };
+
+
+           // fired when connection was lost (or could not be established)
+           //
+           connection.onclose = function (reason, details) {
+              console.log("Connection lost: " + reason);
+              if (heartbeat) {
+                 clearInterval(heartbeat);
+                 heartbeat = null;
+              }
+              if (t2) {
+                 clearInterval(t2);
+                 t2 = null;
+              }
+           }
+
+
+           // now actually open the connection
+           //
+           connection.open();
+
+           $(function() {
+               write_body = $("#write_body");
+           });
+
+        </script>
+    </body>
+</html>

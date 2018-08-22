@@ -1,0 +1,6 @@
+
+This is the API that's exposed at /api on the public web.
+
+It probably leaks data that we don't want to leak. A good TODO is to decide
+whether we want to remove some functionality, or at a minimum, rate limit.
+

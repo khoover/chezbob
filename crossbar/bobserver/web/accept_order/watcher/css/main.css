@@ -1,0 +1,126 @@
+body {
+    color: white;
+    background-color: black;
+    font-family: "Arial", sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+button {
+    /*border: 1px solid white;*/
+    /*background-color: #333;*/
+    border: 0px;
+    background-color: black;
+    vertical-align: middle;
+    display: block;
+    margin: auto;
+    color: #777;
+    /*border-radius: 10px;*/
+    padding: 0;
+}
+
+.hidden {
+    display: none;
+}
+
+#overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    padding-top: 40vh;
+    background-color: black;
+    z-index: 100;
+    text-align: center;
+    font-size: 5em;
+}
+
+#container {
+    width: 100vw;
+    position: absolute;
+    height: 100vh;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+#container div {
+    overflow: scroll;
+    overflow-x: hidden;
+    margin: auto;
+    width: 100vw;
+    font-size: 1.5em;
+}
+
+
+#container table {
+    margin: auto;
+    border-collapse: collapse;
+    width: 45vw;
+}
+
+#container td {
+    border-bottom: 1px solid white;
+    padding-left: 1vw;
+    padding-right: 1vw;
+    text-align: center;
+    width: 1px;
+}
+
+#container th {
+    border-bottom: 1px solid white;
+    width: 1px;
+}
+
+h2 {
+    text-align: center;
+    border-bottom: 1px solid white;
+    width: 90vw;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: .4vh;
+    margin-top: 1vh;
+    font-size: 2em;
+}
+
+/*#container td:nth-child(1) {
+    min-width: 80px;
+    padding: 0;
+}*/
+
+#container td:nth-child(1) {
+}
+
+#container td:nth-child(2) {
+    padding: 0;
+}
+
+#container td:nth-child(4) {
+    padding-right: 0;
+}
+
+#container td:nth-child(6) {
+    /*width: 4%;*/
+    text-align: right;
+}
+
+#container td:nth-child(7) {
+    width: 50%;
+    /*max-width: 50%;*/
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.error {
+    background-color: #AA2222;
+}
+
+.error button {
+    background-color: #AA2222;
+    color: #A99;
+}
+

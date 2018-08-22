@@ -74,9 +74,9 @@ if (argv.db) {
 } else {
   db_conf = {
     "type": "postgres",
-    "dbhost": "localhost",
-    "dbname": "bob",
-    "dbuser": "bob"
+    "host": "localhost",
+    "name": "bob",
+    "user": "bob"
   }  
 
   sql = new sequelize("bob", "bob", "", {
@@ -170,7 +170,7 @@ function startServer(name, path) {
     childIO = "ignore";
   }
 
-  var srv = spawn("nodejs", [path, jsonPath], {stdio: childIO});
+  var srv = spawn("node", [path, jsonPath], {stdio: childIO});
   srv.on("exit", function(code, sig) { die("Server %s died!", name); })
 
   if (argv.logs == "terminal") {

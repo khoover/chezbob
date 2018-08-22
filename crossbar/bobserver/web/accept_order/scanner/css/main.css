@@ -1,0 +1,39 @@
+body {
+    font-family: "Arial", sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+#container {
+    text-align: center;
+    width: 100vw;
+    position: absolute;
+    height: 100vh;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+}
+
+#header {
+    font-size: 4em;
+    margin-bottom: 5vh;
+    margin-top: auto;
+}
+
+#details {
+    font-size: 2em;
+    margin-bottom: auto;
+}
+
+#container.success {
+    background-color: #aaffaa;
+}
+
+#container.error {
+    background-color: #ffaaaa;
+}
+
+#container.warning {
+    background-color: #ffffaa;
+}
