@@ -200,7 +200,7 @@ class mdb_server {
     //if prefix is a string, assumes callback does not expect the prefix
     //if prefix is an array, gives the matched prefix back along with the message; no prefix should match any other
     makeMessageListener (prefix: string | string[], callback: (message: string, prefix?: string) => void): (message: string) => void {
-        if (typeof prefix === "string" {
+        if (typeof prefix === "string") {
             return (message) => {
                 if (message.startsWith(prefix)) { callback(message) }
             };
@@ -360,10 +360,10 @@ class mdb_server {
                         }));
                         //add listener for coin deposit messages
                         this.port.on('message', this.makeMessageListener('P1', (message: string) => {
-                        });
+                        }));
                         //add listener for logout button
                         this.port.on('message', this.makeMessageListener('W', () => {
-                        });
+                        }));
                     }
                     else
                     {
