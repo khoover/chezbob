@@ -88,9 +88,9 @@ class InitData {
         async.series([
                     this.prepareLogs,
                     this.loadVersion,
-                    function (err, res)
+                    (err, res) =>
                     {
-                        cb(null, initdata);
+                        cb(null, this);
                     }
                 ]);
     }
@@ -125,7 +125,7 @@ class mdb_server {
     accepting: boolean; //should the mdb server be accepting deposits
 
     disableAcceptance (cb = err => { }): void {
-        if (accepting) {
+        if (this.accepting) {
         }
     }
 
@@ -137,18 +137,15 @@ class mdb_server {
             cb => {
                 //have a set number of retries for if the P1 returns Z
                 var retries: number = 2;
-                var sr_callback: (err: any, message?: string, prefix?: string) => null = (err, msg, prefix) => {
+                var sr_callback: (err: any, message?: string, prefix?: string) => void = (err, msg, prefix) => {
                     if (err) return cb(err);
                     if (prefix === 'I' && msg === 'I 1') return cb(null, msg);
-                    if (prefix === 'X') {
-                        cb('R1 -> ' + msg);
+                    if (prefix === 'X') return cb('R1 -> ' + msg);
+                    if (retries > 0) {
+                        retries = retries - 1;
+                        setTimeout(this.sendread.bind(this, 'P1', ['X', 'Z', 'I', 'P1', 'P2', 'P3', 'W', 'G'], sr_callback), 400);
                     } else {
-                        if (retries > 0) {
-                            retries = retries - 1;
-                            setTimeout(this.sendread.bind(this, 'P1', ['X', 'Z', 'I', 'P1', 'P2', 'P3', 'W', 'G'], sr_callback), 400);
-                        } else {
-                            cb('The R1 message was dropped.');
-                        }
+                        return cb('The R1 message was dropped.');
                     }
                 };
                 this.sendread('P1', ['X', 'Z', 'I', 'P1', 'P2', 'P3', 'W', 'G'], sr_callback);
@@ -160,18 +157,15 @@ class mdb_server {
             cb => {
                 //have a set number of retries for if the P1 returns Z
                 var retries: number = 2;
-                var sr_callback: (err: any, message?: string, prefix?: string) => null = (err, msg, prefix) => {
+                var sr_callback: (err: any, message?: string, prefix?: string) => void = (err, msg, prefix) => {
                     if (err) return cb(err);
                     if (prefix === 'I' && msg === 'I 2') return cb(null, msg);
-                    if (prefix === 'X') {
-                        cb('R2 -> ' + msg);
+                    if (prefix === 'X') return cb('R2 -> ' + msg);
+                    if (retries > 0) {
+                        retries = retries - 1;
+                        setTimeout(this.sendread.bind(this, 'P2', ['X', 'Z', 'I', 'Q1', 'Q2', 'Q3', 'Q4'], sr_callback), 400);
                     } else {
-                        if (retries > 0) {
-                            retries = retries - 1;
-                            setTimeout(this.sendread.bind(this, 'P2', ['X', 'Z', 'I', 'Q1', 'Q2', 'Q3', 'Q4'], sr_callback), 400);
-                        } else {
-                            cb('The R1 message was dropped.');
-                        }
+                        return cb('The R1 message was dropped.');
                     }
                 };
                 this.sendread('P2', ['X', 'Z', 'I', 'Q1', 'Q2', 'Q3', 'Q4'], sr_callback);
@@ -179,7 +173,7 @@ class mdb_server {
             this.sendread.bind(this, 'L FFFF', 'Z'),
             this.sendread.bind(this, 'V 0000', 'Z'),
             this.sendread.bind(this, 'J FFFF', 'Z'),
-            function (cb) { this.sendread("S7", cb); },
+            this.sendread.bind(this, 'S7', 'S7'),
             // Enables bill and coin acceptance.
             this.sendread.bind(this, 'E1', 'Z'),
             this.sendread.bind(this, 'E2', 'Z')
@@ -396,19 +390,18 @@ class mdb_server {
 
                     var server = jayson.server(
                             {
-                                "Mdb.command": jayson.Method((argobj: Object, callback) => {
+                                "Mdb.command": jayson.Method((argobj: {command: string, response_prefixes: string | string[]}, callback) => {
                                     //type checking
                                     if (typeof argobj.command !== "string" ||
                                            (typeof argobj.response_prefixes !== "string" &&
                                                (!Array.isArray(argobj.response_prefixes) ||
-                                                argobj.response_prefixes.any(s => typeof s !== "string")))) return callback(server.error(-32602));
+                                                argobj.response_prefixes.some(s => typeof s !== "string")))) return callback(server.error(-32602));
                                     const command: string = argobj.command;
                                     if (command === '') return callback(server.error(-32602, 'Empty command given.'));
                                     log.debug("remote request: " + command);
                                     if (command.includes('\r')) return callback(server.error(-32602, 'Multiple commands in single request.'));
-                                    const prefixes: string = argobj.response_prefixes;
 
-                                    this.sendread(command, prefixes, (err, message) => {
+                                    this.sendread(command, argobj.response_prefixes, (err, message) => {
                                         if (err) {
                                             if (typeof err === "string" && err === "timeout") {
                                                 callback(server.error(504, 'Serial port communication timed out.'));
