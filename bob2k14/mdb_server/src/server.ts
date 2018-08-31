@@ -358,6 +358,9 @@ class mdb_server {
                         //add listener for logout button
                         this.port.on('message', this.makeMessageListener('W', () => {
                         }));
+                        //add listener for error messages, just reports it to the logger (in case nothing else is listening for an error)
+                        this.port.on('message', this.makeMessageListener('X', (message: string) => {
+                        }));
                     }
                     else
                     {
